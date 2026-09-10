@@ -29,15 +29,71 @@
      b · NE YAPMALIYIM — `eylem` verilmiş mi. Eylemsiz bir boş durum,
          kullanıcıyı ekranda bırakır.
 
+   ── ÜÇ YÜZEY TARANIR ──────────────────────────────────────────────────
+   İlk yazımda yalnız `<BosIlk>` taranıyordu ve bu bir KÖRLÜKTÜ: bağımsız
+   inceleme (PR #51, tur 1) evrenin ~%62'sinin görülmediğini ölçtü —
+   `<BosFiltre />` (yirmi beş çağrı) ve satır içi `className="bos"`
+   metinleri (yirmi) kütükte HİÇ YOKTU ve üçü de "neden" ölçütünü
+   geçmiyordu. Aracın kendi başlığındaki `/tesisler` örneği bile kütükte
+   yoktu — yani kapı, var oluş sebebini ölçemiyordu. Aynı sınıf #50'de de
+   çıkmıştı (R-F türeticisi yalnız `app/`e bakıyordu): türetici körse
+   cırcır, GÖREBİLDİĞİ kadarını sıfır kusur diye raporlar.
+
+   Bugün üç yüzey de taranır:
+
+     BosIlk     — çağrı başına bir satır; cümle çağrıda yazılıdır.
+     BosFiltre  — TANIM başına bir satır. Cümle bileşenin İÇİNDE, bir
+                  kez yazılıdır; yirmi beş çağrıyı ayrı satır saymak
+                  cırcırı cümle değil ÇAĞRI sayar hâle getirir ve tek bir
+                  düzeltme yirmi beş düzeltme gibi görünürdü. Çağrı
+                  sayısı satırda `cagri` alanında yazılıdır — sıfıra
+                  düşerse satır ölür ve kapı bunu görür.
+     satırIçi   — `<p className="bos">` / `<span className="bos">`.
+
+   SINIRI: satır içi yüzeyde "eylem" bir bileşen özniteliği değil,
+   gövdedeki gerçek bir bağdır (`<Link` · `<Dugme` · `href=` · `onClick`).
+   "İyi haber" de aynı yerden okunur: `className="bos iyi"`. İkisi de
+   KODDAN gelir, kütükten değil — elle işaretlenemez.
+
    ── SINIR AÇIKÇA YAZILIDIR ────────────────────────────────────────────
    Kapı cümlenin bir şey SÖYLEDİĞİNİ ölçer, söylediğinin DOĞRU olduğunu
    değil — R-D ve R-F'te kabul edilmiş aynı sınır. Doğruluk incelemenin
    ve provanın işidir; "kapı yeşil" onu doğrulanmış saymaz.
 
-   Kullanım: node arac/bos-durum-kutugu.mjs [--yaz]
+   İKİNCİ SINIR AYNI CÜMLEDEN GELİR VE BEYANLIDIR: "neden" ölçütü
+   YAPISALDIR, iki kelimelik bir kuyruk onu geçer —
+
+       nedenSoyluyor('Tanımlı eğitim yok. Böyle işte.')  → true
+
+   ve bu bir kaçış kapısıdır. Bağımsız inceleme (PR #51, tur 1) haklı
+   olarak işaretledi. UZUNLUK EŞİĞİ DENENDİ VE GERİ ALINDI, çünkü ölçüldü:
+   16 karakterlik bir alt sınır, sebebini GERÇEKTEN söyleyen
+   "…kaynak sistem yok — duruş ölçülmedi." satırını kırmızı yakıyordu
+   ("duruş ölçülmedi" = 15 karakter), oysa kaçamağın kendisi ("Böyle
+   işte" = 10) yalnız beş karakter aşağıdaydı. Yani eşik, doğru cümleyi
+   cezalandırıp yanlış cümleyi durdurmuyordu — ölçütü değil kütüğü
+   değiştiren bir eşiktir.
+
+   Sınır bu yüzden KAPATILMADI, YAZILDI: kapı cümlenin BİR ŞEY
+   söylediğini ölçer; söylediğinin işe yaradığını okuyan insandır. Aynı
+   kabul edilmiş sınır R-D §1.10'da da yazılıdır. Sınırın kendisi bir
+   vakayla ölçülür (`bekci/bos-durum.test.ts`): iki kelimelik kuyruk
+   GEÇER — beyan ile ölçüm ayrışırsa kapı kırmızıdır.
+
+   ── POPÜLASYON TABANI ─────────────────────────────────────────────────
+   Sayı raporlayan her kapı bir ölçüm tabanı taşır ve bu kapı da taşır
+   (`bos.durum`, `arac/olcum-tabani.json`). Taban testin içine sabit
+   yazılırsa şu geçer (bağımsız inceleme, PR #51 tur 1): satırların bir
+   kısmı başka bir sarmalayıcıya taşınır, ölü satır kontrolü `--yaz` ile
+   susturulur, `nedensiz` doğal olarak düşer ve cırcır "yalnız küçüldü"
+   der — hiçbir kusur düzelmemiştir. Taban ancak ÖLÇÜMLE ve DOSYAYA
+   yazılan bir gerekçeyle iner.
+
+   Kullanım: node arac/bos-durum-kutugu.mjs [--yaz] [--taban-yaz --sebep="..."]
    ═══════════════════════════════════════════════════════════════════════ */
 import { readdirSync, readFileSync, writeFileSync } from 'node:fs';
 import path from 'node:path';
+import { sebepBayragi, tabanDogrula, tabanYaz } from './olcum-tabani.mjs';
 
 const KOK = process.cwd();
 const TARANAN = ['app', 'components'];
@@ -126,14 +182,130 @@ export function nedenSoyluyor(metin) {
   return dolu.length >= 2;
 }
 
-export function turet() {
+/** Taranan dosyaların (yol, içerik) listesi. */
+export function dosyalar() {
   const cikan = [];
   for (const kok of TARANAN) {
     for (const f of readdirSync(path.join(KOK, kok), { recursive: true }).map(String)) {
       if (!/\.tsx$/.test(f) || /\.test\.tsx$/.test(f)) continue;
       const rel = `${kok}/${f}`;
-      const kod = readFileSync(path.join(KOK, rel), 'utf8');
-      if (!kod.includes('<BosIlk')) continue;
+      cikan.push({ yer: rel, kod: readFileSync(path.join(KOK, rel), 'utf8') });
+    }
+  }
+  return cikan;
+}
+
+/** `<p className="bos…">…</p>` / `<span …>` gövdelerini çıkarır.
+    İç içe aynı etiket sayılır; kapanışı bulamazsa satır atlanmaz —
+    gövde dosyanın sonuna kadar alınır ve cümle boş çıkarsa zaten
+    kütüğe girmez. */
+export function satirIciBul(kod) {
+  const cikan = [];
+  const kalip = /<(p|span)\s+className="bos([^"]*)"\s*>/g;
+  let m;
+  while ((m = kalip.exec(kod)) !== null) {
+    const etiket = m[1];
+    const ac = new RegExp(`<${etiket}[\\s>]`, 'g');
+    const kapa = new RegExp(`</${etiket}>`, 'g');
+    let i = m.index + m[0].length;
+    let derinlik = 1;
+    while (derinlik > 0 && i < kod.length) {
+      ac.lastIndex = i; kapa.lastIndex = i;
+      const a = ac.exec(kod); const k = kapa.exec(kod);
+      if (!k) { i = kod.length; break; }
+      if (a && a.index < k.index) { derinlik += 1; i = a.index + a[0].length; continue; }
+      derinlik -= 1; i = k.index + k[0].length;
+    }
+    cikan.push({
+      konum: m.index,
+      sinif: `bos${m[2]}`,
+      govde: kod.slice(m.index + m[0].length, i),
+    });
+  }
+  return cikan;
+}
+
+/** Bir JSX ifadesi SEÇİM mi (yalnız dize seçen bir ifade) yoksa
+    HESAP mı (çağrı, alan erişimi, aritmetik)? Seçimse cümle oradadır ve
+    okunmalıdır: `{secili ? 'bağlı kayıt yok' : 'kayıt yok'}` bir boş
+    durum cümlesidir, `{t(sozluk, 'tesis')}` ise bir terim yerleşimidir.
+    Ayrım YAPISALDIR: seçimde dizelerin dışında yalnız koşul işleçleri
+    ve boşluk kalır. */
+export function ifadeSecim(ifade) {
+  const kalan = ifade.replace(/'[^'\\]*'|"[^"\\]*"|`[^`\\]*`/g, '')
+    .replace(/[?:()&|!\s]/g, '').replace(/[A-Za-zÇĞİÖŞÜçğıöşü0-9_.]+/g, '');
+  return kalan === '' && /['"`]/.test(ifade);
+}
+
+/** Satır içi gövdeden okunabilir metin. Dize SEÇEN ifadeler açılır,
+    HESAPLAYAN ifadeler "…" olur, etiketler düşer, `{' '}` boşluğa iner. */
+export function satirIciMetin(govde) {
+  return govde
+    .replace(/\{'\s*'\}/g, ' ')
+    .replace(/\{([^{}]*)\}/g, (_, ic) => (ifadeSecim(ic) ? cumleMetni(ic) : '…'))
+    .replace(/<[^>]*>/g, ' ')
+    .replace(/…(\s*…)+/g, '…')
+    .replace(/\s+/g, ' ')
+    .trim();
+}
+
+/** Satır içi yüzeyde EYLEM: gövdede gerçek bir bağ ya da düğme var mı.
+    Öznitelik yok, bu yüzden kod okunur — kütükten işaretlenemez. */
+export function satirIciEylem(govde) {
+  return /<Link\b|<Dugme\b|\bhref=|\bonClick=/.test(govde);
+}
+
+/** `BosFiltre` bileşeninin TANIMI: cümlesi, eylemi ve çağrı sayısı. */
+export function bosFiltreSatiri(hepsi) {
+  const tanimlayan = hepsi.find((d) => /export function BosFiltre\b/.test(d.kod));
+  if (!tanimlayan) return null;
+  const bas = tanimlayan.kod.indexOf('export function BosFiltre');
+  /* Gövde: bir sonraki üst düzey `export function`a kadar. */
+  const sonrasi = tanimlayan.kod.slice(bas + 1);
+  const bit = sonrasi.search(/\nexport (function|const) /);
+  const govde = bit === -1 ? sonrasi : sonrasi.slice(0, bit);
+  const cumle = satirIciMetin(
+    (/<p className="cumle">([\s\S]*?)<\/p>/.exec(govde) ?? [, ''])[1]);
+  if (!cumle) return null;
+  const cagri = hepsi.reduce(
+    (t, d) => t + (d.kod.match(/<BosFiltre[\s/>]/g) ?? []).length, 0);
+  return {
+    yer: tanimlayan.yer,
+    satir: tanimlayan.kod.slice(0, bas).split('\n').length,
+    tur: 'BosFiltre',
+    cagri,
+    cumle: cumle.slice(0, 300),
+    iyiHaber: false,
+    neden: nedenSoyluyor(cumle),
+    eylem: satirIciEylem(govde),
+  };
+}
+
+export function turet() {
+  const cikan = [];
+  const hepsi = dosyalar();
+  const filtre = bosFiltreSatiri(hepsi);
+  if (filtre) cikan.push(filtre);
+  for (const { yer: rel, kod } of hepsi) {
+    /* Satır içi yüzey: `<p className="bos">` / `<span className="bos">`.
+       `bos iyi` sınıfı BEKLENEN YOKLUK demektir ve eylem istemez —
+       bayrak koddan gelir, kütükten değil. */
+    for (const c of satirIciBul(kod)) {
+      const metin = satirIciMetin(c.govde);
+      if (!metin || metin === '…') continue;
+      const iyiHaber = /\biyi\b/.test(c.sinif);
+      cikan.push({
+        yer: rel,
+        satir: kod.slice(0, c.konum).split('\n').length,
+        tur: 'satirIci',
+        cumle: metin.slice(0, 300),
+        iyiHaber,
+        neden: nedenSoyluyor(metin),
+        eylem: iyiHaber || satirIciEylem(c.govde),
+      });
+    }
+    if (!kod.includes('<BosIlk')) continue;
+    {
       for (const c of cagrilariBul(kod)) {
         const metin = cumleMetni(ozellik(c.govde, 'cumle'));
         if (!metin) continue;
@@ -148,6 +320,7 @@ export function turet() {
         cikan.push({
           yer: rel,
           satir: kod.slice(0, c.konum).split('\n').length,
+          tur: 'BosIlk',
           cumle: metin.slice(0, 300),
           iyiHaber,
           neden: nedenSoyluyor(metin),
@@ -156,21 +329,46 @@ export function turet() {
       }
     }
   }
-  return cikan.sort((a, b) => (a.yer + a.satir).localeCompare(b.yer + b.satir, 'tr'));
+  return cikan.sort((a, b) => `${a.yer}:${String(a.satir).padStart(6, '0')}`
+    .localeCompare(`${b.yer}:${String(b.satir).padStart(6, '0')}`, 'tr'));
 }
 
 export function kutuguOku() { return JSON.parse(readFileSync(KUTUK, 'utf8')); }
+
+/** Sınıf başına tavanlar. Tek bir toplam tavan, sıkı bir sınıfın
+    (ör. `BosIlk`, eylemsiz = 0) gevşek bir sınıfın borcuyla
+    karışmasına izin verir: `BosIlk`e eylemsiz bir satır eklenir,
+    `satirIci`den biri düzelir ve toplam DEĞİŞMEZ. Tavan sınıf başına
+    tutulunca bu takas imkânsızdır. */
+export const SINIFLAR = ['BosIlk', 'BosFiltre', 'satirIci'];
+
+export function sinifTavanlari(bulunan) {
+  const t = {};
+  for (const s of SINIFLAR) {
+    const k = bulunan.filter((b) => b.tur === s);
+    t[s] = { nedensiz: k.filter((b) => !b.neden).length, eylemsiz: k.filter((b) => !b.eylem).length };
+  }
+  return t;
+}
 
 if (process.argv[1] && /bos-durum-kutugu\.mjs$/.test(process.argv[1])) {
   const bulunan = turet();
   const ikisi = bulunan.filter((b) => b.neden && b.eylem);
   const nedensiz = bulunan.filter((b) => !b.neden);
   const eylemsiz = bulunan.filter((b) => !b.eylem);
+  if (process.argv.includes('--taban-yaz')) {
+    const { onceki, yeni } = tabanYaz('bos.durum', bulunan.length,
+      { sebep: sebepBayragi(process.argv) });
+    console.log(`taban yazıldı: bos.durum ${onceki ?? '—'} → ${yeni}`);
+  } else {
+    tabanDogrula('bos.durum', bulunan.length);
+  }
   if (process.argv.includes('--yaz')) {
     const eski = (() => { try { return kutuguOku(); } catch { return {}; } })();
     writeFileSync(KUTUK, `${JSON.stringify({
       not: 'Boş durum kütüğü. Satırlar arac/bos-durum-kutugu.mjs ile TÜRETİLİR, elle yazılmaz.',
       tavanlar: { nedensiz: nedensiz.length, eylemsiz: eylemsiz.length },
+      sinifTavanlari: sinifTavanlari(bulunan),
       tavanGerekceleri: eski.tavanGerekceleri ?? [],
       istisnalar: eski.istisnalar ?? [],
       satirlar: bulunan,
@@ -182,4 +380,8 @@ if (process.argv[1] && /bos-durum-kutugu\.mjs$/.test(process.argv[1])) {
   for (const b of nedensiz) console.log(`  NEDEN YOK  ${b.yer}:${b.satir} :: ${b.cumle.slice(0, 80)}`);
   for (const b of eylemsiz) console.log(`  EYLEM YOK  ${b.yer}:${b.satir} :: ${b.cumle.slice(0, 80)}`);
   console.log(`  (iyi haber boş durumu: ${bulunan.filter((b) => b.iyiHaber).length} — eylem istemez)`);
+  for (const [ad, t] of Object.entries(sinifTavanlari(bulunan))) {
+    const k = bulunan.filter((b) => b.tur === ad).length;
+    console.log(`  ${ad}: ${k} satır · nedensiz ${t.nedensiz} · eylemsiz ${t.eylemsiz}`);
+  }
 }

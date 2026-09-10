@@ -2,9 +2,40 @@
   "not": "Boş durum kütüğü. Satırlar arac/bos-durum-kutugu.mjs ile TÜRETİLİR, elle yazılmaz.",
   "tavanlar": {
     "nedensiz": 1,
-    "eylemsiz": 0
+    "eylemsiz": 11
   },
-  "tavanGerekceleri": [],
+  "sinifTavanlari": {
+    "BosIlk": {
+      "nedensiz": 1,
+      "eylemsiz": 0
+    },
+    "BosFiltre": {
+      "nedensiz": 0,
+      "eylemsiz": 0
+    },
+    "satirIci": {
+      "nedensiz": 0,
+      "eylemsiz": 11
+    }
+  },
+  "tavanGerekceleri": [
+    {
+      "alan": "BosIlk.nedensiz",
+      "eski": 1,
+      "yeni": 1,
+      "sahip": "KODLAYAN",
+      "kapanisAsamasi": "P3 · mesaj kataloğu (arayüz metinleri sözlükten gelir; türetici o gün kütükten okur)",
+      "gerekce": "Cümle bir FONKSİYONDAN dönüyor (`katalogBoslukCumlesi`): türetici JSX metin sabitini okur, çağrılan bir fonksiyonun çalışma anındaki çıktısını okuyamaz. Kusur cümlede DEĞİL, türeticinin görüş alanındadır; cümlenin üç hâli de iki yan tümce taşır ve ölçümü `istisnalar` altında adıyla beyanlıdır."
+    },
+    {
+      "alan": "satirIci.eylemsiz",
+      "eski": 11,
+      "yeni": 11,
+      "sahip": "KODLAYAN",
+      "kapanisAsamasi": "P3 · ekran arketipi turu (envanter · duruş · yönetişim · karne ekranlarının bölüm notları tek geçişte gözden geçirilir)",
+      "gerekce": "Bu on bir satır EKRANIN YERİNE GEÇEN bir boşluk değil, dolu bir ekranın İÇİNDEKİ bölüm notudur (`<p className=\"bos\">`). Her birine bir gezinme bağı koymak kullanıcıyı çalıştığı ekrandan koparır ve etkileşim sadeleştirmenin 'minimum gereksiz gezinme' ölçütünü ihlal eder; hangi notun gerçekten bir bağ hak ettiği ekran ekran bir tasarım kararıdır ve arketip turunda verilir. On birinin de NEDEN ölçütü GEÇİYOR: kullanıcı boşluğun sebebini görüyor, yalnız bir sonraki adımı görmüyor."
+    }
+  ],
   "istisnalar": [
     {
       "yer": "app/(kabuk)/(operasyonel)/regulasyonlar/RegulasyonlarIstemci.tsx",
@@ -18,8 +49,81 @@
   ],
   "satirlar": [
     {
+      "yer": "app/(kabuk)/(flagship)/Genel.tsx",
+      "satir": 247,
+      "tur": "satirIci",
+      "cumle": "Kapsamınızda tesis yok — uyum katmanları tesis kayıtlarından türetilir. tesis tanımla →",
+      "iyiHaber": false,
+      "neden": true,
+      "eylem": true
+    },
+    {
+      "yer": "app/(kabuk)/(flagship)/Genel.tsx",
+      "satir": 577,
+      "tur": "satirIci",
+      "cumle": "Kapsamınızdaki tesislerde açık bulgu yok; müdahale bekleyen kayıt bulunmuyor. Açık bulgu yok; müdahale bekleyen kayıt bulunmuyor.",
+      "iyiHaber": true,
+      "neden": true,
+      "eylem": true
+    },
+    {
+      "yer": "app/(kabuk)/(flagship)/Genel.tsx",
+      "satir": 698,
+      "tur": "satirIci",
+      "cumle": "Kapsamınızda tesis yok — uyum tuvali tesis kayıtlarından çizilir. tesis tanımla →",
+      "iyiHaber": false,
+      "neden": true,
+      "eylem": true
+    },
+    {
+      "yer": "app/(kabuk)/(flagship)/tesisler/[id]/Tesis360.tsx",
+      "satir": 212,
+      "tur": "satirIci",
+      "cumle": "Bu … değerlendirilmiş kontrol yok — … bir uyum kampanyasına alındığında kontroller burada görünür. Uyum kampanyaları →",
+      "iyiHaber": false,
+      "neden": true,
+      "eylem": true
+    },
+    {
+      "yer": "app/(kabuk)/(flagship)/tesisler/[id]/Tesis360.tsx",
+      "satir": 242,
+      "tur": "satirIci",
+      "cumle": "Bu … açık risk kaydı yok. Risk kütüğüne bu … için hiç kayıt açılmamış olması da bir olasılıktır. Risk kütüğü →",
+      "iyiHaber": false,
+      "neden": true,
+      "eylem": true
+    },
+    {
+      "yer": "app/(kabuk)/(flagship)/tesisler/[id]/Tesis360.tsx",
+      "satir": 280,
+      "tur": "satirIci",
+      "cumle": "Bu … için kayıtlı sistem yok — varlıklar envanterde bir sisteme bağlandığında burada kritiklik sırasıyla listelenir. Envanteri aç →",
+      "iyiHaber": false,
+      "neden": true,
+      "eylem": true
+    },
+    {
+      "yer": "app/(kabuk)/(flagship)/tesisler/[id]/Tesis360.tsx",
+      "satir": 316,
+      "tur": "satirIci",
+      "cumle": "Kayıtlı … yok — bu … için operasyonel birim tanımlanmamış.",
+      "iyiHaber": false,
+      "neden": true,
+      "eylem": false
+    },
+    {
+      "yer": "app/(kabuk)/(flagship)/tesisler/[id]/Tesis360.tsx",
+      "satir": 350,
+      "tur": "satirIci",
+      "cumle": "Açık bulgu yok; bu … için kapatılmamış denetim bulgusu bulunmuyor.",
+      "iyiHaber": true,
+      "neden": true,
+      "eylem": true
+    },
+    {
       "yer": "app/(kabuk)/(operasyonel)/aktivite/AktiviteIstemci.tsx",
       "satir": 196,
+      "tur": "BosIlk",
       "cumle": "Kapsamınızda denetim izi kaydı yok — bu kapsamda henüz hiçbir değişiklik yapılmamış. Denetim izi kütüğünde kayıt yok — henüz hiçbir değişiklik yapılmamış.",
       "iyiHaber": true,
       "neden": true,
@@ -28,6 +132,7 @@
     {
       "yer": "app/(kabuk)/(operasyonel)/api-sozlesmesi/ApiSozlesmesiIstemci.tsx",
       "satir": 114,
+      "tur": "BosIlk",
       "cumle": "Uç kütüğü boş — sözleşmede tanımlı hiçbir uç yok. Anahtar kütüğü yönetim tezgâhındadır.",
       "iyiHaber": false,
       "neden": true,
@@ -36,6 +141,7 @@
     {
       "yer": "app/(kabuk)/(operasyonel)/ayarlar/kimlik/KimlikAyarlariIstemci.tsx",
       "satir": 92,
+      "tur": "BosIlk",
       "cumle": "Kurum kimlik sağlayıcısı tanımlı değil. Giriş yalnız yerel hesapla yapılır; bu bir kusur değil, kurulumun mevcut hâlidir.",
       "iyiHaber": false,
       "neden": true,
@@ -44,6 +150,7 @@
     {
       "yer": "app/(kabuk)/(operasyonel)/bildirimler/BildirimlerIstemci.tsx",
       "satir": 99,
+      "tur": "BosIlk",
       "cumle": "Bu kutu yalnız SİZE yazılan bildirimleri gösterir. Boş olması \"sistemde uyarı yok\" demek değildir: son tarih motoru bildirimi yalnız kaydın SORUMLUSUNA yazar, sorumlusu olmayan kayıt için görev açar ama bildirim üretmez.",
       "iyiHaber": false,
       "neden": true,
@@ -52,6 +159,7 @@
     {
       "yer": "app/(kabuk)/(operasyonel)/bulgular/[id]/BulguDetayIstemci.tsx",
       "satir": 249,
+      "tur": "BosIlk",
       "cumle": "Bu bulgu için aksiyon planlanmadı. Aksiyonsuz bir bulgu kapanamaz: kapanış yapılan işin kaydına dayanır, beyana değil.",
       "iyiHaber": false,
       "neden": true,
@@ -60,6 +168,7 @@
     {
       "yer": "app/(kabuk)/(operasyonel)/bulgular/BulgularIstemci.tsx",
       "satir": 310,
+      "tur": "BosIlk",
       "cumle": "Kapsamınızda bulgu kaydı yok. Açık bulgu yok.",
       "iyiHaber": false,
       "neden": true,
@@ -68,6 +177,7 @@
     {
       "yer": "app/(kabuk)/(operasyonel)/degerlendirme-aktarim/DegerlendirmeAktarimIstemci.tsx",
       "satir": 122,
+      "tur": "BosIlk",
       "cumle": "Değerlendirme aktarımı kaydı yok. Bir kuru koşu, hiçbir değerlendirmeye dokunmadan ne olacağını hesaplar.",
       "iyiHaber": false,
       "neden": true,
@@ -76,6 +186,7 @@
     {
       "yer": "app/(kabuk)/(operasyonel)/denetci-erisimi/DenetciErisimiIstemci.tsx",
       "satir": 122,
+      "tur": "BosIlk",
       "cumle": "Tanımlı dış denetçi erişimi yok. Dış denetçi erişimi süreli ve kapsamlıdır; tanımlanmadan hiçbir dış hesap kayıt göremez.",
       "iyiHaber": false,
       "neden": true,
@@ -84,6 +195,7 @@
     {
       "yer": "app/(kabuk)/(operasyonel)/denetimler/[id]/DenetimDetayIstemci.tsx",
       "satir": 217,
+      "tur": "BosIlk",
       "cumle": "Bu denetim için kanıt talebi açılmadı. Talep açılmadan denetçinin ne istediği kayda geçmez ve gelen dosya bu denetime bağlanamaz.",
       "iyiHaber": false,
       "neden": true,
@@ -92,6 +204,7 @@
     {
       "yer": "app/(kabuk)/(operasyonel)/denetimler/[id]/DenetimDetayIstemci.tsx",
       "satir": 244,
+      "tur": "BosIlk",
       "cumle": "Bu denetime bağlı bulgu yok. Bu, “uygunsuzluk yok” demek DEĞİLDİR: denetim yürütülürken açılan bulgular burada listelenir.",
       "iyiHaber": true,
       "neden": true,
@@ -100,6 +213,7 @@
     {
       "yer": "app/(kabuk)/(operasyonel)/denetimler/DenetimlerIstemci.tsx",
       "satir": 317,
+      "tur": "BosIlk",
       "cumle": "Denetim programında kayıt yok. Program, kanıt taleplerinin ve bulguların bağlandığı çerçevedir; denetim açılmadan ikisi de kayda geçmez.",
       "iyiHaber": false,
       "neden": true,
@@ -108,6 +222,7 @@
     {
       "yer": "app/(kabuk)/(operasyonel)/dokumanlar/DokumanlarIstemci.tsx",
       "satir": 280,
+      "tur": "BosIlk",
       "cumle": "Kapsamınızda belge kaydı yok. Kurumsal belgeler ${terim('tesis')} ayrımı olmadan herkese görünür; demek ki kütük gerçekten boş. Belge kütüğü boş. Politika, prosedür ve planlar buraya kaydedilir; dosyanın kendisi kurumun doküman sisteminde kalır.",
       "iyiHaber": false,
       "neden": true,
@@ -116,14 +231,106 @@
     {
       "yer": "app/(kabuk)/(operasyonel)/egitimler/EgitimlerIstemci.tsx",
       "satir": 121,
+      "tur": "BosIlk",
       "cumle": "Tanımlı eğitim yok. Eğitim tanımlanmadan katılım ve tazelik izlenemez; farkındalık kontrolleri kanıtsız kalır.",
       "iyiHaber": false,
       "neden": true,
       "eylem": true
     },
     {
+      "yer": "app/(kabuk)/(operasyonel)/envanter/Durus.tsx",
+      "satir": 87,
+      "tur": "satirIci",
+      "cumle": "… kaydı yok — ölçülmedi; bilinmeyen sıfır sayılmaz.",
+      "iyiHaber": false,
+      "neden": true,
+      "eylem": false
+    },
+    {
+      "yer": "app/(kabuk)/(operasyonel)/envanter/Durus.tsx",
+      "satir": 245,
+      "tur": "satirIci",
+      "cumle": "Bu varlığı besleyen kaynak sistem yok — duruş ölçülmedi.",
+      "iyiHaber": false,
+      "neden": true,
+      "eylem": false
+    },
+    {
+      "yer": "app/(kabuk)/(operasyonel)/envanter/Durus.tsx",
+      "satir": 770,
+      "tur": "satirIci",
+      "cumle": "Segment atanmadı — adres tutarlılığı denetlenemez.",
+      "iyiHaber": false,
+      "neden": true,
+      "eylem": false
+    },
+    {
+      "yer": "app/(kabuk)/(operasyonel)/envanter/EnvanterIstemci.tsx",
+      "satir": 302,
+      "tur": "satirIci",
+      "cumle": "Zincirde ya da tabloda bir varlık seçin; yedi halka o varlıktan geçen yolu gösterir.",
+      "iyiHaber": false,
+      "neden": true,
+      "eylem": false
+    },
+    {
+      "yer": "app/(kabuk)/(operasyonel)/envanter/EnvanterIstemci.tsx",
+      "satir": 510,
+      "tur": "satirIci",
+      "cumle": "Seçili varlığa bağlı kayıt yok; bu halka boş. Kayıt yok; bir varlık seçilmedi.",
+      "iyiHaber": false,
+      "neden": true,
+      "eylem": false
+    },
+    {
+      "yer": "app/(kabuk)/(operasyonel)/envanter/EnvanterIstemci.tsx",
+      "satir": 542,
+      "tur": "satirIci",
+      "cumle": "Bir varlık seçin; dört halka o varlıktan geçen yolu gösterir.",
+      "iyiHaber": false,
+      "neden": true,
+      "eylem": false
+    },
+    {
+      "yer": "app/(kabuk)/(operasyonel)/envanter/EnvanterIstemci.tsx",
+      "satir": 722,
+      "tur": "satirIci",
+      "cumle": "Açık zafiyet kaydı yok; bu varlık için kapatılmamış zafiyet bulunmuyor.",
+      "iyiHaber": true,
+      "neden": true,
+      "eylem": true
+    },
+    {
+      "yer": "app/(kabuk)/(operasyonel)/envanter/EnvanterIstemci.tsx",
+      "satir": 733,
+      "tur": "satirIci",
+      "cumle": "Bu varlık bir risk ya da projeye bağlı değil; bağ kurulduğunda yönetişim izi burada görünür.",
+      "iyiHaber": false,
+      "neden": true,
+      "eylem": false
+    },
+    {
+      "yer": "app/(kabuk)/(operasyonel)/envanter/Yonetisim.tsx",
+      "satir": 240,
+      "tur": "satirIci",
+      "cumle": "Etki değerlendirmesi yok — üretim kaybı hesaplanmadı.",
+      "iyiHaber": false,
+      "neden": true,
+      "eylem": false
+    },
+    {
+      "yer": "app/(kabuk)/(operasyonel)/envanter/Yonetisim.tsx",
+      "satir": 406,
+      "tur": "satirIci",
+      "cumle": "Bu varlık hiçbir proses adımına bağlanmadı — durduğunda hangi işin etkileneceği bilinmiyor.",
+      "iyiHaber": false,
+      "neden": true,
+      "eylem": false
+    },
+    {
       "yer": "app/(kabuk)/(operasyonel)/esleme/EslemeIstemci.tsx",
       "satir": 176,
+      "tur": "BosIlk",
       "cumle": "Hiç eşleme profili yayımlanmadı. Bu, bağlayıcıların eşlemesiz koştuğu anlamına GELMEZ: profili olmayan bağlayıcı kendi gömülü eşlemesini kullanır ve o kurallar üründe görünmez. Bir profil yayımlamak, o kuralları görünür ve sürümlü hâle getirir.",
       "iyiHaber": false,
       "neden": true,
@@ -132,6 +339,7 @@
     {
       "yer": "app/(kabuk)/(operasyonel)/esleme/EslemeIstemci.tsx",
       "satir": 233,
+      "tur": "BosIlk",
       "cumle": "Tanımlı bağlayıcı yok. Eşleme profili yine de yayımlanabilir: bağlayıcı açıldığında tipinin etkin profili kendiliğinden geçerli olur.",
       "iyiHaber": false,
       "neden": true,
@@ -140,6 +348,7 @@
     {
       "yer": "app/(kabuk)/(operasyonel)/eslestirme/EslestirmeIstemci.tsx",
       "satir": 155,
+      "tur": "BosIlk",
       "cumle": "Eşleme için en az iki aktif regülasyon gerekir. Eşleme iki çerçevenin maddelerini karşılaştırır; tek çerçeveyle karşılaştıracak bir taraf yoktur.",
       "iyiHaber": false,
       "neden": true,
@@ -148,6 +357,7 @@
     {
       "yer": "app/(kabuk)/(operasyonel)/eslestirme/EslestirmeIstemci.tsx",
       "satir": 206,
+      "tur": "BosIlk",
       "cumle": "${sol.length === 0 ? solKod : sagKod} çerçevesinde yaprak madde yok — eşleme kurulamıyor. ${solKod} ile ${sagKod} arasında denklik kaydı yok.",
       "iyiHaber": false,
       "neden": true,
@@ -156,6 +366,7 @@
     {
       "yer": "app/(kabuk)/(operasyonel)/gozden-gecirme/GozdenGecirmeIstemci.tsx",
       "satir": 105,
+      "tur": "BosIlk",
       "cumle": "Hiç yönetim gözden geçirmesi kaydı yok. Gözden geçirme, alınan kararların ve kapanan kalemlerin tek kütüğüdür; kayıt olmadan “yönetim gördü” denemez.",
       "iyiHaber": false,
       "neden": true,
@@ -164,6 +375,7 @@
     {
       "yer": "app/(kabuk)/(operasyonel)/ice-aktarim/IceAktarimIstemci.tsx",
       "satir": 155,
+      "tur": "BosIlk",
       "cumle": "Henüz dosya yüklenmedi. Regülasyonu seçip Excel/CSV yükleyin; satırlar doğrulanır, onaydan sonra maddeler yayına girer. Henüz dosya yüklenmedi.",
       "iyiHaber": false,
       "neden": true,
@@ -172,6 +384,7 @@
     {
       "yer": "app/(kabuk)/(operasyonel)/ice-aktarim/IceAktarimIstemci.tsx",
       "satir": 261,
+      "tur": "BosIlk",
       "cumle": "Doğrulamayı geçen satır yok — bu dosyadan hiçbir madde yazılamaz.",
       "iyiHaber": false,
       "neden": true,
@@ -180,6 +393,7 @@
     {
       "yer": "app/(kabuk)/(operasyonel)/ice-aktarim/IceAktarimIstemci.tsx",
       "satir": 292,
+      "tur": "BosIlk",
       "cumle": "Elenen satır yok — tüm satırlar doğrulamayı geçti.",
       "iyiHaber": true,
       "neden": true,
@@ -188,6 +402,7 @@
     {
       "yer": "app/(kabuk)/(operasyonel)/kanitlar/KanitlarIstemci.tsx",
       "satir": 203,
+      "tur": "BosIlk",
       "cumle": "Kapsamınızda kanıt kaydı yok. ${kapsamDisi} kanıt ${t('tesis')} kapsamınız dışında (bağlantısız ya da başka ${t('tesis', 'yonelme')} bağlı). Kapsamınızda kanıt kaydı yok. Kanıt kaydı yok.",
       "iyiHaber": false,
       "neden": true,
@@ -196,6 +411,7 @@
     {
       "yer": "app/(kabuk)/(operasyonel)/kesif/KesifIstemci.tsx",
       "satir": 278,
+      "tur": "BosIlk",
       "cumle": "Henüz keşif kaydı yok. Aşağıdan pasif bir kaynağın dışa aktarımını yükleyin ya da bir bağlayıcı çalıştırın.",
       "iyiHaber": false,
       "neden": true,
@@ -204,6 +420,7 @@
     {
       "yer": "app/(kabuk)/(operasyonel)/kimlik/KimlikIstemci.tsx",
       "satir": 553,
+      "tur": "BosIlk",
       "cumle": "Kapsamınızda hesap kaydı yok — erişim incelemesi yapılacak hesap bulunamadı. İnceleme kapsamında hesap yok — erişim incelemesi yapılacak hesap bulunamadı.",
       "iyiHaber": false,
       "neden": true,
@@ -212,6 +429,7 @@
     {
       "yer": "app/(kabuk)/(operasyonel)/kisisel-veri/VeriKorumaIstemci.tsx",
       "satir": 180,
+      "tur": "BosIlk",
       "cumle": "Kişisel veri işleme envanteri boş. Envanter satırı bir İŞ SÜRECİNE bağlı olmadan kaydedilemez: sürece bağlanmamış bir satır, denetçinin ilk sorusuna cevap veremez. İlk adım süreçleri tanımlamaktır.",
       "iyiHaber": false,
       "neden": true,
@@ -220,6 +438,7 @@
     {
       "yer": "app/(kabuk)/(operasyonel)/mevzuat-radari/RadarIstemci.tsx",
       "satir": 164,
+      "tur": "BosIlk",
       "cumle": "Kurulu paketlerde izlenecek bir mevzuat kaynağı yok. Kaynak kataloğu içerik paketinden gelir; hangi resmî kanalın izleneceği ülkeye ve sektöre bağlıdır ve çekirdeğe gömülmez.",
       "iyiHaber": false,
       "neden": true,
@@ -228,6 +447,7 @@
     {
       "yer": "app/(kabuk)/(operasyonel)/olaylar/OlaylarIstemci.tsx",
       "satir": 107,
+      "tur": "BosIlk",
       "cumle": "Kapsamınızda olay kaydı yok. Olay açıldığında etki zinciri motoru öneriyi üretir; etki alanları insan doğrulamasıyla dolar.",
       "iyiHaber": false,
       "neden": true,
@@ -236,6 +456,7 @@
     {
       "yer": "app/(kabuk)/(operasyonel)/omur/OmurIstemci.tsx",
       "satir": 181,
+      "tur": "BosIlk",
       "cumle": "Kapsamınızda ömrü yaklaşan varlık yok. Ömrü yaklaşan varlık yok — EOL/EOS tarihi girilmiş hiçbir cihaz eşiğe yaklaşmadı.",
       "iyiHaber": true,
       "neden": true,
@@ -244,6 +465,7 @@
     {
       "yer": "app/(kabuk)/(operasyonel)/operasyon/OperasyonIstemci.tsx",
       "satir": 169,
+      "tur": "BosIlk",
       "cumle": "Değişiklik kütüğünde kayıt yok. Bu, “hiç değişiklik olmadı” demek DEĞİLDİR: yalnız kütüğe yazılan değişiklikler burada görünür.",
       "iyiHaber": false,
       "neden": true,
@@ -252,6 +474,7 @@
     {
       "yer": "app/(kabuk)/(operasyonel)/paketler/PaketlerIstemci.tsx",
       "satir": 115,
+      "tur": "BosIlk",
       "cumle": "Kurulu ya da diskte hazır paket yok. Paket bir dizindir (paketler/KOD-ADI, bkz. paketler/BENIOKU.md); paket gelene kadar çerçeve elle içe aktarılır.",
       "iyiHaber": false,
       "neden": true,
@@ -260,6 +483,7 @@
     {
       "yer": "app/(kabuk)/(operasyonel)/projeler/ProjelerIstemci.tsx",
       "satir": 203,
+      "tur": "BosIlk",
       "cumle": "Kayıtlı proje yok. Proje, bulgu ve aksiyonların bütçeye ve takvime bağlandığı yerdir; proje olmadan iş kalemleri sahipsiz kalır.",
       "iyiHaber": false,
       "neden": true,
@@ -268,6 +492,7 @@
     {
       "yer": "app/(kabuk)/(operasyonel)/prosesler/ProseslerIstemci.tsx",
       "satir": 400,
+      "tur": "BosIlk",
       "cumle": "Hiç iş süreci tanımlanmamış. Süreç yoksa \"bu cihaz dururca ne durur\" sorusu hiç sorulamaz; ekran bunu \"risk yok\" değil \"değerlendirilmedi\" sayar.",
       "iyiHaber": false,
       "neden": true,
@@ -276,6 +501,7 @@
     {
       "yer": "app/(kabuk)/(operasyonel)/raporlar/denetim-formlari/DenetimFormlariIstemci.tsx",
       "satir": 203,
+      "tur": "BosIlk",
       "cumle": "Yetkinizin kapsamında bu çerçevelere ait kontrol kaydı yok. Kapsamınızda hangi süreçlerin tanımlı olduğunu uyum süreçleri ekranından görebilirsiniz. Henüz hiçbir kapsamda kontrol kaydı yok. Form üretilebilmesi için önce bir çerçeve kurulmalı ve kapsam tanımlanmalı.",
       "iyiHaber": false,
       "neden": true,
@@ -284,14 +510,25 @@
     {
       "yer": "app/(kabuk)/(operasyonel)/raporlar/kanit-paketi/KanitPaketiIstemci.tsx",
       "satir": 120,
+      "tur": "BosIlk",
       "cumle": "Yetkinizin kapsamındaki ${t('tesis', 'cogul')} için değerlendirilmiş madde yok — paketlenecek kanıt bulunmuyor. Hiçbir süreçte madde durumu yok — kanıt paketi üretilecek kapsam bulunmuyor.",
       "iyiHaber": false,
       "neden": true,
       "eylem": true
     },
     {
+      "yer": "app/(kabuk)/(operasyonel)/raporlar/karne/Karne.tsx",
+      "satir": 111,
+      "tur": "satirIci",
+      "cumle": "Hiçbir tesis için uyum yüzdesi ölçülmedi; yüzde, değerlendirilmiş kontrollerden hesaplanır.",
+      "iyiHaber": false,
+      "neden": true,
+      "eylem": false
+    },
+    {
       "yer": "app/(kabuk)/(operasyonel)/raporlar/RaporlarIstemci.tsx",
       "satir": 134,
+      "tur": "BosIlk",
       "cumle": "Yetkinizin kapsamındaki ${terim('tesis', 'cogul')} için tanımlı uyum süreci yok. Uyum süreçlerinin kapsamı boş — matris çizilemiyor.",
       "iyiHaber": false,
       "neden": true,
@@ -300,6 +537,7 @@
     {
       "yer": "app/(kabuk)/(operasyonel)/raporlar/RaporlarIstemci.tsx",
       "satir": 253,
+      "tur": "BosIlk",
       "cumle": "Açık bulgu yok — yaş dağılımı çizilecek kayıt bulunmuyor.",
       "iyiHaber": true,
       "neden": true,
@@ -308,6 +546,7 @@
     {
       "yer": "app/(kabuk)/(operasyonel)/raporlar/RaporlarIstemci.tsx",
       "satir": 286,
+      "tur": "BosIlk",
       "cumle": "Kanıt kütüğünde kayıt yok — tazelik ölçülemiyor.",
       "iyiHaber": false,
       "neden": true,
@@ -316,6 +555,7 @@
     {
       "yer": "app/(kabuk)/(operasyonel)/raporlar/takvim/TakvimIstemci.tsx",
       "satir": 120,
+      "tur": "BosIlk",
       "cumle": "Kurulu paketlerde takvim tetikli bir bildirim yükümlülüğü yok. Bu ekran periyodik raporlama yükümlülüklerini gösterir; yükümlülükler sektör paketinden gelir, ürün bir takvim UYDURMAZ.",
       "iyiHaber": false,
       "neden": true,
@@ -323,23 +563,26 @@
     },
     {
       "yer": "app/(kabuk)/(operasyonel)/regulasyonlar/RegulasyonlarIstemci.tsx",
-      "satir": 165,
-      "cumle": "katalogBoslukCumlesi(reg, bosluk)",
-      "iyiHaber": false,
-      "neden": false,
-      "eylem": true
-    },
-    {
-      "yer": "app/(kabuk)/(operasyonel)/regulasyonlar/RegulasyonlarIstemci.tsx",
       "satir": 85,
+      "tur": "BosIlk",
       "cumle": "Sistemde regülasyon kaydı yok. Çerçeve bir içerik paketiyle gelir ya da elle içe aktarılır; çerçevesiz bir kurulumda uyum matrisi hiç doğmaz.",
       "iyiHaber": false,
       "neden": true,
       "eylem": true
     },
     {
+      "yer": "app/(kabuk)/(operasyonel)/regulasyonlar/RegulasyonlarIstemci.tsx",
+      "satir": 165,
+      "tur": "BosIlk",
+      "cumle": "katalogBoslukCumlesi(reg, bosluk)",
+      "iyiHaber": false,
+      "neden": false,
+      "eylem": true
+    },
+    {
       "yer": "app/(kabuk)/(operasyonel)/riskler/RisklerIstemci.tsx",
       "satir": 666,
+      "tur": "BosIlk",
       "cumle": "Kapsamınızda risk kaydı yok. Risk kütüğünde kayıt yok.",
       "iyiHaber": false,
       "neden": true,
@@ -348,6 +591,7 @@
     {
       "yer": "app/(kabuk)/(operasyonel)/saglik/reddedilenler/ReddedilenlerIstemci.tsx",
       "satir": 67,
+      "tur": "BosIlk",
       "cumle": "Kapsamınızdaki ${t('tesis', 'cogul')} için reddedilen kayıt yok. Reddedilen kayıt yok. Bir connector koşusunda düşen her kayıt — şemadan, eşlemeden, doğrulamadan ya da kapsamdan — burada ham hâliyle görünür.",
       "iyiHaber": true,
       "neden": true,
@@ -356,6 +600,7 @@
     {
       "yer": "app/(kabuk)/(operasyonel)/saglik/SaglikIstemci.tsx",
       "satir": 303,
+      "tur": "BosIlk",
       "cumle": "Motor kataloğu boş — hiçbir otomasyon tanımlı değil.",
       "iyiHaber": false,
       "neden": true,
@@ -364,6 +609,7 @@
     {
       "yer": "app/(kabuk)/(operasyonel)/saglik/SaglikIstemci.tsx",
       "satir": 342,
+      "tur": "BosIlk",
       "cumle": "Tanımlı connector yok. Bir dış sistem bağlandığında son koşusu, alınan/kabul/red sayaçları ve veri tazeliği burada görünür.",
       "iyiHaber": false,
       "neden": true,
@@ -372,6 +618,7 @@
     {
       "yer": "app/(kabuk)/(operasyonel)/saglik/SaglikIstemci.tsx",
       "satir": 495,
+      "tur": "BosIlk",
       "cumle": "Açık veri kalitesi bulgusu yok. Motor koştuğunda bulduğu boşluklar burada listelenir.",
       "iyiHaber": true,
       "neden": true,
@@ -380,6 +627,7 @@
     {
       "yer": "app/(kabuk)/(operasyonel)/saglik/SaglikIstemci.tsx",
       "satir": 600,
+      "tur": "BosIlk",
       "cumle": "Hiç köken kaydı yok. Bir connector veri getirdiğinde hangi kaynağın hangi kaydı beslediği burada görünür. Kökeni olmayan kayıtlar aşağıda yine de sayılır.",
       "iyiHaber": true,
       "neden": true,
@@ -388,6 +636,7 @@
     {
       "yer": "app/(kabuk)/(operasyonel)/saklama/SaklamaIstemci.tsx",
       "satir": 186,
+      "tur": "BosIlk",
       "cumle": "Tanımlı hukuki muhafaza yok. Muhafaza, saklama süresi dolan kaydın imhasını DURDURAN tek şeydir; tanımlanmadan imha kararları süreye göre işler.",
       "iyiHaber": false,
       "neden": true,
@@ -396,6 +645,7 @@
     {
       "yer": "app/(kabuk)/(operasyonel)/saklama/SaklamaIstemci.tsx",
       "satir": 200,
+      "tur": "BosIlk",
       "cumle": "Hiç imha kararı açılmadı. İmha bir insan kararıdır ve ürün onu kendiliğinden vermez; süresi dolan kayıt karar açılana kadar durur.",
       "iyiHaber": false,
       "neden": true,
@@ -404,6 +654,7 @@
     {
       "yer": "app/(kabuk)/(operasyonel)/sayim/SayimIstemci.tsx",
       "satir": 110,
+      "tur": "BosIlk",
       "cumle": "Hiç envanter sayımı açılmadı. Sayım, envanterin sahadaki gerçekle karşılaştırıldığı tek yerdir; sayımsız bir envanter yalnız kayıttır.",
       "iyiHaber": false,
       "neden": true,
@@ -412,6 +663,7 @@
     {
       "yer": "app/(kabuk)/(operasyonel)/sistem/bilesenler/Galeri.tsx",
       "satir": 443,
+      "tur": "BosIlk",
       "cumle": "Bu çerçeve için henüz değerlendirme başlatılmadı. Değerlendirme açılmadan maddelerin durumu “bilinmiyor”dur — “uyumlu” değil.",
       "iyiHaber": false,
       "neden": true,
@@ -420,6 +672,7 @@
     {
       "yer": "app/(kabuk)/(operasyonel)/surecler/[id]/SurecDetayIstemci.tsx",
       "satir": 308,
+      "tur": "BosIlk",
       "cumle": "Kapsamda ${terim('tesis')} yok — değerlendirme açılmadı. Bu kampanyada değerlendirme kaydı yok; regülasyonun yaprak maddesi bulunmuyor.",
       "iyiHaber": false,
       "neden": true,
@@ -428,6 +681,7 @@
     {
       "yer": "app/(kabuk)/(operasyonel)/surecler/SureclerIstemci.tsx",
       "satir": 313,
+      "tur": "BosIlk",
       "cumle": "Uyum kütüğünde kampanya yok. Kampanya, maddelerin hangi kapsamda değerlendirileceğini belirler; kampanyasız bir çerçevede madde durumu yazılamaz.",
       "iyiHaber": false,
       "neden": true,
@@ -436,6 +690,7 @@
     {
       "yer": "app/(kabuk)/(operasyonel)/tabanlar/TabanlarIstemci.tsx",
       "satir": 354,
+      "tur": "BosIlk",
       "cumle": "Hiç firmware tabanı tanımlanmamış. Taban olmadan hiçbir cihazın firmware kararı verilemez; ekran bunu \"uyumlu\" değil \"karar verilemedi\" sayar.",
       "iyiHaber": false,
       "neden": true,
@@ -444,6 +699,7 @@
     {
       "yer": "app/(kabuk)/(operasyonel)/tasinabilir-medya/TasinabilirMedyaIstemci.tsx",
       "satir": 116,
+      "tur": "BosIlk",
       "cumle": "Kayıtlı taşınabilir medya yok. Bu, “sahada taşınabilir medya kullanılmıyor” demek DEĞİLDİR: yalnız kayda geçmiş olanlar izlenebilir.",
       "iyiHaber": false,
       "neden": true,
@@ -452,6 +708,7 @@
     {
       "yer": "app/(kabuk)/(operasyonel)/tedarikciler/TedarikcilerIstemci.tsx",
       "satir": 118,
+      "tur": "BosIlk",
       "cumle": "Tedarikçi kaydı yok. Tedarikçiler yönetim tezgâhındaki tanım kataloglarından açılır; buradan sözleşme, sertifika ve uzaktan erişim oturumları izlenir.",
       "iyiHaber": false,
       "neden": true,
@@ -460,6 +717,7 @@
     {
       "yer": "app/(kabuk)/(operasyonel)/topoloji/TopolojiIstemci.tsx",
       "satir": 205,
+      "tur": "BosIlk",
       "cumle": "Kapsamınızda ağ bölgesi tanımı yok — bölge ve geçit tanımı varlık aktarımı (CMDB kaydı) ile gelir; bu ekran ağı taramaz.",
       "iyiHaber": false,
       "neden": true,
@@ -468,6 +726,7 @@
     {
       "yer": "app/(kabuk)/(operasyonel)/topoloji/TopolojiIstemci.tsx",
       "satir": 245,
+      "tur": "BosIlk",
       "cumle": "Kapsamınızda topoloji anlığı yok — bu \"sapma yok\" demek değildir, hiç ölçülmedi demektir. Yukarıdaki formdan onaylı ağ kaydından bir anlık dondurun, sonra onu temel olarak onaylayın.",
       "iyiHaber": false,
       "neden": true,
@@ -476,6 +735,7 @@
     {
       "yer": "app/(kabuk)/(operasyonel)/uyum/[cerceve]/CerceveIstemci.tsx",
       "satir": 120,
+      "tur": "BosIlk",
       "cumle": "Bu çerçeve henüz eşleştirilmedi — madde kataloğu boş.",
       "iyiHaber": false,
       "neden": true,
@@ -484,6 +744,7 @@
     {
       "yer": "app/(kabuk)/(operasyonel)/varlik-aktarim/VarlikAktarimIstemci.tsx",
       "satir": 182,
+      "tur": "BosIlk",
       "cumle": "Henüz dosya yüklenmedi. Aşağıdan CSV/Excel yükleyin; kolonları eşleyin, önizlemeyi görün, sonra onaylayın. Henüz dosya yüklenmedi. Yükleme envanter yazma yetkisi ister.",
       "iyiHaber": false,
       "neden": true,
@@ -492,6 +753,7 @@
     {
       "yer": "app/(kabuk)/(operasyonel)/varlik-aktarim/VarlikAktarimIstemci.tsx",
       "satir": 364,
+      "tur": "BosIlk",
       "cumle": "Kapsamınızdaki ${t('tesis', 'cogul')} için yazacak satır yok — dosyadaki satırlar kapsamınız dışında kalıyor. Yetkiniz genişlemeden bu aktarım hiçbir kayıt yazmaz.",
       "iyiHaber": false,
       "neden": true,
@@ -500,6 +762,7 @@
     {
       "yer": "app/(kabuk)/(operasyonel)/varlik-aktarim/VarlikAktarimIstemci.tsx",
       "satir": 373,
+      "tur": "BosIlk",
       "cumle": "Doğrulamayı geçen satır yok — bu dosyadan hiçbir varlık yazılamaz.",
       "iyiHaber": false,
       "neden": true,
@@ -508,6 +771,7 @@
     {
       "yer": "app/(kabuk)/(operasyonel)/varlik-aktarim/VarlikAktarimIstemci.tsx",
       "satir": 410,
+      "tur": "BosIlk",
       "cumle": "Reddedilen satır yok — tüm satırlar doğrulamayı geçti.",
       "iyiHaber": true,
       "neden": true,
@@ -516,6 +780,7 @@
     {
       "yer": "app/(kabuk)/(operasyonel)/varlik-aktarim/VarlikAktarimIstemci.tsx",
       "satir": 435,
+      "tur": "BosIlk",
       "cumle": "Kapsamınızdaki varlıklarla eşleşen satır yok. Mevcut envanterle eşleşen satır yok — hepsi yeni kayıt.",
       "iyiHaber": true,
       "neden": true,
@@ -524,6 +789,7 @@
     {
       "yer": "app/(kabuk)/(operasyonel)/yedek-parca/YedekParcaIstemci.tsx",
       "satir": 114,
+      "tur": "BosIlk",
       "cumle": "Kayıtlı yedek parça yok. Yedek parça kaydı, ömrü dolan varlığın değişim süresini gösteren tek veridir; kayıtsız kalan varlık için süre bilinmez.",
       "iyiHaber": false,
       "neden": true,
@@ -532,6 +798,7 @@
     {
       "yer": "app/(kabuk)/(operasyonel)/yedekleme/YedeklemeIstemci.tsx",
       "satir": 155,
+      "tur": "BosIlk",
       "cumle": "Kapsamınızda aktif ${terim('tesis')} yok — yedekleme kaydı gösterilecek ${terim('tesis')} bulunamadı.",
       "iyiHaber": false,
       "neden": true,
@@ -540,6 +807,7 @@
     {
       "yer": "app/(kabuk)/(operasyonel)/yedekleme/YedeklemeIstemci.tsx",
       "satir": 205,
+      "tur": "BosIlk",
       "cumle": "Yedekleme politikası kaydı yok. Kayıtlar dışarıdan aktarılabilir ya da ${terim('tesis')} çekmecesinden elle tanımlanabilir.",
       "iyiHaber": false,
       "neden": true,
@@ -548,6 +816,7 @@
     {
       "yer": "app/(kabuk)/(operasyonel)/yedekleme/YedeklemeIstemci.tsx",
       "satir": 218,
+      "tur": "BosIlk",
       "cumle": "Yedekleme kaydı yok — hiçbir koşu kaydedilmemiş. Kayıtlar yedekleme kaynağı bağlandığında gelir.",
       "iyiHaber": false,
       "neden": true,
@@ -556,6 +825,7 @@
     {
       "yer": "app/(kabuk)/(operasyonel)/yetkiler/YetkilerIstemci.tsx",
       "satir": 258,
+      "tur": "BosIlk",
       "cumle": "Kullanıcı kütüğünde kayıt yok. Kurulumun ilk hesabı komut satırından açılır (docs/KURULUM.md §4); sonraki hesaplar bu ekrandan.",
       "iyiHaber": false,
       "neden": true,
@@ -564,6 +834,7 @@
     {
       "yer": "app/(kabuk)/(operasyonel)/yonetim-tezgahi/KonsolIstemci.tsx",
       "satir": 336,
+      "tur": "BosIlk",
       "cumle": "Aramayla eşleşen kayıt yok. Bu katalogda kayıt yok — motor koddaki varsayılanı okur.",
       "iyiHaber": true,
       "neden": true,
@@ -572,6 +843,7 @@
     {
       "yer": "app/(kabuk)/(operasyonel)/yonetim-tezgahi/KonsolIstemci.tsx",
       "satir": 365,
+      "tur": "BosIlk",
       "cumle": "acik Açık talep yok. Talep kaydı yok.",
       "iyiHaber": true,
       "neden": true,
@@ -580,6 +852,7 @@
     {
       "yer": "app/(kabuk)/(operasyonel)/yonetim-tezgahi/KonsolIstemci.tsx",
       "satir": 385,
+      "tur": "BosIlk",
       "cumle": "Aramayla eşleşen iz yok. Bu katalogda iz kaydı yok.",
       "iyiHaber": true,
       "neden": true,
@@ -588,6 +861,7 @@
     {
       "yer": "app/(kabuk)/(operasyonel)/yonetim-tezgahi/TezgahIstemci.tsx",
       "satir": 521,
+      "tur": "BosIlk",
       "cumle": "Kuyrukta bekleyen görev ya da onay talebi yok. Tanım kataloglarında kayıt yok. Dış API için üretilmiş anahtar yok — anahtar seed edilmez, bir kişinin bilerek ürettiği kayıttır.",
       "iyiHaber": false,
       "neden": true,
@@ -596,6 +870,7 @@
     {
       "yer": "app/(kabuk)/(operasyonel)/zimmetlerim/ZimmetlerimIstemci.tsx",
       "satir": 141,
+      "tur": "BosIlk",
       "cumle": "bekleyen Cevap bekleyen zimmetiniz yok. Size bir varlık atandığında burada görünür. Bu bölümde kayıt yok.",
       "iyiHaber": true,
       "neden": true,
@@ -604,7 +879,18 @@
     {
       "yer": "app/(tam)/harita/HaritaIstemci.tsx",
       "satir": 54,
+      "tur": "BosIlk",
       "cumle": "${tBas('tesis')} kapsamınız boş; harita gösterilecek kayıt bulamadı. ${tBas('portfoy', 'bulunma')} aktif ${terim('tesis')} yok.",
+      "iyiHaber": false,
+      "neden": true,
+      "eylem": true
+    },
+    {
+      "yer": "components/kabuk/temel.tsx",
+      "satir": 248,
+      "tur": "BosFiltre",
+      "cagri": 25,
+      "cumle": "Bu süzgeçle kayıt yok; süzgeci temizleyince kapsamdaki tüm kayıtlar yeniden listelenir.",
       "iyiHaber": false,
       "neden": true,
       "eylem": true

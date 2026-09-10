@@ -201,7 +201,13 @@ export type KatalogBoslugu =
   /** Taslak sürüm(ler)de madde var; tek eksik İNSAN KARARI. */
   | { hal: 'taslakta_bekliyor'; madde: number; surumId: string; etiket: string }
   /** Sürüm var ama maddesi yok — açılmış boş bir taslak. */
-  | { hal: 'surum_bos' };
+  | { hal: 'surum_bos' }
+  /** Katalog ARŞİVDE: madde vardı, taşıyan sürüm arşivlendi.
+      "İçinde madde yok" demek YANLIŞ olurdu — 400 maddeli bir arşiv
+      sürümü için ekran boşluğun sebebini yanlış söylerdi (bağımsız
+      inceleme, PR #51 tur 1). Boşluğun sebebi maddenin YOKLUĞU değil,
+      sürümün DURUMUDUR ve önerilen eylem de farklıdır. */
+  | { hal: 'arsivde'; madde: number; etiket: string };
 
 /**
  * Aktif katalog boşken bunun NEDEN boş olduğunu söyler.
@@ -221,6 +227,18 @@ export function katalogBoslugu(reg: Reg): KatalogBoslugu | null {
       etiket: hedef.etiket,
     };
   }
+  /* ARŞİV AYRI HALDIR. `taslakSurumler` yalnız `durum === 'taslak'`
+     alır; kalan dal eskiden her sürümü "içi boş" sayıyordu ve arşivde
+     madde taşıyan bir sürüm için cümle YANLIŞTI. */
+  const arsiv = reg.surumler.filter((s) => s.durum === 'arsiv' && s.maddeSayisi > 0);
+  if (arsiv.length > 0) {
+    const hedef = [...arsiv].sort((a, b) => b.maddeSayisi - a.maddeSayisi)[0];
+    return {
+      hal: 'arsivde',
+      madde: arsiv.reduce((a, s) => a + s.maddeSayisi, 0),
+      etiket: hedef.etiket,
+    };
+  }
   return reg.surumler.length > 0 ? { hal: 'surum_bos' } : { hal: 'katalog_yok' };
 }
 
@@ -231,8 +249,15 @@ export function katalogBoslukCumlesi(reg: Reg, b: KatalogBoslugu): string {
       + 'sürümünde ve aktifleştirme bekliyor. Aktifleştirme insan kararıdır; '
       + 'bu ekran hiçbir sürümü kendiliğinden yürürlüğe almaz.';
   }
+  if (b.hal === 'arsivde') {
+    return `${reg.kod} kataloğunun maddeleri ARŞİVDE: ${b.madde} madde `
+      + `${b.etiket} sürümünde duruyor ama o sürüm yürürlükte değil. `
+      + 'Yürürlükteki bir katalog için yeni bir sürüm açılır ve '
+      + 'aktifleştirme kararı insan tarafından verilir.';
+  }
   if (b.hal === 'surum_bos') {
-    return `${reg.kod} için sürüm açılmış ama içinde madde yok.`;
+    return `${reg.kod} için sürüm açılmış ama içinde madde yok; `
+      + 'kataloğu içe aktarmak sürümü doldurur.';
   }
   return `${reg.kod} kataloğu henüz yüklenmedi.`;
 }

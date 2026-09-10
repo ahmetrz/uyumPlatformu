@@ -274,15 +274,37 @@ kalmaz, en az iki yan tümceyle sebebini ya da sonucunu söyler;
 **(b) NE YAPMALIYIM** — `eylem` verilmiştir. (b)'nin tek istisnası İYİ
 HABER boş durumudur ("elenen satır yok — hepsi geçti"): işaret edeceği
 bir çözüm yoktur ve olmayan bir eylem uydurmak kullanıcıyı gereksiz bir
-yola sokar; bayrak bileşenin kendi API'sinden gelir, kütükten değil.
+yola sokar; bayrak KODDAN gelir (`BosIlk iyiHaber` · `className="bos
+iyi"`), kütükten değil.
 
-Eylemsiz boş durumun tavanı SIFIRDIR. Nedensiz olanlar cırcırdadır ve
-liste yalnız küçülür; türeticinin okuyamadığı hesaplanan cümle
-(fonksiyondan dönen metin) ancak **ölçümünü adıyla beyan ederek**
-istisna listesinde durur, ölü referans kabul edilmez
-(`web/tests/bekci/bos-durum.test.ts`, SIS-BSD-001). Kapı cümlenin bir şey
-SÖYLEDİĞİNİ ölçer, söylediğinin DOĞRU olduğunu değil — R-D ve R-F'te
-kabul edilmiş aynı sınır.
+**ÜÇ YÜZEY DE TARANIR ve tavanlar SINIF BAŞINADIR.** İlk yazım yalnız
+`<BosIlk>`e bakıyordu ve bu bir körlüktü: bağımsız inceleme (PR #51,
+tur 1) evrenin ~%62'sinin görülmediğini ölçtü — `<BosFiltre />` ve satır
+içi `className="bos"` metinleri kütükte HİÇ YOKTU, üstelik kuralın
+doğduğu `/tesisler` örneği de oradaydı. Ölçüm 73/74 diye raporlanmıştı;
+gerçeği **82/94**. Türetici körse cırcır, GÖREBİLDİĞİ kadarını sıfır
+kusur diye raporlar (aynı sınıf #50'de de çıkmıştı).
+
+Tek toplam tavan yetmez — sıkı bir sınıfın borcunu gevşek bir sınıfın
+düzelmesiyle takas ettirir. Bugün her sınıfın kendi tavanı vardır:
+**ilk kurulum boşluğunda (`BosIlk` · `BosFiltre`) eylemsiz tavanı
+SIFIRDIR ve gerekçeli istisna kabul edilmez**; dolu bir ekranın içindeki
+bölüm notu (`satirIci`) ayrı bir sınıftır, tavanı ölçülendir ve **sahibi
+ile kapanış aşaması yazılmadan duramaz**. Popülasyonun kendisi de bir
+ölçüm tabanı taşır (`bos.durum`); testin içine sabit yazılmış bir taban,
+arada sessiz bir daralma penceresi bırakır.
+
+Nedensiz olanlar cırcırdadır ve liste yalnız küçülür; türeticinin
+okuyamadığı hesaplanan cümle (fonksiyondan dönen metin) ancak
+**ölçümünü adıyla beyan ederek** istisna listesinde durur, ölü referans
+kabul edilmez (`web/tests/bekci/bos-durum.test.ts`, SIS-BSD-001). Kapı
+cümlenin bir şey SÖYLEDİĞİNİ ölçer, söylediğinin DOĞRU olduğunu değil —
+R-D ve R-F'te kabul edilmiş aynı sınır. Sınırın UCUZLUĞU da beyanlıdır
+ve ölçülür: iki kelimelik bir kuyruk ("Kayıt yok. Böyle işte.") ölçütü
+GEÇER. Uzunluk eşiği denendi ve GERİ ALINDI — 16 karakterlik bir sınır,
+sebebini gerçekten söyleyen "duruş ölçülmedi"yi (15) kırmızı yakarken
+kaçamağı (10) durdurmuyordu: doğru cümleyi cezalandırıp yanlışını
+geçiren bir eşik, ölçütü değil kütüğü değiştirir.
 
 **İnceleme turu İKİ ile sınırlıdır (R-A).** Tur 1 → düzelt → tur 2 →
 düzelt → merge. Üçüncü turda çıkan bulgular YENİ PR olur. Gerekçe

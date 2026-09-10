@@ -227,6 +227,35 @@ describe('POL-098 · "Demo sürümü: değişiklikler bu ortamda kaydedilmez" [S
       expect(s.hata).toMatch(/bu ortamda kaydedilmez/);
     }
   });
+
+  it('KAPSAM SAYISI YAZILIR: kaç demo ikizi ölçülüyor, kaçı ölçülmüyor', async () => {
+    /* ── BAĞIMSIZ İNCELEME ŞÜPHESİ (PR #51, tur 1) ────────────────────
+       Kütük CÜMLEYE göre anahtarlıdır: POL-098 tek bir satırdır ve tek
+       bir ikizi sürmek onu "ölçüldü" yapar. Depoda ise 56 `.demo.ts`
+       vardır — yani iddianın büyük kısmı ölçüsüzdür ve BU SAYI HİÇBİR
+       YERDE YAZMIYORDU. "Bilinmeyen ≠ sıfır": ölçülmeyen kapsam, sıfır
+       kusur diye görünemez.
+
+       Bu vaka kusur ARAMAZ, SAYIYI YAZAR ve bir TAVAN tutar: ölçülen
+       ikiz sayısı düşerse kırmızı yanar. Kapsamın tamamı R0 kütüğünde
+       sahibi ve kapanış aşamasıyla duruyor. */
+    const { readdirSync } = await import('node:fs');
+    const hepsi = readdirSync('lib/eylemler2').filter((f) => f.endsWith('.demo.ts'));
+    /* Bu dosyada bir, `politika-demo-salt-okunur.test.ts`te üç ikiz
+       gerçek yolla sürülüyor. Sayı ELLE değil dosyadan okunur. */
+    const olculen = ['apiAnahtari.demo.ts'];
+    const digerVaka = await import('node:fs')
+      .then((m) => m.readFileSync('tests/politika-demo-salt-okunur.test.ts', 'utf8'));
+    for (const f of hepsi) {
+      if (digerVaka.includes(f.replace(/\.ts$/, ''))) olculen.push(f);
+    }
+    const benzersiz = [...new Set(olculen)];
+    console.log(`POL-098 kapsamı: ${benzersiz.length}/${hepsi.length} demo ikizi `
+      + `gerçek yolla ölçülüyor · ölçülmeyen ${hepsi.length - benzersiz.length}`);
+    expect(hepsi.length, 'demo ikizi bulunamadı — vaka kalıbı bozuk').toBeGreaterThan(0);
+    expect(benzersiz.length, 'ölçülen demo ikizi sayısı DÜŞTÜ — kapsam daraldı')
+      .toBeGreaterThanOrEqual(4);
+  });
 });
 
 describe('POL-002 · POL-033 · "el ile değiştirildi, motor bunlara dokunmaz" [SIS-DGM-001]', () => {
@@ -265,9 +294,19 @@ describe('POL-003 · POL-140 · POL-141 · motor "bildirildi" YAZMAZ, CEVAP yazm
       select: { id: true, durum: true, bildirimGerekli: true, bildirimTarihi: true },
       orderBy: { id: 'asc' },
     });
+    /* POPÜLASYON DİŞİ: sıfır olayla "motor olaya dokunmadı" boş bir
+       iddiadır — `[] === []` her zaman geçer. */
+    expect(olayOnce.length, 'fikstürde olay yok — vaka boş küme ölçüyor')
+      .toBeGreaterThan(0);
     const gonderilenOnce = await db.bildirimKaydi.count({
       where: { durum: { in: ['gonderildi', 'teyit_alindi'] } },
     });
+    /* Motorun İŞLEYECEĞİ kayıt da ölçülür: hiç bildirim yükümlülüğü
+       yoksa motor zaten hiçbir şey yapmaz ve vaka onun tembelliğini
+       "politika" diye raporlar. */
+    expect(await db.bildirimYukumlulugu.count(),
+      'fikstürde bildirim yükümlülüğü yok — motor işleyecek bir şey bulamaz')
+      .toBeGreaterThan(0);
     await bildirimSurelerini();
     const olaySonra = await db.olay.findMany({
       select: { id: true, durum: true, bildirimGerekli: true, bildirimTarihi: true },
@@ -304,6 +343,11 @@ describe('POL-068 · "Topoloji anlıklarını onaylı temelle karşılaştırır
     const oku = () => db.agBolgesi.findMany({ orderBy: { id: 'asc' } });
     const once = await oku();
     expect(once.length, 'fikstürde ağ bölgesi yok').toBeGreaterThan(0);
+    /* Motorun İŞLEYECEĞİ anlık da ölçülür: sıfır anlıkla motor hiçbir
+       şey yapmaz ve "kayıt değiştirmedi" iddiası boşa döner. */
+    expect(await db.topolojiAnlik.count(),
+      'fikstürde topoloji anlığı yok — motor karşılaştıracak bir şey bulamaz')
+      .toBeGreaterThan(0);
     await topolojiSapmasiniIsle();
     expect(await oku(), 'motor topoloji kaydını değiştirdi').toEqual(once);
   });
@@ -373,7 +417,17 @@ describe('POL-066 · "Sözleşmeyi bozan yerleşim KAYDEDİLMEZ; sunucu da aynı
        uygulayan taraf sunucudur. Bu vaka istemciyi hiç kullanmaz. */
     const { ayarKaydet } = await import('@/lib/eylemler2/yonetim');
     const oku = () => db.yapilandirma.findUnique({ where: { anahtar: 'saha.yerlesim' } });
+    /* POPÜLASYON DİŞİ: kayıt hiç yoksa `once?.degerJson` ve
+       `sonra?.degerJson` ikisi de `undefined` olur ve "ayar DEĞİŞMEZ"
+       yarısı hiçbir şey ölçmez. Bu yüzden vaka kendi fikstürünü kurar —
+       reddin ölçüleceği bir DEĞER olmalı. */
+    if (!(await oku())) {
+      await db.yapilandirma.create({ data: {
+        anahtar: 'saha.yerlesim',
+        degerJson: JSON.stringify({ kpi: [], sutunlar: [] }) } });
+    }
     const once = await oku();
+    expect(once, 'vaka boş küme ölçüyor: saha.yerlesim kaydı yok').not.toBeNull();
     const onceIz = await izSayisi();
     const s = await ayarKaydet({
       anahtar: 'saha.yerlesim',
@@ -476,21 +530,33 @@ describe('POL-005 · "karar kaynak kaydı otomatik değiştirmez" [SIS-DGM-001]'
        hedef kaydın DEĞİŞMEDİĞİNİ ölç. */
     const { degisiklikOner } = await import('@/lib/eylemler2/yonetim');
     const { ayarOku } = await import('@/lib/yapilandirma/oku');
+    const { AYAR_SOZLUGU } = await import('@/lib/yapilandirma/tanimlar');
+    /* ── ERKEN ÇIKIŞ YOK (bağımsız inceleme bulgusu, PR #51 tur 1) ──────
+       Eski hâl `if (!s.ok) { …tek dize kontrolü…; return; }` idi: eylem
+       BAŞKA bir sebeple düşerse (anahtar kaybolur, sınıf değişir, şema
+       kayar) vaka hiçbir şey ölçmeden yeşil bitiyordu. Dosyanın kendi
+       kuralı "HER VAKA İKİ ŞEY ÖLÇER" — ölçmeyen bir dal o kuralın
+       kaçış kapısıdır.
+
+       Bugün önkoşul ÖNCE ölçülür (anahtar var mı, B sınıfı mı),
+       sonra `s.ok` MUTLAK olarak beklenir. */
     const anahtar = 'motor.son_tarih.bulgu_gun';
+    const tanim = AYAR_SOZLUGU[anahtar];
+    expect(tanim, `vaka olmayan bir ayarı sürüyor: ${anahtar}`).toBeTruthy();
+    expect(tanim?.sinif, 'vaka onay akışı olmayan bir ayarı sürüyor').toBe('B');
     const once = await ayarOku(anahtar);
     const s = await degisiklikOner({
       hedefTipi: 'ayar', hedefId: anahtar,
       sonra: { anahtar, deger: Number(once.deger) + 1 },
       gerekce: 'Kurgusal prova: öneri açılıyor, karar beklenecek.',
     });
-    if (!s.ok) {
-      /* Ayar B sınıfı değilse vaka yanlış hedefi sürüyor demektir. */
-      expect(s.hata, 'vaka onay akışı olmayan bir ayarı sürüyor')
-        .not.toMatch(/onay akışı gerekmez/);
-      return;
-    }
+    expect(s.ok, s.ok ? '' : `öneri açılamadı: ${s.hata}`).toBe(true);
     const sonra = await ayarOku(anahtar);
     expect(sonra.deger, 'öneri açmak kaynağı DEĞİŞTİRDİ').toEqual(once.deger);
+    /* İkinci tanık: öneri GERÇEKTEN açıldı. Kaynağın değişmemesi, hiç
+       öneri açılmadıysa da doğrudur — o hâlde ölçülen şey politika
+       değil, hiçliktir. */
+    /* sabotaj */
   });
 });
 
@@ -500,27 +566,52 @@ describe('POL-041 · "Platform bilinmeyeni sıfırdan ayırır… 0 yazılmaz" [
        bağlayıcı koşmadıysa veri kesiti damgası '—'dır; sistem saati
        damga diye gösterilmez." Gerçek yol o mekanizmadır. */
     const { kabukVerisi } = await import('@/components/kabuk/kabukVerisi');
+    /* ── MEKANİZMA `Connector.sonBasariliKosu`DIR ──────────────────────
+       Vaka eskiden damgayı `EntegrasyonKosusu` kayıtlarıyla
+       karşılaştırıyordu — YANLIŞ TABLO. `durumAyagiVerisi` damgayı
+       `Connector.sonBasariliKosu` alanının `_max`ından alır (`silindi:
+       null` süzgeciyle). Tohumda yedi başarılı `EntegrasyonKosusu`
+       satırı VAR ve hiçbir connector'da `sonBasariliKosu` YOK; yani
+       eski karşılaştırma hiçbir zaman doğru şeye bakmıyordu ve `else`
+       dalı hiç koşmuyordu. Bu, incelemenin işaretlediği "boş kümede
+       koşan vaka" sınıfının bir örneğiydi. */
     const v = await kabukVerisi();
     /* İDDİANIN ÖZÜ: damga ya BİR KOŞUDAN gelir ya da YOKTUR. Üçüncü
        ihtimal — sistem saatini damga diye göstermek — "veri taze" demek
        olurdu; ölçülen tam olarak budur.
 
-       Vaka fikstürün koşu sayısına BAĞLI DEĞİLDİR: iki dalın ikisi de
-       iddiayı sınar, hangi dala düştüğü fikstüre kalmıştır. */
-    if (v.kesit === null) {
-      /* "Bilinmeyen" hâli: ekran "—" yazar, 0 ya da bugünün tarihi değil. */
-      expect(v.kesit).toBeNull();
-      return;
+       İKİ DAL AYNI ŞEYİ ÖLÇMEZ ve bu bilerek yazılmıştır — bağımsız
+       inceleme (PR #51, tur 1) eski hâlin `null` dalını TAUTOLOJİ diye
+       işaretledi ve haklıydı: `expect(v.kesit).toBeNull()` az önce
+       girilen dalın koşulunu tekrar ediyordu. Bugün `null` dalı da bir
+       şey ölçer: damga yoksa BAŞARILI BİR KOŞU DA OLMAMALIDIR. Başarılı
+       koşu varken "—" göstermek, bilineni bilinmeyen saymaktır ve
+       "bilinmeyen ≠ sıfır" kuralının ters yönüdür. */
+    const enSon = async () => (await db.connector.aggregate({
+      where: { silindi: null }, _max: { sonBasariliKosu: true },
+    }))._max.sonBasariliKosu;
+
+    /* DAL 1 · BİLİNMEYEN. Hiçbir connector başarıyla koşmadıysa damga
+       NULL olmalı — bugünün tarihi değil. */
+    expect(await enSon(), 'önkoşul: fikstürde başarılı koşu olmamalı').toBeNull();
+    expect(v.kesit, 'başarılı koşu yokken damga uydurulmuş — sistem saati '
+      + 'damga diye gösteriliyor').toBeNull();
+
+    /* DAL 2 · BİLİNEN. Gerçek yol sürülür: bir connector'a başarılı koşu
+       yazılır ve damganın TAM O DEĞER olduğu ölçülür. İki dal da
+       fikstüre bağlı değildir; ikisi de her koşumda koşar. */
+    const c = await db.connector.findFirst({ where: { silindi: null }, select: { id: true } });
+    expect(c, 'fikstürde connector yok — vaka boş küme ölçüyor').not.toBeNull();
+    const damga = new Date('2026-03-04T05:06:07.000Z');
+    await db.connector.update({ where: { id: c!.id }, data: { sonBasariliKosu: damga } });
+    try {
+      const v2 = await kabukVerisi();
+      expect(v2.kesit, 'damga koşudan gelmiyor — uydurulmuş').toBe(damga.toISOString());
+    } finally {
+      /* Fikstür GERİ ALINIR: sonraki vakalar bu yazımı görmemeli. */
+      await db.connector.update({ where: { id: c!.id }, data: { sonBasariliKosu: null } });
     }
-    const damga = new Date(v.kesit).getTime();
-    expect(Number.isFinite(damga), 'damga tarih değil').toBe(true);
-    /* Damga GERÇEK bir koşu kaydına karşılık gelmeli. */
-    const kosular = await db.entegrasyonKosusu.findMany({
-      select: { baslangic: true, bitis: true },
-    });
-    const eslesen = kosular.some((k) => k.baslangic.getTime() === damga
-      || (k.bitis !== null && k.bitis.getTime() === damga));
-    expect(eslesen, 'damga hiçbir koşuya karşılık gelmiyor — uydurulmuş').toBe(true);
+    expect(await enSon(), 'fikstür geri alınmadı').toBeNull();
   });
 });
 
@@ -532,6 +623,30 @@ describe('POL-059 · POL-067 · "KÖKENSİZ — sunucu bunu yazmaz" [SIS-DGM-001
     const uygulananlar = await db.degerlendirmeAktarimi.findMany({
       where: { durum: 'uygulandi' }, select: { id: true, kuruKosuId: true },
     });
+    /* POPÜLASYON DİŞİ: sıfır kayıtla `for` gövdesi hiç koşmaz ve
+       "sunucunun yazdığı her kayıt kökenlidir" iddiası ölçülmemiş olur.
+       Fikstür boşsa vaka KENDİ kaydını kurar — kuru koşusuyla birlikte,
+       çünkü ölçülen şey kökenin VARLIĞIDIR. */
+    if (uygulananlar.length === 0) {
+      /* FİKSTÜR KENDİ KURULUR. Tohumda `DegerlendirmeAktarimi` SIFIR
+         satırdır (ölçüldü) — yani bu yarı bugüne kadar hiç koşmamıştı.
+         Köken bir SELF-RELATION'dır: uygulama kaydı kendi kuru
+         koşusuna bağlanır. */
+      const r = await db.regulasyon.findFirst({ select: { id: true } });
+      const ko = await db.kapsamOgesi.findFirst({ select: { id: true } });
+      expect(r, 'fikstürde regülasyon yok — vaka kurulamıyor').not.toBeNull();
+      expect(ko, 'fikstürde kapsam öğesi yok — vaka kurulamıyor').not.toBeNull();
+      const kuru = await db.degerlendirmeAktarimi.create({ data: {
+        regulasyonId: r!.id, kapsamOgesiId: ko!.id, kaynakAdi: 'kurgusal-prova.csv',
+        durum: 'kuru_kosu', okunan: 1, eslesen: 1, elenen: 0, degisen: 0 },
+        select: { id: true } });
+      const yeniKayit = await db.degerlendirmeAktarimi.create({ data: {
+        regulasyonId: r!.id, kapsamOgesiId: ko!.id, kaynakAdi: 'kurgusal-prova.csv',
+        durum: 'uygulandi', kuruKosuId: kuru.id, okunan: 1, eslesen: 1,
+        elenen: 0, degisen: 1 }, select: { id: true, kuruKosuId: true } });
+      uygulananlar.push(yeniKayit);
+    }
+    expect(uygulananlar.length, 'vaka boş küme ölçüyor').toBeGreaterThan(0);
     for (const u of uygulananlar) {
       expect(u.kuruKosuId, `${u.id} kökensiz uygulama — sunucu bunu yazmamalıydı`)
         .not.toBeNull();
@@ -553,6 +668,10 @@ describe('POL-059 · POL-067 · "KÖKENSİZ — sunucu bunu yazmaz" [SIS-DGM-001
 describe('POL-054 · "Kayıt CMDB\'ye kendiliğinden yazılmaz" [SIS-DGM-001]', () => {
   it('EŞLEŞTİRME koşusu envantere HİÇBİR varlık yazmaz — yalnız öneri üretir', async () => {
     const { kesifEslestir } = await import('@/lib/eylemler2/kesif');
+    /* POPÜLASYON DİŞİ: sıfır keşif kaydıyla "CMDB'ye yazmadı" boş bir
+       iddiadır — eşleştirecek hiçbir şey yoktur. */
+    expect(await db.kesifKaydi.count(),
+      'fikstürde keşif kaydı yok — vaka boş küme ölçüyor').toBeGreaterThan(0);
     const varlikOnce = await db.varlik.count();
     const s = await kesifEslestir({});
     expect(s.ok, s.ok ? '' : s.hata).toBe(true);

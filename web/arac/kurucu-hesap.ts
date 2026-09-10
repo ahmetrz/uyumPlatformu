@@ -98,6 +98,34 @@ export const BOS_KURULUM_SOZU = 'Kurulumda zaten kullanıcı var — bu araç ya
   + 'BOŞ kurulumda çalışır ve hiçbir şey yazmadı. Yeni kullanıcı, giriş '
   + 'yapmış bir yöneticinin /yetkiler ekranından açılır.';
 
+/** YARIŞI KAPATAN SATIR. Sabit birincil anahtar: aynı anda koşan ikinci
+    transaction bu satırı yazamaz, benzersizlik ihlaliyle düşer ve TÜMÜ
+    geri alınır. `Yapilandirma.anahtar` bir `@id`dir; ihlal veritabanının
+    kendi garantisidir, kodun bir kontrolü değil.
+
+    Anahtar `AYAR_SOZLUGU`nda YOKTUR ve bu bilerek: `tumAyarlar()` sözlük
+    üzerinde yürür, yani satır yönetim konsolunda görünmez ve bir ayar
+    gibi düzenlenemez. Taşıdığı şey bir tercih değil, bir OLAYDIR. */
+export const KURULUM_KURUCU_ANAHTARI = 'kurulum.kurucu';
+
+/** Prisma'nın benzersizlik ihlali kodu. Yarışı kaybeden transaction bu
+    kodla düşer ve operatöre ham bir veritabanı hatası değil, doğru cümle
+    gösterilir: kurulum artık boş DEĞİLDİR. */
+function benzersizlikIhlali(e: unknown): boolean {
+  return typeof e === 'object' && e !== null && 'code' in e
+    && (e as { code?: unknown }).code === 'P2002';
+}
+
+/** Hata metnini operatöre göstermeden önce parola türevlerini siler.
+    Prisma'nın doğrulama hatası, sorunlu `data` nesnesini metne basar —
+    orada `parolaHash` durur. Aracın sözü "parolayı hiçbir yere yazmaz,
+    ne günlüğe" idi; özet de parolanın türevidir ve aynı söze tabidir. */
+export function hataTemizle(mesaj: string, parolaHash?: string): string {
+  let m = mesaj;
+  if (parolaHash) m = m.split(parolaHash).join('«parola özeti gizlendi»');
+  return m.replace(/s1\$[0-9a-f]+\$[0-9a-f]+/gi, '«parola özeti gizlendi»');
+}
+
 export type Sonuc =
   | { ok: true; kullaniciId: string; eposta: string }
   | { ok: false; hata: string };
@@ -110,9 +138,31 @@ export type Sonuc =
  * hiçbir şey göremez; izi yazılmamış bir kurucu hesap ise denetim
  * izinin ilk satırını kaybeder — ürünün en temel vaadi orada başlar.
  *
- * BOŞLUK KONTROLÜ TRANSACTION'IN İÇİNDEDİR. Dışarıda okuyup içeride
- * yazmak TOCTOU açardı: iki operatör aynı anda koşarsa ikisi de "boş"
- * görür ve kurulum iki yöneticiyle açılır.
+ * YARIŞI `count()` KAPATMAZ — SABİT BİRİNCİL ANAHTAR KAPATIR. Boşluk
+ * kontrolü transaction'ın içindedir, ama "içeride olmak" tek başına
+ * yetmez: PostgreSQL'de varsayılan yalıtım READ COMMITTED'tır ve BOŞ bir
+ * tabloda `count()` hiçbir kilit almaz. İki operatör aynı dakikada
+ * koşarsa ikisi de kendi anlık görüntüsünde sıfır görür, ikisi de INSERT
+ * eder ve kurulum İKİ küresel yöneticiyle açılır — ikisinin de izinde
+ * "kurulumda kullanıcı yok" yazar, ikisi de yalan olur. Kusur bağımsız
+ * incelemede bulundu (PR #51, tur 1); SQLite tek yazar olduğu için
+ * geliştirme sağlayıcısında görünmüyordu, yani garanti ÜRETİM
+ * sağlayıcısında tutmuyordu.
+ *
+ * Bugün transaction, sabit birincil anahtarlı bir satır yazar
+ * (`Yapilandirma.anahtar = KURULUM_KURUCU_ANAHTARI`). Yarışı kaybeden
+ * transaction o satırı yazamaz, benzersizlik ihlaliyle düşer ve
+ * kullanıcı + yetki + iz TÜMÜYLE geri alınır. Garanti veritabanının
+ * kendi kısıtıdır; iki sağlayıcıda da aynı çalışır.
+ *
+ * `Serializable` YETMEZDİ ve seçilmedi: Prisma'da yalıtım seviyesi
+ * sağlayıcıya bağlıdır (SQLite desteklemez), yani garanti yine tek
+ * sağlayıcıda tutan bir garanti olurdu — düzeltmeye çalıştığımız
+ * kusurun ta kendisi.
+ *
+ * `count()` KALDI çünkü başka bir işi var: SIRALI ikinci koşuda —
+ * kurulum gerçekten doluyken — operatöre ham bir veritabanı hatası
+ * değil, ne yapması gerektiğini söyleyen cümleyi gösterir.
  */
 export async function kurucuHesapAc(db: PrismaClient, g: Girdi): Promise<Sonuc> {
   const kusur = girdiKusurlari(g);
@@ -123,6 +173,14 @@ export async function kurucuHesapAc(db: PrismaClient, g: Girdi): Promise<Sonuc> 
     return await db.$transaction(async (tx) => {
       const varOlan = await tx.kullanici.count();
       if (varOlan > 0) return { ok: false as const, hata: BOS_KURULUM_SOZU };
+      /* YARIŞI KAPATAN SATIR — kullanıcıdan ÖNCE yazılır ki kaybeden
+         transaction en az işi yapmış olsun. Değer parolanın hiçbir
+         türevini taşımaz: e-posta zaten `Kullanici` ve denetim izinde
+         duruyor, buradaki kopyası operatörün satıra bakıp ne olduğunu
+         anlaması içindir. */
+      await tx.yapilandirma.create({
+        data: { anahtar: KURULUM_KURUCU_ANAHTARI, degerJson: JSON.stringify({ eposta }) },
+      });
       const k = await tx.kullanici.create({
         data: { eposta, adSoyad: g.ad.trim(), aktif: true, parolaHash },
         select: { id: true },
@@ -151,8 +209,39 @@ export async function kurucuHesapAc(db: PrismaClient, g: Girdi): Promise<Sonuc> 
       return { ok: true as const, kullaniciId: k.id, eposta };
     });
   } catch (e) {
-    return { ok: false, hata: e instanceof Error ? e.message : String(e) };
+    /* Benzersizlik ihlali = yarışı kaybettik ya da kurulum bu arada
+       doldu. İkisi de aynı gerçeği söyler ve aynı cümleyi hak eder:
+       kurulum artık boş değil ve BU KOŞUM hiçbir şey yazmadı
+       (transaction geri alındı). */
+    if (benzersizlikIhlali(e)) return { ok: false, hata: BOS_KURULUM_SOZU };
+    return { ok: false,
+      hata: hataTemizle(e instanceof Error ? e.message : String(e), parolaHash) };
   }
+}
+
+/** SQLite dosya yolunu `DATABASE_URL`den çözer — PRİSMA'NIN KURALIYLA:
+    göreli yollar şema dizinine (`prisma/`) göredir, çalışma dizinine
+    göre DEĞİL. Yani `file:./dev.db` → `prisma/dev.db`, `file:./prisma/
+    dev.db` → `prisma/prisma/dev.db`. İkincisi operatörü şaşırtır ama
+    Prisma da tam olarak bunu yapar; başka bir kurala geçmek aracı
+    ürünün geri kalanından ayırırdı.
+
+    Ayrı ve saf: bağımsız inceleme bulgusu (PR #51, tur 1) çözülen yolun
+    operatöre HİÇ GÖRÜNMEDİĞİYDİ — "table does not exist" diyen bir
+    mesaj, yolun iki kez birleştirildiğini gizler. Bugün araç düştüğünde
+    çözdüğü yolu yazar (`baglantiOzeti`). */
+export function sqliteYolu(url: string | undefined): string {
+  const dosya = url ? url.replace(/^file:/i, '').split('?')[0] : 'dev.db';
+  return path.isAbsolute(dosya) ? dosya
+    : path.join(process.cwd(), 'prisma', dosya.replace(/^\.\//, ''));
+}
+
+/** Operatöre gösterilen bağlantı özeti. PostgreSQL'de KİMLİK BİLGİSİ
+    TAŞIMAZ: bağlantı dizesinde parola durur ve o dize kabuk günlüğüne
+    basılmaz — yalnız sağlayıcı adı yazılır. */
+export function baglantiOzeti(url: string | undefined): string {
+  if (url && /^postgres(ql)?:\/\//i.test(url)) return 'PostgreSQL (DATABASE_URL)';
+  return `SQLite · ${sqliteYolu(url)}`;
 }
 
 /** Kurulumun kendi istemcisi. `lib/db.ts` imajda yok; sürücü seçimi
@@ -161,11 +250,8 @@ export function istemciKur(url: string | undefined): PrismaClient {
   if (url && /^postgres(ql)?:\/\//i.test(url)) {
     return new PrismaClient({ adapter: new PrismaPg({ connectionString: url }) });
   }
-  const dosya = url ? url.replace(/^file:/i, '').split('?')[0]
-    : path.join(process.cwd(), 'prisma', 'dev.db');
-  const mutlak = path.isAbsolute(dosya) ? dosya
-    : path.join(process.cwd(), 'prisma', dosya.replace(/^\.\//, ''));
-  return new PrismaClient({ adapter: new PrismaBetterSqlite3({ url: `file:${mutlak}` }) });
+  return new PrismaClient({
+    adapter: new PrismaBetterSqlite3({ url: `file:${sqliteYolu(url)}` }) });
 }
 
 /** Parolayı stdin'den okur. ARGÜMANDAN OKUNMAZ: komut satırı `ps`
@@ -201,7 +287,13 @@ if (process.argv[1] && /kurucu-hesap\.ts$/.test(process.argv[1])) void (async ()
   const db = istemciKur(process.env.DATABASE_URL);
   const sonuc = await kurucuHesapAc(db, { eposta, ad, parola });
   await db.$disconnect();
-  if (!sonuc.ok) { console.error(sonuc.hata); process.exit(1); }
+  if (!sonuc.ok) {
+    console.error(sonuc.hata);
+    /* Hangi veritabanına bakıldığı YAZILIR. Yolun sessizce başka bir
+       yere çözülmesi, kusuru "tablo yok" gibi gösterir. */
+    console.error(`Bağlantı: ${baglantiOzeti(process.env.DATABASE_URL)}`);
+    process.exit(1);
+  }
   console.log(`kurucu hesap açıldı: ${sonuc.eposta} · rol ${KURUCU_ROL} · `
     + `id ${sonuc.kullaniciId}`);
   console.log('Parola hiçbir yere yazılmadı; yalnız scrypt özeti saklandı.');

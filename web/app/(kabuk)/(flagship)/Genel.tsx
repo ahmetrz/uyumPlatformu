@@ -243,7 +243,13 @@ export default function Genel({
                   UĞRAYAMADI, sızıntı bir üstteki kardeşi düzeltilirken elle
                   görüldü. Kapının erişemediği durum kapının temiz dediği durum
                   değildir. */}
-              {tipler.length === 0 && <p className="bos">Kapsamında {terim('tesis')} yok.</p>}
+              {tipler.length === 0 && (
+                <p className="bos">
+                  Kapsamınızda {terim('tesis')} yok — uyum katmanları{' '}
+                  {terim('tesis')} kayıtlarından türetilir.{' '}
+                  <Link href="/yonetim-tezgahi">{tBas('tesis')} tanımla →</Link>
+                </p>
+              )}
               {tipler.slice(0, KATMAN_TAVANI).map((t) => (
                 <div key={t.kod} className="katman">
                   <div className="bas">
@@ -564,10 +570,14 @@ function Mudahale({ dikkat, toplamKayit, kapsamli }: {
         <span className="mono adet">{toplamKayit}</span>
       </div>
       {cizilecek === 0 ? (
-        <p className="bos">
+        /* BEKLENEN YOKLUK: açık bulgu olmaması iyi haberdir. İşaret
+           edeceği bir çözüm yoktur; olmayan bir eylem uydurmak
+           kullanıcıyı gereksiz bir yola sokardı. Bayrak sınıftan
+           gelir (`bos iyi`), kütükten değil. */
+        <p className="bos iyi">
           {kapsamli
-            ? 'Kapsamındaki tesislerde açık bulgu yok.'
-            : 'Açık bulgu yok.'}
+            ? 'Kapsamınızdaki tesislerde açık bulgu yok; müdahale bekleyen kayıt bulunmuyor.'
+            : 'Açık bulgu yok; müdahale bekleyen kayıt bulunmuyor.'}
         </p>
       ) : dikkat.slice(0, cizilecek).map((b, i) => (
         <Link key={b.id} href={`/bulgular/${b.id}`}
@@ -681,7 +691,15 @@ function Takimyildizi({ tesisler, gosterim = OLCULMEMIS_VARSAYILAN, serit, panel
         )}
       </div>
       {tesisler.length === 0 ? (
-        <p className="bos">Kapsamda tesis yok.</p>
+        /* İLK KURULUM BOŞLUĞU: bu bölüm ekranın BİRİNCİL içeriğidir ve
+           boşken kullanıcı ilerleyemez — bu yüzden bir bağ taşır. Bir
+           kart NOTU değildir; not, kullanıcıyı çalıştığı ekrandan
+           koparmaz (etkileşim sadeleştirme: gereksiz gezinme yok). */
+        <p className="bos">
+          Kapsamınızda {terim('tesis')} yok — uyum tuvali{' '}
+          {terim('tesis')} kayıtlarından çizilir.{' '}
+          <Link href="/yonetim-tezgahi">{tBas('tesis')} tanımla →</Link>
+        </p>
       ) : (
         <div className="ab-tuval-sar">
           <div className="ab-tuval">

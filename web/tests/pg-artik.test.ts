@@ -1,6 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import {
-  ARTIK_KALIBI, artikAdlari, dusur, sahipPid, sahipYasiyor, yetimleriSec, yetimleriSupur,
+  ARTIK_KALIBI, artikAdlari, dusur, sahipPid, sahipYasiyor, sizintiKarari,
+  yetimleriSec, yetimleriSupur,
 } from '../arac/pg-artik.mjs';
 
 /* ═══════════════════════════════════════════════════════════════════════
@@ -61,14 +62,31 @@ describe('YETİM SEÇİMİ eşzamanlı koşumu ezmez [SIS-IZO-001]', () => {
   });
 });
 
+/** İki `SELECT count` sorgusu AYRI şeydir ve sahte de öyle ayırmalıdır:
+    `pg_stat_activity` = bağlantı dişi · `pg_database` = varlık ölçümü.
+    Tek dala düşen bir sahte, bağlantı dişini yanlışlıkla besler ve
+    düşürme vakası "kırmızı yandı" derken aslında hiç DROP koşmamış
+    olurdu. */
+function sahtePsql({ baglanti = 0, kaliyor = false }) {
+  const koşan: string[] = [];
+  const calistir = (_url: string, sql: string) => {
+    koşan.push(sql);
+    if (sql.includes('pg_stat_activity')) return String(baglanti);
+    if (sql.includes('pg_database WHERE datname =')) return kaliyor ? '1' : '0';
+    return '';
+  };
+  return { calistir, koşan };
+}
+
 describe('DÜŞÜRME SON KOŞULUNU ÖLÇER [SIS-IZO-001]', () => {
   it('DROP koştu ama satır DURUYORSA temizlik KIRIKTIR', () => {
     /* "Sildim" diyen adım sildiğini ölçmelidir; başarısız olamayan bir
        adım adım değildir. */
-    const inatci = (_url: string, sql: string) =>
-      (sql.startsWith('SELECT count') ? '1' : '');
-    expect(dusur('u', ['uyum_test_9_9'], inatci), 'silinmeyen veritabanı sessizce geçti')
+    const { calistir, koşan } = sahtePsql({ kaliyor: true });
+    expect(dusur('u', ['uyum_test_9_9'], calistir), 'silinmeyen veritabanı sessizce geçti')
       .toEqual(['uyum_test_9_9']);
+    expect(koşan.some((q) => q.startsWith('DROP DATABASE')),
+      'vaka DROP koşmadan "kırmızı" ölçüyor').toBe(true);
   });
 
   it('DROP FIRLATIRSA da kalan listesine girer — sessiz yutma yok', () => {
@@ -77,8 +95,79 @@ describe('DÜŞÜRME SON KOŞULUNU ÖLÇER [SIS-IZO-001]', () => {
   });
 
   it('gerçekten silinen KALAN listesine GİRMEZ', () => {
-    const calisir = (_url: string, sql: string) => (sql.startsWith('SELECT count') ? '0' : '');
-    expect(dusur('u', ['uyum_test_9_9'], calisir)).toEqual([]);
+    const { calistir } = sahtePsql({});
+    expect(dusur('u', ['uyum_test_9_9'], calistir)).toEqual([]);
+  });
+});
+
+describe('BAĞLANTI DİŞİ · ad alanından BAĞIMSIZ [SIS-IZO-001]', () => {
+  /* ── ÖLÇÜLEN KUSUR (bağımsız inceleme, PR #51 tur 1) ─────────────────
+     Yetimlik ölçütü `process.kill(pid, 0)` idi ve bu SÜPÜRÜCÜNÜN pid ad
+     alanında değerlendirilir; addaki pid ise veritabanını YARATAN
+     sürecin ad alanındandır. Kapsayıcıdan koşan bir süpürme, host'ta
+     CANLI olan bir koşumu "yetim" görebilirdi — ve `WITH (FORCE)` da
+     PostgreSQL'in doğal emniyet supabını kapattığı için canlı
+     bağlantıları keserek düşürürdü. Öbür koşum ortasında "database
+     does not exist" ile parçalanırdı: modülün kendi ölçütüne göre EN
+     KÖTÜ sonuç. */
+
+  it('BAĞLANTISI OLAN veritabanı DÜŞÜRÜLMEZ — pid ölü görünse bile', () => {
+    const { calistir, koşan } = sahtePsql({ baglanti: 3 });
+    /* pid ad alanında YOK: birinci diş "yetim" der. */
+    expect(yetimleriSec(['uyum_test_4711_1'], () => false)).toEqual(['uyum_test_4711_1']);
+    /* İkinci diş kurtarır. */
+    expect(dusur('u', ['uyum_test_4711_1'], calistir),
+      'canlı bağlantılı veritabanı düşürüldü — eşzamanlı koşum ezildi')
+      .toEqual(['uyum_test_4711_1']);
+    expect(koşan.some((q) => q.startsWith('DROP DATABASE')),
+      'kullanımdaki veritabanına DROP koşuldu').toBe(false);
+  });
+
+  it('DROP deyimi `WITH (FORCE)` TAŞIMAZ — emniyet supabı açık kalır', () => {
+    /* Sabotaj yüzeyi: `FORCE` geri gelirse bu vaka kırmızı yanar. */
+    const { calistir, koşan } = sahtePsql({});
+    dusur('u', ['uyum_test_9_9'], calistir);
+    const drop = koşan.find((q) => q.startsWith('DROP DATABASE')) ?? '';
+    expect(drop, 'FORCE geri gelmiş — canlı bağlantılar kesilerek düşürülüyor')
+      .not.toMatch(/FORCE/i);
+  });
+
+  it('BAĞLANTISI YOK ve pid ÖLÜ ise düşürülür — diş kilitlemez', () => {
+    const { calistir } = sahtePsql({ baglanti: 0 });
+    expect(dusur('u', ['uyum_test_9_9'], calistir)).toEqual([]);
+  });
+});
+
+describe('SIZINTI KARARI · üç hâl [SIS-IZO-001]', () => {
+  /* Saf karar: "sızıntı var" hâlini üretmek için gerçekten bir koşumu
+     `kill -9` ile öldürmek gerekmesin. */
+  const oldu = (p: number) => p === 100;   /* yalnız 100 canlı */
+
+  it('KOŞUMDA DOĞAN ve sahibi ÖLMÜŞ olan SIZINTIDIR', () => {
+    const k = sizintiKarari(['uyum_test_5_1'], ['uyum_test_5_1', 'uyum_test_7_2'],
+      (a) => a.filter((x) => !oldu(Number(/^uyum_test_(\d+)_/.exec(x)![1]))));
+    expect(k.hal).toBe('sizinti');
+    expect(k.sizanlar).toEqual(['uyum_test_7_2']);
+  });
+
+  it('EŞZAMANLI koşumun CANLI veritabanı sızıntı SAYILMAZ', () => {
+    const k = sizintiKarari([], ['uyum_test_100_9'],
+      (a) => a.filter((x) => !oldu(Number(/^uyum_test_(\d+)_/.exec(x)![1]))));
+    expect(k.hal, 'canlı koşum sızıntı sayıldı').toBe('temiz');
+  });
+
+  it('KOŞUMDAN ÖNCE de duran yetim BU koşuma yazılmaz', () => {
+    const k = sizintiKarari(['uyum_test_7_2'], ['uyum_test_7_2'], (a) => a);
+    expect(k.hal).toBe('temiz');
+  });
+
+  it('TABAN YOKSA sızıntı İDDİA EDİLMEZ — ÖLÇÜLEMEDİ ayrı hâldir', () => {
+    /* Bağımsız inceleme bulgusu (PR #51, tur 1): taban alınamadığında
+       boş dizi varsayan okuma, geçmişin yetimlerini "bu koşum bıraktı"
+       diye yazıyordu — uydurulmuş bir sızıntı iddiası. */
+    const k = sizintiKarari(null, ['uyum_test_7_2', 'uyum_test_9_3'], (a) => a);
+    expect(k.hal, 'tabansız ölçüm sızıntı iddia etti').toBe('olculemedi');
+    expect(k.sizanlar).toEqual([]);
   });
 });
 
@@ -87,6 +176,8 @@ describe('SÜPÜRME UÇTAN UCA (sahte psql) [SIS-IZO-001]', () => {
     const kalanlar = new Set(['uyum_test_100_1', 'uyum_test_200_2', 'uyum_test_sablonu']);
     const sahte = (_url: string, sql: string) => {
       if (sql.startsWith('SELECT datname')) return [...kalanlar].join('\n');
+      /* Hiçbirine bağlantı YOK: bu vaka birinci dişi (pid) ölçüyor. */
+      if (sql.includes('pg_stat_activity')) return '0';
       const m = /DROP DATABASE IF EXISTS "([^"]+)"/.exec(sql);
       if (m) { kalanlar.delete(m[1]); return ''; }
       const s = /datname = '([^']+)'/.exec(sql);

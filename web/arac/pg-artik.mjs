@@ -27,21 +27,43 @@
      · KOŞUMDAN SONRA — bu koşumda DOĞAN ve hâlâ duran veritabanı KALMAZ;
        kaldıysa süpürülür ve koşum KIRMIZI biter.
 
-   ── EŞZAMANLI KOŞUM EZİLMEZ ───────────────────────────────────────────
-   Aynı sunucuda başka bir koşum sürüyor olabilir. Bu yüzden ölçüt SAHİBİN
-   YAŞAYIP YAŞAMADIĞIDIR: `uyum_test_<pid>_…` adındaki pid bu makinede
-   canlıysa veritabanı DOKUNULMAZ. Sonrasındaki kapı da yalnız "benim
-   koşumda doğan + sahibi ölmüş" olanları sayar; eşzamanlı bir koşumun
-   canlı veritabanı ne süpürülür ne de kırmızı yakar.
+   ── EŞZAMANLI KOŞUM EZİLMEZ · İKİ AYRI DİŞ ────────────────────────────
+   Aynı sunucuda başka bir koşum sürüyor olabilir ve onu ezmek, bir artığı
+   bir tur daha taşımaktan KÖTÜDÜR. Bu yüzden iki ayrı diş vardır ve
+   ikisi de bağımsızdır:
 
-   PID YENİDEN KULLANILIR ve bu bilinçli bir sınırdır: ölü bir pid'in
+     1. SAHİP YAŞIYOR MU — `uyum_test_<pid>_…` adındaki pid canlıysa
+        veritabanı dokunulmaz. Bu diş PID AD ALANINA BAĞLIDIR ve sınır
+        budur: pid, veritabanını YARATAN sürecin ad alanındandır;
+        `process.kill(pid, 0)` ise SÜPÜRÜCÜNÜN ad alanında değerlendirilir.
+        Kapsayıcıdan koşan bir süpürme, host'ta canlı olan bir koşumun
+        pid'ini "yok" görebilir (bağımsız inceleme bulgusu, PR #51 tur 1).
+
+     2. BAĞLANTISI VAR MI — veritabanına açık bir oturum varsa (`pg_stat_
+        activity`) DOKUNULMAZ, sahibinin pid'i ne derse desin. Bu diş ad
+        alanından BAĞIMSIZDIR: bağlantıyı sunucunun kendisi görür. Birinci
+        dişin körlüğünü kapatan diş budur.
+
+   `WITH (FORCE)` KALDIRILDI ve bu düzeltmenin ta kendisidir: canlı
+   bağlantıları KESEREK düşürmek, PostgreSQL'in "database is being
+   accessed by other users" emniyet supabını kapatıyordu — yani birinci
+   diş kandırıldığında ikinci bir savunma kalmıyordu. Bugün düşürme
+   nazik: kullanımdaysa düşmez, `kalan`a yazılır ve bir sonraki tura
+   kalır.
+
+   PID YENİDEN KULLANILIR ve bu da bilinçli bir sınırdır: ölü bir pid'in
    numarasını başka bir süreç almışsa artık YETİM SAYILMAZ ve durur.
-   Güvenli taraf budur — yanlışlıkla canlı bir koşumun veritabanını
-   düşürmek, bir artığı bir tur daha taşımaktan kötüdür.
+
+   ── SÜPÜRME YALNIZ TEST SUNUCUSUNA BAKAR ──────────────────────────────
+   Hedef YALNIZ `TEST_PG_URL`dir. `PG_URL` geri düşüşü KALDIRILDI: o dize
+   göç ve yönetim bağlantısıdır (`arac/pg-goc.mjs`), yani yalnız `PG_URL`
+   ayarlı bir kabukta süpürme YÖNETİM SUNUCUSUNA yönelirdi. Bir temizlik
+   aracının hedefini yanlış sunucuya çevirebilen bir geri düşüş, aracın
+   kendisinden daha tehlikelidir.
 
    Kullanım:
-     node arac/pg-artik.mjs --say        → yetim artıkları say
-     node arac/pg-artik.mjs --supur      → yetimleri süpür ve doğrula
+     TEST_PG_URL=… node arac/pg-artik.mjs --say    → yetim artıkları say
+     TEST_PG_URL=… node arac/pg-artik.mjs --supur  → süpür ve doğrula
    ═══════════════════════════════════════════════════════════════════════ */
 import { spawnSync } from 'node:child_process';
 
@@ -101,15 +123,33 @@ export function artikAdlari(url, calistir = psql) {
 }
 
 /**
+ * Veritabanına AÇIK OTURUM var mı?
+ *
+ * PID ad alanından BAĞIMSIZ ikinci diş: bağlantıyı sunucunun kendisi
+ * görür, süpürücünün hangi kapsayıcıda koştuğunun önemi yoktur. Bir
+ * koşum sürüyorsa işçisinin veritabanına bağlıdır.
+ */
+export function baglantiVar(url, ad, calistir = psql) {
+  const s = calistir(url,
+    `SELECT count(*) FROM pg_stat_activity WHERE datname = '${ad}'`);
+  return Number(s) > 0;
+}
+
+/**
  * Verilen veritabanlarını düşürür ve DÜŞTÜĞÜNÜ ölçer.
  * "Sildim" diyen adım sildiğini ölçmelidir; başarısız olamayan bir adım
  * adım değildir.
+ *
+ * KULLANIMDAKİ veritabanı DÜŞÜRÜLMEZ: `kalan`a yazılır ve bir sonraki
+ * tura kalır. Bu bir başarısızlık değil, ikinci diştir — ad alanı farkı
+ * yüzünden yetim SANILAN canlı bir koşum burada kurtulur.
  */
-export function dusur(url, adlar, calistir = psql) {
+export function dusur(url, adlar, calistir = psql, baglantiliMi = baglantiVar) {
   const kalan = [];
   for (const ad of adlar) {
     try {
-      calistir(url, `DROP DATABASE IF EXISTS "${ad}" WITH (FORCE)`);
+      if (baglantiliMi(url, ad, calistir)) { kalan.push(ad); continue; }
+      calistir(url, `DROP DATABASE IF EXISTS "${ad}"`);
       const sayi = calistir(url, `SELECT count(*) FROM pg_database WHERE datname = '${ad}'`);
       if (sayi !== '0') kalan.push(ad);
     } catch { kalan.push(ad); }
@@ -118,29 +158,74 @@ export function dusur(url, adlar, calistir = psql) {
 }
 
 /** Yetimleri süpürür. Döndürdüğü `kalan` boş değilse temizlik KIRIKTIR. */
-export function yetimleriSupur(url, calistir = psql, yasiyorMu = sahipYasiyor) {
+export function yetimleriSupur(url, calistir = psql, yasiyorMu = sahipYasiyor,
+  baglantiliMi = baglantiVar) {
   const hepsi = artikAdlari(url, calistir);
   const yetim = yetimleriSec(hepsi, yasiyorMu);
-  return { hepsi, yetim, kalan: dusur(url, yetim, calistir) };
+  return { hepsi, yetim, kalan: dusur(url, yetim, calistir, baglantiliMi) };
+}
+
+/**
+ * SAF KARAR: koşum sonrası sızıntı var mı?
+ *
+ * Ayrı ve saf olması bilerek — aynı gerekçe `tabanKarari` ve
+ * `yeniSatirKusurlari` için de yazılıydı: "sızıntı var" hâlini üretmek
+ * için gerçekten bir koşumu `kill -9` ile öldürmek gerekmesin.
+ *
+ * ÜÇ HÂL AYRI ve ikisi "temiz" DEĞİLDİR:
+ *   · `oncekiler === null` → ÖLÇÜLEMEDİ. Karşılaştırma tabanı yok;
+ *     sızıntı İDDİA EDİLMEZ. Bağımsız inceleme (PR #51, tur 1) ölçtü:
+ *     taban alınamadığında boş dizi varsayan bir okuma, koşumdan ÖNCE de
+ *     var olan yetimleri "bu koşum bıraktı" diye yazıyordu — uydurulmuş
+ *     bir sızıntı iddiası.
+ *   · sızan yok → temiz.
+ *   · sızan var → KIRMIZI; sayılan şey BU KOŞUMDA DOĞAN ve sahibi ÖLMÜŞ
+ *     olanlardır, eşzamanlı bir koşumun canlı veritabanı değil.
+ *
+ * @param {string[]|null} oncekiler koşum öncesi liste; ölçülemediyse null
+ * @param {string[]} sonrakiler koşum sonrası liste
+ * @param {(a: string[]) => string[]} yetimSec yetim seçici (enjekte edilebilir)
+ */
+export function sizintiKarari(oncekiler, sonrakiler, yetimSec = yetimleriSec) {
+  if (oncekiler === null || oncekiler === undefined) {
+    return { hal: 'olculemedi', sizanlar: [] };
+  }
+  const once = new Set(oncekiler);
+  const sizanlar = yetimSec(sonrakiler.filter((a) => !once.has(a)));
+  return { hal: sizanlar.length > 0 ? 'sizinti' : 'temiz', sizanlar };
 }
 
 if (process.argv[1] && /pg-artik\.mjs$/.test(process.argv[1])) {
-  const url = process.env.TEST_PG_URL || process.env.PG_URL;
+  /* YALNIZ `TEST_PG_URL`. Geri düşüş yok — başlıktaki gerekçe. */
+  const url = process.env.TEST_PG_URL;
   if (!url) {
-    console.error('ÖLÇÜLMEDİ: TEST_PG_URL (ya da PG_URL) yok — artık süpürmesi yapılamadı.');
+    console.error('ÖLÇÜLMEDİ: TEST_PG_URL yok — artık süpürmesi yapılamadı.');
+    console.error('  `PG_URL` KABUL EDİLMEZ: o dize göç/yönetim bağlantısıdır ve '
+      + 'süpürmeyi yanlış sunucuya yöneltebilir.');
     process.exit(1);
   }
-  const supur = process.argv.includes('--supur');
-  const hepsi = artikAdlari(url);
-  const yetim = yetimleriSec(hepsi);
-  if (!supur) {
-    console.log(`test veritabanı: ${hepsi.length} · yetim: ${yetim.length}`);
-    process.exit(0);
-  }
-  const kalan = dusur(url, yetim);
-  console.log(`süpürüldü: ${yetim.length - kalan.length} · yetim: ${yetim.length} · toplam: ${hepsi.length}`);
-  if (kalan.length > 0) {
-    console.error(`TEMİZLİK KIRIK: düşürülemeyen ${kalan.length} veritabanı: ${kalan.join(', ')}`);
+  /* `ArtikHatasi` YAKALANIR. Modül başlığı bu sınıfı "ham `ENOENT`
+     fırlatıyordu" diye düzelttiğini yazıyordu; düzeltme yalnız
+     kütüphane yolundaydı ve CLI ölçemediğini YIĞIN İZİYLE söylüyordu
+     (bağımsız inceleme, PR #51 tur 1). */
+  try {
+    const supur = process.argv.includes('--supur');
+    const hepsi = artikAdlari(url);
+    const yetim = yetimleriSec(hepsi);
+    if (!supur) {
+      console.log(`test veritabanı: ${hepsi.length} · yetim: ${yetim.length}`);
+      process.exit(0);
+    }
+    const kalan = dusur(url, yetim);
+    console.log(`süpürüldü: ${yetim.length - kalan.length} · yetim: ${yetim.length} · toplam: ${hepsi.length}`);
+    if (kalan.length > 0) {
+      console.error(`TEMİZLİK KIRIK: düşürülemeyen ${kalan.length} veritabanı: ${kalan.join(', ')}`);
+      process.exit(1);
+    }
+  } catch (e) {
+    const olculemedi = e instanceof ArtikHatasi;
+    console.error(`${olculemedi ? 'ÖLÇÜLMEDİ' : 'ARTIK SÜPÜRMESİ DÜŞTÜ'}: `
+      + `${(e?.message ?? String(e)).split('\n').find(Boolean) ?? ''}`);
     process.exit(1);
   }
 }

@@ -1,10 +1,13 @@
 import { afterAll, beforeAll, describe, expect, it } from 'vitest';
 import { execFileSync, spawnSync } from 'node:child_process';
-import { existsSync, mkdirSync, mkdtempSync, rmSync, writeFileSync } from 'node:fs';
+import {
+  copyFileSync, existsSync, mkdirSync, mkdtempSync, rmSync, writeFileSync,
+} from 'node:fs';
 import path from 'node:path';
 import {
-  BOS_KURULUM_SOZU, KURUCU_PAROLA_EN_AZ, KURUCU_ROL, girdiKusurlari,
-  istemciKur, kurucuHesapAc, ozetle,
+  BOS_KURULUM_SOZU, KURULUM_KURUCU_ANAHTARI, KURUCU_PAROLA_EN_AZ, KURUCU_ROL,
+  baglantiOzeti, girdiKusurlari, hataTemizle, istemciKur, kurucuHesapAc, ozetle,
+  sqliteYolu,
 } from '../arac/kurucu-hesap';
 import { parolaDogru } from '@/lib/auth';
 import { ROL_IZINLERI } from '@/lib/erisim';
@@ -56,12 +59,31 @@ const POSTGRES = /^postgres(ql)?:\/\//i.test(
   process.env.TEST_PG_URL ?? process.env.DATABASE_URL ?? '');
 const dbTanimla = POSTGRES ? describe.skip : describe;
 
+/* ── ATLAMA BEYANLI OLABİLİR, SESSİZ OLAMAZ ────────────────────────────
+   Bağımsız inceleme bulgusu (PR #51, tur 1): `describe.skip` çıkış
+   kodunu değiştirmez — tek bir `DATABASE_URL` bu dosyanın veritabanı
+   isteyen vakalarını sessizce yok ediyordu ve `arac/test-envanteri.json`
+   yine "atlanan: 0" diyordu. Atlamanın SEBEBİ ölçülür: yalnız gerçek bir
+   PostgreSQL test koşumunda (`TEST_PG_URL`) atlanabilir. */
+describe('SAĞLAYICI BEYANI · atlama sessiz olamaz [SIS-KUR-001]', () => {
+  it('atlandıysa SEBEBİ gerçek bir PostgreSQL koşumudur [SIS-KUR-001]', () => {
+    if (!POSTGRES) return; /* Gerçek vakalar koştu. */
+    expect(process.env.TEST_PG_URL ?? '',
+      'ATLAMA SEBEPSİZ: veritabanı vakaları yalnız `TEST_PG_URL` ile '
+      + 'koşan bir PostgreSQL kümesinde atlanabilir').not.toBe('');
+  });
+});
+
 const KOK = process.cwd();
 const yuva = path.join(KOK, '.parti');
 mkdirSync(yuva, { recursive: true });
 const calisma = mkdtempSync(path.join(yuva, 'kurucu-hesap-'));
 const bosDb = path.join(calisma, 'bos.db');
+/* YARIŞ vakalarının KENDİ boş kurulumu. Göç zinciri iki kez uygulanmaz —
+   henüz hiçbir şey yazılmamış dosya KOPYALANIR; "boş" olması ölçülür. */
+const yarisDb = path.join(calisma, 'yaris.db');
 let db: PrismaClient;
+let dbYaris: PrismaClient;
 
 const PAROLA = 'kurgusal-prova-parolasi-2026';
 
@@ -81,11 +103,14 @@ beforeAll(() => {
     ['migrate', 'deploy', '--config', ayar],
     { cwd: KOK, stdio: 'ignore', env: { ...process.env, BROWSER: 'none' } });
   db = istemciKur(`file:${bosDb}`);
+  copyFileSync(bosDb, yarisDb);
+  dbYaris = istemciKur(`file:${yarisDb}`);
 }, 180_000);
 
 afterAll(async () => {
   if (POSTGRES) return;
   await db?.$disconnect();
+  await dbYaris?.$disconnect();
   rmSync(calisma, { recursive: true, force: true });
   /* "Sildim" diyen adım sildiğini ölçer. */
   if (existsSync(calisma)) throw new Error(`geçici dizin silinemedi: ${calisma}`);
@@ -116,6 +141,64 @@ describe('BAĞLAR · veritabanı istemez, her iki sağlayıcıda koşar [SIS-KUR
        izin vermeyen bir kurucu hesap üretirdi: giriş yapar, hiçbir ekranı
        göremez ve kusur "ürün bozuk" diye görünür. */
     expect(Object.keys(ROL_IZINLERI)).toContain(KURUCU_ROL);
+  });
+
+  it('HATA METNİ parola özetini SIZDIRMAZ [SIS-KUR-001]', () => {
+    /* Bağımsız inceleme şüphesi (PR #51, tur 1): Prisma'nın doğrulama
+       hatası sorunlu `data` nesnesini metne basar ve orada `parolaHash`
+       durur. Aracın sözü "parolayı hiçbir yere yazmaz — ne günlüğe"
+       idi; özet parolanın türevidir ve aynı söze tabidir. */
+    const ozet = ozetle(PAROLA);
+    const ham = `Invalid \`prisma.kullanici.create()\` invocation\n`
+      + `{ eposta: "a@b.local", parolaHash: "${ozet}" }`;
+    const temiz = hataTemizle(ham, ozet);
+    expect(temiz, 'özet ham metinden silinmedi').not.toContain(ozet);
+    expect(temiz).toContain('«parola özeti gizlendi»');
+    /* İKİ DİŞ AYRI AYRI ÖLÇÜLÜR. Sabotaj turu (S86) ilk yazımda
+       YAKMADI: iki diş tam olarak aynı vakayı örtüyordu, biri
+       kaldırılınca öbürü sonucu kurtarıyordu ve "ölçtüm" dediğimiz şey
+       yalnız kesişimdi. R-E'nin dersi: örtüşen iki savunmadan yalnız
+       kesişimi ölçen bir vaka, ikisinin de tek tek doğru olduğunu
+       SÖYLEMİŞ SAYILMAZ.
+
+       Diş 2 · BİÇİM — özet elde YOKKEN de yakalanır; başka bir kayıttan
+       (ör. giriş denemesi) gelmiş olabilir. */
+    expect(hataTemizle(`kayit: ${ozet} sonu`), 'biçim dişi tutmadı').not.toContain(ozet);
+    /* Diş 1 · DEĞER — biçim değişse bile BU çağrının özeti silinir.
+       Özet şeması bir gün `s2$…` olursa biçim dişi kör kalır; değer
+       dişi kalmaz. Vaka bu yüzden biçim dişinin TANIMADIĞI bir özet
+       kullanır: yalnız birinci diş yakalayabilir. */
+    const gelecekOzet = 's2$AAAA$BBBB';
+    expect(hataTemizle(`kayit: ${gelecekOzet} sonu`), 'önkoşul: biçim dişi bunu tanımamalı')
+      .toContain(gelecekOzet);
+    expect(hataTemizle(`kayit: ${gelecekOzet} sonu`, gelecekOzet),
+      'değer dişi tutmadı — biçimi değişen bir özet günlüğe sızar')
+      .not.toContain(gelecekOzet);
+    /* Metnin geri kalanı KORUNUR: sansürlenen mesaj, kusuru anlatmayan
+       bir mesaja dönüşürse operatör sebebi göremez. */
+    expect(temiz).toContain('prisma.kullanici.create()');
+  });
+
+  it('SQLITE YOLU Prisma kuralıyla çözülür ve GÖRÜNÜR [SIS-KUR-001]', () => {
+    /* Bağımsız inceleme bulgusu (PR #51, tur 1): göreli yol iki kez
+       birleşiyordu ve operatör bunu göremiyordu. Davranış Prisma'nın
+       kuralıyla AYNI (göreli yol şema dizinine göredir) ve öyle kaldı;
+       düzeltilen şey GÖRÜNÜRLÜK. */
+    const kok = process.cwd();
+    expect(sqliteYolu('file:./dev.db')).toBe(path.join(kok, 'prisma', 'dev.db'));
+    expect(sqliteYolu(undefined)).toBe(path.join(kok, 'prisma', 'dev.db'));
+    expect(sqliteYolu('file:/mutlak/yol/x.db')).toBe('/mutlak/yol/x.db');
+    /* Şaşırtan hâl: `prisma/` iki kez. Prisma da bunu yapar; araç
+       sessiz kalmaz, çözdüğü yolu YAZAR. */
+    expect(sqliteYolu('file:./prisma/dev.db'))
+      .toBe(path.join(kok, 'prisma', 'prisma', 'dev.db'));
+    expect(baglantiOzeti('file:./prisma/dev.db'))
+      .toContain(path.join('prisma', 'prisma', 'dev.db'));
+    /* PostgreSQL özeti KİMLİK BİLGİSİ TAŞIMAZ: bağlantı dizesinde
+       parola durur ve o dize kabuk günlüğüne basılmaz. */
+    const ozet = baglantiOzeti('postgresql://kullanici:gizliparola@sunucu:5432/uyum');
+    expect(ozet).toBe('PostgreSQL (DATABASE_URL)');
+    expect(ozet).not.toContain('gizliparola');
   });
 
   it('PAROLA ÖZETİ girişin doğrulayıcısıyla UYUŞUR — bağ [SIS-KUR-001]', () => {
@@ -223,6 +306,85 @@ dbTanimla('DOLU kurulumda araç HİÇBİR ŞEY yazmaz [SIS-KUR-001]', () => {
     expect(s.ok).toBe(false);
     if (!s.ok) expect(s.hata).toBe(BOS_KURULUM_SOZU);
     expect(await sayim(), 'dolu kurulumda yan etki yazıldı').toEqual(once);
+  });
+});
+
+dbTanimla('YARIŞ · iki operatör aynı anda [SIS-KUR-001]', () => {
+  /* ── BAĞIMSIZ İNCELEME BULGUSU (PR #51, tur 1) ────────────────────────
+     Kod "boşluk kontrolü transaction'ın İÇİNDEDİR, yani TOCTOU yok"
+     diyordu. Kontrol gerçekten içerideydi — ama içeride olmak bu yarışı
+     KAPATMAZ: PostgreSQL varsayılanı READ COMMITTED'tır ve BOŞ bir
+     tabloda `count()` hiçbir kilit almaz. İki operatör aynı dakikada
+     koşarsa ikisi de sıfır görür ve kurulum İKİ küresel yöneticiyle
+     açılır. SQLite tek yazar olduğu için kusur geliştirme
+     sağlayıcısında görünmüyordu: garanti ÜRETİM sağlayıcısında
+     tutmuyordu.
+
+     İKİ VAKA İKİ AYRI ŞEY ÖLÇER ve karıştırılmamalıdır:
+     · Birincisi ARADAKİ ANI kurar — `Kullanici` hâlâ boş, ama yarışı
+       kazanan taraf tekil satırını çoktan yazmış. `count()` bu anda
+       KÖRDÜR; reddeden tek şey birincil anahtardır. Sağlayıcıdan
+       bağımsızdır ve sabotajı yakan vaka budur.
+     · İkincisi SONUCU ölçer: iki koşum gerçekten birlikte başlatılır ve
+       kurulumda tek bir yönetici kalır. Hangi dişin (sayım mı, anahtar
+       mı) devreye girdiği araya bağlıdır; better-sqlite3 yazarları
+       sıraya soktuğu için burada çoğu zaman sayım kapatır — bu yüzden
+       tek başına bu vaka YETMEZ. */
+
+  it('ARADAKİ AN: tekil satır varken kullanıcı tablosu BOŞ — araç REDDEDER [SIS-KUR-001]', async () => {
+    expect(await dbYaris.kullanici.count(), 'önkoşul: kurulum boş olmalı').toBe(0);
+    /* Yarışı kazananın yazdığı satır. Kullanıcısı henüz görünmüyor:
+       kaybeden transaction'ın anlık görüntüsü tam olarak budur. */
+    await dbYaris.yapilandirma.create({
+      data: { anahtar: KURULUM_KURUCU_ANAHTARI, degerJson: JSON.stringify({ eposta: 'kazanan@prova.local' }) },
+    });
+    const once = {
+      kullanici: await dbYaris.kullanici.count(),
+      yetki: await dbYaris.yetki.count(),
+      iz: await dbYaris.aktiviteKaydi.count(),
+    };
+    expect(once.kullanici, 'vaka aradaki anı kurmuyor').toBe(0);
+
+    const s = await kurucuHesapAc(dbYaris, {
+      eposta: 'kaybeden@prova.local', ad: 'Kaybeden', parola: PAROLA,
+    });
+    expect(s.ok, 'ikinci yönetici açıldı — yarış kapalı değil').toBe(false);
+    /* Operatör ham bir veritabanı hatası değil, ne olduğunu söyleyen
+       cümleyi görür. */
+    if (!s.ok) expect(s.hata).toBe(BOS_KURULUM_SOZU);
+    /* Reddi ölçmek YETMEZ: reddeden ama kullanıcıyı çoktan yazmış bir
+       araç da "reddetti" görünürdü. Transaction TÜMÜYLE geri alınmalı. */
+    expect({
+      kullanici: await dbYaris.kullanici.count(),
+      yetki: await dbYaris.yetki.count(),
+      iz: await dbYaris.aktiviteKaydi.count(),
+    }, 'kaybeden transaction yan etki bıraktı').toEqual(once);
+
+    /* Kurulan an geri alınır: sonraki vaka gerçekten boş bir kurulumda
+       koşmalı. "Sildim" diyen adım sildiğini ÖLÇER. */
+    await dbYaris.yapilandirma.delete({ where: { anahtar: KURULUM_KURUCU_ANAHTARI } });
+    expect(await dbYaris.yapilandirma.count({ where: { anahtar: KURULUM_KURUCU_ANAHTARI } }))
+      .toBe(0);
+  });
+
+  it('SONUÇ: iki koşum BİRLİKTE başlar, kurulumda TEK yönetici kalır [SIS-KUR-001]', async () => {
+    expect(await dbYaris.kullanici.count(), 'önkoşul: kurulum boş olmalı').toBe(0);
+    /* `Promise.all` şart: sıralı çağrıda kapı zaten reddeder ve YARIŞ
+       HİÇ KURULMAMIŞ olur — deponun kendi kaydındaki yakmayan sabotaj
+       tam bu sınıftandı (CLAUDE.md · R-E tablosu). */
+    const sonuclar = await Promise.all([
+      kurucuHesapAc(dbYaris, { eposta: 'yaris-a@prova.local', ad: 'A', parola: PAROLA }),
+      kurucuHesapAc(dbYaris, { eposta: 'yaris-b@prova.local', ad: 'B', parola: PAROLA }),
+    ]);
+    const acilan = sonuclar.filter((s) => s.ok);
+    expect(acilan, 'kurulum iki yöneticiyle açıldı').toHaveLength(1);
+    for (const s of sonuclar) if (!s.ok) expect(s.hata).toBe(BOS_KURULUM_SOZU);
+
+    expect(await dbYaris.kullanici.count(), 'iki kullanıcı yazıldı').toBe(1);
+    expect(await dbYaris.yetki.count(), 'iki yetki satırı yazıldı').toBe(1);
+    expect(await dbYaris.aktiviteKaydi.count(), 'iz iki kez yazıldı').toBe(1);
+    expect(await dbYaris.yapilandirma.count({ where: { anahtar: KURULUM_KURUCU_ANAHTARI } }),
+      'tekil satır yazılmadı — yarışı kapatan diş yok').toBe(1);
   });
 });
 

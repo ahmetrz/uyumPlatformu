@@ -2550,6 +2550,11 @@
    sol kenarda: yeşil bir kutu "her şey yolunda" diye okunur ve ölçülmemiş
    bir boşluğu da aynı yeşile boyama riski doğar. */
 .ab-blok.iyi { border-left: 2px solid var(--ok); }
+/* BEKLENEN YOKLUK · satır içi. "Açık bulgu yok" bir kusur değil, iyi
+   haberdir; kusur notlarıyla aynı görünmesi durumu belirsizleştirir.
+   Ayrım RENKLE YAPILMAZ: cümlenin kendisi durumu söyler, şerit yalnız
+   onu destekler (durum yalnız renge bağlanamaz). */
+.bos.iyi { border-left: 2px solid var(--ok); padding-left: 8px; }
 .ab-blok.iyi > .etiket { color: var(--ok); }
 
 /* ── Kapanış yolu şeridi (K arketipi) ──────────────────────────────────

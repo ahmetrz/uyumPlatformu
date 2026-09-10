@@ -18,8 +18,12 @@
    sıralarını bozar ve dizini PostgreSQL istemcisiyle bırakırdı. Bu yüzden
    döngü tek betiktedir; iş akışı da parti kapanışı da TEK kapı görür.
 
-   Bağlantı: `TEST_PG_URL` (yoksa `PG_URL`). İkisi de yoksa ÖLÇÜLMEDİ ve
-   KIRMIZI — koşulmayan kapı "geçti" yazılmaz.
+   Bağlantı: `TEST_PG_URL`. Yoksa ÖLÇÜLMEDİ ve KIRMIZI — koşulmayan kapı
+   "geçti" yazılmaz. `PG_URL` GERİ DÜŞÜŞÜ KALDIRILDI (bağımsız inceleme,
+   PR #51 tur 1): o dize göç ve yönetim bağlantısıdır, yani yalnız
+   `PG_URL` ayarlı bir kabukta artık SÜPÜRMESİ yönetim sunucusuna
+   yönelirdi — testleri koşturmak için kabul edilebilir bir kolaylık,
+   veritabanı DÜŞÜREN bir adım için değil.
 
    Kullanım: node arac/pg-test-kosumu.mjs [vitest argümanları]
    ═══════════════════════════════════════════════════════════════════════ */
@@ -28,10 +32,12 @@ import { existsSync } from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { aktifSaglayici } from './pg-istemci.mjs';
-import { ArtikHatasi, artikAdlari, dusur, yetimleriSec, yetimleriSupur } from './pg-artik.mjs';
+import {
+  ArtikHatasi, artikAdlari, dusur, sizintiKarari, yetimleriSupur,
+} from './pg-artik.mjs';
 
 const WEB = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
-const url = process.env.TEST_PG_URL || process.env.PG_URL;
+const url = process.env.TEST_PG_URL;
 
 function kos(komut, args, cevre = {}) {
   const r = spawnSync(komut, args, { cwd: WEB, stdio: 'inherit', env: { ...process.env, ...cevre } });
@@ -51,7 +57,9 @@ function sqliteyeDon() {
 }
 
 if (!url) {
-  console.error('ÖLÇÜLMEDİ: TEST_PG_URL (ya da PG_URL) ayarlı değil — PostgreSQL test koşumu yapılamadı.');
+  console.error('ÖLÇÜLMEDİ: TEST_PG_URL ayarlı değil — PostgreSQL test koşumu yapılamadı.');
+  console.error('  `PG_URL` KABUL EDİLMEZ: koşum artık SÜPÜRÜR ve yanlış sunucuya '
+    + 'yönelen bir süpürme, koşamayan bir kapıdan kötüdür.');
   console.error('  yerelde:  TEST_PG_URL=postgresql://postgres@127.0.0.1:5432/postgres npm run test:pg');
   process.exit(1);
 }
@@ -96,21 +104,44 @@ function sqliteDosyasiVar() {
    Bu yüzden garanti koşum sahibinin: ÖNCE yetimler süpürülür (geçmişin
    borcu), SONRA bu koşumda doğan ve hâlâ duran veritabanı KALMAZ —
    kalırsa süpürülür ve koşum KIRMIZI biter. Ayrıntı `arac/pg-artik.mjs`. */
-let oncekiler = [];
+let oncekiler = null;   /* null = ÖLÇÜLEMEDİ · [] = ölçüldü, boş */
+let onSupurmeKirik = false;
 try {
   const on = yetimleriSupur(url);
-  oncekiler = artikAdlari(url);
   if (on.yetim.length > 0) {
     console.log(`artık süpürmesi: ${on.yetim.length - on.kalan.length} yetim veritabanı düşürüldü`);
   }
   if (on.kalan.length > 0) {
+    /* "Sildim" diyen adım sildiğini ÖLÇER; başarısız OLAMAYAN bir adım
+       adım değildir. Eski hâl bunu yalnız yazıyordu ve `cikis`i
+       değiştirmiyordu (bağımsız inceleme, PR #51 tur 1) — düşürülemeyen
+       bir yetim, her koşumda bir uyarı satırı basarak sonsuza kadar
+       taşınabilirdi. Bugün KIRMIZI.
+
+       KULLANIMDAKİ veritabanı da buraya düşer ve bu DOĞRUDUR: eşzamanlı
+       bir koşum sürüyorsa `test:pg` zaten yalnız bir koşum içindir. */
     console.error(`TEMİZLİK KIRIK: düşürülemeyen yetim: ${on.kalan.join(', ')}`);
+    console.error('  (kullanımdaysa eşzamanlı bir koşum var demektir — '
+      + 'artık süpürmesi canlı bir koşumu EZMEZ)');
+    onSupurmeKirik = true;
   }
 } catch (e) {
-  console.error(`artık süpürmesi yapılamadı: ${e.message.split('\n')[0]}`);
+  console.error(`artık süpürmesi yapılamadı: ${(e.message ?? '').split('\n').find(Boolean) ?? ''}`);
 }
 
-let cikis = 0;
+/* ÖNCEKİ LİSTE AYRI ALINIR. Aynı `try` içindeyken şu oluyordu: süpürme
+   çağrısı düşerse `oncekiler` boş dizi kalıyor ve SONRA-ölçümü, koşumdan
+   ÖNCE de var olan yetimleri "bu koşum bıraktı" diye yazıyordu — yani
+   sızıntı iddiası uydurulmuş oluyordu. Bugün üç hâl ayrı: ölçüldü ·
+   ölçüldü ve boş · ÖLÇÜLEMEDİ (null). */
+try {
+  oncekiler = artikAdlari(url);
+} catch (e) {
+  console.error(`ÖLÇÜLMEDİ: koşum öncesi artık listesi alınamadı — `
+    + `${(e.message ?? '').split('\n').find(Boolean) ?? ''}`);
+}
+
+let cikis = onSupurmeKirik ? 1 : 0;
 try {
   cikis = sqliteDosyasiVar();
   if (cikis === 0) cikis = kos('node', ['arac/pg-istemci.mjs'], cevre);
@@ -123,9 +154,14 @@ try {
      şey BU KOŞUMDA DOĞAN ve sahibi ÖLMÜŞ olanlardır — yani sızıntının
      kendisi. */
   try {
-    const sonrakiler = artikAdlari(url);
-    const oncekiKume = new Set(oncekiler);
-    const sizanlar = yetimleriSec(sonrakiler.filter((a) => !oncekiKume.has(a)));
+    /* KARAR SAF FONKSİYONDA (`sizintiKarari`) ve üç hâli ayırır;
+       vakaları `tests/pg-artik.test.ts`. */
+    const sonrakiler = oncekiler === null ? [] : artikAdlari(url);
+    const { hal, sizanlar } = sizintiKarari(oncekiler, sonrakiler);
+    if (hal === 'olculemedi') {
+      throw new ArtikHatasi('koşum öncesi liste alınamamıştı — '
+        + 'sızıntı ölçümünün tabanı yok');
+    }
     if (sizanlar.length > 0) {
       const kalan = dusur(url, sizanlar);
       console.error(`\nSIZINTI: koşum ${sizanlar.length} test veritabanı bıraktı `

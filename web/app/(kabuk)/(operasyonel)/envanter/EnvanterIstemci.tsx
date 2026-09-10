@@ -508,7 +508,9 @@ function Zincir({ zincir, secili, sec }: {
           <div key={HALKALAR[i]} className="sutun">
             {halka.length === 0 ? (
               <span className="bos">
-                {secili ? 'bağlı kayıt yok' : 'kayıt yok'}
+                {secili
+                  ? 'Seçili varlığa bağlı kayıt yok; bu halka boş.'
+                  : 'Kayıt yok; bir varlık seçilmedi.'}
               </span>
             ) : halka.map((d) => {
               const govde = (
@@ -716,7 +718,11 @@ function Ozet({ v, simdi }: { v: V; simdi: number }) {
             </div>
           ))}
           {v.zafiyetler.length === 0 && (
-            <p className="bos">Açık zafiyet kaydı yok.</p>
+            /* BEKLENEN YOKLUK — eylem istemez. */
+            <p className="bos iyi">
+              Açık zafiyet kaydı yok; bu varlık için kapatılmamış zafiyet
+              bulunmuyor.
+            </p>
           )}
         </>
       )}
@@ -724,7 +730,10 @@ function Ozet({ v, simdi }: { v: V; simdi: number }) {
       <p className="etiket blokbas">Yönetişim izi</p>
       <div className="mono iz">
         {v.riskler.length === 0 && v.projeler.length === 0 ? (
-          <p className="bos">Bu varlık bir risk ya da projeye bağlı değil.</p>
+          <p className="bos">
+            Bu varlık bir risk ya da projeye bağlı değil; bağ kurulduğunda
+            yönetişim izi burada görünür.
+          </p>
         ) : (
           <>
             {v.riskler.map((r) => (

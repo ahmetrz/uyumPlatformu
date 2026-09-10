@@ -2,6 +2,7 @@ import { existsSync, readFileSync, readdirSync } from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { describe, expect, it } from 'vitest';
+import { execFileSync } from 'node:child_process';
 import { sebepBayragi, tabanKarari, tabanOku, yazimKarari } from '../arac/olcum-tabani.mjs';
 
 /* ═══════════════════════════════════════════════════════════════════════
@@ -106,6 +107,67 @@ describe('ölçüm tabanı · dosya', () => {
     }
     expect(eksik, `taban beyanı eksik: ${eksik.join(', ')}`).toEqual([]);
   });
+
+  it('TABAN DALA GÖRE İNEN her taban `dususler` kaydı taşır [SIS-TAB-001]', () => {
+    /* ── SABOTAJ BULGUSU (R-E · PR #51, tur 1) ─────────────────────────
+       Bir sabotaj tabanı 94'ten 50'ye ELLE indirdi ve HİÇBİR KAPI
+       KIRMIZI YANMADI. Sebep yapısaldı ve bu dosyanın dört tabanının
+       DÖRDÜNÜ birden ilgilendiriyordu: `tabanKarari` yalnız "ölçülen <
+       taban" hâlini görür — SIKILAŞMAYI. Gevşemeyi (`tabanYaz` içindeki
+       `yazimKarari`) yalnız ARAÇTAN geçen yazımlar görür; JSON'u elle
+       düzenleyen kimse ona hiç uğramaz.
+
+       Yani kural doğruydu, kapısı yoktu: "taban yalnız ÖLÇÜMLE ve
+       gerekçeyle iner" cümlesi elle bir düzenlemeyle sessizce
+       delinebiliyordu. Diş TABAN DALDAN kurulur — düşüşün kendisi
+       zaten `dususler` altında kayıtlıdır; kayıt yoksa düşüş araçtan
+       geçmemiştir.
+
+       Üç hâl AYRI okunur: taban dal yok · dosya tabanda yok · dosya var
+       ama okunamadı. Sonuncusu "temiz" değildir ve CI'da KIRMIZIDIR. */
+    const git = (a: string[]) => execFileSync('git', a,
+      { cwd: process.cwd(), encoding: 'utf8', stdio: ['ignore', 'pipe', 'ignore'] });
+    let tabanDalVar = true;
+    try { git(['rev-parse', '--verify', 'origin/main']); } catch { tabanDalVar = false; }
+    if (!tabanDalVar) {
+      expect(process.env.CI ?? '', "CI'da taban dal okunamadı — cırcır ölçülemedi").toBe('');
+      return;
+    }
+    const YER = 'origin/main:web/arac/olcum-tabani.json';
+    let tabandaVar = true;
+    try { git(['cat-file', '-e', YER]); } catch { tabandaVar = false; }
+    if (!tabandaVar) return; /* dosyayı GETİREN dal */
+    let onceki: { tabanlar: Record<string, number> } | null = null;
+    let okumaHatasi = '';
+    try { onceki = JSON.parse(git(['show', YER])); }
+    catch (e) { okumaHatasi = e instanceof Error ? e.message.split('\n')[0] : String(e); }
+    if (onceki === null) {
+      expect(process.env.CI ?? '',
+        `TABANDA DOSYA VAR AMA OKUNAMADI (${okumaHatasi}) — cırcır ölçülemedi`).toBe('');
+      return;
+    }
+    const bugun = tabanOku(YOL) as { tabanlar: Record<string, number>;
+      dususler?: Record<string, { eski: number; yeni: number; sebep: string }> };
+    const kusur: string[] = [];
+    for (const [ad, eski] of Object.entries(onceki.tabanlar)) {
+      const yeni = bugun.tabanlar[ad];
+      if (yeni === undefined) { kusur.push(`${ad}: taban SİLİNMİŞ — kapı tabansız kaldı`); continue; }
+      if (yeni >= eski) continue;
+      const d = bugun.dususler?.[ad];
+      if (!d) {
+        kusur.push(`${ad}: ${eski} → ${yeni} DÜŞTÜ ama \`dususler\` kaydı yok — `
+          + 'taban elle indirilmiş; iniş `--taban-yaz --sebep="..."` ile yapılır');
+        continue;
+      }
+      if (d.yeni !== yeni || d.eski !== eski) {
+        kusur.push(`${ad}: düşüş kaydı ${d.eski} → ${d.yeni} diyor, ölçülen ${eski} → ${yeni}`);
+      }
+      if ((d.sebep ?? '').trim().length < 40) {
+        kusur.push(`${ad}: düşüş gerekçesi kusuru anlatmıyor`);
+      }
+    }
+    expect(kusur, kusur.join('\n')).toEqual([]);
+  });
 });
 
 /* ═══ TABAN YAZIMI GEREKÇE İSTER ═══════════════════════════════════════
@@ -182,7 +244,8 @@ describe('taban yazan her kapı gerekçeyi GEÇİRİYOR', () => {
 
   it('taban yazan kapı bulundu (tarama boş değil)', () => {
     expect(kapilar.map((k) => k.ad).sort()).toEqual(
-      ['erisim-axe.mjs', 'gezinme-testi.mjs', 'rota-duman.mjs', 'yatay-tasma.mjs']);
+      ['bos-durum-kutugu.mjs', 'erisim-axe.mjs', 'gezinme-testi.mjs',
+        'rota-duman.mjs', 'yatay-tasma.mjs']);
   });
 
   it('her biri `sebep` geçiriyor', () => {

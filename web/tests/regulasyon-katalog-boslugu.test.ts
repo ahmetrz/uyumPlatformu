@@ -93,9 +93,32 @@ describe('katalog boşluğu · üç ayrı hâl [REG-BOS-001]', () => {
     expect(b.etiket).toBe('RG-2026');
   });
 
-  it('ARŞİV sürüm "bekliyor" saymaz — karar verilecek bir şey değil [REG-BOS-001]', () => {
-    const r = reg({ surumler: [surum({ id: 'a', durum: 'arsiv', maddeSayisi: 400 })] });
+  it('ARŞİV sürüm "bekliyor" saymaz ama "İÇİ BOŞ" da DEMEZ [REG-BOS-001]', () => {
+    /* ── ÖLÇÜLEN KUSUR (bağımsız inceleme, PR #51 tur 1) ───────────────
+       Arşiv sürüm doğru şekilde "bekliyor" sayılmıyordu — ama kalan dal
+       her sürümü `surum_bos` yapıyordu ve ekran 400 MADDELİ bir arşiv
+       için "sürüm açılmış ama içinde madde yok" diyordu. Cümle yanlıştı:
+       boşluğun sebebi maddenin YOKLUĞU değil, sürümün DURUMUDUR. */
+    const r = reg({ surumler: [surum({ id: 'a', durum: 'arsiv', maddeSayisi: 400, etiket: 'RG-2024' })] });
+    const b = katalogBoslugu(r);
+    expect(b?.hal).toBe('arsivde');
+    if (b?.hal !== 'arsivde') return;
+    expect(b.madde).toBe(400);
+    expect(b.etiket).toBe('RG-2024');
+    const c = katalogBoslukCumlesi(r, b);
+    expect(c, 'arşivdeki maddeler "yok" sayıldı').not.toMatch(/içinde madde yok/);
+    expect(c).toMatch(/400 madde/);
+    expect(c).toMatch(/ARŞİVDE/);
+    /* Aktifleştirme yine İNSAN KARARIDIR ve cümle bunu söyler. */
+    expect(c).toMatch(/insan tarafından verilir/);
+  });
+
+  it('GERÇEKTEN BOŞ sürüm hâlâ "içi boş" der — arşiv dişi hâli yutmaz [REG-BOS-001]', () => {
+    /* Sabotaj yüzeyi: arşiv dalı her sürümü yutarsa bu vaka kırmızı yanar. */
+    const r = reg({ surumler: [surum({ id: 'a', durum: 'arsiv', maddeSayisi: 0 })] });
     expect(katalogBoslugu(r)).toEqual({ hal: 'surum_bos' });
+    const b = katalogBoslugu(r)!;
+    expect(katalogBoslukCumlesi(r, b)).toMatch(/içinde madde yok/);
   });
 
   it('AKTİF sürüm maddesizken taslak doluysa yine BEKLİYOR [REG-BOS-001]', () => {

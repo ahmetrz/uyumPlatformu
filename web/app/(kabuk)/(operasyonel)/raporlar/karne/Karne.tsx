@@ -108,7 +108,10 @@ export default function Karne({ satirlar: ham, endeks: genel, endeksSektor = {},
       <section aria-label="En zayıf kayıtlar">
         <h2>En zayıf beş {terim('tesis')}</h2>
         {enZayif.length === 0 ? (
-          <p className="bos">Hiçbir {terim('tesis')} için uyum yüzdesi ölçülmedi.</p>
+          <p className="bos">
+            Hiçbir {terim('tesis')} için uyum yüzdesi ölçülmedi; yüzde,
+            değerlendirilmiş kontrollerden hesaplanır.
+          </p>
         ) : (
           /* Dar bantta tablo KENDİ kabında kaydırılır, sayfa kaymaz.
              Ölçüldü: 375px'te tablo 413px genişliğinde ve sayfayı 86px

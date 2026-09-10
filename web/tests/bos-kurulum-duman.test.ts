@@ -39,6 +39,42 @@ const POSTGRES = /^postgres(ql)?:\/\//i.test(
   process.env.TEST_PG_URL ?? process.env.DATABASE_URL ?? '');
 const tanimla = POSTGRES ? describe.skip : describe;
 
+/* ── ATLAMA BEYANLI OLABİLİR, SESSİZ OLAMAZ ────────────────────────────
+   Bağımsız inceleme bulgusu (PR #51, tur 1): `describe.skip` çıkış
+   kodunu DEĞİŞTİRMEZ. Tek bir ortam değişkeni (`DATABASE_URL`) bu
+   kapıyı, hiçbir şey ölçmeden sıfırla çıkan bir CI adımına çeviriyordu —
+   "otuz iki kapının hiçbiri bunu göremedi" diye doğan kapının başına
+   gelebilecek en kötü şey. Deponun kendi kalıbı (`bekci/bos-durum`,
+   `bekci/politika-olcumu`) ölçemediği anda CI'da kırmızı yanmaktır.
+
+   İki diş:
+   1. ADANMIŞ KAPI ÖLÇMEK ZORUNDADIR. `npm run kapi:bos-kurulum`
+      `KAPI_BOS_KURULUM=1` ile koşar; o bayrak varken atlama KIRMIZIDIR.
+      Adanmış adımın tam kümedeki koşumdan farkı budur — adım "aynı
+      dosyayı ikinci kez koşmak" değil, "atlanamayacağı ortamda
+      koşmak"tır.
+   2. TAM KÜMEDE atlama kabul edilir ama SEBEBİ ÖLÇÜLÜR: yalnız gerçek
+      bir PostgreSQL koşumunda (`TEST_PG_URL`) atlanabilir. `kapi` işine
+      bir gün `DATABASE_URL: postgresql://…` yazılırsa kapı sessizce
+      kaybolmaz, kırmızı yanar. */
+describe('SAĞLAYICI BEYANI · atlama sessiz olamaz [SIS-BOS-001]', () => {
+  it('atlandıysa SEBEBİ ölçülür; adanmış kapıda atlama YASAK [SIS-BOS-001]', () => {
+    if (!POSTGRES) {
+      /* Gerçek kapı koştu. Ölçüm burada değil, dokuz adımda. */
+      expect(process.env.TEST_DB, 'kapı boş veritabanına kurulmadı').toBeTruthy();
+      return;
+    }
+    expect(process.env.KAPI_BOS_KURULUM ?? '',
+      'ADANMIŞ KAPI ATLANDI: `kapi:bos-kurulum` müşterinin birinci gününü '
+      + 'ölçmek zorundadır; PostgreSQL koşumu için `npm test`/`test:pg` '
+      + 'kullanılır').toBe('');
+    expect(process.env.TEST_PG_URL ?? '',
+      'ATLAMA SEBEPSİZ: kapı yalnız gerçek bir PostgreSQL test koşumunda '
+      + '(`TEST_PG_URL`) atlanabilir — `DATABASE_URL` ile atlatılamaz')
+      .not.toBe('');
+  });
+});
+
 const yuva = path.join(KOK, '.parti');
 mkdirSync(yuva, { recursive: true });
 const calisma = mkdtempSync(path.join(yuva, 'bos-kurulum-'));

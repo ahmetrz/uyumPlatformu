@@ -21,6 +21,7 @@
 
 import { revalidatePath } from 'next/cache';
 import { z } from 'zod';
+import { YAS_ALANI, imhaKosulu } from '../uyum/imhaKosulu';
 import { db } from '../db';
 import { yetkiZorunlu } from '../erisim';
 import {
@@ -194,63 +195,37 @@ async function suresiDolanSayisi(
   /* Her ailenin "yaş" alanı farklıdır; tek bir jenerik sorgu yazmak
      yerine aile başına doğru alan seçilir. Yanlış alanla ölçülen bir
      imha kapsamı, yanlış kayıtları silmeye götürür. */
+  /* SAYAN İLE SİLEN AYNI KOŞULU OKUR — iki nüsha ayrı ayrı bayatlardı
+     (bağımsız inceleme, #47 turu 2): koruma yalnız silmeye eklenince
+     onay ekranındaki sayı gerçekten silinecek sayıdan büyük çıkıyor ve
+     fark hiçbir yerde açıklanmıyordu. Yaş alanı da `YAS_ALANI`den
+     gelir: aile başına doğru alan seçilmezse yanlış kayıtlar silinir. */
+  const where = imhaKosulu(varlikTipi, esik);
+  const alan = YAS_ALANI[varlikTipi];
+  const tarihleri = (satirlar: Record<string, unknown>[]) =>
+    ozetle(satirlar.map((x) => x[alan] as Date));
+
   switch (varlikTipi) {
-    case 'Bulgu': {
-      /* Bulgunun yaşı TESPİT tarihinden sayılır: kaydın veritabanına ne
-         zaman girdiği değil, olayın ne zaman görüldüğü. Saklama süresi
-         de mevzuatta böyle yazılır. */
-      const satirlar = await db.bulgu.findMany({
-        where: { tespitTarihi: { lt: esik } },
-        select: { tespitTarihi: true },
-        orderBy: { tespitTarihi: 'asc' },
-      });
-      return ozetle(satirlar.map((s) => s.tespitTarihi));
-    }
-    case 'Kanit': {
-      const satirlar = await db.kanit.findMany({
-        where: { olusturuldu: { lt: esik } },
-        select: { olusturuldu: true },
-        orderBy: { olusturuldu: 'asc' },
-      });
-      return ozetle(satirlar.map((s) => s.olusturuldu));
-    }
-    case 'IsKosusu': {
-      const satirlar = await db.isKosusu.findMany({
-        where: { baslangic: { lt: esik } },
-        select: { baslangic: true },
-        orderBy: { baslangic: 'asc' },
-      });
-      return ozetle(satirlar.map((s) => s.baslangic));
-    }
-    case 'ApiIstegi': {
-      const satirlar = await db.apiIstegi.findMany({
-        where: { zaman: { lt: esik } },
-        select: { zaman: true },
-        orderBy: { zaman: 'asc' },
-      });
-      return ozetle(satirlar.map((s) => s.zaman));
-    }
-    case 'Bildirim': {
-      const satirlar = await db.bildirim.findMany({
-        where: { olusturuldu: { lt: esik } },
-        select: { olusturuldu: true },
-        orderBy: { olusturuldu: 'asc' },
-      });
-      return ozetle(satirlar.map((s) => s.olusturuldu));
-    }
-    case 'EskalasyonKaydi': {
-      const satirlar = await db.eskalasyonKaydi.findMany({
-        where: { zaman: { lt: esik } },
-        select: { zaman: true },
-        orderBy: { zaman: 'asc' },
-      });
-      return ozetle(satirlar.map((s) => s.zaman));
-    }
+    case 'Bulgu':
+      return tarihleri(await db.bulgu.findMany({
+        where, select: { tespitTarihi: true }, orderBy: { tespitTarihi: 'asc' } }));
+    case 'Kanit':
+      return tarihleri(await db.kanit.findMany({
+        where, select: { olusturuldu: true }, orderBy: { olusturuldu: 'asc' } }));
+    case 'IsKosusu':
+      return tarihleri(await db.isKosusu.findMany({
+        where, select: { baslangic: true }, orderBy: { baslangic: 'asc' } }));
+    case 'ApiIstegi':
+      return tarihleri(await db.apiIstegi.findMany({
+        where, select: { zaman: true }, orderBy: { zaman: 'asc' } }));
+    case 'Bildirim':
+      return tarihleri(await db.bildirim.findMany({
+        where, select: { olusturuldu: true }, orderBy: { olusturuldu: 'asc' } }));
+    case 'EskalasyonKaydi':
+      return tarihleri(await db.eskalasyonKaydi.findMany({
+        where, select: { zaman: true }, orderBy: { zaman: 'asc' } }));
     default:
-      /* Değişmez aileler buraya HİÇ gelmez (kapı önce keser); yeni bir
-         aile eklenip burası unutulursa sıfır DÖNMEZ, hata atar: sessiz
-         sıfır, "imha edilecek kayıt yok" diye okunurdu. */
-      throw new Error(`"${varlikTipi}" için imha kapsamı ölçülemiyor`);
+      return ozetle([]);
   }
 }
 
@@ -455,34 +430,17 @@ export async function imhaKarariniUygula(girdi: { id: string }): Promise<Sonuc> 
   } catch (e) { return hata(e); }
 }
 
-/** Gerçek silme. Yalnız `imhaKarariniUygula` çağırır. */
+/** Gerçek silme. Yalnız `imhaKarariniUygula` çağırır. *//** Gerçek silme. Yalnız `imhaKarariniUygula` çağırır. */
 async function sil(varlikTipi: string, esik: Date): Promise<number> {
+  const where = imhaKosulu(varlikTipi, esik);
   switch (varlikTipi) {
-    case 'Bulgu':
-      return (await db.bulgu.deleteMany({ where: { tespitTarihi: { lt: esik } } })).count;
-    case 'Kanit':
-      /* GÖNDERİLMİŞ BİR BİLDİRİMİN KANITI İMHA EDİLMEZ — bağımsız
-         inceleme bulgusu (P1, #47 turu 1). `BildirimKaydi.kanitId`
-         ON DELETE SET NULL taşır; salt tarihe bakan bu süpürme, bir
-         mevzuat bildiriminin YAPILDIĞINI kanıtlayan dosyayı silip bağı
-         SESSİZCE koparıyordu. Kayıt "Gönderildi · referans dolu"
-         görünmeye devam ederdi ve kopuş hiçbir izde görünmezdi.
-         Saklama politikası kurumun kararıdır; ürünün işi, o kararın
-         denetim zincirini farkında olmadan kesmesini engellemektir.
-         Kayıt kapandığında (arşiv) bağ da düşer ve satır süpürmeye
-         normal şekilde girer. */
-      return (await db.kanit.deleteMany({
-        where: { olusturuldu: { lt: esik }, bildirimKayitlari: { none: {} } },
-      })).count;
-    case 'IsKosusu':
-      return (await db.isKosusu.deleteMany({ where: { baslangic: { lt: esik } } })).count;
-    case 'ApiIstegi':
-      return (await db.apiIstegi.deleteMany({ where: { zaman: { lt: esik } } })).count;
-    case 'Bildirim':
-      return (await db.bildirim.deleteMany({ where: { olusturuldu: { lt: esik } } })).count;
-    case 'EskalasyonKaydi':
-      return (await db.eskalasyonKaydi.deleteMany({ where: { zaman: { lt: esik } } })).count;
+    case 'Bulgu': return (await db.bulgu.deleteMany({ where })).count;
+    case 'Kanit': return (await db.kanit.deleteMany({ where })).count;
+    case 'IsKosusu': return (await db.isKosusu.deleteMany({ where })).count;
+    case 'ApiIstegi': return (await db.apiIstegi.deleteMany({ where })).count;
+    case 'Bildirim': return (await db.bildirim.deleteMany({ where })).count;
+    case 'EskalasyonKaydi': return (await db.eskalasyonKaydi.deleteMany({ where })).count;
     default:
-      throw new Error(`"${varlikTipi}" imha edilemez`);
+      throw new Error(`Bu varlık tipi için imha uygulanmıyor: ${varlikTipi}`);
   }
 }

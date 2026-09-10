@@ -73,6 +73,35 @@ async function kayitKapisi(kayitId: string) {
    `etkiDogrula`, "Alan yazımı ve denetim izi TEK işlemde: izi düşmeyen
    bir doğrulama kaydı kalamaz." */
 
+/* ── KAPININ OKUDUĞU DURUM YAZARKEN DE GEÇERLİ OLMALI ─────────────────
+   Bağımsız inceleme bulgusu (P2, #47 turu 2). `kayitKapisi` durumu işlem
+   DIŞINDA okuyor, kapı o okumayla karar veriyor, sonra işlem içindeki
+   `update` yalnız `{ id }` ile yazıyordu. İki `uyum/onay` yetkilisi
+   (ya da aynı kişi iki sekmede) neredeyse aynı anda biri "gönderildi"
+   öbürü "uygulanmaz" derse ikisi de `taslak` okur, ikisi de kendi
+   kapısından geçer, ikisi de commit eder: son yazan kazanır, KAYBEDEN
+   kullanıcı "başarılı" görür ve iki iz satırı da "taslak → X" der —
+   denetim izi kendisiyle çelişir. Node'un tek iş parçacığında bile
+   `await` bu yield noktasını açar; PostgreSQL'de (çok süreç) büyür.
+
+   Çözüm okumayı kilitlemek değil, YAZMAYI koşullu yapmak: `updateMany`
+   `where`e beklenen durumu da koyar ve hiçbir satır eşleşmezse
+   (`count === 0`) kayıt bu arada değişmiştir. Kullanıcı sessizce
+   ezilmez, "yeniden bakın" der. */
+const ARADA_DEGISTI = 'Bu kayıt siz bakarken değişti — ekranı yenileyip'
+  + ' yeniden bakın. Aynı bildirim üzerinde başka biri karar vermiş olabilir.';
+
+/** Yalnız BEKLENEN durumdayken yazar; yazamazsa işlemi geri alır. */
+async function durumKorumaliYaz(
+  tx: IzIstemcisi, kayitId: string, beklenen: string, veri: Record<string, unknown>,
+) {
+  const { count } = await tx.bildirimKaydi.updateMany({
+    where: { id: kayitId, durum: beklenen },
+    data: veri,
+  });
+  if (count === 0) throw new Error(ARADA_DEGISTI);
+}
+
 /** Denetim izi — durum geçişi ADIYLA yazılır. İŞLEM İÇİNDE çağrılır. */
 async function izYaz(tx: IzIstemcisi, o: {
   aktorId: string;
@@ -127,15 +156,12 @@ export async function bildirimGonderildiIsaretle(girdi: {
     }
 
     await db.$transaction(async (tx) => {
-      await tx.bildirimKaydi.update({
-        where: { id: kayit.id },
-        data: {
-          durum: 'gonderildi',
-          referansNo: v.referansNo.trim(),
-          gonderenId: k.id,
-          gonderimZamani: new Date(),
-          kanitId: v.kanitId || null,
-        },
+      await durumKorumaliYaz(tx, kayit.id, kayit.durum, {
+        durum: 'gonderildi',
+        referansNo: v.referansNo.trim(),
+        gonderenId: k.id,
+        gonderimZamani: new Date(),
+        kanitId: v.kanitId || null,
       });
       await izYaz(tx, {
         aktorId: k.id,
@@ -165,10 +191,8 @@ export async function bildirimTeyitIsaretle(girdi: { kayitId: string }): Promise
     if (!kapi.ok) return { ok: false, hata: kapi.sebep };
 
     await db.$transaction(async (tx) => {
-      await tx.bildirimKaydi.update({
-        where: { id: kayit.id },
-        data: { durum: 'teyit_alindi', teyitZamani: new Date() },
-      });
+      await durumKorumaliYaz(tx, kayit.id, kayit.durum,
+        { durum: 'teyit_alindi', teyitZamani: new Date() });
       await izYaz(tx, {
         aktorId: k.id,
         kayitId: kayit.id,
@@ -208,10 +232,8 @@ export async function bildirimUygulanmazIsaretle(girdi: {
     if (!kapi.ok) return { ok: false, hata: kapi.sebep };
 
     await db.$transaction(async (tx) => {
-      await tx.bildirimKaydi.update({
-        where: { id: kayit.id },
-        data: { durum: 'uygulanmaz', uygulanmazGerekcesi: v.gerekce.trim() },
-      });
+      await durumKorumaliYaz(tx, kayit.id, kayit.durum,
+        { durum: 'uygulanmaz', uygulanmazGerekcesi: v.gerekce.trim() });
       await izYaz(tx, {
         aktorId: k.id,
         kayitId: kayit.id,
@@ -257,10 +279,10 @@ export async function bildirimTaslakDuzenle(girdi: {
 
     const metin = v.taslakMetin.trim();
     await db.$transaction(async (tx) => {
-      await tx.bildirimKaydi.update({
-        where: { id: kayit.id },
-        data: { taslakMetin: metin === '' ? null : metin },
-      });
+      /* Taslak metni durumu DEĞİŞTİRMEZ ama gönderilmiş bir kayda
+         yazılamaz; koruma bu yüzden burada da gerekli. */
+      await durumKorumaliYaz(tx, kayit.id, kayit.durum,
+        { taslakMetin: metin === '' ? null : metin });
       await iz({
         aktorId: k.id,
         varlikTipi: 'BildirimKaydi',

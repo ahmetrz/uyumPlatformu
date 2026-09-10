@@ -422,7 +422,24 @@ function Detay({
    hâlidir. */
 function BildirimKayitlariBlogu({ o }: { o: OlayKaydi }) {
   const kayitlar = o.bildirimKayitlari;
-  if (kayitlar.length === 0) return null;
+  /* BOŞ DURUM SESSİZ GEÇİLMEZ — bağımsız inceleme bulgusu (P2, #47
+     turu 2). Blok tamamen gizleniyordu ve `kayitCumlesi`nin tam bu hâl
+     için taşıdığı cümle üretim yolunda HİÇ görünmüyordu: "bu olay
+     değerlendirildi, yükümlülük doğmadı" ile "motor bu olayı henüz
+     işlemedi" ekranda ayrışmıyor, ikisi de sessizlik oluyordu.
+     "Bilinmeyen ≠ sıfır"ın bu ekrandaki karşılığı budur. */
+  if (kayitlar.length === 0) {
+    return (
+      <div className="ab-panel-blok" style={{ marginTop: 'var(--s24)' }}>
+        <p className="etiket" style={{ margin: '0 0 var(--s10)' }}>
+          Bildirim yükümlülükleri
+        </p>
+        <p className="ikincil d-unk" style={{ margin: 0 }}>
+          {kayitCumlesi(kayitOzeti([]))}
+        </p>
+      </div>
+    );
+  }
   const ozet = kayitOzeti(kayitlar.map((k) => ({ durum: k.durum, sureSaat: k.sureSaat })));
 
   return (

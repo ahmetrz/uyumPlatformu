@@ -1846,6 +1846,31 @@ biri açık.
 | 4 | Referanssız gönderim reddedilir · izde referans var | kapandı | birim + zincir + **tarayıcı** (`arac/bildirim-kaydi-kanit.mjs`, 27/27) |
 | 5 | Kanıt paketine bildirim kayıtları girer | **AÇIK** | — |
 
+**Bağımsız inceleme (R-B) · iki tur · dokuz bulgu.** Tur 1: 3×P1 ·
+2×P2 · 1×P3. Tur 2: A2 · A4 · A5 KAPANDI, A1 · A3 · A6 KISMEN, iki YENİ
+bulgu (B5 · B6). Kapatılanlar aşağıda; ertelenen iki kalem R0'da.
+
+| Tur | Bulgu | Durum |
+| --- | --- | --- |
+| 1 | Transaction sınırı — durum ve iz iki ayrı çağrı | kapandı |
+| 1 | Ekran çelişkisinin açılış nüshası | kapandı (#47 öncesi) |
+| 1 | Kanıt imhası bildirim bağını sessizce koparıyor | kapandı |
+| 1 | Motorun yazdığı iz bırakmıyor | kapandı |
+| 1 | UI `envanter/yazma`, sunucu `uyum/onay` | kapandı |
+| 1 | Elle kural yolu `sureSaat`i zorunlu istiyor | kapandı |
+| 2 | TOCTOU — kapı bayat okumayla karar veriyor | kapandı (durum korumalı yazma) |
+| 2 | Sayan ile silen ayrı koşul yazıyor | kapandı (tek nüsha `imhaKosulu`) |
+| 2 | Komşu ilişkiler (`talepler` · `egitimKayitlari` · `Bulgu`) korumasız | kapandı |
+| 2 | Boş durumda blok tamamen gizleniyor | kapandı |
+| 2 | Kanıt-imha testi üretim yolunu sınamıyor | kapandı |
+
+**R0 · ertelenen iki kalem (#47 turu 2, 10 Eylül 2026).**
+
+| Kalem | Neden ertelendi | Sahibi | Kapanış aşaması |
+| --- | --- | --- | --- |
+| **Motor döngüsünde N+1** — her uyan yükümlülük için ayrı transaction, her olay için ayrı `uygulanabilirlikKarari` sorgusu | SQLite'ta ölçülebilir maliyet yok; PostgreSQL'de her işlem bir ağ gidiş-dönüşü. Yeniden yapılandırma, YENİ kapatılmış transaction sınırını tekrar açar — ölçmeden dokunulmaz | KODLAYAN | **R5 sonrası PostgreSQL yük ölçümü** (`olcum:yuk` ile motor koşusu ölçülür, sayı görülmeden yapı değişmez) |
+| **`sureSaat` için erişilebilir ekran yok** — `bildirimKuraliKaydet` doğru ve nullable ama `app/` altında çağıranı yok | Kural yönetimi ekranı bu paketin kapsamında değildi; kod doğru, kullanıcı yolculuğu eksik | KODLAYAN | **R10 devamı · bildirim kuralları ekranı** (yükümlülükler paketten geliyor; elle kural yolu ekranı ancak kiracının kendi kuralını girmesi istendiğinde gerekir) |
+
 **Açık kalan (OLY-BIL-005).** Kanıt paketi dışa aktarımına bildirim
 kayıtlarının girmesi YAPILMADI. *Sahibi:* KODLAYAN. *Kapanış aşaması:*
 R2 (kanıt paketi dışa aktarımı) — kayıtlar oraya, taslak metin HARİÇ,

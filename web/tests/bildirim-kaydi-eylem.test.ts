@@ -43,6 +43,7 @@ vi.mock('@/lib/auth', async (asil) => {
 });
 
 const { db } = await import('@/lib/db');
+const { imhaKosulu, BAGLI_KORUMA } = await import('@/lib/uyum/imhaKosulu');
 const { bildirimSurelerini } = await import('@/lib/motorlar/bildirimSuresi');
 const {
   bildirimGonderildiIsaretle, bildirimTeyitIsaretle,
@@ -366,30 +367,113 @@ describe('MOTORUN yazdığı da iz bırakır [OLY-BIL-003]', () => {
 });
 
 describe('gönderim KANITI imha süpürmesinden korunur', () => {
-  /* P1 · Sınıf 2. `kanitId` ON DELETE SET NULL taşıyor; salt tarihe
-     bakan saklama süpürmesi bağı SESSİZCE koparıyordu. */
-  it('bildirim kaydına bağlı Kanit toplu silmeye GİRMEZ', async () => {
+  /* P1 · Sınıf 2 (tur 1) + P2 ×3 (tur 2).
+
+     Tur 2'de ölçüldü: ilk hâlinde bu vaka ÜRETİM YOLUNU HİÇ ÇAĞIRMIYORDU
+     — koşulu kendi içinde yeniden yazıp Prisma'nın `none: {}` davranışını
+     doğruluyor, üstüne kaynak metninde bir regex arıyordu. Yeşil bir
+     testti ve tam da bu yüzden komşu ilişkilerdeki (`talepler` ·
+     `egitimKayitlari`) ve komşu `case`teki (`Bulgu`) AYNI kusuru
+     göremedi. Bugün üretimin kendi koşulu (`imhaKosulu`) çağrılır. */
+  const uzakEsik = () => new Date(Date.now() + 10 * 365 * 24 * SAAT);
+
+  it('bildirim kaydına bağlı Kanit imha kapsamına GİRMEZ', async () => {
     const kanit = await db.kanit.findFirstOrThrow({ select: { id: true } });
     const kayit = await db.bildirimKaydi.findFirstOrThrow({
       where: { olayId }, select: { id: true },
     });
     await db.bildirimKaydi.update({ where: { id: kayit.id }, data: { kanitId: kanit.id } });
 
-    /* Süpürmenin KENDİ koşulu koşulur: gelecekteki bir eşikle HER kanıt
-       aday olur; bağlı olan yine de dışarıda kalmalı. */
+    /* ÜRETİMİN KOŞULU — testin kendi kopyası değil. */
     const adaylar = await db.kanit.findMany({
-      where: { olusturuldu: { lt: new Date(Date.now() + 10 * 365 * 24 * SAAT) },
-        bildirimKayitlari: { none: {} } },
-      select: { id: true },
+      where: imhaKosulu('Kanit', uzakEsik()), select: { id: true },
     });
     expect(adaylar.map((x) => x.id)).not.toContain(kanit.id);
 
-    /* Kaynak dosyada da koşul duruyor: sorgu buradan kopyalandığı için
-       kod değişirse bu vaka yeşil kalıp yanıltmasın. */
-    const kaynak = readFileSync('lib/eylemler2/saklama.ts', 'utf8');
-    expect(/case 'Kanit':[\s\S]{0,900}?bildirimKayitlari: \{ none: \{\} \}/.test(kaynak)).toBe(true);
-
     await db.bildirimKaydi.update({ where: { id: kayit.id }, data: { kanitId: null } });
+    const sonra = await db.kanit.findMany({
+      where: imhaKosulu('Kanit', uzakEsik()), select: { id: true },
+    });
+    /* Bağ düşünce satır süpürmeye NORMAL şekilde girer: koruma kalıcı
+       bir muafiyet değil, zincir dururken geçerli bir kilittir. */
+    expect(sonra.map((x) => x.id)).toContain(kanit.id);
+  });
+
+  it('SAYAN ile SİLEN aynı koşulu okur — onay ekranı gerçeği söyler', () => {
+    /* Kusur: koruma yalnız silmeye eklenince öneri "100 kanıt" der,
+       gerçekte 90 silinir ve fark hiçbir yerde açıklanmaz. */
+    const kaynak = readFileSync('lib/eylemler2/saklama.ts', 'utf8');
+    /* İki yol da tek koşulu çağırır; kendi where ini yazan kalmadı. */
+    expect((kaynak.match(/imhaKosulu\(varlikTipi, esik\)/g) ?? []).length).toBe(2);
+    expect(/olusturuldu: \{ lt: esik \}/.test(kaynak),
+      'sayan ya da silen hâlâ kendi koşulunu yazıyor').toBe(false);
+  });
+
+  it('KOMŞU ilişkiler de korunur — aynı sınıf kusuru tek yerde kapandı', () => {
+    /* Tur 2 bulgusu: `talepler` ve `egitimKayitlari` de ON DELETE SET
+       NULL taşıyor, komşu `case` (`Bulgu`) de aynı sınıftan. */
+    expect(BAGLI_KORUMA.Kanit).toEqual(
+      expect.arrayContaining(['bildirimKayitlari', 'talepler', 'egitimKayitlari']));
+    expect(BAGLI_KORUMA.Bulgu).toEqual(expect.arrayContaining(['tekrarlar', 'riskler']));
+    const kosul = imhaKosulu('Bulgu', uzakEsik());
+    expect(kosul.tekrarlar).toEqual({ none: {} });
+    expect(kosul.riskler).toEqual({ none: {} });
+  });
+
+  it('bilinmeyen varlık tipi SESSİZ geçmez', () => {
+    expect(() => imhaKosulu('YokBoyleBirSey', uzakEsik())).toThrow(/Bilinmeyen varlık tipi/);
+  });
+});
+
+describe('EŞZAMANLI karar sessizce EZİLMEZ', () => {
+  /* P2 · tur 2. İki `uyum/onay` yetkilisi aynı taslağa aynı anda karar
+     verirse ikisi de `taslak` okuyup ikisi de kendi kapısından geçiyordu;
+     son yazan kazanıyor, kaybeden "başarılı" görüyor ve iki iz satırı da
+     "taslak → X" diyordu — denetim izi kendisiyle çelişiyordu. */
+  it('kayıt arada değiştiyse ikinci karar REDDEDİLİR', async () => {
+    const y = await db.bildirimYukumlulugu.create({
+      data: {
+        kod: `R10-YARIS-${damga}`, ad: 'Yarış vakası', asgariSiddet: 'dusuk',
+        sureSaat: 48, dayanak: 'Kurgusal', merci: 'Kurgusal Merci C', aktif: false,
+      },
+    });
+    const kayit = await db.bildirimKaydi.create({
+      data: { olayId, yukumlulukId: y.id, durum: 'taslak' },
+    });
+
+    /* İKİSİ BİRLİKTE BAŞLAR. Sıralı çağırsaydık ikinci çağrı DB'yi
+       tazeden okur, kapı zaten reddederdi ve test korumayı hiç
+       ölçmezdi — ÖLÇÜLDÜ: sabotaj turunda koruma kaldırıldığında sıralı
+       vaka yeşil kalıyordu, yani kanıtladığını sandığı şeyi
+       kanıtlamıyordu. `Promise.all` iki `kayitKapisi` okumasının da
+       herhangi bir yazmadan ÖNCE olmasını sağlar: ikisi de `taslak`
+       görür, ikisi de kendi kapısından geçer, sonra ikisi de yazmaya
+       çalışır. Yarışın kendisi budur. */
+    const [a, b] = await Promise.all([
+      bildirimUygulanmazIsaretle({
+        kayitId: kayit.id, gerekce: 'Bu olay bu mercinin kapsamına girmiyor.',
+      }),
+      bildirimGonderildiIsaretle({ kayitId: kayit.id, referansNo: 'YARIS-2026-1' }),
+    ]);
+
+    /* TAM BİRİ geçer. İkisi de geçerse kaybeden kullanıcı "başarılı"
+       görmüş ve kararı sessizce ezilmiş demektir. */
+    const gecen = [a, b].filter((r) => r.ok);
+    expect(gecen, `iki karar da geçti — biri sessizce ezildi: ${hataMetni(a)}|${hataMetni(b)}`)
+      .toHaveLength(1);
+
+    /* Denetim izi de tek olmalı: ezilen kararın izi kalsaydı kütük
+       "taslak → uygulanmaz" ve "taslak → gönderildi" derdi. */
+    const izler = await db.aktiviteKaydi.findMany({
+      where: { varlikTipi: 'BildirimKaydi', varlikId: kayit.id, alan: 'durum' },
+    });
+    expect(izler).toHaveLength(1);
+
+    const son = await db.bildirimKaydi.findUniqueOrThrow({ where: { id: kayit.id } });
+    expect(['uygulanmaz', 'gonderildi']).toContain(son.durum);
+    /* Kayıt YARIM kalmadı: gönderim kazandıysa referansı vardır,
+       uygulanmaz kazandıysa gerekçesi. */
+    expect(son.durum === 'gonderildi' ? son.referansNo : son.uygulanmazGerekcesi).toBeTruthy();
   });
 });
 

@@ -1,7 +1,7 @@
 {
-  "imza": "15e30101069d3933dade16f12a3ffee0",
+  "imza": "5bcd4954e840b5b5403494fffd5af82b",
   "dosya": 205,
-  "vaka": 3754,
+  "vaka": 3758,
   "atlanan": 1,
   "dosyalar": {
     "tests/adaptor-yetenekleri.test.ts": {
@@ -113,7 +113,7 @@
       "atlanan": 0
     },
     "tests/bildirim-kaydi-eylem.test.ts": {
-      "vaka": 25,
+      "vaka": 29,
       "atlanan": 0
     },
     "tests/bildirim-kaydi.test.ts": {

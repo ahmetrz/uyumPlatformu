@@ -146,7 +146,12 @@ describe('motor bildirim kaydına insan kararı YAZAMAZ [URN-OLY-001]', () => {
        uzlaştırılmazsa satır aynı anda "Taslak hazır" ve "GECİKME" der. */
     const ekran = readFileSync(
       path.join(LIB, '..', 'app', '(kabuk)', '(operasyonel)', 'olaylar', 'page.tsx'), 'utf8');
-    const kayitBlogu = yorumsuz(ekran).slice(ekran.indexOf('bildirimKayitlari:'));
+    /* SON eşleşme: `bildirimKayitlari:` dosyada İKİ kez geçiyor — önce
+       Prisma `select` ifadesinde, sonra gerçek dönüşümde. `indexOf` ilk
+       (yanlış) eşleşmeyi buluyordu; bugün yeşil kalıyordu ama iddia
+       ettiği hassasiyeti taşımıyordu (bağımsız inceleme, #47 turu 2). */
+    const metin = yorumsuz(ekran);
+    const kayitBlogu = metin.slice(metin.lastIndexOf('bildirimKayitlari:'));
     expect(/gorunenDurum\(/.test(kayitBlogu),
       'ekran geri sayımla uzlaştırmıyor').toBe(true);
     expect(/durum: b\.durum/.test(kayitBlogu),

@@ -36,7 +36,7 @@ import {
 import { kapsamAnahtari, kapsamSozlugu, tesisSozlugu } from '../dil/sozlukOku';
 import { t } from '../dil/terimler';
 import {
-  KAYIT_DURUM_SOZU, gonderimKapisi, teyitKapisi, uygulanmazKapisi,
+  KAYIT_DURUM_SOZU, gonderimKapisi, kayitKapali, teyitKapisi, uygulanmazKapisi,
 } from '../uyum/bildirimKaydi';
 import { type Sonuc, tamam, hata, iz, bosluksuz, type IzIstemcisi } from './ortak';
 
@@ -269,11 +269,25 @@ export async function bildirimTaslakDuzenle(girdi: {
     }).parse(girdi);
 
     const { k, kayit } = await kayitKapisi(v.kayitId);
-    if (kayit.durum === 'gonderildi' || kayit.durum === 'teyit_alindi') {
+    /* KAPALI KAYDA YAZILMAZ — bağımsız inceleme bulgusu (P2, #48 turu 2).
+       Burada iki durum ELLE sayılıyordu (`gonderildi` · `teyit_alindi`)
+       ve ÜÇÜNCÜSÜ (`uygulanmaz`) unutulmuştu; oysa `kayitKapali()` üçünü
+       de bilen, test edilmiş bir yardımcı olarak zaten duruyordu.
+
+       Sonucu yalnız "taslak değişti" değildi: kanıt paketi bir kaydın
+       KAPANIŞ ZAMANINI `guncellendi` alanından okuyor ve o alan
+       `@updatedAt` — kapalı bir kayda yapılan ALAKASIZ bir yazım onu
+       ileri kaydırır. Aralık'ta "uygulanmaz" kapanmış bir kayıt, Mart'ta
+       taslağı düzenlenirse Ocak dönemi paketinde "dönem sonunda hâlâ
+       açıktı" görünürdü — geçmişe dönük yanlış bir uyum beyanı.
+       Bugün kapalı kayda yazan HİÇBİR yol yok ve bekçi bunu tutuyor
+       (`tests/bekci/bildirim-motoru.test.ts`). */
+    if (kayitKapali(kayit.durum)) {
       return {
         ok: false,
-        hata: 'Gönderilmiş bir bildirimin taslağı değiştirilemez — gönderilen metin ile '
-          + 'kayıttaki metin ayrışırsa kayıt kanıt olmaktan çıkar.',
+        hata: 'Kapanmış bir bildirimin taslağı değiştirilemez — gönderilen metin ile '
+          + 'kayıttaki metin ayrışırsa kayıt kanıt olmaktan çıkar; kapanış zamanı da '
+          + 'kaymış olur.',
       };
     }
 

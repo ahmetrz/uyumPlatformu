@@ -132,7 +132,18 @@ export async function kanitPaketiUretEylem(girdi: {
     const bitis = tarihCoz(v.bitis, 'Bitiş tarihi');
 
     const { paket, json } = await kanitPaketiUret({
-      kapsam: { regulasyonId: v.regulasyonId, tesisIdleri: istenen, baslangic, bitis },
+      kapsam: {
+        regulasyonId: v.regulasyonId,
+        tesisIdleri: istenen,
+        /* Kurumsal (tesisi olmayan) kayıt yalnız KAPSAMI DARALTILMAMIŞ
+           yetkiye açılır — `/olaylar` ekranıyla birebir aynı kural
+           (`izinli === null` = kurum geneli). Tek tesise yetkili bir dış
+           denetçiye şirketin kurumsal ihlallerini vermek, kapsam sınırını
+           kanıt paketi üzerinden delmek olurdu. */
+        kurumsalDahil: izinli === null,
+        baslangic,
+        bitis,
+      },
       ureten: { id: k.id, adSoyad: k.adSoyad },
       urunSurumu: URUN_SURUMU,
     });

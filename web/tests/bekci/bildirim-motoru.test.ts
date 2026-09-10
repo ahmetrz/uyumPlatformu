@@ -173,6 +173,26 @@ describe('motor bildirim kaydına insan kararı YAZAMAZ [URN-OLY-001]', () => {
       'bildirim eylemleri hâlâ envanter/yazma bayrağına bağlı').toBe(true);
   });
 
+  it('KAPALI kayda yazan hiçbir yol yok — kapanış zamanı kaymaz', () => {
+    /* Bağımsız inceleme bulgusu (P2, #48 turu 2). Kanıt paketi kapanış
+       zamanını `guncellendi` (`@updatedAt`) alanından okuyor: kapalı bir
+       kayda yapılan HERHANGİ bir yazım o tarihi ileri kaydırır ve
+       kapanmış bir kayıt geçmiş bir denetim döneminde "hâlâ açıktı"
+       görünür. Dört eylemin dördü de kapanmış kaydı reddetmeli; üçü
+       kendi kapısıyla (`gonderimKapisi` · `teyitKapisi` ·
+       `uygulanmazKapisi`), dördüncüsü `kayitKapali` ile.
+
+       Kusur tam da ELLE SAYMAKTAN doğmuştu: iki durum yazılmış, üçüncüsü
+       unutulmuştu. Bekçi bu yüzden ORTAK yardımcıyı arar. */
+    const kaynak = yorumsuz(readFileSync(path.join(LIB, 'eylemler2', 'bildirimKaydi.ts'), 'utf8'));
+    expect(/kayitKapali\(/.test(kaynak),
+      'taslak düzenleme kapalı kaydı ortak yardımcıyla reddetmiyor').toBe(true);
+    /* Elle sayım GERİ GELMESİN: iki durumu ada göre karşılaştıran bir
+       koşul, üçüncüsünü yine unutmaya açıktır. */
+    expect(/durum === 'gonderildi' \|\| [^\n]*=== 'teyit_alindi'/.test(kaynak),
+      'elle durum sayımı geri geldi — üçüncü durum yine unutulabilir').toBe(false);
+  });
+
   it('SABOTAJ: ham durumu geçiren ekran metni KIRMIZI', () => {
     const sahte = 'bildirimKayitlari: x.map((b) => ({ durum: b.durum }))';
     expect(/durum: b\.durum/.test(sahte)).toBe(true);

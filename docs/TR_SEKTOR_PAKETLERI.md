@@ -256,15 +256,27 @@ Bağımsız inceleme yakaladı (#48). Ölçülen gerçek:
 | Ek-3 | Elektrik üretim | **OYS-47** |
 | Ek-4 | Rafineri | **OYS-47** |
 | Ek-5 | Doğal gaz depolama | **OYS-47** |
-| Ek-6 | Petrol/LPG | **OYS-56** |
+| Ek-6 | Doğal gaz ve ham petrol iletim | **OYS-56** |
 | Ek-7 | Elektrik iletim | **OYS-59** |
 
 Yanlış atıf hiçbir kapıya görünmüyordu: alan dolu, biçim doğru, iki taraf
-da geçerli metin — R-D'nin tarif ettiği sınıf. Bugün atfın VARLIĞI
-ölçülüyor: `dayanak` bir "Ek-N … OYS-MM" çifti sayıyorsa o kodlu madde o
-ek dosyasında gerçekten durmalıdır (`web/tests/paket-icerik.test.ts`).
-Maddenin İÇERİĞİNİN iddiayı desteklediğini bağımsız inceleme doğrular —
-kabul edilmiş sınır, `docs/SEKTOR_PAKETI_SOZLESMESI.md` §1.10 ile aynı.
+da geçerli metin — R-D'nin tarif ettiği sınıf. Bugün atıf ÜÇ dişle
+ölçülüyor (`web/tests/paket-icerik.test.ts`):
+
+1. **Madde VAR MI** — `dayanak` bir "Ek-N … OYS-MM" çifti sayıyorsa o
+   kodlu madde o ek dosyasında gerçekten durmalıdır.
+2. **BAŞLIK tutuyor mu** — atıf tırnak içinde bir kontrol başlığı
+   söylüyorsa, gösterilen maddenin başlığı o olmalıdır. Tek başına
+   yetmiyor: ölçüldü, EPDK aynı başlığı farklı maddelerde kullanıyor ve
+   "doğru başlık, yanlış madde" bu dişten geçiyordu.
+3. **MERCİ metinde geçiyor mu** — yükümlülüğün mercisi bir kısaltma
+   taşıyorsa (USOM), gösterilen maddenin METNİ onu anmalıdır. Bir USOM
+   bildirim yükümlülüğünün dayanağı, USOM'dan hiç söz etmeyen bir maddeye
+   asılamaz. Sabotaj: atıf Ek-3/4/5'te OYS-50'ye çevrildiğinde kapı üç
+   satırla kırmızı yanıyor.
+
+Metnin iddiayı TAM olarak desteklediğini yine bağımsız inceleme doğrular
+— kabul edilmiş sınır, `docs/SEKTOR_PAKETI_SOZLESMESI.md` §1.10 ile aynı.
 
 USOM satırının **süresi boş bırakıldı ve bu bir eksiklik değil**: EPDK
 metni hangi olayların USOM'a bildirileceğine dair KRİTERİ yükümlü

@@ -62,9 +62,11 @@ async function oturumAc(rol: string, tesisId: string | null) {
   return kisi.id;
 }
 
-async function paketUret(tesisIdleri = [izinliTesisId]): Promise<KanitPaketi> {
+async function paketUret(
+  tesisIdleri = [izinliTesisId], kurumsalDahil = true,
+): Promise<KanitPaketi> {
   const { paket } = await kanitPaketiUret({
-    kapsam: { regulasyonId, tesisIdleri, ...ARALIK },
+    kapsam: { regulasyonId, tesisIdleri, kurumsalDahil, ...ARALIK },
     ureten: { id: kullaniciId, adSoyad: 'Paket Testi' },
     urunSurumu: '0.0.0-test',
   });
@@ -306,7 +308,7 @@ describe('Paket içeriği', () => {
 
   it('boş kapsam sessizce boş paket üretmez', async () => {
     await expect(kanitPaketiUret({
-      kapsam: { regulasyonId, tesisIdleri: [], ...ARALIK },
+      kapsam: { regulasyonId, tesisIdleri: [], kurumsalDahil: true, ...ARALIK },
       ureten: { id: kullaniciId, adSoyad: 'Paket Testi' },
       urunSurumu: '0.0.0-test',
     })).rejects.toThrow(/en az bir tesis/);
@@ -473,8 +475,8 @@ describe('dar pencerede tarih dalı [OLY-BIL-005]', () => {
   let olayId = '';
   let yId = '';
 
-  const darPaket = async (): Promise<KanitPaketi> => (await kanitPaketiUret({
-    kapsam: { regulasyonId, tesisIdleri: [izinliTesisId], ...DAR },
+  const darPaket = async (kurumsalDahil = true): Promise<KanitPaketi> => (await kanitPaketiUret({
+    kapsam: { regulasyonId, tesisIdleri: [izinliTesisId], kurumsalDahil, ...DAR },
     ureten: { id: kullaniciId, adSoyad: 'Dar Pencere' },
     urunSurumu: '0.0.0-test',
   })).paket;
@@ -548,7 +550,7 @@ describe('dar pencerede tarih dalı [OLY-BIL-005]', () => {
     expect(paket.bildirimler.map((b) => b.id)).not.toContain(k.id);
   });
 
-  it('KURUMSAL olayın (tesisi yok) bildirimi HER kapsama girer', async () => {
+  it('KURUMSAL kayıt kurum geneli yetkiye GİRER, daraltılmışa GİRMEZ', async () => {
     /* `tesisId: { in: [...] }` üç değerli mantıkta NULL satırı asla
        eşlemiyordu: şirket genelini etkileyen bir ihlalin bildirimi
        hiçbir tesisin paketinde görünmüyordu, üstelik sessizce. */
@@ -565,14 +567,44 @@ describe('dar pencerede tarih dalı [OLY-BIL-005]', () => {
         acildi: new Date(t0.getTime() + GUN),
       },
     });
-    const paket = await darPaket();
-    const satir = paket.bildirimler.find((b) => b.id === k.id);
-    expect(satir, 'kurumsal olayın bildirimi pakete girmedi').toBeDefined();
+    /* KURUM GENELİ yetki: görür. */
+    const genel = await darPaket(true);
+    const satir = genel.bildirimler.find((b) => b.id === k.id);
+    expect(satir, 'kurum geneli yetki kurumsal bildirimi görmedi').toBeDefined();
     /* Tesis kodu YOK ve bu doğru: uydurulmuş bir tesis kodu, kaydı
        ait olmadığı bir tesise bağlardı. */
     expect(satir!.tesisKodu).toBeNull();
-    await db.bildirimKaydi.delete({ where: { id: k.id } });
+    expect(genel.baslik.kapsam.not).toContain('GİRER');
+
+    /* KAPSAMI DARALTILMIŞ yetki: GÖRMEZ. Bu ayrımı kaybetmek, tek tesise
+       yetkili bir dış denetçiye şirketin kurumsal ihlallerini vermek
+       demekti — `/olaylar` ekranının yıllardır uyguladığı kuralın kanıt
+       paketi üzerinden delinmesi (bağımsız inceleme, #48 turu 2; kusuru
+       AÇAN şey tur 1'in kendi düzeltmesiydi). */
+    const dar = await darPaket(false);
+    expect(dar.bildirimler.map((b) => b.id),
+      'kapsamı daraltılmış paket kurumsal kaydı SIZDIRDI').not.toContain(k.id);
+    expect(dar.baslik.kapsam.not).toContain('GİRMEZ');
+
     await db.olay.delete({ where: { id: kurumsal.id } });
+  });
+
+  it('UYGULANMAZ kapanışı da TARİHSELDİR', async () => {
+    /* Tur 2 bulgusu: `uygulanmaz` kararının ayrı zaman damgası yok ve
+       kapanış `guncellendi` üzerinden okunuyor. O alan `@updatedAt`;
+       kapalı kayda YAZAN herhangi bir yol onu ileri kaydırır ve kapanmış
+       bir kayıt geçmiş bir dönemde "hâlâ açıktı" görünür. */
+    const k = await db.bildirimKaydi.create({
+      data: {
+        olayId, yukumlulukId: yId, durum: 'uygulanmaz',
+        uygulanmazGerekcesi: 'Bu olay bu mercinin kapsamına girmiyor.',
+        acildi: new Date(t0.getTime() - 10 * GUN),
+        guncellendi: new Date(t0.getTime() - 5 * GUN),
+      },
+    });
+    const paket = await darPaket();
+    /* Aralıktan ÖNCE kapanmış: pakete GİRMEZ. */
+    expect(paket.bildirimler.map((b) => b.id)).not.toContain(k.id);
   });
 
   it('kapsam NOTU bildirim kayıtlarını ADIYLA anlatır', async () => {

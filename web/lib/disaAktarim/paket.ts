@@ -82,6 +82,22 @@ export type PaketKapsami = {
   regulasyonId: string;
   /** Çağıran YETKİYLE DARALTILMIŞ küme verir; bu modül yetki hesaplamaz. */
   tesisIdleri: string[];
+  /* KURUMSAL (tesisi olmayan) KAYIT AYRI BİR YETKİ SORUSUDUR.
+     Bağımsız inceleme bulgusu (P1, #48 turu 2) ve kusuru AÇAN ilk
+     düzeltmenin kendisiydi: "kurumsal ihlalin bildirimi hiçbir pakette
+     görünmüyor" bulgusu kapatılırken kayıtlar HER kapsama konuldu ve
+     ürünün kendi kuralı delindi. `/olaylar` ekranı yıllardır şunu
+     söylüyor: "Tesisi OLMAYAN olay kapsamı daraltılmış kullanıcıya
+     GÖSTERİLMEZ — hangi tesiste olduğu yazılmamış bir olayı dar kapsamlı
+     birine açmak, kapsam sınırını sessizce delmek olurdu." Tek tesise
+     yetkili bir DIŞ DENETÇİ, ekranda göremediği kurumsal bir KVKK
+     ihlalini kanıt paketinde görüyordu; `kapsam.not`un bunu itiraf
+     etmesi erişimi meşrulaştırmaz, yalnız görünür kılar.
+
+     Kararı ÇAĞIRAN verir çünkü kullanıcıyı bilen odur: kapsamı
+     daraltılmamış (kurum geneli) yetki varsa true. Bu modül yetki
+     hesaplamaz — yukarıdaki satırın kuralıyla aynı. */
+  kurumsalDahil: boolean;
   baslangic: Date;
   bitis: Date;
 };
@@ -532,7 +548,13 @@ export async function kanitPaketiUret(girdi: {
       kapsamOgesi: { tesisId: { in: tesisler.map((t) => t.id) } },
       surec: { regulasyonId: regulasyon.id },
     },
-    orderBy: [{ kapsamOgesiId: 'asc' }, { maddeId: 'asc' }],
+    /* ÜÇÜNCÜ ANAHTAR ŞART — bağımsız inceleme bulgusu (P2, #48 turu 2).
+       `(kapsamOgesiId, maddeId)` biricik DEĞİL: `@@unique` kısıtı
+       `[surecId, maddeId, kapsamOgesiId]` ve bu sorgu bir regülasyonun
+       BİRDEN ÇOK sürecini tarıyor (yıllık denetim dönemleri normaldir).
+       İki süreç aynı çifti taşırsa sıra kararsız kalır ve aynı veriden
+       üretilen iki paketin BÜTÜNLÜK DAMGASI tutmaz. `id` biriciktir. */
+    orderBy: [{ kapsamOgesiId: 'asc' }, { maddeId: 'asc' }, { id: 'asc' }],
     select: {
       id: true, durum: true, guven: true, kanitBayat: true, sonDegerlendirme: true,
       madde: { select: { kod: true, baslik: true } },
@@ -543,7 +565,10 @@ export async function kanitPaketiUret(girdi: {
 
   const hamBulgular = await db.bulgu.findMany({
     where: { silindi: null, maddeDurumuId: { in: maddeDurumlari.map((m) => m.id) } },
-    orderBy: { tespitTarihi: 'desc' },
+    /* Aynı sınıf: `tespitTarihi` biricik değil (varsayılanı `now()`).
+       Damga dizinin SIRASINI da özetler; `kanonik()` yalnız obje
+       anahtarlarını sıralar, dizileri sıralamaz. */
+    orderBy: [{ tespitTarihi: 'desc' }, { id: 'asc' }],
     select: {
       id: true, baslik: true, onemDerecesi: true, durum: true, tespitTarihi: true,
       hedefTarih: true, kapanmaTarihi: true,
@@ -592,10 +617,9 @@ export async function kanitPaketiUret(girdi: {
            hiçbir tesisin kanıt paketinde görünmüyordu, üstelik sessizce.
            Kurumsal kayıt her kapsama girer çünkü kurumun tamamına aittir;
            `kapsam.not` bunu denetçiye SÖYLER. */
-        OR: [
-          { tesisId: { in: tesisler.map((t) => t.id) } },
-          { tesisId: null },
-        ],
+        OR: kapsam.kurumsalDahil
+          ? [{ tesisId: { in: tesisler.map((t) => t.id) } }, { tesisId: null }]
+          : [{ tesisId: { in: tesisler.map((t) => t.id) } }],
       },
       yukumluluk: {
         OR: [{ regulasyonId: null }, { regulasyonId: regulasyon.id }],
@@ -673,7 +697,13 @@ export async function kanitPaketiUret(girdi: {
     db.aktiviteKaydi.count({ where: izKosulu }),
     db.aktiviteKaydi.findMany({
       where: izKosulu,
-      orderBy: { zaman: 'desc' },
+      /* Aynı sınıf ve en yüksek çakışma olasılığı burada: denetim izi
+         ekleme-yalnız bir kütük ve döngü içinde art arda yazılıyor —
+         bu PR'ın kendi gerekçesinde "milisaniyede çakışabilir" diye
+         kabul edilen senaryonun ta kendisi. Üstelik `take: IZ_SINIRI`
+         var: kararsız sıra yalnız damgayı değil, HANGİ 2000 satırın
+         pakete gireceğini de değiştirir. */
+      orderBy: [{ zaman: 'desc' }, { id: 'asc' }],
       take: IZ_SINIRI,
       select: {
         id: true, zaman: true, varlikTipi: true, varlikId: true, eylem: true,
@@ -813,7 +843,11 @@ export async function kanitPaketiUret(girdi: {
           + 'uygulanır. Bildirim kayıtlarının DURUMU da üretim anı itibarıyladır '
           + '(geri sayım anlık hesaplanır); kapsama girip girmedikleri ise '
           + 'aralığa göre belirlenir. Kurumsal (tesise bağlı olmayan) olayların '
-          + 'bildirim kayıtları HER kapsama girer — kurumun tamamına aittirler.',
+          + 'bildirim kayıtları ' + (kapsam.kurumsalDahil
+            ? 'bu pakete GİRER — üreten kurum geneli yetkiye sahiptir.'
+            : 'bu pakete GİRMEZ: üretenin yetkisi belirli '
+              + 'tesislerle sınırlıdır ve kurumsal kayıt hiçbirine ait değildir. '
+              + 'Kurum geneli yetkiyle üretilen paket onları içerir.'),
       },
     },
     maddeler: maddeSatirlari,

@@ -894,6 +894,29 @@ async function main() {
     update: {},
   });
 
+  /* AKTARIM BİLDİRİM SÜRESİ · KURGUSAL. Gerçek TR süresini veren metin
+     açılamadı ve ürün bir gün sayısı UYDURMAZ; ama MEKANİZMANIN kendisi
+     ölçülebilir olmalı. Demo kiracısı bu yüzden KURGUSAL bir kural
+     taşır ve dayanağı bunu ADIYLA söyler — `DEMO-MERCI-A-24` ile aynı
+     kalıp. TR-ENERJI paketi bu satırı GETİRMEZ: orada süre boş kalır ve
+     ekran "bu dayanak için bildirim süresi tanımlı değil" der.
+
+     `isGunu: true` ve hafta sonu VERİLMEDİ: ürün Cts–Paz varsayar ve
+     varsayımı ekranda beyan eder — ölçülen yol tam olarak budur. */
+  await db.veriKorumaSuresi.upsert({
+    where: { konu: 'aktarim_bildirim_standart_sozlesme' },
+    create: {
+      konu: 'aktarim_bildirim_standart_sozlesme', gun: 5, isGunu: true,
+      haftaSonuJson: null,
+      dayanak: 'KURGUSAL. Demo kiracısının ekranını beslemek için yazıldı;'
+        + ' hiçbir mevzuata karşılık gelmez. Standart sözleşme dayanaklı'
+        + ' aktarımda BİLDİRİM TARİHİ GİRİLMEDİĞİNDE sayacın ÇALIŞMADIĞINI'
+        + ' (KVK-ENV-001) demo verisiyle görünür kılar.',
+      koken: 'kiraci',
+    },
+    update: {},
+  });
+
   const kvkSurec = await db.isSureci.findFirst({ select: { id: true, kod: true } });
   if (kvkSurec) {
     const saklama = await db.saklamaPolitikasi.findFirst({ select: { id: true } });

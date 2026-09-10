@@ -108,20 +108,40 @@ try {
     if (!bant.tiklar) { await context.close(); continue; }
 
     /* ── EN PAHALI İDDİA: REFERANSSIZ GÖNDERİM REDDEDİLİR ───────────── */
-    const isaretle = cekmece.getByRole('button', { name: /Gönderildi olarak işaretle/ }).first();
-    kaydet(bant.ad, 'gönderim düğmesi var', await isaretle.count() > 0);
-    if (await isaretle.count() === 0) { await context.close(); continue; }
 
-    await isaretle.click();
-    const alan = cekmece.locator('input.ab-girdi').first();
+    /* İDDİALAR BLOĞA DEĞİL, ÜSTÜNDE İŞLEM YAPILAN SATIRA BAKAR.
+       Ölçüldü (parti kapanışı, ikinci yerel koşum): blok BİRDEN ÇOK kayıt
+       taşır ve betik bloğun TAMAMINI okuyordu. Bir önceki koşumda
+       gönderilmiş komşu kayıt bloğa "Referans: …" satırını bırakınca,
+       daha düğmeye basılmadan `kayıt "Gönderildi" olmadı` iddiası
+       kırmızı yandı — kod kusursuz, kapı yanlış yere bakıyordu. CI'da
+       veritabanı her koşumda yeniden kurulduğu için bu hiç görünmezdi:
+       kapı YANLIŞ SEBEPLE yeşildi. Bugün eylem düğmesini TAŞIYAN satır
+       bulunur ve bütün tıklama iddiaları o satırın metnine bakar. */
+    const satir = cekmece.locator('.ab-panel-satir')
+      .filter({ has: page.getByRole('button', { name: /Gönderildi olarak işaretle/ }) })
+      .first();
+    const acikVar = await satir.count() > 0;
+    kaydet(bant.ad, 'gönderim düğmesi olan AÇIK kayıt var', acikVar,
+      acikVar ? (await satir.innerText()).split('\n')[0].trim().slice(0, 60)
+        : 'açık kayıt yok — fikstür tüketilmiş olabilir: npm run db:hazirla');
+    if (!acikVar) { await context.close(); continue; }
+
+    /* Satırın kimliği: ilk satırdaki yükümlülük kodu. Yeniden yüklemeden
+       sonra AYNI kaydı bulmanın tek yolu budur; "ilk satır" demek,
+       sıralama değiştiği gün başka bir kaydı ölçmek olurdu. */
+    const kod = (await satir.innerText()).split('·')[0].trim();
+
+    await satir.getByRole('button', { name: /Gönderildi olarak işaretle/ }).first().click();
+    const alan = satir.locator('input.ab-girdi').first();
     await alan.waitFor({ timeout: 5000 });
     kaydet(bant.ad, 'referans alanı açıldı', true);
 
     /* Boş referansla gönder: sunucu REDDETMELİ ve kayıt DEĞİŞMEMELİ. */
-    const gonder = cekmece.getByRole('button', { name: /Gönderildi olarak işaretle/ }).first();
+    const gonder = satir.getByRole('button', { name: /Gönderildi olarak işaretle/ }).first();
     await gonder.click();
     await page.waitForTimeout(1500);
-    const bosSonra = await cekmece.innerText();
+    const bosSonra = await satir.innerText();
     kaydet(bant.ad, 'REFERANSSIZ gönderim reddedildi',
       icerir(bosSonra, 'referans numarası zorunlu'),
       /* Not alanı HATA satırını gösterir, alan ETİKETİNİ değil: ilk turda
@@ -129,7 +149,8 @@ try {
          okuyan, kapının çalıştığını değil formun açıldığını görüyordu. */
       bosSonra.match(/[^\n]*referans numarası zorunlu[^\n]*/i)?.[0]?.trim().slice(0, 110)
         ?? 'hata mesajı bulunamadı');
-    kaydet(bant.ad, 'kayıt "Gönderildi" olmadı', !icerir(bosSonra, 'Referans:'));
+    kaydet(bant.ad, 'BU KAYIT "Gönderildi" olmadı', !icerir(bosSonra, 'Referans:'),
+      `${kod} · ${bosSonra.split('\n')[1]?.trim().slice(0, 60) ?? ''}`);
 
     /* Referansla gönder: geçmeli ve referans ekranda kalmalı. */
     const referans = `KANIT-${Date.now()}`;
@@ -147,8 +168,12 @@ try {
       await yeniSatirlar.nth(i).click();
       const c = page.locator('.ab-panel, [role="dialog"], aside').first();
       await c.waitFor({ timeout: 5000 });
-      const metin = await c.innerText();
-      if (icerir(metin, 'Bildirim yükümlülükleri')) { cekmece = c; doluSonra = metin; break; }
+      if (!icerir(await c.innerText(), 'Bildirim yükümlülükleri')) continue;
+      /* AYNI kaydı bul: kod eşleşmesi. Bloğun tamamını okumak, komşu
+         kaydın "Gönderildi"sini bu kaydınki sanmaya açıktı. */
+      const ayni = c.locator('.ab-panel-satir').filter({ hasText: kod }).first();
+      if (await ayni.count() === 0) continue;
+      cekmece = c; doluSonra = await ayni.innerText(); break;
     }
     kaydet(bant.ad, 'referansla gönderim geçti', icerir(doluSonra, 'Gönderildi'),
       doluSonra.match(/[^\n]*Gönderildi[^\n]*/)?.[0]?.trim().slice(0, 90) ?? 'bulunamadı');

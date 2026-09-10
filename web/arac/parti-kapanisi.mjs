@@ -334,6 +334,12 @@ if (ortam.nodeSurumu) {
 for (const k of ortam.kurulumlar) {
   console.log(`    · kurulum adımı koşulmadı: ${k}`);
 }
+/* `run:` kurulum adımları da yazılır: fikstür hazırlayan adım burada
+   görünmezse, fikstür tüketen bir kapının ikinci koşumdaki kırmızısı
+   kod kusuru sanılır. */
+for (const k of ortam.kurulumKomutlari ?? []) {
+  console.log(`    · kurulum KOMUTU koşulmadı — ${k}`);
+}
 for (const d of adimFarklari) console.log(`    · UYGULANMAYAN adım anahtarı — ${d}`);
 for (const d of dusenler) console.log(`    · ${d}`);
 

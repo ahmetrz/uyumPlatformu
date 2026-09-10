@@ -1,7 +1,7 @@
 {
-  "imza": "c60605700d8abee14594a0838dc4f206",
+  "imza": "3a870ee26f429bdb66615a4ca9534769",
   "dosya": 205,
-  "vaka": 3739,
+  "vaka": 3741,
   "atlanan": 1,
   "dosyalar": {
     "tests/adaptor-yetenekleri.test.ts": {
@@ -385,7 +385,7 @@
       "atlanan": 0
     },
     "tests/kapi-farki.test.ts": {
-      "vaka": 14,
+      "vaka": 16,
       "atlanan": 0
     },
     "tests/kapi-is-kapsami.test.ts": {

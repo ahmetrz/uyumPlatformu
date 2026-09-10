@@ -1,7 +1,7 @@
 import { readFileSync } from 'node:fs';
 import { fileURLToPath } from 'node:url';
 import { describe, expect, it } from 'vitest';
-import { adimlar, fark, isler, kapiliIsler } from '../arac/kapi-farki.mjs';
+import { adimlar, fark, isOrtami, isler, kapiliIsler } from '../arac/kapi-farki.mjs';
 
 /* ═══════════════════════════════════════════════════════════════════════
    KAPI FARKI — "yerelde koşan ama CI'da koşmayan" ölçüsünün kuralları
@@ -174,6 +174,33 @@ describe('parti kümesi iş akışındaki HER işi kapsar [URN-KUR-009]', () => 
       expect(tumIsler.has(is),
         `"${is}" işi türetmeye girmiyor — o işin kapıları kapanışta HİÇ koşmaz`).toBe(true);
     }
+  });
+
+  /* ── KOŞULMAYAN `run:` KURULUM ADIMLARI GÖRÜNÜR OLUR ────────────────
+     Ölçüldü (parti kapanışı, 10 Eyl 2026): CI'nın tarayıcılı işlerinin
+     HEPSİ ölçümden önce `npx tsx prisma/seed.ts` koşuyor; yerel kapanış
+     koşmuyor ve bunu HİÇBİR YERE yazmıyordu. `uses:` listesine girmiyor
+     (bunlar `run:`), kapı listesine de girmiyor (kurulum) — arada
+     kayboluyordu. Sonuç ölçüldü: fikstür tüketen R10 bildirim kanıtı
+     ikinci yerel koşumda ölçüm yapamadı ve kapanış bunu KIRMIZI diye
+     gösterdi; kodda kusur yoktu. Liste koşulacak şeyi değiştirmez,
+     FARKI GÖRÜNÜR YAPAR — "bilinmeyen ≠ sıfır"ın araç katmanındaki
+     karşılığı. */
+  it('CI\'nın koşup yerelin koşmadığı `run:` kurulum adımları BEYAN EDİLİR', () => {
+    const k = isOrtami(isAkisi).kurulumKomutlari as string[];
+    expect(k.some((x) => x.includes('prisma/seed.ts')),
+      'fikstür hazırlayan adım beyanda yok — tüketilmiş fikstürün kırmızısı'
+      + ' kod kusuru sanılır').toBe(true);
+    expect(k.some((x) => x.startsWith('kapi-rota:') && x.includes('seed.ts')),
+      'tarayıcılı işin kendi tohum adımı beyanda yok').toBe(true);
+  });
+
+  it('araç GERÇEKTEN koştuğu adımları beyana YAZMAZ (yanlış alarm yok)', () => {
+    /* Sunucu başlatma ve durdurma yerel kapanışta koşuyor; beyanda
+       görünürlerse okuyan, koşulmayan şeylerin listesine güvenmez. */
+    const k = isOrtami(isAkisi).kurulumKomutlari as string[];
+    expect(k.some((x) => /next start/.test(x))).toBe(false);
+    expect(k.some((x) => /fuser\s+-k/.test(x))).toBe(false);
   });
 
   it('PostgreSQL işi kümeye ADIYLA girer ve iki kapısı vardır', () => {

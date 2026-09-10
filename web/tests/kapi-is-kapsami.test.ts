@@ -134,6 +134,15 @@ const EKLENEN_KAPILAR = [
      metin kurumun hukuki beyanıdır, ürün kurumun adına beyanda
      bulunmaz. */
   'npm run kanit:veri-koruma',
+  /* BOŞ KURULUM DUMAN KAPISI — müşterinin BİRİNCİ GÜNÜ. Kurulum
+     provası (10 Eyl 2026) ürünün kurulup İÇİNE GİRİLEMEDİĞİNİ
+     gösterdi ve otuz iki kapının hiçbiri bunu göremedi: hepsi
+     tohumlanmış bir veritabanı varsayıyordu. Bu kapı sıfır satırdan
+     başlar — göç, ilk kullanıcı, giriş, paket, insan kararıyla
+     aktifleştirme, ilk tesis, madde durumu, denetim formu, yedek —
+     ve TOHUMA DOKUNMAZ. Dokunduğu an ölçtüğü şey müşterinin birinci
+     günü olmaktan çıkar. */
+  'npm run kapi:bos-kurulum',
 ];
 
 describe('kapı kümesi bölünmeyle değişmez', () => {

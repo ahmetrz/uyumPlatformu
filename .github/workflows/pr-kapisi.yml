@@ -101,6 +101,16 @@ jobs:
         working-directory: web
         run: npm run sayimlar:denetle
 
+      # BOŞ KURULUM DUMAN KAPISI — müşterinin BİRİNCİ GÜNÜ.
+      # Kurulum provası (10 Eyl 2026) ürünün kurulup içine girilemediğini
+      # gösterdi ve otuz iki kapının hiçbiri bunu göremedi: hepsi
+      # tohumlanmış bir veritabanı varsayıyordu. Bu kapı sıfır satırdan
+      # başlar ve TOHUMA DOKUNMAZ — dokunduğu an ölçtüğü şey müşterinin
+      # birinci günü olmaktan çıkar.
+      - name: Boş kurulum duman kapısı
+        working-directory: web
+        run: npm run kapi:bos-kurulum
+
       - name: Ters kapsam kapısı
         working-directory: web
         run: npm run ters:kapsam

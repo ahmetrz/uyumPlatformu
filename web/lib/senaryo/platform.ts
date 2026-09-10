@@ -1418,6 +1418,21 @@ export const PLATFORM_SENARYOLARI_6: Senaryo[] = [
     katmanlar: ['ACCESSIBILITY'],
   },
   {
+    id: 'SIS-BOS-001', alan: 'Sistem', rota: '—', eksen: 'akis',
+    amac: 'Müşterinin BİRİNCİ GÜNÜ: sıfır satırdan satılabilir duruma kadar yazma yolu',
+    rol: 'kurulum operatörü ve ilk yönetici', kapsam: 'yeni kurulum',
+    onkosul: 'Boş veritabanı; göç zinciri uygulanmış; TOHUM YOK',
+    veriHali: 'yok',
+    eylem: 'Göç → ilk kullanıcı → giriş → paket → insan kararıyla aktifleştirme '
+      + '→ ilk tesis → madde durumu → denetim formu → yedek doğrulama',
+    beklenenSonuc: 'Dokuz adımın dokuzu da geçer; paket hiçbir sürümü '
+      + 'KENDİLİĞİNDEN aktifleştirmez',
+    beklenenEkran: 'Her adım ADIYLA, SÜRESİYLE ve SONUCUYLA raporlanır — "çalıştı" yetmez',
+    beklenenIz: 'kurucu hesap izi aktörsüz ve kaynak kurulum; sonraki adımlar aktörlü',
+    beklenenBildirim: 'yok',
+    katmanlar: ['MIGRATION', 'SERVER', 'WORKFLOW', 'DOMAIN'],
+  },
+  {
     id: 'SIS-IZO-001', alan: 'Sistem', rota: '—', eksen: 'veri',
     amac: 'Test izolasyonunun kendi veritabanını GERÇEKTEN düşürmesi',
     rol: 'koşum sahibi', kapsam: 'test sunucusu',

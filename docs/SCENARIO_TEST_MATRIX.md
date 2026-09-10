@@ -4,12 +4,12 @@
 
 | Ölçü | Değer |
 | --- | --- |
-| Senaryo | 362 |
-| Testi olan senaryo | 362 |
+| Senaryo | 363 |
+| Testi olan senaryo | 363 |
 | **GAP** | **0** |
 | Hayalet işaret (kütükte olmayan kimlik) | 0 |
 | Kütüksüz test dosyası | 0 |
-| Taranan test dosyası | 233 |
+| Taranan test dosyası | 234 |
 
 ## Katman başına kapsam
 
@@ -18,17 +18,17 @@
 | ACCESSIBILITY | 8 | 8 | 0 |
 | API | 12 | 12 | 0 |
 | CONCURRENCY | 8 | 8 | 0 |
-| DOMAIN | 213 | 213 | 0 |
+| DOMAIN | 214 | 214 | 0 |
 | ENGINE | 37 | 37 | 0 |
 | INTEGRATION | 42 | 42 | 0 |
-| MIGRATION | 8 | 8 | 0 |
+| MIGRATION | 9 | 9 | 0 |
 | RBAC | 41 | 41 | 0 |
 | RESPONSIVE | 9 | 9 | 0 |
 | SCOPE | 33 | 33 | 0 |
-| SERVER | 152 | 152 | 0 |
+| SERVER | 153 | 153 | 0 |
 | UI | 103 | 103 | 0 |
 | VISUAL | 4 | 4 | 0 |
-| WORKFLOW | 38 | 38 | 0 |
+| WORKFLOW | 39 | 39 | 0 |
 
 ## Satır satır
 
@@ -541,6 +541,16 @@
 | `SIS-BSL-002` | Sistem | UI | `ekran-basligi.test.ts` | künyede ister kodu geçmiyor | evet | geçti |
 | `SIS-ERS-002` | Sistem | ACCESSIBILITY · UI | `senaryo-platform.test.ts` | seçilemeyen tablo grid demez, işaretçi imleci taşımaz | evet | geçti |
 | `SIS-ERS-003` | Sistem | ACCESSIBILITY | `senaryo-platform.test.ts` | sekme rolü yalnız gerçek sekmelerde kullanılır | evet | geçti |
+| `SIS-BOS-001` | Sistem | MIGRATION · SERVER · WORKFLOW · DOMAIN | `bos-kurulum-duman.test.ts` | 1 · GÖÇ ZİNCİRİ boş veritabanına uygulandı ve kurulum GERÇEKTEN boş | evet | geçti |
+| `SIS-BOS-001` | Sistem | MIGRATION · SERVER · WORKFLOW · DOMAIN | `bos-kurulum-duman.test.ts` | 2 · KURUCU HESAP açıldı — kurulum artık girilebilir | evet | geçti |
+| `SIS-BOS-001` | Sistem | MIGRATION · SERVER · WORKFLOW · DOMAIN | `bos-kurulum-duman.test.ts` | 3 · GİRİŞ yapıldı — oturum gerçekten açıldı | evet | geçti |
+| `SIS-BOS-001` | Sistem | MIGRATION · SERVER · WORKFLOW · DOMAIN | `bos-kurulum-duman.test.ts` | 4 · PAKET kuruldu — çerçeveler TASLAK geldi | evet | geçti |
+| `SIS-BOS-001` | Sistem | MIGRATION · SERVER · WORKFLOW · DOMAIN | `bos-kurulum-duman.test.ts` | 5 · AKTİFLEŞTİRME insan kararıyla verildi | evet | geçti |
+| `SIS-BOS-001` | Sistem | MIGRATION · SERVER · WORKFLOW · DOMAIN | `bos-kurulum-duman.test.ts` | 6 · İLK TESİS kaydedildi | evet | geçti |
+| `SIS-BOS-001` | Sistem | MIGRATION · SERVER · WORKFLOW · DOMAIN | `bos-kurulum-duman.test.ts` | 7 · BİR MADDEYE DURUM yazıldı | evet | geçti |
+| `SIS-BOS-001` | Sistem | MIGRATION · SERVER · WORKFLOW · DOMAIN | `bos-kurulum-duman.test.ts` | 8 · DENETİM FORMU üretildi | evet | geçti |
+| `SIS-BOS-001` | Sistem | MIGRATION · SERVER · WORKFLOW · DOMAIN | `bos-kurulum-duman.test.ts` | 9 · YEDEK alındı ve DOĞRULANDI | evet | geçti |
+| `SIS-BOS-001` | Sistem | MIGRATION · SERVER · WORKFLOW · DOMAIN | `bos-kurulum-duman.test.ts` | KAPININ KENDİSİ · dokuz adımın dokuzu da GEÇTİ ve tohuma dokunulmadı | evet | geçti |
 | `SIS-IZO-001` | Sistem | MIGRATION · CONCURRENCY | `pg-artik.test.ts` | SAHİP YAŞIYOR MU: ESRCH ölü, EPERM CANLI | evet | geçti |
 | `SIS-KUR-001` | Sistem | DOMAIN · SERVER · RBAC · MIGRATION | `kurucu-hesap.test.ts` | PAROLA ALT SINIRI ürünün sınırıyla AYNI — bağ | evet | geçti |
 | `SIS-KUR-001` | Sistem | DOMAIN · SERVER · RBAC · MIGRATION | `kurucu-hesap.test.ts` | ROL gerçek yetki kataloğunda VAR — bağ | evet | geçti |

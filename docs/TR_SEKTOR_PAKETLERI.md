@@ -240,8 +240,31 @@ yükümlülüğü eklendi:
 
 | Kod | Merci | Süre | Dayanak |
 | --- | --- | --- | --- |
-| `EPDK-USOM-OLAY` | USOM | **BOŞ** — metin süre vermiyor | Ek-1…Ek-7 · OYS-50/56/59 (Olay Yönetimi ve Süreklilik) |
+| `EPDK-USOM-OLAY` | USOM | **BOŞ** — metin süre vermiyor | "Siber Güvenlik Olaylarını Analiz Etme ve Bildirme" kontrolü; kodu EKE GÖRE değişir (aşağıdaki tablo) |
 | `KVKK-IHLAL-72` | KVKK Kurulu | 72 saat | 6698 s. md. 12/5 + Kurul kararı 2019/10 |
+
+**Kontrol kodu ekten eke DEĞİŞİR — ölçüldü.** İlk yazımda dayanak
+"Ek-1…Ek-7, OYS-50/56/59" diyordu ve bu yedi ekin BEŞİNDE yanlış maddeyi
+gösteriyordu (yedekleme · iş sürekliliği · log senkronizasyonu · olay
+yaşam döngüsü); üstelik gerçekte kullanılan OYS-47 hiç yazılmamıştı.
+Bağımsız inceleme yakaladı (#48). Ölçülen gerçek:
+
+| Ek | Sektör | USOM bildirim kriteri maddesinin kodu |
+| --- | --- | --- |
+| Ek-1 | Elektrik dağıtım | **OYS-50** |
+| Ek-2 | Doğal gaz dağıtım | **OYS-50** |
+| Ek-3 | Elektrik üretim | **OYS-47** |
+| Ek-4 | Rafineri | **OYS-47** |
+| Ek-5 | Doğal gaz depolama | **OYS-47** |
+| Ek-6 | Petrol/LPG | **OYS-56** |
+| Ek-7 | Elektrik iletim | **OYS-59** |
+
+Yanlış atıf hiçbir kapıya görünmüyordu: alan dolu, biçim doğru, iki taraf
+da geçerli metin — R-D'nin tarif ettiği sınıf. Bugün atfın VARLIĞI
+ölçülüyor: `dayanak` bir "Ek-N … OYS-MM" çifti sayıyorsa o kodlu madde o
+ek dosyasında gerçekten durmalıdır (`web/tests/paket-icerik.test.ts`).
+Maddenin İÇERİĞİNİN iddiayı desteklediğini bağımsız inceleme doğrular —
+kabul edilmiş sınır, `docs/SEKTOR_PAKETI_SOZLESMESI.md` §1.10 ile aynı.
 
 USOM satırının **süresi boş bırakıldı ve bu bir eksiklik değil**: EPDK
 metni hangi olayların USOM'a bildirileceğine dair KRİTERİ yükümlü

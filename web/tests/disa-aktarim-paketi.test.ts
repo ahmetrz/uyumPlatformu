@@ -1,4 +1,4 @@
-import { beforeAll, describe, expect, it, vi } from 'vitest';
+import { afterEach, beforeAll, describe, expect, it, vi } from 'vitest';
 import { copyFileSync, mkdtempSync } from 'node:fs';
 import { createHash, randomBytes } from 'node:crypto';
 import { tmpdir } from 'node:os';
@@ -453,5 +453,133 @@ describe('bildirim kayıtları pakete girer [OLY-BIL-005]', () => {
   it('şema sürümü YÜKSELDİ — okuyucu eski paketle karışmasın', async () => {
     const paket = await paketUret();
     expect(paket.baslik.semaSurumu).toBe(3);
+  });
+});
+
+/* ═══ 6 · DAR PENCERE · tarih dalı GERÇEKTEN ölçülür [OLY-BIL-005] ════
+
+   Bağımsız inceleme bulgusu (P2, #48): dosyanın `ARALIK` sabiti
+   2000–2100 olduğu için HİÇBİR fikstür kaydı `acildi < baslangic` ya da
+   `kapanma > bitis` durumuna düşmüyordu — yani `sonundaAcik` dalı hiçbir
+   testte tetiklenmiyordu ve "bulgularla aynı kural" iddiası ölçülmemiş
+   duruyordu. O dalda gerçek bir P1 vardı ve testler göremedi. Burada
+   pencere DARDIR ve dalın kendisi ölçülür. */
+
+describe('dar pencerede tarih dalı [OLY-BIL-005]', () => {
+  const GUN = 24 * 3_600_000;
+  const t0 = new Date('2026-01-01T00:00:00Z');
+  const t1 = new Date('2026-01-31T23:59:59Z');
+  const DAR = { baslangic: t0, bitis: t1 };
+  let olayId = '';
+  let yId = '';
+
+  const darPaket = async (): Promise<KanitPaketi> => (await kanitPaketiUret({
+    kapsam: { regulasyonId, tesisIdleri: [izinliTesisId], ...DAR },
+    ureten: { id: kullaniciId, adSoyad: 'Dar Pencere' },
+    urunSurumu: '0.0.0-test',
+  })).paket;
+
+  /* Temizlik `afterEach`te: bir vaka düşerse kaydı geride bırakmaz.
+     Ölçüldü (sabotaj turu): satır içi `delete` başarısız iddiadan SONRA
+     geldiği için kalıyor ve sonraki iki vaka `@@unique` çakışmasıyla
+     düşüyordu — kusur bir yerdeyken kırmızı ÜÇ yerde yanıyordu ve
+     hangisinin gerçek olduğu okunmuyordu. */
+  afterEach(async () => { await db.bildirimKaydi.deleteMany({ where: { yukumlulukId: yId } }); });
+
+  beforeAll(async () => {
+    const olay = await db.olay.create({
+      data: {
+        kod: `DAR-OLAY-${Date.now()}`, baslik: 'Dar pencere olayı',
+        siddet: 'kritik', durum: 'acik', tesisId: izinliTesisId,
+        baslangic: new Date(t0.getTime() - 20 * GUN),
+      },
+    });
+    olayId = olay.id;
+    const y = await db.bildirimYukumlulugu.create({
+      data: {
+        kod: `DAR-Y-${Date.now()}`, ad: 'Dar pencere yükümlülüğü',
+        asgariSiddet: 'orta', sureSaat: 72, dayanak: 'Kurgusal',
+        merci: 'Kurgusal Merci D',
+      },
+    });
+    yId = y.id;
+  });
+
+  it('aralıktan ÖNCE açılıp aralıktan SONRA gönderilen kayıt PAKETE GİRER', async () => {
+    /* Kusurun ta kendisi: kayıt Ocak boyunca gönderilmemiş durumdaydı —
+       denetçinin en çok ilgilendiği hâl — ama paket üretilirken kapanmış
+       olduğu için canlı duruma bakan süzgeç onu düşürüyordu. */
+    const k = await db.bildirimKaydi.create({
+      data: {
+        olayId, yukumlulukId: yId, durum: 'gonderildi',
+        acildi: new Date(t0.getTime() - 10 * GUN),
+        referansNo: 'DAR-REF-1',
+        gonderimZamani: new Date(t1.getTime() + 30 * GUN),
+      },
+    });
+    const paket = await darPaket();
+    expect(paket.bildirimler.map((b) => b.id),
+      'aralık boyunca açık kalmış kayıt pakete girmedi').toContain(k.id);
+  });
+
+  it('aralıktan ÖNCE açılıp aralıktan ÖNCE kapanan kayıt GİRMEZ', async () => {
+    /* Karşı vaka: kural gerçekten TARİHE bakıyor mu, yoksa her şeyi mi
+       içeri alıyor. İçeri alsaydı yukarıdaki iddia da anlamsız olurdu. */
+    const k = await db.bildirimKaydi.create({
+      data: {
+        olayId, yukumlulukId: yId, durum: 'gonderildi',
+        acildi: new Date(t0.getTime() - 40 * GUN),
+        referansNo: 'DAR-REF-2',
+        gonderimZamani: new Date(t0.getTime() - 30 * GUN),
+      },
+    });
+    const paket = await darPaket();
+    expect(paket.bildirimler.map((b) => b.id)).not.toContain(k.id);
+  });
+
+  it('aralıktan SONRA açılan kayıt GİRMEZ', async () => {
+    const k = await db.bildirimKaydi.create({
+      data: {
+        olayId, yukumlulukId: yId, durum: 'taslak',
+        acildi: new Date(t1.getTime() + 10 * GUN),
+      },
+    });
+    const paket = await darPaket();
+    expect(paket.bildirimler.map((b) => b.id)).not.toContain(k.id);
+  });
+
+  it('KURUMSAL olayın (tesisi yok) bildirimi HER kapsama girer', async () => {
+    /* `tesisId: { in: [...] }` üç değerli mantıkta NULL satırı asla
+       eşlemiyordu: şirket genelini etkileyen bir ihlalin bildirimi
+       hiçbir tesisin paketinde görünmüyordu, üstelik sessizce. */
+    const kurumsal = await db.olay.create({
+      data: {
+        kod: `DAR-KURUMSAL-${Date.now()}`, baslik: 'Kurumsal olay',
+        siddet: 'kritik', durum: 'acik', tesisId: null,
+        baslangic: new Date(t0.getTime() + GUN),
+      },
+    });
+    const k = await db.bildirimKaydi.create({
+      data: {
+        olayId: kurumsal.id, yukumlulukId: yId, durum: 'taslak',
+        acildi: new Date(t0.getTime() + GUN),
+      },
+    });
+    const paket = await darPaket();
+    const satir = paket.bildirimler.find((b) => b.id === k.id);
+    expect(satir, 'kurumsal olayın bildirimi pakete girmedi').toBeDefined();
+    /* Tesis kodu YOK ve bu doğru: uydurulmuş bir tesis kodu, kaydı
+       ait olmadığı bir tesise bağlardı. */
+    expect(satir!.tesisKodu).toBeNull();
+    await db.bildirimKaydi.delete({ where: { id: k.id } });
+    await db.olay.delete({ where: { id: kurumsal.id } });
+  });
+
+  it('kapsam NOTU bildirim kayıtlarını ADIYLA anlatır', async () => {
+    /* Denetçi paketi açtığında bildirim satırlarının hangi zamana ait
+       olduğunu notta okumalı; not yalnız maddelerden bahsediyordu. */
+    const paket = await darPaket();
+    expect(paket.baslik.kapsam.not).toContain('bildirim');
+    expect(paket.baslik.kapsam.not).toContain('Kurumsal');
   });
 });

@@ -1,7 +1,7 @@
 {
-  "imza": "3d99bc35bca57ff1733c85409da4c2bc",
+  "imza": "6280ad31bb9eecd510fed6e0034b0148",
   "dosya": 205,
-  "vaka": 3766,
+  "vaka": 3774,
   "atlanan": 1,
   "dosyalar": {
     "tests/adaptor-yetenekleri.test.ts": {
@@ -165,7 +165,7 @@
       "atlanan": 0
     },
     "tests/disa-aktarim-paketi.test.ts": {
-      "vaka": 26,
+      "vaka": 31,
       "atlanan": 0
     },
     "tests/disa-aktarim-xlsx.test.ts": {
@@ -565,7 +565,7 @@
       "atlanan": 0
     },
     "tests/paket-icerik.test.ts": {
-      "vaka": 17,
+      "vaka": 20,
       "atlanan": 0
     },
     "tests/paket-iskeletler.test.ts": {

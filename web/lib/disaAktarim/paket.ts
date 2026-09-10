@@ -581,26 +581,67 @@ export async function kanitPaketiUret(girdi: {
      ilgilendiği satırı — paketin dışında bırakırdı. */
   const hamBildirimler = await db.bildirimKaydi.findMany({
     where: {
-      olay: { tesisId: { in: tesisler.map((t) => t.id) } },
+      olay: {
+        /* KURUMSAL OLAY DA GİRER — bağımsız inceleme bulgusu (P2, #48).
+           `Olay.tesisId` nullable ve "tesisi olmayan olay kurumsaldır"
+           bu üründe birinci sınıf bir durumdur (`erisim.ts`): motor
+           kurumsal bir olay için de kayıt açar (regülasyonu boş olan
+           yükümlülükler tetiklenir — KVKK ihlali, USOM bildirimi).
+           `tesisId: { in: [...] }` üç değerli mantıkta NULL satırı ASLA
+           eşlemez; şirket genelini etkileyen bir ihlalin bildirimi
+           hiçbir tesisin kanıt paketinde görünmüyordu, üstelik sessizce.
+           Kurumsal kayıt her kapsama girer çünkü kurumun tamamına aittir;
+           `kapsam.not` bunu denetçiye SÖYLER. */
+        OR: [
+          { tesisId: { in: tesisler.map((t) => t.id) } },
+          { tesisId: null },
+        ],
+      },
       yukumluluk: {
         OR: [{ regulasyonId: null }, { regulasyonId: regulasyon.id }],
       },
     },
-    orderBy: [{ acildi: 'asc' }],
+    /* İKİNCİ ANAHTAR ŞART: aynı olay için kayıtlar döngüde art arda
+       açılır ve `acildi` milisaniyede ÇAKIŞABİLİR. Tek anahtarlı sırada
+       SQL kararlı sıra garantisi vermez; aynı veriden üretilen iki paket
+       farklı sırada dizilir ve BÜTÜNLÜK DAMGASI tutmaz (şüpheli olarak
+       raporlandı, ucuz olduğu için kapatıldı). */
+    orderBy: [{ acildi: 'asc' }, { id: 'asc' }],
     select: {
       id: true, durum: true, sonTarih: true, referansNo: true,
       gonderimZamani: true, teyitZamani: true, kanitId: true,
-      uygulanmazGerekcesi: true, acildi: true,
+      uygulanmazGerekcesi: true, acildi: true, guncellendi: true,
       olay: { select: { kod: true, baslik: true, baslangic: true, tesisId: true } },
       yukumluluk: { select: { kod: true, ad: true, merci: true, sureSaat: true } },
       gonderen: { select: { adSoyad: true } },
     },
   });
   const bildirimAcik = (d: string) => d === 'taslak' || d === 'suresi_gecti';
+  /* KAPANIŞ ZAMANI TARİHSELDİR — bağımsız inceleme bulgusu (P1, #48).
+     İlk hâl "aralık sonunda açık mıydı" sorusunu kaydın CANLI `durum`
+     sütunuyla cevaplıyordu; oysa o sütun BUGÜNÜ anlatır. Ölçülen sonuç:
+     Aralık 2025'te açılan, Ocak boyunca gönderilmemiş kalan ve Mart'ta
+     gönderilen bir kayıt, Ocak dönemi için üretilen pakete HİÇ girmiyordu
+     — ne satırda ne sayımda. Denetçinin en çok ilgilendiği kayıt (dönem
+     boyunca açık kalmış bildirim), sırf paket üretilirken kapanmış
+     olduğu için görünmez oluyordu.
+
+     Bugün kapanış zamanı kaydın KENDİ alanlarından okunur ve kural
+     bulgularınkiyle GERÇEKTEN aynıdır: aralıkta doğan ya da aralık
+     sonunda hâlâ kapanmamış olan kayıt girer. `uygulanmaz` kararının
+     ayrı bir zaman damgası yok; kaydın son güncellenme anı o kararın
+     kendisidir ve kullanılan tek yer burasıdır. */
+  const kapanisZamani = (b: { durum: string; gonderimZamani: Date | null;
+    teyitZamani: Date | null; guncellendi: Date }): Date | null => {
+    if (bildirimAcik(b.durum)) return null;
+    return b.teyitZamani ?? b.gonderimZamani ?? b.guncellendi;
+  };
   const bildirimler = hamBildirimler.filter((b) => {
     const dogus = b.acildi;
     const aralikta = dogus >= kapsam.baslangic && dogus <= kapsam.bitis;
-    const sonundaAcik = dogus <= kapsam.bitis && bildirimAcik(b.durum);
+    const kapanma = kapanisZamani(b);
+    const sonundaAcik = dogus <= kapsam.bitis
+      && (kapanma === null || kapanma > kapsam.bitis);
     return aralikta || sonundaAcik;
   });
   const tesisKodu = new Map(tesisler.map((t) => [t.id, t.kod]));
@@ -768,7 +809,11 @@ export async function kanitPaketiUret(girdi: {
         baslangic: kapsam.baslangic.toISOString(),
         bitis: kapsam.bitis.toISOString(),
         not: 'Madde durumları paketin ÜRETİM ANI itibarıyla alınmıştır; '
-          + 'tarih aralığı bulgulara ve denetim izine uygulanır.',
+          + 'tarih aralığı bulgulara, bildirim kayıtlarına ve denetim izine '
+          + 'uygulanır. Bildirim kayıtlarının DURUMU da üretim anı itibarıyladır '
+          + '(geri sayım anlık hesaplanır); kapsama girip girmedikleri ise '
+          + 'aralığa göre belirlenir. Kurumsal (tesise bağlı olmayan) olayların '
+          + 'bildirim kayıtları HER kapsama girer — kurumun tamamına aittirler.',
       },
     },
     maddeler: maddeSatirlari,

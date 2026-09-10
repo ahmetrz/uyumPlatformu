@@ -1,7 +1,7 @@
 {
-  "imza": "a791aa237a292168efc13e42f581ed7e",
-  "dosya": 229,
-  "vaka": 4133,
+  "imza": "7fd5664e24f90f597722c9770843dbf2",
+  "dosya": 232,
+  "vaka": 4187,
   "atlanan": 1,
   "dosyalar": {
     "tests/adaptor-yetenekleri.test.ts": {
@@ -97,7 +97,7 @@
       "atlanan": 0
     },
     "tests/bekci/politika-olcumu.test.ts": {
-      "vaka": 21,
+      "vaka": 32,
       "atlanan": 0
     },
     "tests/bekci/radar-agsiz.test.ts": {
@@ -512,6 +512,10 @@
       "vaka": 20,
       "atlanan": 0
     },
+    "tests/kurucu-hesap.test.ts": {
+      "vaka": 9,
+      "atlanan": 0
+    },
     "tests/marka-adi.test.ts": {
       "vaka": 4,
       "atlanan": 0
@@ -688,12 +692,20 @@
       "vaka": 5,
       "atlanan": 0
     },
+    "tests/politika-s2-eylem.test.ts": {
+      "vaka": 27,
+      "atlanan": 0
+    },
     "tests/politika-yetki-kapilari.test.ts": {
       "vaka": 7,
       "atlanan": 0
     },
     "tests/proje-bagimliligi.test.ts": {
       "vaka": 9,
+      "atlanan": 0
+    },
+    "tests/regulasyon-katalog-boslugu.test.ts": {
+      "vaka": 7,
       "atlanan": 0
     },
     "tests/risk-eylem.test.ts": {

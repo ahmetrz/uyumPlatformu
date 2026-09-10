@@ -1418,6 +1418,35 @@ export const PLATFORM_SENARYOLARI_6: Senaryo[] = [
     katmanlar: ['ACCESSIBILITY'],
   },
   {
+    id: 'SIS-KUR-001', alan: 'Sistem', rota: '—', eksen: 'yetki',
+    amac: 'Boş kurulumun ilk kullanıcısının açılması ve aracın arka kapıya dönmemesi',
+    rol: 'kurulum operatörü', kapsam: 'kurulum',
+    onkosul: 'Göç uygulanmış, Kullanici tablosu BOŞ',
+    veriHali: 'yok',
+    eylem: 'arac/kurucu-hesap.ts stdin ile parola alarak koşturulur',
+    beklenenSonuc: 'Kullanıcı + KÜRESEL yetki + denetim izi TEK transaction; '
+      + 'kurulum doluyken hiçbir şey yazmaz ve sıfır dışı çıkar',
+    beklenenEkran: 'Parola hiçbir yere yazılmadı; yalnız scrypt özeti saklandı',
+    beklenenIz: 'aktorId NULL, kaynak kurulum; parola/uzunluğu/özeti ize GİRMEZ',
+    beklenenBildirim: 'yok',
+    katmanlar: ['DOMAIN', 'SERVER', 'RBAC', 'MIGRATION'],
+  },
+  {
+    id: 'SIS-DGM-001', alan: 'Sistem', rota: '—', eksen: 'veri',
+    amac: 'Ekranın ÜRÜN DEĞİŞMEZİ cümlelerinin (S2) gerçek yolla ölçülmesi',
+    rol: 'uyum sorumlusu', kapsam: 'kurum geneli',
+    onkosul: 'Kapanmış bildirim, açık dead-letter kaydı, el ile değiştirilmiş '
+      + 'uygulanabilirlik kararı ve kapalı bulgu kurulu',
+    veriHali: 'normal',
+    eylem: 'Motorlar GERÇEKTEN koşturulur ve sunucu eylemleri GERÇEKTEN çağrılır',
+    beklenenSonuc: 'Dokunmadığı iddia edilen kayıt DEĞİŞMEZ; silmez dediğini SİLMEZ; '
+      + 'uydurmaz dediği sayıyı UYDURMAZ',
+    beklenenEkran: 'Ekranın yazdığı değişmez, sunucunun davranışıyla aynıdır',
+    beklenenIz: 'reddedilen denemede yan etki YOK — delta ile ölçülür',
+    beklenenBildirim: 'yok',
+    katmanlar: ['DOMAIN', 'SERVER', 'ENGINE', 'WORKFLOW'],
+  },
+  {
     id: 'SIS-YTK-011', alan: 'Sistem', rota: '—', eksen: 'yetki',
     amac: 'Sunucu eyleminin kapsam ve yetki cümlelerinin gerçek yolla ölçülmesi',
     rol: 'güvenlik denetçisi', kapsam: 'kurum geneli',

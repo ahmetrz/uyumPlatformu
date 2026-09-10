@@ -4,12 +4,12 @@
 
 | Ölçü | Değer |
 | --- | --- |
-| Senaryo | 358 |
-| Testi olan senaryo | 358 |
+| Senaryo | 361 |
+| Testi olan senaryo | 361 |
 | **GAP** | **0** |
 | Hayalet işaret (kütükte olmayan kimlik) | 0 |
 | Kütüksüz test dosyası | 0 |
-| Taranan test dosyası | 229 |
+| Taranan test dosyası | 232 |
 
 ## Katman başına kapsam
 
@@ -18,17 +18,17 @@
 | ACCESSIBILITY | 8 | 8 | 0 |
 | API | 12 | 12 | 0 |
 | CONCURRENCY | 7 | 7 | 0 |
-| DOMAIN | 210 | 210 | 0 |
-| ENGINE | 36 | 36 | 0 |
+| DOMAIN | 213 | 213 | 0 |
+| ENGINE | 37 | 37 | 0 |
 | INTEGRATION | 42 | 42 | 0 |
-| MIGRATION | 6 | 6 | 0 |
-| RBAC | 40 | 40 | 0 |
+| MIGRATION | 7 | 7 | 0 |
+| RBAC | 41 | 41 | 0 |
 | RESPONSIVE | 9 | 9 | 0 |
 | SCOPE | 33 | 33 | 0 |
-| SERVER | 150 | 150 | 0 |
-| UI | 102 | 102 | 0 |
+| SERVER | 152 | 152 | 0 |
+| UI | 103 | 103 | 0 |
 | VISUAL | 4 | 4 | 0 |
-| WORKFLOW | 37 | 37 | 0 |
+| WORKFLOW | 38 | 38 | 0 |
 
 ## Satır satır
 
@@ -293,6 +293,13 @@
 | `KVK-ENV-005` | Uyum | RBAC · SCOPE · SERVER | `veri-koruma.test.ts` | UYUM ONAYI olmayan rol BİLDİRİM TARİHİ yazamaz, tarih BOŞ kalır | evet | geçti |
 | `KVK-ENV-005` | Uyum | RBAC · SCOPE · SERVER | `veri-koruma.test.ts` | GELECEK tarihli bildirim REDDEDİLİR — yapılmamış beyan işaretlenemez | evet | geçti |
 | `KVK-ENV-005` | Uyum | RBAC · SCOPE · SERVER | `veri-koruma.test.ts` | DEMO ikizi kişisel veri kaydı YAZMAZ — açık ret döner | evet | geçti |
+| `REG-BOS-001` | Uyum | DOMAIN · UI | `regulasyon-katalog-boslugu.test.ts` | DOLU katalogda boşluk YOKTUR — ayrım çağıranda değil burada | evet | geçti |
+| `REG-BOS-001` | Uyum | DOMAIN · UI | `regulasyon-katalog-boslugu.test.ts` | HİÇ SÜRÜM YOKSA "henüz yüklenmedi" DOĞRUDUR | evet | geçti |
+| `REG-BOS-001` | Uyum | DOMAIN · UI | `regulasyon-katalog-boslugu.test.ts` | TASLAKTA MADDE VARSA "yüklenmedi" DENMEZ — provanın kusuru | evet | geçti |
+| `REG-BOS-001` | Uyum | DOMAIN · UI | `regulasyon-katalog-boslugu.test.ts` | BOŞ TASLAK maddeli taslakla karışmaz | evet | geçti |
+| `REG-BOS-001` | Uyum | DOMAIN · UI | `regulasyon-katalog-boslugu.test.ts` | ÇOK TASLAK: toplam sayılır, hedef EN ÇOK maddeli olandır | evet | geçti |
+| `REG-BOS-001` | Uyum | DOMAIN · UI | `regulasyon-katalog-boslugu.test.ts` | ARŞİV sürüm "bekliyor" saymaz — karar verilecek bir şey değil | evet | geçti |
+| `REG-BOS-001` | Uyum | DOMAIN · UI | `regulasyon-katalog-boslugu.test.ts` | AKTİF sürüm maddesizken taslak doluysa yine BEKLİYOR | evet | geçti |
 | `KVK-ENV-006` | Uyum | UI · DOMAIN · RESPONSIVE | `veri-koruma-mantik.test.ts` | değerlendirilmemiş faaliyet ile tarihsiz aktarım AYRI sayılır | evet | geçti |
 | `KVK-ENV-006` | Uyum | UI · DOMAIN · RESPONSIVE | `veri-koruma-mantik.test.ts` | özel nitelikli FALSE ile NULL aynı kefeye konmaz | evet | geçti |
 | `KVK-ENV-006` | Uyum | UI · DOMAIN · RESPONSIVE | `veri-koruma-mantik.test.ts` | SÜRE KURALI olmayan başvuru "süresiz" sayılır ve cümleyle söylenir | evet | geçti |
@@ -534,6 +541,16 @@
 | `SIS-BSL-002` | Sistem | UI | `ekran-basligi.test.ts` | künyede ister kodu geçmiyor | evet | geçti |
 | `SIS-ERS-002` | Sistem | ACCESSIBILITY · UI | `senaryo-platform.test.ts` | seçilemeyen tablo grid demez, işaretçi imleci taşımaz | evet | geçti |
 | `SIS-ERS-003` | Sistem | ACCESSIBILITY | `senaryo-platform.test.ts` | sekme rolü yalnız gerçek sekmelerde kullanılır | evet | geçti |
+| `SIS-KUR-001` | Sistem | DOMAIN · SERVER · RBAC · MIGRATION | `kurucu-hesap.test.ts` | göç zinciri uygulandı ve kurulum GERÇEKTEN boş | evet | geçti |
+| `SIS-KUR-001` | Sistem | DOMAIN · SERVER · RBAC · MIGRATION | `kurucu-hesap.test.ts` | GEÇERSİZ girdi reddedilir ve HİÇBİR ŞEY yazılmaz | evet | geçti |
+| `SIS-KUR-001` | Sistem | DOMAIN · SERVER · RBAC · MIGRATION | `kurucu-hesap.test.ts` | PAROLA ALT SINIRI ürünün sınırıyla AYNI — bağ | evet | geçti |
+| `SIS-KUR-001` | Sistem | DOMAIN · SERVER · RBAC · MIGRATION | `kurucu-hesap.test.ts` | ROL gerçek yetki kataloğunda VAR — bağ | evet | geçti |
+| `SIS-KUR-001` | Sistem | DOMAIN · SERVER · RBAC · MIGRATION | `kurucu-hesap.test.ts` | PAROLA ÖZETİ girişin doğrulayıcısıyla UYUŞUR — bağ | evet | geçti |
+| `SIS-KUR-001` | Sistem | DOMAIN · SERVER · RBAC · MIGRATION | `kurucu-hesap.test.ts` | kurucu hesap AÇILIR: kullanıcı + KÜRESEL yetki + denetim izi | evet | geçti |
+| `SIS-KUR-001` | Sistem | DOMAIN · SERVER · RBAC · MIGRATION | `kurucu-hesap.test.ts` | PAROLA denetim izine GİRMEZ — ne kendisi, ne özeti, ne uzunluğu | evet | geçti |
+| `SIS-KUR-001` | Sistem | DOMAIN · SERVER · RBAC · MIGRATION | `kurucu-hesap.test.ts` | ikinci koşu REDDEDİLİR ve üç tabloda da satır değişmez | evet | geçti |
+| `SIS-KUR-001` | Sistem | DOMAIN · SERVER · RBAC · MIGRATION | `kurucu-hesap.test.ts` | --parola verilirse araç koşmadan REDDEDER | evet | geçti |
+| `SIS-DGM-001` | Sistem | DOMAIN · SERVER · ENGINE · WORKFLOW | `politika-s2-eylem.test.ts` | VERİ KORUMA motoru başvuruya CEVAP YAZMAZ — yanıt alanı boş kalır | evet | geçti |
 | `SIS-YTK-011` | Sistem | RBAC · SCOPE · SERVER · DOMAIN | `politika-eylem-kapsami.test.ts` | iptalli anahtarda kapsam güncellemesi REDDEDİLİR, kapsam AYNI kalır | evet | geçti |
 | `SIS-YTK-011` | Sistem | RBAC · SCOPE · SERVER · DOMAIN | `politika-eylem-kapsami.test.ts` | BAŞKASININ görevini onaysız rol kapatamaz ve durum DEĞİŞMEZ | evet | geçti |
 | `SIS-YTK-011` | Sistem | RBAC · SCOPE · SERVER · DOMAIN | `politika-eylem-kapsami.test.ts` | UYUM ONAY yetkisi olan rol kapatabilir — kapı sıkı ama kilitli değil | evet | geçti |
@@ -945,6 +962,17 @@
 | `URN-POL-001` | Ürünleştirme | DOMAIN | `bekci/politika-olcumu.test.ts` | SINIF TAVANLARI ölçülenle BİREBİR — gevşeklik dişi | evet | geçti |
 | `URN-POL-001` | Ürünleştirme | DOMAIN | `bekci/politika-olcumu.test.ts` | TAVAN YÜKSELMESİ DOSYADA GEREKÇE İSTER — beşinci diş | evet | geçti |
 | `URN-POL-001` | Ürünleştirme | DOMAIN | `bekci/politika-olcumu.test.ts` | TABAN DAL CIRCIRI: liste tabana göre BÜYÜYEMEZ | evet | geçti |
+| `URN-POL-001` | Ürünleştirme | DOMAIN | `bekci/politika-olcumu.test.ts` | YENİ + ÖLÇÜLÜ satır temizdir — varsayılan budur | evet | geçti |
+| `URN-POL-001` | Ürünleştirme | DOMAIN | `bekci/politika-olcumu.test.ts` | YENİ + ÖLÇÜMSÜZ + GEREKÇESİZ satır KIRMIZI | evet | geçti |
+| `URN-POL-001` | Ürünleştirme | DOMAIN | `bekci/politika-olcumu.test.ts` | AŞAMASIZ GEREKÇE kabul edilmez | evet | geçti |
+| `URN-POL-001` | Ürünleştirme | DOMAIN | `bekci/politika-olcumu.test.ts` | GEREKÇE + AŞAMA birlikte olunca istisna GEÇERLİDİR | evet | geçti |
+| `URN-POL-001` | Ürünleştirme | DOMAIN | `bekci/politika-olcumu.test.ts` | KISA GEREKÇE kusuru anlatmaz — KIRMIZI | evet | geçti |
+| `URN-POL-001` | Ürünleştirme | DOMAIN | `bekci/politika-olcumu.test.ts` | S1 · YENİ cümlede GEREKÇE HİÇ KABUL EDİLMEZ | evet | geçti |
+| `URN-POL-001` | Ürünleştirme | DOMAIN | `bekci/politika-olcumu.test.ts` | SINIF KÜTÜKTEN DEĞİL CÜMLEDEN türetilir — S3 etiketiyle kaçılamaz | evet | geçti |
+| `URN-POL-001` | Ürünleştirme | DOMAIN | `bekci/politika-olcumu.test.ts` | ESKİ satır bu dişin konusu DEĞİL — cırcırın öbür dişleri tutar | evet | geçti |
+| `URN-POL-001` | Ürünleştirme | DOMAIN | `bekci/politika-olcumu.test.ts` | IDDIA_DEGIL satırı politika değildir — diş ona bakmaz | evet | geçti |
+| `URN-POL-001` | Ürünleştirme | DOMAIN | `bekci/politika-olcumu.test.ts` | TOPLAM DÜŞERKEN SIZAN CÜMLE yakalanır — dişin var oluş sebebi | evet | geçti |
+| `URN-POL-001` | Ürünleştirme | DOMAIN | `bekci/politika-olcumu.test.ts` | GERÇEK KÜTÜK: taban dala göre yeni satırların hepsi kuralı geçer | evet | geçti |
 | `URN-POL-001` | Ürünleştirme | DOMAIN | `bekci/politika-olcumu.test.ts` | ÖZNE koşulu alan doğrulamasını dışarıda tutar | evet | geçti |
 | `URN-POL-001` | Ürünleştirme | DOMAIN | `bekci/politika-olcumu.test.ts` | SİSTEM iddiası yakalanır | evet | geçti |
 | `URN-POL-001` | Ürünleştirme | DOMAIN | `bekci/politika-olcumu.test.ts` | YORUMDAKİ cümle kütüğe girmez | evet | geçti |

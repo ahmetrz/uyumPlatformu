@@ -335,23 +335,33 @@ describe('POL-053 · "Karar geri alınamaz" [SIS-DGM-001]', () => {
        ikinci karar yazılamaz. Yazılabilseydi kapanış zamanı kayardı ve
        bir uyum kaydının en çok sorulan sorusu ("ne zaman kapandı")
        cevapsız kalırdı. */
-    const b = await db.veriKalitesiBulgusu.findFirst({ where: { durum: 'acik' } });
-    expect(b, 'fikstürde açık veri kalitesi bulgusu yok').not.toBeNull();
+    /* FİKSTÜR KENDİ KURULUR. Tohumdaki açık bir bulguyu aramak iki
+       yönden kırılgandı: PostgreSQL şablonunda o satır yok (ölçüldü —
+       `kapi-postgres` kırmızı yandı) ve vaka bulguyu KAPATTIĞI için aynı
+       veritabanında ikinci kez koşamıyordu. Kendi kaydını kuran vaka her
+       sağlayıcıda ve her koşuda aynı şeyi ölçer. */
+    const b = await db.veriKalitesiBulgusu.create({
+      data: {
+        kural: 'kritikligi_bilinmeyen', kaynakTipi: 'Tesis',
+        kaynakId: `kurgusal-${damga}`, durum: 'acik',
+        aciklama: 'Kurgusal prova bulgusu — geri alınamazlık ölçümü.',
+      },
+    });
     const { veriKalitesiBulgusuKapat } = await import('@/lib/eylemler2/varlikDurusu');
 
     const ilk = await veriKalitesiBulgusuKapat({
-      bulguId: b!.id, karar: 'kabul_edildi', gerekce: 'Kurgusal prova: kabul edildi.',
+      bulguId: b.id, karar: 'kabul_edildi', gerekce: 'Kurgusal prova: kabul edildi.',
     });
     expect(ilk.ok, ilk.ok ? '' : ilk.hata).toBe(true);
-    const kapali = await db.veriKalitesiBulgusu.findUnique({ where: { id: b!.id } });
+    const kapali = await db.veriKalitesiBulgusu.findUnique({ where: { id: b.id } });
     expect(kapali?.durum).toBe('kapandi');
 
     const onceIz = await izSayisi();
     const ikinci = await veriKalitesiBulgusuKapat({
-      bulguId: b!.id, karar: 'giderildi', gerekce: 'Kurgusal prova: ikinci karar denemesi.',
+      bulguId: b.id, karar: 'giderildi', gerekce: 'Kurgusal prova: ikinci karar denemesi.',
     });
     expect(ikinci.ok, 'kapanmış bulgu ikinci kez karara bağlandı').toBe(false);
-    const sonra = await db.veriKalitesiBulgusu.findUnique({ where: { id: b!.id } });
+    const sonra = await db.veriKalitesiBulgusu.findUnique({ where: { id: b.id } });
     expect(sonra?.kapanis, 'kapanış zamanı kaydı').toEqual(kapali?.kapanis);
     expect(await izSayisi(), 'reddedilen ikinci karar iz yazdı').toBe(onceIz);
   });

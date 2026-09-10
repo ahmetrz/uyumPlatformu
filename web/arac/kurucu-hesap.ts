@@ -1,5 +1,5 @@
 /* ═══════════════════════════════════════════════════════════════════════
-   KURUCU HESAP — boş bir kurulumun İLK kullanıcısı [KUR-HES-001]
+   KURUCU HESAP — boş bir kurulumun İLK kullanıcısı [SIS-KUR-001]
 
    ── ÖLÇÜLEN KUSUR ─────────────────────────────────────────────────────
    Kurulum provası (10 Eylül 2026, `docs/KURULUM_PROVASI.md`): `docs/

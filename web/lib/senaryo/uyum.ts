@@ -962,6 +962,20 @@ export const UYUM_SENARYOLARI_3: Senaryo[] = [
     katmanlar: ['RBAC', 'SCOPE', 'SERVER'],
   },
   {
+    id: 'REG-BOS-001', alan: 'Uyum', rota: '/regulasyonlar', eksen: 'arayuz',
+    amac: 'Aktif katalog boşken boşluğun SEBEBİNİN söylenmesi',
+    rol: 'uyum sorumlusu', kapsam: 'kurum geneli',
+    onkosul: 'Paket kurulu; çerçeve sürümleri TASLAK ve içinde madde var',
+    veriHali: 'kısmi',
+    eylem: 'Regülasyon kütüphanesi açılır',
+    beklenenSonuc: 'Üç hâl ayrıdır: sürüm yok / taslakta madde var / sürüm boş',
+    beklenenEkran: 'Taslakta madde varsa "YÜKLÜ: N madde … aktifleştirme bekliyor" '
+      + 'yazar ve kararı açan düğmeyi verir; "henüz yüklenmedi" DEMEZ',
+    beklenenIz: 'yazma yok — ekran hiçbir sürümü kendiliğinden yürürlüğe almaz',
+    beklenenBildirim: 'yok',
+    katmanlar: ['DOMAIN', 'UI'],
+  },
+  {
     id: 'KVK-ENV-006', alan: 'Uyum', rota: '/kisisel-veri', eksen: 'arayuz',
     amac: 'Üç ayrı "bilinmiyor" hâlinin ekranda ayrı durması',
     rol: 'uyum sorumlusu', kapsam: 'kurum geneli',

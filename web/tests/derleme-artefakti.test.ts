@@ -1,3 +1,5 @@
+import { readFileSync } from 'node:fs';
+import path from 'node:path';
 import { describe, expect, it } from 'vitest';
 import { artefaktKapisi, gomulenler, isBloklari, karsilastir } from '../arac/derleme-artefakti.mjs';
 
@@ -152,5 +154,47 @@ describe('gömülü değer karşılaştırması İKİ YÖNLÜ [bağımsız incel
     expect(karsilastir({
       beyan: 'uretim', damga: { ortam: 'uretim', gomulenler: {} }, cevre: {},
     })).toEqual([]);
+  });
+});
+
+describe('iş adı kalıbı TEK NÜSHA [bağımsız inceleme turu 2 · PR #46]', () => {
+  it('yorumlu TÜKETİCİ işi blok ayrıştırıcıya görünür', () => {
+    /* Bir tur boyunca bu dosyanın KENDİ kopyası vardı; `kapi-farki`
+       düzeltilirken bu geride kaldı. Ölçülen sonuç: yorumlu tüketici iş
+       adı hiç görünmüyor, adımları bir ÖNCEKİ işe yazılıyor ve BEYANSIZ
+       TÜKETİCİ kapıya görünmez oluyordu — kapının kapatmak için var
+       olduğu sessiz hâlin ta kendisi. */
+    const y = 'jobs:\n'
+      + '  derleme:\n    env:\n      DERLEME_ORTAMI: uretim\n    steps:\n'
+      + '      - name: Derle\n        run: npm run build\n'
+      + '  kapi-rota:  # bant\n    steps:\n'
+      + '      - name: İndir\n        uses: actions/download-artifact@v4\n';
+    expect([...isBloklari(y).keys()]).toEqual(['derleme', 'kapi-rota']);
+  });
+
+  it('yorumlu BEYANSIZ tüketici kapıyı KIRMIZI yakar', () => {
+    const y = 'jobs:\n'
+      + '  derleme:\n    env:\n      DERLEME_ORTAMI: uretim\n    steps:\n'
+      + '      - name: Derle\n        run: npm run build\n'
+      + '      - name: Yükle\n        uses: actions/upload-artifact@v4\n'
+      + '        with:\n          name: derleme\n          path: web/.next\n'
+      + '          if-no-files-found: error\n          include-hidden-files: true\n'
+      + '  kapi-rota:  # bant\n    steps:\n'
+      + '      - name: İndir\n        uses: actions/download-artifact@v4\n';
+    const s = artefaktKapisi(y);
+    expect(s.tuketen.map((t) => t.is)).toContain('kapi-rota');
+    expect(s.kusurlar.join('\n')).toMatch(/kapi-rota/);
+  });
+
+  it('kalıp `kapi-farki.mjs` ile AYNI nesnedir — ikinci kopya yok', async () => {
+    const { IS_ADI_KALIBI } = await import('../arac/kapi-farki.mjs');
+    const kaynak = readFileSync(
+      path.join(process.cwd(), 'arac', 'derleme-artefakti.mjs'), 'utf8',
+    );
+    /* Elle yazılmış ikinci bir iş-adı regexi dosyada DURMAMALI: "tek
+       nüsha" bir yorum cümlesi değil, ölçülen bir olgudur. */
+    expect(kaynak).not.toMatch(/\/\^ \{2\}\(\[a-z\]/);
+    expect(kaynak).toContain('IS_ADI_KALIBI');
+    expect(IS_ADI_KALIBI.test('  kapi-rota:  # bant')).toBe(true);
   });
 });

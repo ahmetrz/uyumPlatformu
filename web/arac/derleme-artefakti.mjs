@@ -42,6 +42,13 @@
 import { existsSync, readFileSync, writeFileSync } from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
+/* İŞ ADI KALIBI TEK NÜSHADIR (`kapi-farki.mjs`). Bir tur boyunca burada
+   KENDİ kopyası vardı ve `kapi-farki` düzeltilirken bu geride kaldı —
+   bağımsız inceleme turu 2 bulgusu. Ölçüldü: yorumlu bir tüketici iş adı
+   (`  kapi-rota:  # bant`) blok ayrıştırıcıya hiç görünmüyor, adımları
+   bir ÖNCEKİ işe yazılıyor ve beyansız tüketici kapıya görünmez oluyordu
+   — tam da bu kapının kapatmak için var olduğu sessiz hâl. */
+import { IS_ADI_KALIBI } from './kapi-farki.mjs';
 
 const WEB = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
 const DEPO = path.resolve(WEB, '..');
@@ -114,7 +121,7 @@ export function isBloklari(isAkisiMetni) {
     if (/^jobs:\s*$/.test(ham)) { icinde = true; continue; }
     if (icinde && /^[a-zA-Z]/.test(ham)) { icinde = false; ad = null; continue; }
     if (!icinde) continue;
-    const m = ham.match(/^ {2}([a-z][\w-]*):\s*$/);
+    const m = ham.match(IS_ADI_KALIBI);
     if (m) { ad = m[1]; bloklar.set(ad, []); continue; }
     if (ad) bloklar.get(ad).push(ham);
   }

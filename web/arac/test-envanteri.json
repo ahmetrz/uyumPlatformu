@@ -1,7 +1,7 @@
 {
-  "imza": "477e064eda171df4dd80d0364c96cabf",
+  "imza": "c486152a8a63ced2654bf013d6112f86",
   "dosya": 202,
-  "vaka": 3675,
+  "vaka": 3678,
   "atlanan": 1,
   "dosyalar": {
     "tests/adaptor-yetenekleri.test.ts": {
@@ -145,7 +145,7 @@
       "atlanan": 0
     },
     "tests/derleme-artefakti.test.ts": {
-      "vaka": 16,
+      "vaka": 19,
       "atlanan": 0
     },
     "tests/disa-aktarim-csv.test.ts": {

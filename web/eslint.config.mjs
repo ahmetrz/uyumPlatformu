@@ -29,7 +29,17 @@ const eslintConfig = defineConfig([
 
      `kapi:ithal-zinciri` içe aktarım grafiğini ölçer; bu kural DEĞİŞKEN
      kapsamını ölçer. İkisi ayrı kusur sınıfıdır ve ikisi de `tsc`in
-     dışındadır. */
+     dışındadır.
+
+     GLOBALS LİSTESİ NEDEN KISA (bağımsız inceleme turu 2): flat config'te
+     aynı dosyaya uyan blokların `globals`ı BİRLEŞİR, ezmez —
+     `eslint-config-next` bu dosyaları zaten kapsıyor ve tarayıcı + node
+     yerleşiklerinin tamamını getiriyor (`performance` · `crypto` ·
+     `queueMicrotask` dâhil; `globalThis` zaten dil yerleşiği). Aşağıdaki
+     liste bu yüzden yeterli DEĞİL, YEDEKTİR: `eslint-config-next` bir gün
+     `.mjs` kapsamını daraltırsa araçların en çok kullandığı yerleşikler
+     yine tanınsın diye adıyla yazıldı. Yeni bir yerleşik yanlış alarm
+     verirse çözüm listeye eklemektir, kuralı kapatmak değil. */
   {
     files: ["arac/**/*.mjs", "*.mjs"],
     languageOptions: {

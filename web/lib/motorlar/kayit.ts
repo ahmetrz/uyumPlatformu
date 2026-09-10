@@ -17,6 +17,7 @@ import { eskalasyonlariIsle } from './eskalasyon';
 import { bildirimSurelerini } from './bildirimSuresi';
 import { zimmetSurelerini } from './zimmetSuresi';
 import { mevzuatRadariniIsle } from './mevzuatRadari';
+import { veriKorumaSureleriniIsle } from './veriKoruma';
 
 /* Motor kayıt defteri — TEK doğruluk kaynağı.
 
@@ -82,6 +83,12 @@ export const MOTORLAR = {
      kaynağın kendisinden ÖNCE sorulur ve anti-bot yanıtı ATLATILMAZ —
      engelli kaynak adıyla durur, elle izleme yolu açık kalır. */
   mevzuat_radari: mevzuatRadariniIsle,
+  /* R15 · Veri sahibi başvurusu süresi. Motorun yazabildiği TEK durum
+     `suresi_gecti`dir ve tek yan etkisi bir GÖREV açmaktır: bir veri
+     sahibine ürünün cevap yazması, kurumun adına beyanda bulunmaktır.
+     Süre kuralı PAKETTEN gelir; yoksa geri sayım hiç gösterilmez ve
+     "süresi geçti" ASLA yazılmaz — ürün bir süre UYDURMAZ. */
+  veri_koruma_suresi: veriKorumaSureleriniIsle,
 } as const satisfies Record<string, () => Promise<{ islenen: number; uretilen: number }>>;
 
 export type MotorAdi = keyof typeof MOTORLAR;

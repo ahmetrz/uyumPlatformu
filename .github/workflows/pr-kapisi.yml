@@ -388,6 +388,19 @@ jobs:
         working-directory: web
         run: npm run kanit:mevzuat-radari
 
+      # R15 · KİŞİSEL VERİ KORUMA KANITI — aynı sunucuyla, iki bant.
+      # iddia: ÜÇ AYRI "bilinmiyor" hâli tek sayıya toplanmıyor —
+      # değerlendirilmemiş faaliyet · bildirim tarihi girilmemiş aktarım
+      # · süre kuralı olmayan başvuru. Toplansaydı ekran üç bambaşka işi
+      # (faaliyeti değerlendirmek · tarihi yazmak · süre kuralı kurmak)
+      # aynı satıra sıkıştırırdı. Ayrıca AYDINLATMA METNİ üreten bir
+      # düğmenin OLMADIĞI ölçülür: metin kurumun hukuki beyanıdır.
+      # Fikstürü DEĞİŞTİRMEZ: denenen tek yazma ÇOK KISA yanıttır ve
+      # reddedilir.
+      - name: Kişisel veri koruma kanıtı · iki bant
+        working-directory: web
+        run: npm run kanit:veri-koruma
+
       # SÜREÇ ADIYLA ÖLDÜRME — ÖLÇÜLDÜ VE İŞLEMEDİ. Bu adım bir zamanlar
       # `pkill -f 'next start' || true` idi ve HİÇBİR ŞEYİ öldürmüyordu:
       # `next start` açılıştan sonra süreç adını `next-server (vX.Y.Z)`

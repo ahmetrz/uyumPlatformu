@@ -116,3 +116,29 @@ describe('EKRAN CÜMLELERİ — sıfır aday "temiz" demez [MEV-RAD-002]', () =>
     expect(c.toLocaleLowerCase('tr')).not.toContain('sorunlu');
   });
 });
+
+/* ═══════════════════════════════════════════════════════════════════════
+   SAYI KIRPILMIŞ LİSTEDEN GELMEZ [MEV-RAD-002]
+
+   Bağımsız inceleme (#50 tur 2): başlık sayısı sunucuda `take: 200` ile
+   kırpılmış listeden hesaplanıyordu ve 252 karar bekleyen adayda ekran
+   "200" diyordu; üstelik 200'den ESKİ bekleyen adaylar hiçbir mercekten
+   ULAŞILAMAZ hâle geliyordu.
+
+   Bu vakalar `radarOzeti`nin sayıyı DIŞARIDAN aldığını ölçer: kırpılmış
+   liste ile gerçek sayı AYRIŞABİLİR ve ekran gerçek sayıyı gösterir.
+   ═══════════════════════════════════════════════════════════════════════ */
+describe('KIRPILMIŞ LİSTE gerçek sayıyı gölgelemez [MEV-RAD-002]', () => {
+  it('özet, bekleyen sayısını DIŞARIDAN alır — listeden saymaz [MEV-RAD-002]', () => {
+    const satirlar = kaynakSatirlari([k({ id: 'a' })]);
+    /* Liste kırpılmış olsun: ekranda 200 satır var, gerçekte 252. */
+    const o = radarOzeti(satirlar, 252);
+    expect(o.bekleyenAday, 'sayı kırpılmış listeden geliyor').toBe(252);
+    expect(baslikCumlesi(o)).toBe('252 BEKLEYEN DEĞİŞİKLİK ADAYI');
+  });
+
+  it('sıfır bekleyen + temiz kaynak → "BEKLEYEN DEĞİŞİKLİK YOK" [MEV-RAD-002]', () => {
+    const o = radarOzeti(kaynakSatirlari([k({ sonTaramaFarkVar: false })]), 0);
+    expect(baslikCumlesi(o)).toBe('BEKLEYEN DEĞİŞİKLİK YOK');
+  });
+});

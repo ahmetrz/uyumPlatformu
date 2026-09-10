@@ -1,7 +1,7 @@
 {
-  "imza": "56c03d669ac3a57acf522137ad2bb65e",
-  "dosya": 227,
-  "vaka": 4090,
+  "imza": "a791aa237a292168efc13e42f581ed7e",
+  "dosya": 229,
+  "vaka": 4133,
   "atlanan": 1,
   "dosyalar": {
     "tests/adaptor-yetenekleri.test.ts": {
@@ -521,7 +521,7 @@
       "atlanan": 0
     },
     "tests/mevzuat-radari-mantik.test.ts": {
-      "vaka": 8,
+      "vaka": 10,
       "atlanan": 0
     },
     "tests/mevzuat-radari.test.ts": {
@@ -862,6 +862,14 @@
     },
     "tests/veri-kalitesi-aktarim.test.ts": {
       "vaka": 21,
+      "atlanan": 0
+    },
+    "tests/veri-koruma-mantik.test.ts": {
+      "vaka": 10,
+      "atlanan": 0
+    },
+    "tests/veri-koruma.test.ts": {
+      "vaka": 31,
       "atlanan": 0
     },
     "tests/xlsx-ayristirma.test.ts": {

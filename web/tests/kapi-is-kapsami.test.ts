@@ -127,6 +127,13 @@ const EKLENEN_KAPILAR = [
      bilgi eksiğimizdir — tek sayıya toplamak, bakılamamış bir kaynağı
      "temiz" göstermeye bir adım kalırdı. */
   'npm run kanit:mevzuat-radari',
+  /* R15 · kişisel veri koruma ekranının iki bantta kanıtı. En pahalı
+     iddia: ÜÇ AYRI "bilinmiyor" hâli tek sayıya toplanmıyor
+     (değerlendirilmemiş faaliyet · tarihi girilmemiş aktarım · süre
+     kuralı olmayan başvuru) ve AYDINLATMA METNİ üreten bir düğme YOK —
+     metin kurumun hukuki beyanıdır, ürün kurumun adına beyanda
+     bulunmaz. */
+  'npm run kanit:veri-koruma',
 ];
 
 describe('kapı kümesi bölünmeyle değişmez', () => {
@@ -157,12 +164,13 @@ describe('kapı kümesi bölünmeyle değişmez', () => {
        "sunucu ister" diye işaretlenir; kalanlar yerel kapanışta sunucusuz
        koşar ve kırmızı yanar — kusur kodda değil araçta.
 
-       Sayı 4 DEĞİL: `kapi-rota` işi aynı sunucuyla BEŞ kapı koşuyor
+       Sayı 4 DEĞİL: `kapi-rota` işi aynı sunucuyla YEDİ kapı koşuyor
        (rota duman + denetim formları + bildirim kaydı + bildirim dönemi +
-       kimlik kanıtı). Bölünmenin ölçüsü kapı sayısı değil, kapıların
-       KENDİ İŞİNDEKİ yaşam döngüsüne göre doğru sınıflanması. */
+       kimlik + mevzuat radarı + kişisel veri koruma kanıtı). Bölünmenin
+       ölçüsü kapı sayısı değil, kapıların KENDİ İŞİNDEKİ yaşam
+       döngüsüne göre doğru sınıflanması. */
     const tarayicili = kapiAdimlari(AKIS).filter((a) => a.sunucuIster);
-    expect(tarayicili).toHaveLength(9);
+    expect(tarayicili).toHaveLength(10);
     expect(new Set(tarayicili.map((a) => a.is)).size).toBe(4);
   });
 

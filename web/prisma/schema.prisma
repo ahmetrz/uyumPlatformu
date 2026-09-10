@@ -452,6 +452,11 @@ model Madde {
   // FAZ G ters bağları
   egitimBaglari EgitimMadde[]
 
+  /// R15 · Bu maddeyi teknik/idari tedbir olarak gösteren işleme
+  /// faaliyetleri. R-C: paket güncellemesi, kiracının bu bağı taşıyan
+  /// bir maddeyi silemez — bağ kontrolü `MADDE_BAG_ILISKILERI`ndedir.
+  veriFaaliyetleri VeriIslemeFaaliyeti[]
+
   @@unique([regulasyonId, surumId, kod])
 }
 
@@ -863,6 +868,9 @@ model Kullanici {
   onayladigiImhalar        ImhaKarari[]             @relation("ImhaOnaylayan")
   denetciHesabi            DenetciErisimi[]         @relation("DenetciHesabi")
   davetEttigiDenetciler    DenetciErisimi[]         @relation("DenetciDavetEden")
+  /// R15 · Kişisel veri koruma modülü ters bağları.
+  yanitladigiBasvurular    VeriSahibiBasvurusu[]    @relation("BasvuruYanitlayan")
+  sorumluOldugumSiciller   SicilKaydi[]             @relation("SicilSorumlusu")
   iptalEttigiDenetciler    DenetciErisimi[]         @relation("DenetciIptalEden")
   dogruladigiAksiyonlar    Aksiyon[]                @relation("AksiyonDogrulayan")
   sahipBelgeler            Dokuman[]                @relation("DokumanSahibi")
@@ -1072,6 +1080,8 @@ model IsSureci {
   tesis     Tesis?            @relation(fields: [tesisId], references: [id])
   sistemler IsSureciSistemi[]
   adimlar   ProsesAdimi[]
+  /// R15 · Bu sürecin kişisel veri işleme faaliyetleri.
+  veriFaaliyetleri VeriIslemeFaaliyeti[]
 }
 
 model IsSureciSistemi {
@@ -1349,6 +1359,8 @@ model SaklamaPolitikasi {
 
   guncelleyen Kullanici?   @relation("SaklamaGuncelleyen", fields: [guncelleyenId], references: [id])
   kararlar    ImhaKarari[]
+  /// R15 · Bu politikaya bağlı işleme faaliyetleri.
+  veriFaaliyetleri VeriIslemeFaaliyeti[]
 }
 
 /// Legal hold (UY-56) — hukuki muhafaza.
@@ -2318,6 +2330,14 @@ model Olay {
   ogrenilenler        String?
   bildirimGerekli     Boolean?
   bildirimTarihi      DateTime?
+  /// R15 · Bu olay bir KİŞİSEL VERİ ihlali mi.
+  ///
+  /// ÜÇ DEĞERLİ ve `null` "hayır" DEĞİLDİR: değerlendirilmedi demektir.
+  /// `kapsamKosulu = 'kisisel_veri_ihlali'` olan bir yükümlülük, null
+  /// olayda da UYANIR ve ekran taslağın neden açıldığını söyler —
+  /// değerlendirilmemiş bir olayı "kişisel veri yok" sayıp bildirimi
+  /// hiç açmamak, bilinmeyeni sıfır saymaktır.
+  kisiselVeriIhlali   Boolean?
   /// Motorun ÖNERİSİ. İnsan doğrulayana kadar etki alanlarına yazılmaz —
   /// otomasyon önerir, karar vermez.
   etkiOnerisiJson     String?
@@ -2335,6 +2355,8 @@ model Olay {
   degisiklikler     OlayDegisiklik[]
   /// R10 · Bu olay için açılmış mevzuat bildirimi kayıtları.
   bildirimKayitlari BildirimKaydi[]
+  /// R15 · İhlalin dokunduğu kişisel veri işleme faaliyetleri.
+  veriFaaliyetleri  OlayVeriFaaliyeti[]
 }
 
 // ----------------------------------------------- proje/bütçe genişlemesi
@@ -4020,6 +4042,16 @@ model BildirimYukumlulugu {
   /// Dönem KAPANDIKTAN sonra teslim için kaç GÜN var. NULL = belirlenmedi.
   teslimGun       Int?
 
+  /// R15 · EK KAPSAM KOŞULU — şiddet ve regülasyon yetmediğinde.
+  ///
+  /// Bugün tek değer: `kisisel_veri_ihlali`. NULL = ek koşul YOK (bugünkü
+  /// davranış; geriye dönük uyumlu). Ölçüldü: KVKK 72 saat yükümlülüğü
+  /// `asgariSiddet: 'orta'` ile HER orta olaya uyuyordu — kişisel veri
+  /// hiç işlenmemiş bir kesinti için de Kurula bildirim taslağı
+  /// açılıyordu. Koşul POZİTİF yüklemdir: tanınmayan bir koşul kodu
+  /// yükümlülüğü uyandırmaz, sessizce herkese açmaz.
+  kapsamKosulu    String?
+
   regulasyon  Regulasyon?      @relation(fields: [regulasyonId], references: [id])
   guncelleyen Kullanici?       @relation("BildirimKuraliGuncelleyen", fields: [guncelleyenId], references: [id])
   kayitlar    BildirimKaydi[]
@@ -4736,4 +4768,223 @@ model MevzuatDegisiklikAdayi {
 
   @@unique([kaynakId, url])
   @@index([durum, bulundu])
+}
+
+// ═══════════════════════════════════════════════════════════════════════
+// R15 · KİŞİSEL VERİ KORUMA MODÜLÜ
+//
+// ── ÇEKİRDEK MEVZUAT ADI TAŞIMAZ ──────────────────────────────────────
+// Modülün çekirdekteki adı "kişisel veri koruma"dır. Türkiye'nin sicil
+// adı (VERBİS), 72 saat, 5 iş günü ve 30 gün gibi SÜRELER ile hukuki
+// sebep sözlüğü PAKETTEN gelir. Bu yüzden aşağıda `VerbisKaydi` değil
+// `SicilKaydi`, `KvkkSuresi` değil `VeriKorumaSuresi` var: bir Alman
+// kiracının veritabanında `verbisNo` diye bir kolon bulunması, ürünün
+// sektör ve ülke bağımsızlığı vaadini ilk günden bozar.
+//
+// ── ÜÇ DEĞERLİ ALANLAR BİLEREK NULLABLE ───────────────────────────────
+// `ozelNitelikli`, `yukumluMu`, `kisiselVeriIhlali` ve süre alanlarının
+// tamamı `null` alabilir ve `null` "hayır" DEĞİLDİR: değerlendirilmedi
+// demektir. Ekran bunu cümleyle söyler, sayaç işlemez.
+// ═══════════════════════════════════════════════════════════════════════
+
+/// R15 · SÜRE KURALI — kaç gün, hangi dayanakla, iş günü mü.
+///
+/// Süreler mevzuattan gelir ve mevzuat ülkeye göre değişir: KVKK veri
+/// sahibi başvurusuna "en geç otuz gün" der, GDPR "bir ay" der; standart
+/// sözleşmenin Kuruma bildirimi Türkiye'de vardır, GDPR'da yoktur. Bu
+/// yüzden süre bir SATIRDIR, koda gömülü bir sabit değil.
+///
+/// `gun` NULL ise süre BELİRLENMEDİ: sayaç işlemez, son tarih
+/// hesaplanmaz, "süresi geçti" ASLA yazılmaz. Sıfır gün ile aynı şey
+/// değildir — sıfır "bugün doldu", null "dolacak bir süre yok".
+///
+/// KONU BİR SATIRIN VARLIĞIDIR: `aktarim_bildirim_standart_sozlesme`
+/// satırı YOKSA o dayanak için bildirim yükümlülüğü de yoktur. Bunu
+/// ayrı bir `bildirimGerekli` bayrağıyla taşımak, satırı silinmiş ama
+/// bayrağı açık kalmış bir kural bırakırdı.
+model VeriKorumaSuresi {
+  id     String @id @default(cuid())
+  /// `basvuru_yanit` | `aktarim_bildirim_standart_sozlesme`
+  konu   String @unique
+  /// NULL = süre pakette/mevzuatta BELİRLENMEDİ. Sayaç işlemez.
+  gun    Int?
+  /// Sayım iş günü mü (hafta sonu atlanır) yoksa takvim günü mü.
+  isGunu Boolean @default(false)
+  /// Hafta sonu günleri (JSON dizi, 0 = Pazar … 6 = Cumartesi).
+  ///
+  /// NULL ise ürün Cumartesi–Pazar VARSAYAR ve varsayımı ekranda BEYAN
+  /// EDER: hafta sonu ülkeye göre değişir (Körfez'de Cuma–Cumartesi) ve
+  /// ürünün sessizce Batı takvimi varsayması bir ülke sabitidir.
+  /// RESMÎ TATİL HESABA KATILMAZ — tatil takvimi pakette yok ve ürün
+  /// bir tatil listesi UYDURMAZ; ekran bunu da söyler.
+  haftaSonuJson String?
+  /// Bu sürenin dayanağı — hangi mevzuat, hangi madde. Zorunlu.
+  dayanak String
+  aktif   Boolean @default(true)
+  /// P4 · KÖKEN: `paket` satırını paket güncellemesi değiştirir.
+  koken        String  @default("kiraci")
+  paketSurumId String?
+
+  olusturuldu DateTime @default(now())
+  guncellendi DateTime @updatedAt
+}
+
+/// R15 · KİŞİSEL VERİ İŞLEME FAALİYETİ — işleme envanterinin satırı.
+///
+/// ── İŞ SÜRECİNE BAĞLI OLMADAN KAYDEDİLEMEZ (KVK-ENV-004) ─────────────
+/// `isSureciId` NULLABLE DEĞİLDİR ve bu bilinçli bir seçimdir: sürece
+/// bağlanmamış bir işleme envanteri, denetçinin ilk sorusuna ("bu veriyi
+/// hangi iş için işliyorsunuz") cevap veremez ve zamanla amacı
+/// unutulmuş satırlarla dolar. Kolonun kendisi kapı olduğu için sunucu
+/// eylemi atlansa bile veritabanı reddeder — kapı TEK yerde değil, İKİ
+/// yerdedir ve dıştaki unutulursa içteki tutar.
+model VeriIslemeFaaliyeti {
+  id        String @id @default(cuid())
+  kod       String @unique
+  ad        String
+  isSureciId String
+  /// İşleme amacı — serbest metin, envanterin özü.
+  amac      String
+  /// Hukuki sebep KODU; sözlük paketten gelir (`hukuki_sebep` sözlüğü).
+  /// Çekirdek bir madde numarası TANIMAZ.
+  hukukiSebep String
+  /// Veri kategorileri (JSON dizi).
+  veriKategorileriJson   String @default("[]")
+  /// İlgili kişi grupları (JSON dizi): çalışan, müşteri, ziyaretçi…
+  ilgiliKisiGruplariJson String @default("[]")
+  /// Alıcı grupları (JSON dizi).
+  aliciGruplariJson      String @default("[]")
+  /// NULL = özel nitelikli veri işlenip işlenmediği DEĞERLENDİRİLMEDİ.
+  /// "Hayır" ile aynı şey değildir ve ekran ikisini ayrı gösterir.
+  ozelNitelikli       Boolean?
+  saklamaPolitikasiId String?
+  /// Teknik ve idari tedbirin dayandığı kontrol maddesi.
+  maddeId             String?
+  aktif       Boolean  @default(true)
+  olusturuldu DateTime @default(now())
+  guncellendi DateTime @updatedAt
+
+  isSureci          IsSureci           @relation(fields: [isSureciId], references: [id])
+  saklamaPolitikasi SaklamaPolitikasi? @relation(fields: [saklamaPolitikasiId], references: [id])
+  madde             Madde?             @relation(fields: [maddeId], references: [id])
+
+  aktarimlar YurtDisiAktarim[]
+  ihlaller   OlayVeriFaaliyeti[]
+
+  @@index([isSureciId])
+}
+
+/// R15 · YURT DIŞINA AKTARIM KAYDI.
+///
+/// `dayanak` dört değerlidir ve dördü de ülkeler üstüdür: yeterlilik
+/// kararı, standart sözleşme, bağlayıcı kurumsal kural, istisna. Hangi
+/// dayanağın BİLDİRİM gerektirdiği ise ülkeye göre değişir ve çekirdekte
+/// DEĞİL, `VeriKorumaSuresi` satırında durur.
+model YurtDisiAktarim {
+  id         String @id @default(cuid())
+  faaliyetId String
+  /// Alıcı ülke — serbest metin (ülke listesi çekirdeğe girmez).
+  aliciUlke  String
+  aliciAd    String?
+  /// `yeterlilik` | `standart_sozlesme` | `baglayici_kurumsal_kural` | `istisna`
+  dayanak    String
+  /// Standart sözleşmenin mercie bildirildiği tarih.
+  ///
+  /// NULL = BİLDİRİM TARİHİ GİRİLMEDİ. Sayaç ÇALIŞMAZ ve ekran bunu
+  /// cümleyle söyler (KVK-ENV-001); bugünü varsayıp geri sayım başlatmak,
+  /// olmayan bir yükümlülük ihlali uydurmak olurdu.
+  bildirimTarihi DateTime?
+  /// Bildirim son tarihi — YALNIZ bildirim tarihi VE süre kuralı varken
+  /// hesaplanır. İkisinden biri yoksa null kalır.
+  bildirimSonTarih DateTime?
+  not         String?
+  aktif       Boolean  @default(true)
+  olusturuldu DateTime @default(now())
+  guncellendi DateTime @updatedAt
+
+  faaliyet VeriIslemeFaaliyeti @relation(fields: [faaliyetId], references: [id], onDelete: Cascade)
+
+  @@index([faaliyetId])
+  @@index([dayanak])
+}
+
+/// R15 · VERİ SAHİBİ BAŞVURUSU.
+///
+/// ── MOTOR CEVABI YAZMAZ ───────────────────────────────────────────────
+/// Motorun yazabileceği TEK durum `suresi_gecti`dir ve tek yazdığı yan
+/// etki bir GÖREV açmaktır (`lib/veriKoruma/basvuru.ts` ·
+/// `MOTORUN_YAZABILECEGI`). `yanitMetni` bir insanın kalemidir: bir
+/// başvuruya ürünün cevap yazması, kurumun adına beyanda bulunmaktır.
+model VeriSahibiBasvurusu {
+  id     String   @id @default(cuid())
+  kod    String   @unique
+  alinma DateTime
+  /// Başvurunun geldiği kanal — NOT, adres değil ("KEP üzerinden").
+  kanal  String?
+  /// `bilgi_talebi` | `duzeltme` | `silme` | `itiraz` | `aktarim` | `diger`
+  konu   String
+  ozet   String?
+  /// NULL = süre kuralı yok ⇒ geri sayım GÖSTERİLMEZ.
+  sonTarih DateTime?
+  /// `yeni` | `incelemede` | `yanitlandi` | `reddedildi` | `suresi_gecti`
+  durum    String @default("yeni")
+  /// Yanıt metni — YALNIZ insan yazar.
+  yanitMetni   String?
+  yanitlayanId String?
+  yanitZamani  DateTime?
+  /// Reddin gerekçesi — red kararının ŞARTI.
+  redGerekcesi String?
+  /// Süre geçince açılan görev.
+  gorevId      String?
+  olusturuldu  DateTime @default(now())
+  guncellendi  DateTime @updatedAt
+
+  yanitlayan Kullanici? @relation("BasvuruYanitlayan", fields: [yanitlayanId], references: [id])
+
+  @@index([durum, sonTarih])
+}
+
+/// R15 · SİCİL KAYDI — veri sorumlusu sicilindeki durum.
+///
+/// Sicilin ADI paketten gelir (`sicilAd`): Türkiye'de VERBİS, başka
+/// ülkede başka bir sicil ya da hiç sicil. Çekirdek bir ülke sicilinin
+/// adını kolon adında TAŞIMAZ.
+model SicilKaydi {
+  id      String @id @default(cuid())
+  /// Sicilin adı — paketten gelir, koda gömülmez.
+  sicilAd String
+  sicilNo String?
+  kayitTarihi   DateTime?
+  sonGuncelleme DateTime?
+  /// NULL = kayıt yükümlülüğü DEĞERLENDİRİLMEDİ. "Hayır" değildir.
+  yukumluMu     Boolean?
+  /// Yükümlü DEĞİLSE muafiyetin gerekçesi — kararın ŞARTI.
+  muafiyetGerekcesi String?
+  /// İrtibat kişisi.
+  sorumluId String?
+  dayanak   String?
+  aktif       Boolean  @default(true)
+  olusturuldu DateTime @default(now())
+  guncellendi DateTime @updatedAt
+
+  sorumlu Kullanici? @relation("SicilSorumlusu", fields: [sorumluId], references: [id])
+}
+
+/// R15 · İHLALİN ETKİLEDİĞİ İŞLEME FAALİYETİ.
+///
+/// Bir kişisel veri ihlali `Olay` üzerinden yürür (R10 zinciri onu
+/// zaten bildirim kaydına bağlar); bu tablo ihlalin HANGİ işleme
+/// faaliyetlerine dokunduğunu söyler — mercinin ilk sorusu budur.
+model OlayVeriFaaliyeti {
+  id         String @id @default(cuid())
+  olayId     String
+  faaliyetId String
+  /// Etkilenen kayıt sayısı; NULL = HENÜZ ÖLÇÜLMEDİ (sıfır değil).
+  etkilenenKayit Int?
+  not        String?
+
+  olay     Olay                @relation(fields: [olayId], references: [id], onDelete: Cascade)
+  faaliyet VeriIslemeFaaliyeti @relation(fields: [faaliyetId], references: [id], onDelete: Cascade)
+
+  @@unique([olayId, faaliyetId])
 }

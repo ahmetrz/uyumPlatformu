@@ -69,7 +69,7 @@ export async function bildirimSurelerini(): Promise<BildirimSuresiKosusu> {
       /* SÜZGEÇ DEĞİL SEÇİM: kararı `olaylaUyanir` verir. Aynı kuralı
          hem sorguya hem saf katmana yazmak iki gerçek üretirdi ve
          birini sabote eden tur kırmızı YAKMAZDI (R-E). */
-      tetikleyici: true,
+      tetikleyici: true, kapsamKosulu: true,
     },
   });
 
@@ -88,7 +88,7 @@ export async function bildirimSurelerini(): Promise<BildirimSuresiKosusu> {
     where: { durum: { in: ['acik', 'mudahale'] }, bildirimTarihi: null },
     select: {
       id: true, kod: true, baslik: true, siddet: true, baslangic: true,
-      tesisId: true, bildirimGerekli: true,
+      tesisId: true, bildirimGerekli: true, kisiselVeriIhlali: true,
     },
   });
 
@@ -120,7 +120,8 @@ export async function bildirimSurelerini(): Promise<BildirimSuresiKosusu> {
     const kayit = await olayinKayitlarini(
       db,
       { id: o.id, kod: o.kod, siddet: o.siddet, baslangic: o.baslangic,
-        bildirimGerekli: o.bildirimGerekli, regulasyonIdleri },
+        bildirimGerekli: o.bildirimGerekli,
+        kisiselVeriIhlali: o.kisiselVeriIhlali, regulasyonIdleri },
       kurallar as SureliYukumluluk[],
       simdi,
     );

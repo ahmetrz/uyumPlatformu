@@ -231,6 +231,17 @@
       }
     },
     {
+      "kod": "POL-136",
+      "cumle": "Başvuruyu karara bağlamak uyum onay yetkisi ister ve kurum geneli kapsam gerektirir. Başvuru okunabilir, yanıtlanamaz.",
+      "yer": "app/(kabuk)/(operasyonel)/kisisel-veri/VeriKorumaIstemci.tsx",
+      "sinif": "POLITIKA",
+      "sonucSinifi": "S1",
+      "olcum": {
+        "dosya": "tests/veri-koruma.test.ts",
+        "vaka": "UYUM ONAYI olmayan rol başvuruyu karara BAĞLAYAMAZ, kayıt DEĞİŞMEZ"
+      }
+    },
+    {
       "kod": "POL-017",
       "cumle": "Bekleyen reddedilen kayıt yok",
       "yer": "app/(kabuk)/(operasyonel)/saglik/reddedilenler/ReddedilenlerIstemci.tsx",
@@ -247,6 +258,17 @@
         "kapanisAsamasi": "R0-17 · R-F ölçüm dalgası"
       },
       "sonucSinifi": "S3"
+    },
+    {
+      "kod": "POL-137",
+      "cumle": "Bildirim tarihini yazmak uyum onay yetkisi ister ve kurum geneli kapsam gerektirir. Aktarım okunabilir, değiştirilemez.",
+      "yer": "app/(kabuk)/(operasyonel)/kisisel-veri/VeriKorumaIstemci.tsx",
+      "sinif": "POLITIKA",
+      "sonucSinifi": "S1",
+      "olcum": {
+        "dosya": "tests/veri-koruma.test.ts",
+        "vaka": "UYUM ONAYI olmayan rol BİLDİRİM TARİHİ yazamaz, tarih BOŞ kalır"
+      }
     },
     {
       "kod": "POL-084",
@@ -274,6 +296,17 @@
       "kod": "POL-086",
       "cumle": "Bu aktarım artık düzenlenemez (durum: ${kayit.durum})",
       "yer": "lib/eylemler2/varlikAktarim.ts",
+      "sinif": "POLITIKA",
+      "sonucSinifi": "S3",
+      "olculmedi": {
+        "sahip": "KODLAYAN",
+        "kapanisAsamasi": "Her partide en az beş S3 satırı gerçek yola bağlanır; S3 yanıltır ama zararı sınırlıdır, sıra S2den sonradır."
+      }
+    },
+    {
+      "kod": "POL-138",
+      "cumle": "Bu başvuru karara bağlandı. Kayıt SİLİNMEZ; denetim izinde kimin, ne zaman ve hangi metinle yanıtladığı durur.",
+      "yer": "app/(kabuk)/(operasyonel)/kisisel-veri/VeriKorumaIstemci.tsx",
       "sinif": "POLITIKA",
       "sonucSinifi": "S3",
       "olculmedi": {
@@ -543,6 +576,17 @@
       "olcum": {
         "dosya": "tests/politika-demo-salt-okunur.test.ts",
         "vaka": "kimlik sağlayıcı yapılandırılmaz — SIR REFERANSI gerekçesiyle"
+      }
+    },
+    {
+      "kod": "POL-139",
+      "cumle": "Demo sürümü: kişisel veri kaydı yazılmaz — beyan gerçek bir yetkili ve denetim izi gerektirir.",
+      "yer": "lib/eylemler2/veriKoruma.demo.ts",
+      "sinif": "POLITIKA",
+      "sonucSinifi": "S1",
+      "olcum": {
+        "dosya": "tests/veri-koruma.test.ts",
+        "vaka": "DEMO ikizi kişisel veri kaydı YAZMAZ — açık ret döner"
       }
     },
     {
@@ -1077,6 +1121,17 @@
       "sonucSinifi": "S2"
     },
     {
+      "kod": "POL-140",
+      "cumle": "Motor süreyi izler ve GÖREV açar; başvuruya CEVAP YAZMAZ. Aydınlatma metni de üretilmez — metin kurumun beyanıdır.",
+      "yer": "app/(kabuk)/(operasyonel)/kisisel-veri/VeriKorumaIstemci.tsx",
+      "sinif": "POLITIKA",
+      "sonucSinifi": "S2",
+      "olculmedi": {
+        "sahip": "KODLAYAN",
+        "kapanisAsamasi": "Her partide en az beş S2 satırı gerçek yola bağlanır; S2 ürün değişmezidir ve ihlali güveni bozar."
+      }
+    },
+    {
       "kod": "POL-126",
       "cumle": "Motor yalnız ADAY açar: çerçeve sürümünü, regülasyonu ve taramanın açık olmasını DEĞİŞTİRMEZ.",
       "yer": "app/(kabuk)/(operasyonel)/mevzuat-radari/RadarIstemci.tsx",
@@ -1256,6 +1311,17 @@
       }
     },
     {
+      "kod": "POL-141",
+      "cumle": "Yanıt metnini SİZ yazarsınız: motor bir veri sahibine cevap yazmaz, yalnız süreyi izler ve görev açar.",
+      "yer": "app/(kabuk)/(operasyonel)/kisisel-veri/VeriKorumaIstemci.tsx",
+      "sinif": "POLITIKA",
+      "sonucSinifi": "S2",
+      "olculmedi": {
+        "sahip": "KODLAYAN",
+        "kapanisAsamasi": "Her partide en az beş S2 satırı gerçek yola bağlanır; S2 ürün değişmezidir ve ihlali güveni bozar."
+      }
+    },
+    {
       "kod": "POL-071",
       "cumle": "Yönetim yazma yetkiniz yok; kayıt yalnız okunur.",
       "yer": "app/(kabuk)/(operasyonel)/yonetim-tezgahi/KonsolFormlar.tsx",
@@ -1279,11 +1345,11 @@
     }
   ],
   "tavanlar": {
-    "olculmeyen": 62,
+    "olculmeyen": 65,
     "sinif": {
       "S1": 0,
-      "S2": 24,
-      "S3": 38
+      "S2": 26,
+      "S3": 39
     }
   },
   "not": "R-F · politika cümlesi kütüğü. Satırlar arac/politika-kutugu.mjs ile TÜRETİLİR, elle yazılmaz.",
@@ -1305,6 +1371,24 @@
       "eski": 16,
       "yeni": 38,
       "gerekce": "Genişleyen tarama alanından gelen yeni S3 satırları; çoğu demo ikizlerinin \"bu ortamda çalışmaz\" cümleleri ve eylem katmanının durum kapıları."
+    },
+    {
+      "alan": "olculmeyen",
+      "eski": 62,
+      "yeni": 65,
+      "gerekce": "R15 · kişisel veri koruma ekranı ve eylem katmanı yeni politika cümleleri getirdi. Tavan yükseldi çünkü ÜRÜN büyüdü, ölçüm gevşemedi: S1 cümlelerinin üçü de aynı partide eritildi ve S1 tavanı SIFIRDA kaldı."
+    },
+    {
+      "alan": "sinif.S2",
+      "eski": 24,
+      "yeni": 26,
+      "gerekce": "R15 · kişisel veri koruma ekranı ve eylem katmanı yeni politika cümleleri getirdi. Tavan yükseldi çünkü ÜRÜN büyüdü, ölçüm gevşemedi: S1 cümlelerinin üçü de aynı partide eritildi ve S1 tavanı SIFIRDA kaldı."
+    },
+    {
+      "alan": "sinif.S3",
+      "eski": 38,
+      "yeni": 39,
+      "gerekce": "R15 · kişisel veri koruma ekranı ve eylem katmanı yeni politika cümleleri getirdi. Tavan yükseldi çünkü ÜRÜN büyüdü, ölçüm gevşemedi: S1 cümlelerinin üçü de aynı partide eritildi ve S1 tavanı SIFIRDA kaldı."
     }
   ]
 }

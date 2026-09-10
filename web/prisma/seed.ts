@@ -871,6 +871,126 @@ async function main() {
     + ` · ${await db.mevzuatKaynagi.count({ where: { etkin: true } })} taraması açık`
     + ` · ${await db.mevzuatDegisiklikAdayi.count({ where: { durum: 'yeni' } })} aday karar bekliyor.`);
 
+  /* ── R15 · KİŞİSEL VERİ KORUMA ────────────────────────────────────
+     Süreler PAKETTEN gelir; tohum onları PAKET KURULUMU gibi yazar ve
+     dayanağını açıkça beyan eder. `basvuru_yanit` süresi 6698 s. KVKK
+     md. 13/2'nin verdiği "en geç otuz gün"dür ve TAKVİM günüdür.
+
+     `aktarim_bildirim_standart_sozlesme` satırı BİLEREK KURULMADI:
+     standart sözleşmenin Kuruma bildirim süresini veren metin bu turda
+     AÇILAMADI (bkz. docs/TR_SEKTOR_PAKETLERI.md §7) ve ürün bir gün
+     sayısı UYDURMAZ. Satır yokken ekran "bu dayanak için bildirim
+     süresi tanımlı değil" der ve sayaç hiç çalışmaz — mekanizma
+     ölçülebilir, içerik boş. */
+  await db.veriKorumaSuresi.upsert({
+    where: { konu: 'basvuru_yanit' },
+    create: {
+      konu: 'basvuru_yanit', gun: 30, isGunu: false, haftaSonuJson: null,
+      dayanak: '6698 s. KVKK md. 13/2: veri sorumlusu başvuruda yer alan'
+        + ' talepleri, talebin niteliğine göre en kısa sürede ve en geç'
+        + ' OTUZ GÜN içinde ücretsiz olarak sonuçlandırır.',
+      koken: 'paket',
+    },
+    update: {},
+  });
+
+  const kvkSurec = await db.isSureci.findFirst({ select: { id: true, kod: true } });
+  if (kvkSurec) {
+    const saklama = await db.saklamaPolitikasi.findFirst({ select: { id: true } });
+    const faaliyet = await db.veriIslemeFaaliyeti.upsert({
+      where: { kod: 'KVK-001' },
+      create: {
+        kod: 'KVK-001', ad: 'Personel özlük kayıtlarının işlenmesi',
+        isSureciId: kvkSurec.id,
+        amac: 'İş sözleşmesinin kurulması ve yürütülmesi',
+        hukukiSebep: 'Sözleşmenin ifası',
+        veriKategorileriJson: JSON.stringify(['kimlik', 'iletişim', 'özlük']),
+        ilgiliKisiGruplariJson: JSON.stringify(['çalışan']),
+        aliciGruplariJson: JSON.stringify(['insan kaynakları', 'muhasebe']),
+        /* İlk satır DEĞERLENDİRİLDİ, ikincisi bilerek DEĞERLENDİRİLMEDİ:
+           ekranın üç değerli hâli fikstürde de görünsün. */
+        ozelNitelikli: false,
+        saklamaPolitikasiId: saklama?.id ?? null,
+      },
+      update: {},
+    });
+    await db.veriIslemeFaaliyeti.upsert({
+      where: { kod: 'KVK-002' },
+      create: {
+        kod: 'KVK-002', ad: 'Ziyaretçi giriş kayıtlarının işlenmesi',
+        isSureciId: kvkSurec.id,
+        amac: 'Tesis güvenliğinin sağlanması',
+        hukukiSebep: 'Meşru menfaat',
+        veriKategorileriJson: JSON.stringify(['kimlik', 'görsel kayıt']),
+        ilgiliKisiGruplariJson: JSON.stringify(['ziyaretçi']),
+        aliciGruplariJson: JSON.stringify([]),
+        ozelNitelikli: null,
+      },
+      update: {},
+    });
+
+    /* İKİ AKTARIM, İKİ HÂL: biri bildirim gerektirmeyen dayanak, öbürü
+       standart sözleşme ve BİLDİRİM TARİHİ GİRİLMEMİŞ — KVK-ENV-001'in
+       ekranda görünen hâli. */
+    const varAktarim = await db.yurtDisiAktarim.count({ where: { faaliyetId: faaliyet.id } });
+    if (varAktarim === 0) {
+      await db.yurtDisiAktarim.createMany({
+        data: [
+          {
+            faaliyetId: faaliyet.id, aliciUlke: 'Kurgusalya',
+            aliciAd: 'Kurgusal Bulut A.Ş.', dayanak: 'standart_sozlesme',
+            bildirimTarihi: null,
+            not: 'Kurgusal kayıt — bildirim tarihi bilerek boş bırakıldı.',
+          },
+          {
+            faaliyetId: faaliyet.id, aliciUlke: 'Kurgusalistan',
+            aliciAd: 'Kurgusal Destek Ltd.', dayanak: 'yeterlilik',
+            bildirimTarihi: null,
+          },
+        ],
+      });
+    }
+  }
+
+  /* ÜÇ BAŞVURU: yeni (süresi işliyor) · süresi geçmek üzere · karara
+     bağlanmış. Motor koşusu bunlardan geçeni işaretler. */
+  const kvkBasvurular = [
+    { kod: 'VSB-001', gunOnce: 3, konu: 'bilgi_talebi', durum: 'yeni' },
+    { kod: 'VSB-002', gunOnce: 45, konu: 'silme', durum: 'yeni' },
+    { kod: 'VSB-003', gunOnce: 60, konu: 'duzeltme', durum: 'yanitlandi' },
+  ];
+  for (const b of kvkBasvurular) {
+    await db.veriSahibiBasvurusu.upsert({
+      where: { kod: b.kod },
+      create: {
+        kod: b.kod, konu: b.konu, durum: b.durum,
+        alinma: new Date(Date.now() - b.gunOnce * 24 * 3_600_000),
+        kanal: 'Kurgusal kanal — adres değil, not',
+        ozet: 'Kurgusal başvuru özeti — gerçek bir kişi ya da talep değildir.',
+        yanitMetni: b.durum === 'yanitlandi'
+          ? 'Kurgusal yanıt metni — ölçüm fikstürü.' : null,
+      },
+      update: {},
+    });
+  }
+
+  /* SİCİL KAYDI: yükümlülük DEĞERLENDİRİLMEDİ hâliyle kurulur — ekranın
+     "bilinmeyen ≠ hayır" cümlesi fikstürde de görünsün. Sicilin adı
+     PAKETTEN gelir; tohum TR kiracısı için VERBİS yazar. */
+  if ((await db.sicilKaydi.count()) === 0) {
+    await db.sicilKaydi.create({
+      data: {
+        sicilAd: 'VERBİS', yukumluMu: null,
+        dayanak: '6698 s. KVKK md. 16: kişisel veri işleyen gerçek ve tüzel'
+          + ' kişiler, veri işlemeye başlamadan önce Veri Sorumluları Siciline'
+          + ' kaydolmak zorundadır (Kurulca istisna tanınanlar hariç).',
+      },
+    });
+  }
+  console.log(`Kişisel veri koruma: ${await db.veriIslemeFaaliyeti.count()} işleme faaliyeti`
+    + ` · ${await db.yurtDisiAktarim.count()} aktarım`
+    + ` · ${await db.veriSahibiBasvurusu.count()} başvuru.`);
+
   console.log('Seed tamam. Geliştirme girişi: kullanici.a@demo.local / ' + GELISTIRME_PAROLASI);
 }
 

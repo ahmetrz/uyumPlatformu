@@ -31,7 +31,7 @@ const { mevzuatRadariniKos, robotsAdresi } = await import('@/lib/uyum/mevzuatRad
 const {
   AJAN, FARK_SOZU, farkSozu, getirmeKarari, kotaVar, robotsAyristir, robotsIzni, yeniGirisler,
 } = await import('@/lib/mevzuat/radar');
-const { listeAyristir, rssAyristir } = await import('@/lib/mevzuat/ayristir');
+const { listeAyristir, OZET_SINIRI, rssAyristir } = await import('@/lib/mevzuat/ayristir');
 
 /* ── EL YAPIMI FİKSTÜRLER ──────────────────────────────────────────────
    Üçü de bu dosyada yazıldı; hiçbiri bir kamu sayfasından alınmadı. */
@@ -47,6 +47,11 @@ const ROBOTS_KAPALI = [
   'Disallow: /',
 ].join('\n');
 
+/* TELİFLİ TAM METİN FİKSTÜRÜ. Uzunluk KODDAN türetilir (`OZET_SINIRI`):
+   sabit yazılsaydı sınır değiştiği gün fikstür sessizce sınırın altında
+   kalır ve kısaltma yine ölçülmezdi. */
+const UZUN_OZET = 'Kurgusal mevzuat metni. '.repeat(60);
+
 const RSS = `<?xml version="1.0" encoding="UTF-8"?>
 <rss version="2.0"><channel>
   <title>Kurgusal Düzenleyici · duyurular</title>
@@ -54,7 +59,7 @@ const RSS = `<?xml version="1.0" encoding="UTF-8"?>
     <title>Kurgusal tebliğ değişikliği — birinci</title>
     <link>https://kurgusal-merci.ornek/duyuru/1</link>
     <pubDate>Mon, 01 Sep 2026 09:00:00 +0000</pubDate>
-    <description>Kurgusal özet metni.</description>
+    <description>${UZUN_OZET}</description>
   </item>
   <item>
     <title>Kurgusal tebliğ değişikliği — ikinci</title>
@@ -234,12 +239,31 @@ describe('SAF · kota ve üç değerli sonuç [MEV-RAD-001]', () => {
 });
 
 describe('SAF · ayrıştırma [MEV-RAD-001]', () => {
-  it('RSS okunur; özet KISALTILIR [MEV-RAD-001]', () => {
+  it('RSS okunur ve özet GERÇEKTEN kısaltılır — telifli metin girmez [MEV-RAD-001]', () => {
+    /* ── BULGU (bağımsız inceleme, PR #50 tur 2) ──────────────────────
+       Bu vaka adında "özet KISALTILIR" yazıyordu ama `ozet` alanına HİÇ
+       DOKUNMUYORDU: kısaltma silinse bile yeşil kalıyordu ve sabotaj
+       turu bunu doğruladı (110/110 test yeşil). Kısaltma, telifli tam
+       metnin veritabanına girmesini engelleyen TEK mekanizmadır — R-E:
+       kırmızı yakmayan sabotaj testin kusurudur. */
     const a = rssAyristir(RSS);
     expect(a.tanindi).toBe(true);
     expect(a.girisler.map((g) => g.url))
       .toEqual(['https://kurgusal-merci.ornek/duyuru/1', 'https://kurgusal-merci.ornek/duyuru/2']);
     expect(a.girisler[0].yayinTarihi).toBeInstanceOf(Date);
+
+    /* ÖLÇÜM TABANI: fikstür sınırı GERÇEKTEN aşıyor mu. Aşmasaydı bu
+       vaka da hiçbir şey ölçmezdi. */
+    expect(UZUN_OZET.length, 'fikstür sınırın altında — kısaltma tetiklenmiyor')
+      .toBeGreaterThan(OZET_SINIRI);
+    const ozet = a.girisler[0].ozet;
+    expect(ozet).not.toBeNull();
+    expect(ozet!.length, 'özet kısaltılmadı — telifli tam metin girebilir')
+      .toBeLessThanOrEqual(OZET_SINIRI);
+    /* Kısaltılan metin BAŞTAN alınır: sondan almak özeti anlamsız yapardı. */
+    expect(UZUN_OZET.startsWith(ozet!)).toBe(true);
+
+    /* Özet vermeyen giriş NULL kalır — boş dizeye düşmez. */
     expect(a.girisler[1].ozet).toBeNull();
   });
 

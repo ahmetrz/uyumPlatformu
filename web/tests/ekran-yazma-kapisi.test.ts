@@ -162,6 +162,13 @@ const KURUMSAL_KAYITLAR = new Map<string, string>([
     + ' KURUMUN meselesidir, tek bir tesisin değil. Sunucu eylemi de kapsamsız'
     + ' (lib/eylemler2/mevzuatRadari.ts → yetkiZorunlu). Ekran ile sunucu'
     + ' BİREBİR aynı soruyu soruyor'],
+  ['app/(kabuk)/(operasyonel)/kisisel-veri/page.tsx · uyum/onay',
+    'VeriSahibiBasvurusu ve YurtDisiAktarim tesisId TAŞIMAZ: bir veri'
+    + ' sahibi başvurusu KURUMA yapılır, tek bir tesise değil. Sunucu'
+    + ' eylemi de kapsamsız (lib/eylemler2/veriKoruma.ts → yetkiZorunlu).'
+    + ' Ekran ile sunucu BİREBİR aynı soruyu soruyor ve bu ÖLÇÜLÜ:'
+    + ' tests/veri-koruma.test.ts → "TESİSE KISITLI rol de karara'
+    + ' bağlayamaz — kurum geneli kapsam ister"'],
 ]);
 
 function tsDosyalari(kok: string): string[] {

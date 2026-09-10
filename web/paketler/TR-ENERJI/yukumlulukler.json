@@ -4,9 +4,10 @@
     "ad": "Kişisel veri ihlalinin Kurula bildirimi",
     "asgariSiddet": "orta",
     "sureSaat": 72,
-    "dayanak": "6698 s. KVKK md. 12/5 · Kişisel Verileri Koruma Kurulunun 24.01.2019 tarih ve 2019/10 sayılı kararı: veri sorumlusu ihlali öğrendiği tarihten itibaren gecikmeksizin ve en geç 72 saat içinde Kurula bildirir; geç kalınırsa gerekçesi bildirimle birlikte açıklanır.",
+    "dayanak": "6698 s. KVKK md. 12/5 · Kurul kararı 24.01.2019 · 2019/10: veri sorumlusu ihlali öğrendiği tarihten itibaren gecikmeksizin ve en geç 72 saat içinde Kurula bildirir; geç kalınırsa gerekçesi bildirimle birlikte açıklanır. Yalnız KİŞİSEL VERİ ihlalinde doğar.",
     "merci": "Kişisel Verileri Koruma Kurulu",
-    "kanalNotu": "Kişisel Veri İhlal Bildirim Formu üzerinden"
+    "kanalNotu": "Kişisel Veri İhlal Bildirim Formu üzerinden",
+    "kapsamKosulu": "kisisel_veri_ihlali"
   },
   {
     "kod": "EPDK-USOM-OLAY",

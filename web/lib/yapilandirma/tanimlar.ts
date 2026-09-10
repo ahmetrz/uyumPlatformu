@@ -289,6 +289,10 @@ export const MOTOR_ADLARI_SOZLUK = [
      durdurur; kaynak bazında açma/kapama `MevzuatKaynagi.etkin`
      alanındadır ve o da insan kararıdır. */
   'mevzuat_radari',
+  /* R15 · Veri sahibi başvurusu süresi — aynı kural. Kapatmak yalnız
+     zamanlanmış koşuyu durdurur; başvurunun kendi süresi mevzuattan
+     gelir ve ürünün ayarı onu değiştirmez. */
+  'veri_koruma_suresi',
 ] as const;
 
 for (const ad of MOTOR_ADLARI_SOZLUK) {

@@ -4,6 +4,7 @@ import { rm } from 'node:fs/promises';
 import { tmpdir } from 'node:os';
 import path from 'node:path';
 
+
 /* ═══════════════════════════════════════════════════════════════════════
    R-F · S1 · "PASİF ÖNCE, AKTİF TARAMA YOK" — GERÇEK YOLLA [SIS-PAS-001]
 
@@ -31,6 +32,29 @@ copyFileSync('prisma/dev.db', testDb);
 process.env.TEST_DB = testDb;
 
 vi.mock('next/cache', () => ({ revalidatePath: () => {} }));
+
+/* ── AĞ İLKELLERİ MODÜL DÜZEYİNDE KAPATILIR ───────────────────────────
+   `vi.spyOn(https, 'request')` ESM'de ÇALIŞMAZ: `node:https` ad uzayı
+   dondurulmuştur ve atama sessizce düşer (denendi — sahte hiç
+   kurulmadı). Bu yüzden modülün kendisi sahteyle değiştirilir; fabrika
+   `vi.mock` ile yukarı taşınır ve ölçülen kodun içe aktarımından ÖNCE
+   yerleşir. */
+const agKaydi: string[] = [];
+const agSahtesi = (ad: string) => ({
+  request: (...a: unknown[]) => {
+    agKaydi.push(`${ad}.request ${String(a[0])}`);
+    throw new Error('AĞA ÇIKILDI — pasif önce kuralı çiğnendi');
+  },
+  get: (...a: unknown[]) => {
+    agKaydi.push(`${ad}.get ${String(a[0])}`);
+    throw new Error('AĞA ÇIKILDI — pasif önce kuralı çiğnendi');
+  },
+});
+vi.mock('node:http', () => ({ default: agSahtesi('http'), ...agSahtesi('http') }));
+vi.mock('node:https', () => ({ default: agSahtesi('https'), ...agSahtesi('https') }));
+
+const http = await import('node:http');
+const https = await import('node:https');
 
 const { db } = await import('@/lib/db');
 const { anlikGoruntuAl } = await import('@/lib/motorlar/anlik');
@@ -82,19 +106,28 @@ describe('anlık ve temel AĞA ÇIKMAZ [SIS-PAS-001]', () => {
     /* Bu vaka olmadan, sahteleme çalışmadığında dosyanın tamamı yeşil
        kalır ve hiçbir şey ölçmemiş olurdu. */
     await expect(fetch('https://kurgusal.ornek/')).rejects.toThrow(/AĞA ÇIKILDI/);
+    /* ÜÇ İLKEL DE ÖLÇÜLÜR: yalnız `fetch`e bakan bir taban, `https`
+       üzerinden çıkan bir kodu göremezdi. */
+    expect(() => https.request('https://kurgusal.ornek/')).toThrow(/AĞA ÇIKILDI/);
+    expect(() => http.get('http://kurgusal.ornek/')).toThrow(/AĞA ÇIKILDI/);
+    expect(agKaydi.length, 'modül sahteleri çağrıyı saymadı').toBe(2);
+    expect(agDenemeleri.length, 'fetch sahtesi çağrıyı saymadı').toBe(1);
     agDenemeleri.length = 0;
+    agKaydi.length = 0;
   });
 
   it('anlık görüntü motoru ağa HİÇ paket göndermez [SIS-PAS-001]', async () => {
     const s = await anlikGoruntuAl();
     expect(s.islenen).toBeGreaterThanOrEqual(0);
-    expect(agDenemeleri, `ağ denemesi: ${agDenemeleri.join(' · ')}`).toEqual([]);
+    expect([...agDenemeleri, ...agKaydi],
+      `ağ denemesi: ${[...agDenemeleri, ...agKaydi].join(' · ')}`).toEqual([]);
   });
 
   it('topoloji sapma motoru da ağa çıkmaz [SIS-PAS-001]', async () => {
     const s = await topolojiSapmasiniIsle();
     expect(s.islenen).toBeGreaterThanOrEqual(0);
-    expect(agDenemeleri, `ağ denemesi: ${agDenemeleri.join(' · ')}`).toEqual([]);
+    expect([...agDenemeleri, ...agKaydi],
+      `ağ denemesi: ${[...agDenemeleri, ...agKaydi].join(' · ')}`).toEqual([]);
   });
 
   it('KAYITTAN anlık alma eylemi ağa çıkmaz — kayıt CMDB\'den gelir [SIS-PAS-001]', async () => {
@@ -103,7 +136,8 @@ describe('anlık ve temel AĞA ÇIKMAZ [SIS-PAS-001]', () => {
     const s = await kayittanAnlikAl({ tesisId: tesis.id });
     /* Eylem başarısız olabilir (veri yoksa) ama AĞA ÇIKMAMALIDIR:
        ölçülen şey sonucun kendisi değil, yolun sessizliğidir. */
-    expect(agDenemeleri, `ağ denemesi: ${agDenemeleri.join(' · ')}`).toEqual([]);
+    expect([...agDenemeleri, ...agKaydi],
+      `ağ denemesi: ${[...agDenemeleri, ...agKaydi].join(' · ')}`).toEqual([]);
     if (s.ok) anlikId = s.anlikId ?? '';
   });
 
@@ -115,6 +149,7 @@ describe('anlık ve temel AĞA ÇIKMAZ [SIS-PAS-001]', () => {
       return;
     }
     await temelOlarakOnayla({ anlikId, gerekce: 'Kurgusal temel onayı — ölçüm için.' });
-    expect(agDenemeleri, `ağ denemesi: ${agDenemeleri.join(' · ')}`).toEqual([]);
+    expect([...agDenemeleri, ...agKaydi],
+      `ağ denemesi: ${[...agDenemeleri, ...agKaydi].join(' · ')}`).toEqual([]);
   });
 });

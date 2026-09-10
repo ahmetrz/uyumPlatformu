@@ -324,6 +324,17 @@ export const YukumlulukSatiriSemasi = z.object({
       sayaç işlemez. Sıfır yasak: sıfır gün, dönem biter bitmez geçmiş
       bir sayaçtır. */
   teslimGun: z.number().int().positive().nullable().optional(),
+  /** R15 · EK KAPSAM KOŞULU — şiddet ve regülasyon yetmediğinde.
+   *
+   * Ölçüldü: KVKK 72 saat yükümlülüğü `asgariSiddet: 'orta'` ile HER
+   * orta olaya uyuyordu ve kişisel veri hiç işlenmemiş bir kesinti için
+   * de Kurula bildirim taslağı açılıyordu. Açılan her yanlış taslak,
+   * gerçek olanı görünmez yapan bir satırdır.
+   *
+   * Koşul kümesi POZİTİFTİR ve çekirdek onu tanımaz zorunda: tanınmayan
+   * bir kod yükümlülüğü UYANDIRMAZ (sessizce herkese açmaz). Takvim
+   * tetiklide KULLANILMAZ — takvim yükümlülüğü olaya bakmaz. */
+  kapsamKosulu: z.enum(['kisisel_veri_ihlali']).nullable().optional(),
 }).strict()
   .superRefine((y, ctx) => {
     /* TÜR ile ALANLAR TUTARLI OLMALI. Bir olay yükümlülüğüne dönem
@@ -336,6 +347,13 @@ export const YukumlulukSatiriSemasi = z.object({
           code: 'custom',
           message: 'Takvim tetikli yükümlülükte `sureSaat` KULLANILMAZ: '
             + 'süre olaydan değil dönemden sayılır (`teslimGun`).',
+        });
+      }
+      if (y.kapsamKosulu !== undefined && y.kapsamKosulu !== null) {
+        ctx.addIssue({
+          code: 'custom',
+          message: 'Takvim tetikli yükümlülükte `kapsamKosulu` KULLANILMAZ: '
+            + 'koşul olayın niteliğini sorar, takvim yükümlülüğü olaya bakmaz.',
         });
       }
     } else {

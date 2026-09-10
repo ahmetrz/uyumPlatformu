@@ -53,9 +53,15 @@ const MERCEKLER = [
 
 const GORUNUR_SATIR = 9;
 
-export default function RadarIstemci({ adaylar, kaynaklar, karar, yonetim }: {
+export default function RadarIstemci({
+  adaylar, kaynaklar, bekleyenToplam, adayToplam, karar, yonetim,
+}: {
   adaylar: AdayKaydi[];
   kaynaklar: KaynakSatiri[];
+  /** Karar bekleyen adayın GERÇEK sayısı — kırpılmış listeden DEĞİL. */
+  bekleyenToplam: number;
+  /** Bütün adayların GERÇEK sayısı. */
+  adayToplam: number;
   karar: boolean;
   yonetim: boolean;
 }) {
@@ -64,7 +70,13 @@ export default function RadarIstemci({ adaylar, kaynaklar, karar, yonetim }: {
   const [kuyrukAcik, setKuyrukAcik] = useState(false);
 
   const bekleyen = adaylar.filter((a) => a.durum === 'yeni');
-  const ozet = radarOzeti(kaynaklar, bekleyen.length);
+  /* ── SAYI KIRPILMIŞ LİSTEDEN GELMEZ (bağımsız inceleme, #50 tur 2) ──
+     Başlık `bekleyen.length` ile hesaplanıyordu ve o liste sunucuda
+     kırpılıyordu: 252 karar bekleyen adayda ekran "200" diyordu.
+     Sayı artık GERÇEK `count()` sorgusundan gelir; liste kırpılmışsa
+     ekran bunu ayrıca söyler. */
+  const ozet = radarOzeti(kaynaklar, bekleyenToplam);
+  const listeKirpildi = adaylar.length < adayToplam;
   const kaynakGorunumu = mercek === 'kaynaklar';
   const suzulen = mercek === 'yeni' ? bekleyen : adaylar;
 
@@ -131,6 +143,15 @@ export default function RadarIstemci({ adaylar, kaynaklar, karar, yonetim }: {
 
         <p className="ikincil" style={{ margin: '0 0 var(--s16)' }}>
           {kapsamCumlesi(ozet, kaynaklar.length)}
+          {listeKirpildi && (
+            <>
+              {' · '}
+              <span className="d-unk">
+                {adayToplam - adaylar.length} aday bu listede YOK (en yeni
+                {' '}{adaylar.length} satır gösteriliyor; karar bekleyenler önce)
+              </span>
+            </>
+          )}
         </p>
 
         <Filtreler

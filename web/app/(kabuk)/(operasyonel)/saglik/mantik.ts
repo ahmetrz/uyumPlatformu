@@ -113,6 +113,12 @@ const IS_KATALOGU: IsKatalogSatiri[] = [
     aciklama: 'Taraması AÇIK kaynakları günde bir kez okur ve değişiklik ADAYI '
       + 'açar — çerçeve sürümüne, regülasyona ve taramanın açık olmasına '
       + 'DOKUNMAZ; robots.txt ve anti-bot engelini ATLATMAZ' },
+  /* Veri sahibi başvurusu süresi (R15). Açıklaması NE YAPMADIĞINI da
+     söyler: motor süreyi izler ve görev açar, CEVABI YAZMAZ. */
+  { ad: 'veri_koruma_suresi', etiket: 'Veri sahibi başvurusu süresi', elleCalisir: true,
+    aciklama: 'Yanıt süresi geçen başvuruyu işaretler ve GÖREV açar — başvuruya '
+      + 'CEVAP YAZMAZ, "yanıtlandı" ya da "reddedildi" YAZAMAZ; süre kuralı '
+      + 'pakette yoksa geri sayım hiç gösterilmez ve süre UYDURULMAZ' },
   { ad: 'bakim_temizlik', etiket: 'Bakım temizliği', elleCalisir: false,
     aciklama: 'Süresi dolmuş oturum ve iş kilidi satırlarını siler (saatlik, zamanlayıcıdan) '
       + '— bulgu üretmez, veri yorumlamaz' },

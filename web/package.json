@@ -62,7 +62,8 @@
     "pg:istemci": "node arac/pg-istemci.mjs",
     "pg:test-sablonu": "node arac/pg-test-sablonu.mjs",
     "kapi:compose": "node arac/compose-duman.mjs",
-    "kanit:mevzuat-radari": "node arac/mevzuat-radari-kanit.mjs"
+    "kanit:mevzuat-radari": "node arac/mevzuat-radari-kanit.mjs",
+    "kanit:veri-koruma": "node arac/veri-koruma-kanit.mjs"
   },
   "dependencies": {
     "@prisma/adapter-better-sqlite3": "^7.10.0",

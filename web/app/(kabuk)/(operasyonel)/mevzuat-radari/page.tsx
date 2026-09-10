@@ -3,7 +3,18 @@ import { girisZorunlu, izinVar } from '@/lib/erisim';
 import { db } from '@/lib/db';
 import { Yetkisiz } from '@/components/kabuk/temel';
 import RadarIstemci from './RadarIstemci';
+import { ADAY_DURUM_SOZU, type AdayDurumu } from '@/lib/mevzuat/radar';
 import { kaynakSatirlari, type AdayKaydi, type KaynakKaydi } from './mantik';
+
+/* Ekrana taşınan aday sayısının tavanı. Kırpma GİZLENMEZ: ekran kaç
+   satırın listede olmadığını yazar. */
+const ADAY_SINIRI = 200;
+
+/* Karara BAĞLANMIŞ durumlar — `ADAY_DURUM_SOZU`nun `yeni` dışı kümesi.
+   Elle yazılmadı ki yeni bir karar durumu eklendiği gün liste sessizce
+   eksik kalmasın. */
+const KARARLI_DURUMLAR = (Object.keys(ADAY_DURUM_SOZU) as AdayDurumu[])
+  .filter((d) => d !== 'yeni');
 
 export const metadata: Metadata = { title: 'Mevzuat radarı' };
 
@@ -30,7 +41,10 @@ export default async function Sayfa() {
   const k = await girisZorunlu();
   if (!izinVar(k, 'uyum', 'okuma')) return <Yetkisiz rol="uyum okuma (kurum geneli)" />;
 
-  const [kaynakKayitlari, adayKayitlari] = await Promise.all([
+  const [
+    kaynakKayitlari, bekleyenKayitlari, kararliKayitlari,
+    bekleyenToplam, adayToplam,
+  ] = await Promise.all([
     db.mevzuatKaynagi.findMany({
       select: {
         id: true, kod: true, ad: true, yayinKanali: true, merci: true,
@@ -44,15 +58,42 @@ export default async function Sayfa() {
       },
       orderBy: { kod: 'asc' },
     }),
+    /* ── KARAR BEKLEYEN ÖNCE, KIRPMA GÖRÜNÜR (bağımsız inceleme, #50 tur 2)
+       Tek sorgu `orderBy: bulundu desc · take: 200` idi ve iki kusur
+       taşıyordu:
+         (a) başlık sayısı bu KIRPILMIŞ listeden hesaplanıyordu; 200'ü
+             aşan kurulumda ekran "200 bekleyen" derken gerçek sayı
+             başkaydı (ölçüldü: 252 kayıtta ekran 200 dedi),
+         (b) sıra `bulundu desc` olduğu için 200'den ESKİ bir karar
+             bekleyen aday hiçbir mercekten, hiçbir kuyruktan
+             ULAŞILAMAZ hâle geliyordu — ekranda arama da yok.
+       Bugün karar bekleyenler AYRI ve ÖNCE çekilir; sayılar gerçek
+       COUNT sorgularından gelir ve kırpma ekrana yazılır. */
     db.mevzuatDegisiklikAdayi.findMany({
+      where: { durum: 'yeni' },
       select: {
         id: true, url: true, baslik: true, yayinTarihi: true, ozet: true,
         bulundu: true, durum: true, gerekce: true,
         kaynak: { select: { kod: true, ad: true, merci: true } },
       },
       orderBy: [{ bulundu: 'desc' }],
-      take: 200,
+      take: ADAY_SINIRI,
     }),
+    /* KARARA BAĞLANMIŞLAR POZİTİF kümeyle sorulur: `not: 'yeni'` yazmak,
+       yarın eklenen bir durumu sessizce bu listeye alırdı. */
+    db.mevzuatDegisiklikAdayi.findMany({
+      where: { durum: { in: KARARLI_DURUMLAR } },
+      select: {
+        id: true, url: true, baslik: true, yayinTarihi: true, ozet: true,
+        bulundu: true, durum: true, gerekce: true,
+        kaynak: { select: { kod: true, ad: true, merci: true } },
+      },
+      orderBy: [{ bulundu: 'desc' }],
+      take: ADAY_SINIRI,
+    }),
+    /* SAYILAR KIRPILMIŞ LİSTEDEN DEĞİL, GERÇEK SORGUDAN. */
+    db.mevzuatDegisiklikAdayi.count({ where: { durum: 'yeni' } }),
+    db.mevzuatDegisiklikAdayi.count(),
   ]);
 
   const kaynaklar: KaynakKaydi[] = kaynakKayitlari.map((s) => ({
@@ -66,16 +107,23 @@ export default async function Sayfa() {
     bekleyenAday: s._count.adaylar,
   }));
 
-  const adaylar: AdayKaydi[] = adayKayitlari.map((a) => ({
+  const cevir = (a: (typeof bekleyenKayitlari)[number]): AdayKaydi => ({
     id: a.id, kaynakKod: a.kaynak.kod, kaynakAd: a.kaynak.ad, merci: a.kaynak.merci,
     url: a.url, baslik: a.baslik, yayinTarihi: a.yayinTarihi, ozet: a.ozet,
     bulundu: a.bulundu, durum: a.durum, gerekce: a.gerekce,
-  }));
+  });
+  /* KARAR BEKLEYENLER ÖNCE: kırpma bir gün devreye girerse kesilen uç
+     KARARA BAĞLANMIŞ satırlar olur, bekleyenler değil. */
+  const adaylar: AdayKaydi[] = [
+    ...bekleyenKayitlari.map(cevir), ...kararliKayitlari.map(cevir),
+  ];
 
   return (
     <RadarIstemci
       adaylar={adaylar}
       kaynaklar={kaynakSatirlari(kaynaklar)}
+      bekleyenToplam={bekleyenToplam}
+      adayToplam={adayToplam}
       karar={izinVar(k, 'uyum', 'onay')}
       yonetim={izinVar(k, 'yonetim', 'onay')}
     />

@@ -42,6 +42,8 @@ export type OlaySatiri = {
   bildirimGerekli: boolean | null;
   /** Olayın tesisinin tabi olduğu regülasyonlar. */
   regulasyonIdleri: readonly string[];
+  /** R15 · Kişisel veri ihlali mi — ÜÇ DEĞERLİ, `null` = değerlendirilmedi. */
+  kisiselVeriIhlali?: boolean | null;
 };
 
 /**
@@ -61,6 +63,7 @@ export async function olayinKayitlarini(
 
   for (const y of uyanYukumlulukler({
     siddet: olay.siddet, regulasyonIdleri: olay.regulasyonIdleri, kurallar,
+    kapsam: { kisiselVeriIhlali: olay.kisiselVeriIhlali ?? null },
   })) {
     const gs = geriSayim({ baslangic: olay.baslangic.getTime(), simdi, sureSaat: y.sureSaat });
     if (!gs.sureVar) sonuc.suresiz += 1;
@@ -149,7 +152,7 @@ export async function acikOlaylarinKayitlarini(istemci: typeof Db): Promise<Kayi
       /* SÜZGEÇ DEĞİL SEÇİM: kararı `olaylaUyanir` verir. Aynı kuralı
          hem sorguya hem saf katmana yazmak iki gerçek üretirdi ve
          birini sabote eden tur kırmızı YAKMAZDI (R-E). */
-      tetikleyici: true,
+      tetikleyici: true, kapsamKosulu: true,
     },
   });
   const toplam: KayitKosusu = { acilanTaslak: 0, suresiGecen: 0, suresiz: 0 };
@@ -157,7 +160,10 @@ export async function acikOlaylarinKayitlarini(istemci: typeof Db): Promise<Kayi
 
   const olaylar = await istemci.olay.findMany({
     where: { durum: { in: ['acik', 'mudahale'] } },
-    select: { id: true, kod: true, siddet: true, baslangic: true, tesisId: true, bildirimGerekli: true },
+    select: {
+      id: true, kod: true, siddet: true, baslangic: true, tesisId: true,
+      bildirimGerekli: true, kisiselVeriIhlali: true,
+    },
   });
 
   const simdi = Date.now();

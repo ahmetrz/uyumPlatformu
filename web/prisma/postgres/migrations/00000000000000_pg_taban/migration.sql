@@ -1310,6 +1310,7 @@ CREATE TABLE "Olay" (
     "ogrenilenler" TEXT,
     "bildirimGerekli" BOOLEAN,
     "bildirimTarihi" TIMESTAMP(3),
+    "kisiselVeriIhlali" BOOLEAN,
     "etkiOnerisiJson" TEXT,
     "etkiDogrulayanId" TEXT,
     "etkiDogrulamaZamani" TIMESTAMP(3),
@@ -2325,6 +2326,7 @@ CREATE TABLE "BildirimYukumlulugu" (
     "donem" TEXT,
     "donemBaslangici" TEXT,
     "teslimGun" INTEGER,
+    "kapsamKosulu" TEXT,
 
     CONSTRAINT "BildirimYukumlulugu_pkey" PRIMARY KEY ("id")
 );
@@ -2712,6 +2714,111 @@ CREATE TABLE "MevzuatDegisiklikAdayi" (
     "surumId" TEXT,
 
     CONSTRAINT "MevzuatDegisiklikAdayi_pkey" PRIMARY KEY ("id")
+);
+
+-- CreateTable
+CREATE TABLE "VeriKorumaSuresi" (
+    "id" TEXT NOT NULL,
+    "konu" TEXT NOT NULL,
+    "gun" INTEGER,
+    "isGunu" BOOLEAN NOT NULL DEFAULT false,
+    "haftaSonuJson" TEXT,
+    "dayanak" TEXT NOT NULL,
+    "aktif" BOOLEAN NOT NULL DEFAULT true,
+    "koken" TEXT NOT NULL DEFAULT 'kiraci',
+    "paketSurumId" TEXT,
+    "olusturuldu" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    "guncellendi" TIMESTAMP(3) NOT NULL,
+
+    CONSTRAINT "VeriKorumaSuresi_pkey" PRIMARY KEY ("id")
+);
+
+-- CreateTable
+CREATE TABLE "VeriIslemeFaaliyeti" (
+    "id" TEXT NOT NULL,
+    "kod" TEXT NOT NULL,
+    "ad" TEXT NOT NULL,
+    "isSureciId" TEXT NOT NULL,
+    "amac" TEXT NOT NULL,
+    "hukukiSebep" TEXT NOT NULL,
+    "veriKategorileriJson" TEXT NOT NULL DEFAULT '[]',
+    "ilgiliKisiGruplariJson" TEXT NOT NULL DEFAULT '[]',
+    "aliciGruplariJson" TEXT NOT NULL DEFAULT '[]',
+    "ozelNitelikli" BOOLEAN,
+    "saklamaPolitikasiId" TEXT,
+    "maddeId" TEXT,
+    "aktif" BOOLEAN NOT NULL DEFAULT true,
+    "olusturuldu" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    "guncellendi" TIMESTAMP(3) NOT NULL,
+
+    CONSTRAINT "VeriIslemeFaaliyeti_pkey" PRIMARY KEY ("id")
+);
+
+-- CreateTable
+CREATE TABLE "YurtDisiAktarim" (
+    "id" TEXT NOT NULL,
+    "faaliyetId" TEXT NOT NULL,
+    "aliciUlke" TEXT NOT NULL,
+    "aliciAd" TEXT,
+    "dayanak" TEXT NOT NULL,
+    "bildirimTarihi" TIMESTAMP(3),
+    "bildirimSonTarih" TIMESTAMP(3),
+    "not" TEXT,
+    "aktif" BOOLEAN NOT NULL DEFAULT true,
+    "olusturuldu" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    "guncellendi" TIMESTAMP(3) NOT NULL,
+
+    CONSTRAINT "YurtDisiAktarim_pkey" PRIMARY KEY ("id")
+);
+
+-- CreateTable
+CREATE TABLE "VeriSahibiBasvurusu" (
+    "id" TEXT NOT NULL,
+    "kod" TEXT NOT NULL,
+    "alinma" TIMESTAMP(3) NOT NULL,
+    "kanal" TEXT,
+    "konu" TEXT NOT NULL,
+    "ozet" TEXT,
+    "sonTarih" TIMESTAMP(3),
+    "durum" TEXT NOT NULL DEFAULT 'yeni',
+    "yanitMetni" TEXT,
+    "yanitlayanId" TEXT,
+    "yanitZamani" TIMESTAMP(3),
+    "redGerekcesi" TEXT,
+    "gorevId" TEXT,
+    "olusturuldu" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    "guncellendi" TIMESTAMP(3) NOT NULL,
+
+    CONSTRAINT "VeriSahibiBasvurusu_pkey" PRIMARY KEY ("id")
+);
+
+-- CreateTable
+CREATE TABLE "SicilKaydi" (
+    "id" TEXT NOT NULL,
+    "sicilAd" TEXT NOT NULL,
+    "sicilNo" TEXT,
+    "kayitTarihi" TIMESTAMP(3),
+    "sonGuncelleme" TIMESTAMP(3),
+    "yukumluMu" BOOLEAN,
+    "muafiyetGerekcesi" TEXT,
+    "sorumluId" TEXT,
+    "dayanak" TEXT,
+    "aktif" BOOLEAN NOT NULL DEFAULT true,
+    "olusturuldu" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    "guncellendi" TIMESTAMP(3) NOT NULL,
+
+    CONSTRAINT "SicilKaydi_pkey" PRIMARY KEY ("id")
+);
+
+-- CreateTable
+CREATE TABLE "OlayVeriFaaliyeti" (
+    "id" TEXT NOT NULL,
+    "olayId" TEXT NOT NULL,
+    "faaliyetId" TEXT NOT NULL,
+    "etkilenenKayit" INTEGER,
+    "not" TEXT,
+
+    CONSTRAINT "OlayVeriFaaliyeti_pkey" PRIMARY KEY ("id")
 );
 
 -- CreateIndex
@@ -3367,6 +3474,30 @@ CREATE INDEX "MevzuatDegisiklikAdayi_durum_bulundu_idx" ON "MevzuatDegisiklikAda
 
 -- CreateIndex
 CREATE UNIQUE INDEX "MevzuatDegisiklikAdayi_kaynakId_url_key" ON "MevzuatDegisiklikAdayi"("kaynakId", "url");
+
+-- CreateIndex
+CREATE UNIQUE INDEX "VeriKorumaSuresi_konu_key" ON "VeriKorumaSuresi"("konu");
+
+-- CreateIndex
+CREATE UNIQUE INDEX "VeriIslemeFaaliyeti_kod_key" ON "VeriIslemeFaaliyeti"("kod");
+
+-- CreateIndex
+CREATE INDEX "VeriIslemeFaaliyeti_isSureciId_idx" ON "VeriIslemeFaaliyeti"("isSureciId");
+
+-- CreateIndex
+CREATE INDEX "YurtDisiAktarim_faaliyetId_idx" ON "YurtDisiAktarim"("faaliyetId");
+
+-- CreateIndex
+CREATE INDEX "YurtDisiAktarim_dayanak_idx" ON "YurtDisiAktarim"("dayanak");
+
+-- CreateIndex
+CREATE UNIQUE INDEX "VeriSahibiBasvurusu_kod_key" ON "VeriSahibiBasvurusu"("kod");
+
+-- CreateIndex
+CREATE INDEX "VeriSahibiBasvurusu_durum_sonTarih_idx" ON "VeriSahibiBasvurusu"("durum", "sonTarih");
+
+-- CreateIndex
+CREATE UNIQUE INDEX "OlayVeriFaaliyeti_olayId_faaliyetId_key" ON "OlayVeriFaaliyeti"("olayId", "faaliyetId");
 
 -- AddForeignKey
 ALTER TABLE "KapsamOgesiTuru" ADD CONSTRAINT "KapsamOgesiTuru_sektorId_fkey" FOREIGN KEY ("sektorId") REFERENCES "Sektor"("id") ON DELETE SET NULL ON UPDATE CASCADE;
@@ -4300,6 +4431,30 @@ ALTER TABLE "MevzuatTaramasi" ADD CONSTRAINT "MevzuatTaramasi_kaynakId_fkey" FOR
 
 -- AddForeignKey
 ALTER TABLE "MevzuatDegisiklikAdayi" ADD CONSTRAINT "MevzuatDegisiklikAdayi_kaynakId_fkey" FOREIGN KEY ("kaynakId") REFERENCES "MevzuatKaynagi"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE "VeriIslemeFaaliyeti" ADD CONSTRAINT "VeriIslemeFaaliyeti_isSureciId_fkey" FOREIGN KEY ("isSureciId") REFERENCES "IsSureci"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE "VeriIslemeFaaliyeti" ADD CONSTRAINT "VeriIslemeFaaliyeti_saklamaPolitikasiId_fkey" FOREIGN KEY ("saklamaPolitikasiId") REFERENCES "SaklamaPolitikasi"("id") ON DELETE SET NULL ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE "VeriIslemeFaaliyeti" ADD CONSTRAINT "VeriIslemeFaaliyeti_maddeId_fkey" FOREIGN KEY ("maddeId") REFERENCES "Madde"("id") ON DELETE SET NULL ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE "YurtDisiAktarim" ADD CONSTRAINT "YurtDisiAktarim_faaliyetId_fkey" FOREIGN KEY ("faaliyetId") REFERENCES "VeriIslemeFaaliyeti"("id") ON DELETE CASCADE ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE "VeriSahibiBasvurusu" ADD CONSTRAINT "VeriSahibiBasvurusu_yanitlayanId_fkey" FOREIGN KEY ("yanitlayanId") REFERENCES "Kullanici"("id") ON DELETE SET NULL ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE "SicilKaydi" ADD CONSTRAINT "SicilKaydi_sorumluId_fkey" FOREIGN KEY ("sorumluId") REFERENCES "Kullanici"("id") ON DELETE SET NULL ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE "OlayVeriFaaliyeti" ADD CONSTRAINT "OlayVeriFaaliyeti_olayId_fkey" FOREIGN KEY ("olayId") REFERENCES "Olay"("id") ON DELETE CASCADE ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE "OlayVeriFaaliyeti" ADD CONSTRAINT "OlayVeriFaaliyeti_faaliyetId_fkey" FOREIGN KEY ("faaliyetId") REFERENCES "VeriIslemeFaaliyeti"("id") ON DELETE CASCADE ON UPDATE CASCADE;
 
 -- ═══════════════════════════════════════════════════════════════════════
 -- ELLE YAZILAN DDL · PostgreSQL karşılıkları (R5)

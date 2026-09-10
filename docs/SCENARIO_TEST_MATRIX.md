@@ -4,12 +4,12 @@
 
 | Ölçü | Değer |
 | --- | --- |
-| Senaryo | 352 |
-| Testi olan senaryo | 352 |
+| Senaryo | 358 |
+| Testi olan senaryo | 358 |
 | **GAP** | **0** |
 | Hayalet işaret (kütükte olmayan kimlik) | 0 |
 | Kütüksüz test dosyası | 0 |
-| Taranan test dosyası | 227 |
+| Taranan test dosyası | 229 |
 
 ## Katman başına kapsam
 
@@ -18,15 +18,15 @@
 | ACCESSIBILITY | 8 | 8 | 0 |
 | API | 12 | 12 | 0 |
 | CONCURRENCY | 7 | 7 | 0 |
-| DOMAIN | 205 | 205 | 0 |
-| ENGINE | 34 | 34 | 0 |
-| INTEGRATION | 41 | 41 | 0 |
-| MIGRATION | 5 | 5 | 0 |
-| RBAC | 39 | 39 | 0 |
-| RESPONSIVE | 8 | 8 | 0 |
-| SCOPE | 32 | 32 | 0 |
-| SERVER | 147 | 147 | 0 |
-| UI | 100 | 100 | 0 |
+| DOMAIN | 210 | 210 | 0 |
+| ENGINE | 36 | 36 | 0 |
+| INTEGRATION | 42 | 42 | 0 |
+| MIGRATION | 6 | 6 | 0 |
+| RBAC | 40 | 40 | 0 |
+| RESPONSIVE | 9 | 9 | 0 |
+| SCOPE | 33 | 33 | 0 |
+| SERVER | 150 | 150 | 0 |
+| UI | 102 | 102 | 0 |
 | VISUAL | 4 | 4 | 0 |
 | WORKFLOW | 37 | 37 | 0 |
 
@@ -191,7 +191,7 @@
 | `MEV-RAD-001` | Uyum | SERVER · DOMAIN · WORKFLOW · UI | `mevzuat-radari.test.ts` | ANTI-BOT yanıtı ENGELLİ yazar, atlatmaz | evet | geçti |
 | `MEV-RAD-001` | Uyum | SERVER · DOMAIN · WORKFLOW · UI | `mevzuat-radari.test.ts` | BİLİNMEYEN "fark yok" DEĞİLDİR — cümlesi ayrıdır | evet | geçti |
 | `MEV-RAD-001` | Uyum | SERVER · DOMAIN · WORKFLOW · UI | `mevzuat-radari.test.ts` | aynı URL ikinci kez aday OLMAZ | evet | geçti |
-| `MEV-RAD-001` | Uyum | SERVER · DOMAIN · WORKFLOW · UI | `mevzuat-radari.test.ts` | RSS okunur; özet KISALTILIR | evet | geçti |
+| `MEV-RAD-001` | Uyum | SERVER · DOMAIN · WORKFLOW · UI | `mevzuat-radari.test.ts` | RSS okunur ve özet GERÇEKTEN kısaltılır — telifli metin girmez | evet | geçti |
 | `MEV-RAD-001` | Uyum | SERVER · DOMAIN · WORKFLOW · UI | `mevzuat-radari.test.ts` | TANINMAYAN biçim "boş" değil BİLİNMİYOR döner | evet | geçti |
 | `MEV-RAD-001` | Uyum | SERVER · DOMAIN · WORKFLOW · UI | `mevzuat-radari.test.ts` | liste bağları GÖRECELİ adresle de çözülür | evet | geçti |
 | `MEV-RAD-001` | Uyum | SERVER · DOMAIN · WORKFLOW · UI | `mevzuat-radari.test.ts` | AÇIK kaynak taranır ve adaylar AÇILIR | evet | geçti |
@@ -225,6 +225,8 @@
 | `MEV-RAD-002` | Uyum | SERVER · RBAC · DOMAIN · UI | `mevzuat-radari-mantik.test.ts` | hiçbir kaynak taranmıyorsa başlık BUNU söyler | evet | geçti |
 | `MEV-RAD-002` | Uyum | SERVER · RBAC · DOMAIN · UI | `mevzuat-radari-mantik.test.ts` | bakılamamış kaynak varken "bekleyen değişiklik yok" DENMEZ | evet | geçti |
 | `MEV-RAD-002` | Uyum | SERVER · RBAC · DOMAIN · UI | `mevzuat-radari-mantik.test.ts` | kapsam cümlesi ENGELLİ ile KARŞILAŞTIRILAMADI\'yı AYRI söyler | evet | geçti |
+| `MEV-RAD-002` | Uyum | SERVER · RBAC · DOMAIN · UI | `mevzuat-radari-mantik.test.ts` | özet, bekleyen sayısını DIŞARIDAN alır — listeden saymaz | evet | geçti |
+| `MEV-RAD-002` | Uyum | SERVER · RBAC · DOMAIN · UI | `mevzuat-radari-mantik.test.ts` | sıfır bekleyen + temiz kaynak → "BEKLEYEN DEĞİŞİKLİK YOK" | evet | geçti |
 | `DNT-FRM-001` | Denetim | SERVER · DOMAIN · UI | `denetim-formu-eylem.test.ts` | öz denetim formu üretilir; BOŞ HÜCRE SIFIR | evet | geçti |
 | `DNT-FRM-001` | Denetim | SERVER · DOMAIN · UI | `denetim-formu-eylem.test.ts` | SoA da aynı kapıdan geçer ve yedi sütun taşır | evet | geçti |
 | `DNT-FRM-002` | Denetim | UI · DOMAIN | `denetim-formu.test.ts` | GEREKÇESİZ kapsam dışı İŞARETLENİR — gerekçe uydurulmaz | evet | geçti |
@@ -260,6 +262,47 @@
 | `DNE-ERS-003` | Dış denetçi | ENGINE · WORKFLOW | `faz-f-eylem.test.ts` | SÜRESİ DOLAN erişimin yetkileri de kapanır | evet | geçti |
 | `MED-KRT-002` | Taşınabilir medya | SERVER · DOMAIN | `faz-g-eylem.test.ts` | şifreleme ÜÇ değerlidir; ölçülmemiş `null` kalır | evet | geçti |
 | `ESL-MTR-002` | Eşleştirme | DOMAIN · UI | `senaryo-uyum.test.ts` | karşılığı olmayan madde boş bırakılır, uydurulmaz | evet | geçti |
+| `KVK-ENV-001` | Uyum | DOMAIN · UI | `veri-koruma.test.ts` | tarih GİRİLMEDİYSE hâl "tarih_girilmedi" — geri sayım YOK | evet | geçti |
+| `KVK-ENV-001` | Uyum | DOMAIN · UI | `veri-koruma.test.ts` | tarih GİRİLİNCE sayaç işler — kapı sıkı ama kilitli değil | evet | geçti |
+| `KVK-ENV-001` | Uyum | DOMAIN · UI | `veri-koruma.test.ts` | SÜRE KURALI yoksa yükümlülük de YOK — ürün süre uydurmaz | evet | geçti |
+| `KVK-ENV-001` | Uyum | DOMAIN · UI | `veri-koruma.test.ts` | BİLDİRİM gerektiren dayanak POZİTİF yüklemle seçilir | evet | geçti |
+| `KVK-ENV-001` | Uyum | DOMAIN · UI | `veri-koruma.test.ts` | İŞ GÜNÜ sayımı hafta sonunu ATLAR ve varsayımı beyan eder | evet | geçti |
+| `KVK-ENV-001` | Uyum | DOMAIN · UI | `veri-koruma.test.ts` | hafta sonu kümesi HAFTANIN TAMAMI olamaz — sonsuz döngü değil, HATA | evet | geçti |
+| `KVK-ENV-002` | Uyum | ENGINE · DOMAIN · SERVER | `veri-koruma.test.ts` | MOTORUN yazabileceği TEK durum `suresi_gecti` | evet | geçti |
+| `KVK-ENV-002` | Uyum | ENGINE · DOMAIN · SERVER | `veri-koruma.test.ts` | SÜRE YOKSA "geçti" de YOK — olmayan ihlal uydurulmaz | evet | geçti |
+| `KVK-ENV-002` | Uyum | ENGINE · DOMAIN · SERVER | `veri-koruma.test.ts` | KAPANMIŞ başvuruya motor DOKUNMAZ | evet | geçti |
+| `KVK-ENV-002` | Uyum | ENGINE · DOMAIN · SERVER | `veri-koruma.test.ts` | GERÇEK koşum: süresi geçen başvuruda GÖREV açılır, YANIT boş kalır | evet | geçti |
+| `KVK-ENV-002` | Uyum | ENGINE · DOMAIN · SERVER | `veri-koruma.test.ts` | MOTOR SARMALAYICISI aynı döngüyü koşar — ikinci gerçek yok | evet | geçti |
+| `KVK-ENV-002` | Uyum | ENGINE · DOMAIN · SERVER | `veri-koruma.test.ts` | SÜRE KURALI yoksa koşum hiçbir şey yazmaz, "süresiz" sayar | evet | geçti |
+| `KVK-ENV-002` | Uyum | ENGINE · DOMAIN · SERVER | `veri-koruma.test.ts` | kuralın hafta sonu JSON\'u BOZUKSA varsayıma düşer, boş kümeye DEĞİL | evet | geçti |
+| `KVK-ENV-003` | Uyum | ENGINE · DOMAIN · INTEGRATION | `veri-koruma.test.ts` | KİŞİSEL VERİ ihlali işaretlenmiş olayda yükümlülük UYANIR | evet | geçti |
+| `KVK-ENV-003` | Uyum | ENGINE · DOMAIN · INTEGRATION | `veri-koruma.test.ts` | kişisel veri ihlali DEĞİL denmiş olayda UYANMAZ | evet | geçti |
+| `KVK-ENV-003` | Uyum | ENGINE · DOMAIN · INTEGRATION | `veri-koruma.test.ts` | DEĞERLENDİRİLMEMİŞ olayda UYANIR — bilinmeyen ≠ hayır | evet | geçti |
+| `KVK-ENV-003` | Uyum | ENGINE · DOMAIN · INTEGRATION | `veri-koruma.test.ts` | TANINMAYAN koşul kodu UYANDIRMAZ — sessizce herkese açmaz | evet | geçti |
+| `KVK-ENV-003` | Uyum | ENGINE · DOMAIN · INTEGRATION | `veri-koruma.test.ts` | KOŞULSUZ yükümlülük eskisi gibi uyar — geriye dönük uyumlu | evet | geçti |
+| `KVK-ENV-003` | Uyum | ENGINE · DOMAIN · INTEGRATION | `veri-koruma.test.ts` | KOŞUL PAKETTEN gelir — kurulu satır onu taşıyor | evet | geçti |
+| `KVK-ENV-003` | Uyum | ENGINE · DOMAIN · INTEGRATION | `veri-koruma.test.ts` | TR-ENERJI paket DOSYASI KVKK yükümlülüğüne koşulu beyan ediyor | evet | geçti |
+| `KVK-ENV-003` | Uyum | ENGINE · DOMAIN · INTEGRATION | `veri-koruma.test.ts` | ZİNCİR: kişisel veri ihlali OLMAYAN olayda demo taslağı AÇILMAZ | evet | geçti |
+| `KVK-ENV-003` | Uyum | ENGINE · DOMAIN · INTEGRATION | `veri-koruma.test.ts` | ZİNCİR: kişisel veri ihlali OLAN olayda taslak AÇILIR | evet | geçti |
+| `KVK-ENV-004` | Uyum | SERVER · MIGRATION · DOMAIN | `veri-koruma.test.ts` | OLMAYAN sürece bağlı kayıt REDDEDİLİR, satır AÇILMAZ | evet | geçti |
+| `KVK-ENV-004` | Uyum | SERVER · MIGRATION · DOMAIN | `veri-koruma.test.ts` | BOŞ süreç kimliği de REDDEDİLİR | evet | geçti |
+| `KVK-ENV-004` | Uyum | SERVER · MIGRATION · DOMAIN | `veri-koruma.test.ts` | KOLON da NOT NULL — sunucu atlansa bile veritabanı reddeder | evet | geçti |
+| `KVK-ENV-004` | Uyum | SERVER · MIGRATION · DOMAIN | `veri-koruma.test.ts` | GEÇERLİ sürece bağlı kayıt GEÇER ve iz bırakır | evet | geçti |
+| `KVK-ENV-005` | Uyum | RBAC · SCOPE · SERVER | `veri-koruma.test.ts` | UYUM ONAYI olmayan rol başvuruyu karara BAĞLAYAMAZ, kayıt DEĞİŞMEZ | evet | geçti |
+| `KVK-ENV-005` | Uyum | RBAC · SCOPE · SERVER | `veri-koruma.test.ts` | TESİSE KISITLI rol de karara bağlayamaz — kurum geneli kapsam ister | evet | geçti |
+| `KVK-ENV-005` | Uyum | RBAC · SCOPE · SERVER | `veri-koruma.test.ts` | UYUM ONAYI olmayan rol BİLDİRİM TARİHİ yazamaz, tarih BOŞ kalır | evet | geçti |
+| `KVK-ENV-005` | Uyum | RBAC · SCOPE · SERVER | `veri-koruma.test.ts` | GELECEK tarihli bildirim REDDEDİLİR — yapılmamış beyan işaretlenemez | evet | geçti |
+| `KVK-ENV-005` | Uyum | RBAC · SCOPE · SERVER | `veri-koruma.test.ts` | DEMO ikizi kişisel veri kaydı YAZMAZ — açık ret döner | evet | geçti |
+| `KVK-ENV-006` | Uyum | UI · DOMAIN · RESPONSIVE | `veri-koruma-mantik.test.ts` | değerlendirilmemiş faaliyet ile tarihsiz aktarım AYRI sayılır | evet | geçti |
+| `KVK-ENV-006` | Uyum | UI · DOMAIN · RESPONSIVE | `veri-koruma-mantik.test.ts` | özel nitelikli FALSE ile NULL aynı kefeye konmaz | evet | geçti |
+| `KVK-ENV-006` | Uyum | UI · DOMAIN · RESPONSIVE | `veri-koruma-mantik.test.ts` | SÜRE KURALI olmayan başvuru "süresiz" sayılır ve cümleyle söylenir | evet | geçti |
+| `KVK-ENV-006` | Uyum | UI · DOMAIN · RESPONSIVE | `veri-koruma-mantik.test.ts` | BİR BAŞVURU, BİR SAYAÇ: süresi geçen bekleyen sayılmaz | evet | geçti |
+| `KVK-ENV-006` | Uyum | UI · DOMAIN · RESPONSIVE | `veri-koruma-mantik.test.ts` | süresi GEÇEN varsa başlık ONU söyler | evet | geçti |
+| `KVK-ENV-006` | Uyum | UI · DOMAIN · RESPONSIVE | `veri-koruma-mantik.test.ts` | envanter BOŞSA başlık bunu söyler — "yolunda" demez | evet | geçti |
+| `KVK-ENV-006` | Uyum | UI · DOMAIN · RESPONSIVE | `veri-koruma-mantik.test.ts` | süre yoksa geri sayım YERİNE "belirlenmedi" der | evet | geçti |
+| `KVK-ENV-006` | Uyum | UI · DOMAIN · RESPONSIVE | `veri-koruma-mantik.test.ts` | süre GEÇMİŞSE "GECİKME" der, kalmışsa "kaldı" | evet | geçti |
+| `KVK-ENV-006` | Uyum | UI · DOMAIN · RESPONSIVE | `veri-koruma-mantik.test.ts` | bildirim GEREKTİRMEYEN dayanakta tarih SORULMAZ | evet | geçti |
+| `KVK-ENV-006` | Uyum | UI · DOMAIN · RESPONSIVE | `veri-koruma-mantik.test.ts` | TANINMAYAN dayanak kendi adıyla görünür, uydurulmaz | evet | geçti |
 | `OTR-GRS-001` | Oturum | SERVER · RBAC | `giris-guvenligi.test.ts` | başarılı giriş de kaynak adresle birlikte kaydedilir | evet | geçti |
 | `OTR-GRS-002` | Oturum | SERVER · RBAC | `giris-guvenligi.test.ts` | istemciye dönen mesaj HER ret için AYNIDIR — hesap sayımı yapılamaz | evet | geçti |
 | `OTR-GRS-003` | Oturum | SERVER · RBAC | `senaryo-platform.test.ts` | her yazma eylemi demo ikizinde REDDE düşer | evet | geçti |
@@ -351,7 +394,7 @@
 | `SIS-GVN-001` | Sistem | API · SCOPE · RBAC | `guvenlik-negatif.test.ts` | B santralini açıkça isteyen sorgu 403 döner ve gövde kayıt taşımaz | evet | geçti |
 | `SIS-SIR-001` | Sistem | SERVER · INTEGRATION | `sir-katmani.test.ts` | tanınmayan sağlayıcı biçimsel olarak geçerli ama DENETİMDEN geçmez | evet | geçti |
 | `SIS-ALT-001` | Sistem | DOMAIN · INTEGRATION | `ot48-49-altyapi.test.ts` | ölçülemeyen zorunlu kontrol varken HAZIR cümlesi kurulmaz | evet | geçti |
-| `YON-MOT-003` | Yönetim konsolu | ENGINE · DOMAIN | `motor-defteri.test.ts` | defterdeki on dokuz motorun her biri seed verisinde HATASIZ koşar | evet | geçti |
+| `YON-MOT-003` | Yönetim konsolu | ENGINE · DOMAIN | `motor-defteri.test.ts` | defterdeki yirmi motorun her biri seed verisinde HATASIZ koşar | evet | geçti |
 | `YON-MOT-004` | Yönetim konsolu | ENGINE · WORKFLOW | `motorlar.test.ts` | gap-to-action: uyumsuz+kritik → proje adayı üretir; İNSAN ONAYSIZ projeye dönmez; mükerrer üretmez | evet | geçti |
 | `SAG-VKL-001` | Sağlık | ENGINE | `veri-kalitesi-aktarim.test.ts` | entegrasyon tabloları boşken HİÇBİR aktarım kuralı bulgu üretmez | evet | geçti |
 | `SAG-VKL-002` | Sağlık | ENGINE · DOMAIN | `veri-kalitesi-aktarim.test.ts` | aynı varlığı iki kaynak görse bile TEK bulgu açılır | evet | geçti |

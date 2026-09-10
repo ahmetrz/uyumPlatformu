@@ -280,6 +280,28 @@ export type BildirimKaydiOzeti = {
   suresiz: number;
 };
 
+/* ── EKRANIN GÖSTERDİĞİ DURUM ────────────────────────────────────────
+   Kaydın `durum` alanını yalnız MOTOR yazar ve motor periyodik koşar
+   (`MOTOR_ARALIK_DK = 60`); geri sayım ise ekran her açıldığında CANLI
+   hesaplanır. İkisi uzlaştırılmazsa süre iki motor turu ARASINDA
+   dolduğunda satır aynı anda "Taslak hazır — gönderilmedi" ve
+   "20 dakika GECİKME" der; üstelik renk sınıfı nötr kalır. Ölçüldü
+   (bağımsız inceleme, #47 turu 1): açılış anındaki aynı çelişki daha
+   önce kapatılmıştı, bu onun KAPSANMAYAN ikinci nüshasıydı ve motorun
+   ritmi yüzünden her kayıt için garanti bir pencere açıyordu.
+
+   EKRAN YAZMAZ, GÖSTERİR: bu karar veritabanına dokunmaz. Motorun
+   yazabildiği küme değişmedi; yalnız ekranın SÖYLEDİĞİ ile sayacın
+   söylediği aynı hizaya geldi. Kapılar (gönderim · teyit · uygulanmaz)
+   veritabanındaki değeri okumaya devam eder. */
+export function gorunenDurum(o: {
+  kayitDurumu: string;
+  geriSayim: GeriSayim;
+}): string {
+  return motorunKarari({ mevcutDurum: o.kayitDurumu, geriSayim: o.geriSayim })
+    ?? o.kayitDurumu;
+}
+
 export function kayitOzeti(
   kayitlar: readonly { durum: string; sureSaat: number | null }[],
 ): BildirimKaydiOzeti {

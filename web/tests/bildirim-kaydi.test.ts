@@ -2,7 +2,7 @@ import { describe, expect, it } from 'vitest';
 import {
   BILDIRIM_KAYDI_DURUMLARI, GEREKCE_ASGARI, KAYIT_DURUM_SINIFI, KAYIT_DURUM_SOZU,
   MOTORUN_YAZABILECEGI, REFERANS_ASGARI, SURESIZ_SOZU,
-  geriSayim, gonderimKapisi, kayitCumlesi, kayitKapali, kayitOzeti,
+  geriSayim, gonderimKapisi, gorunenDurum, kayitCumlesi, kayitKapali, kayitOzeti,
   motorYazabilirMi, motorunKarari, teyitKapisi, uyanYukumlulukler, uygulanmazKapisi,
   type SureliYukumluluk,
 } from '@/lib/uyum/bildirimKaydi';
@@ -304,5 +304,44 @@ describe('durum sözlüğü ve özet', () => {
 
   it('kayıt yoksa "yükümlülük doğmadı" denir, "hepsi tamam" denmez', () => {
     expect(kayitCumlesi(kayitOzeti([]))).toMatch(/yükümlülüğü doğmadı/);
+  });
+});
+
+/* ═══ EKRANIN GÖSTERDİĞİ DURUM · bağımsız inceleme bulgusu #47/1 ══════ */
+
+describe('ekran durumu geri sayımla UZLAŞTIRILIR [OLY-BIL-002]', () => {
+  const SAAT = 3_600_000;
+  const gecmis = (saat: number) => geriSayim({
+    baslangic: Date.now() - saat * SAAT, simdi: Date.now(), sureSaat: 24,
+  });
+
+  it('süresi dolmuş TASLAK ekranda "süresi geçti" görünür — motor daha yetişmedi', () => {
+    /* Kusur: motor SAATTE BİR koşar, geri sayım her istekte canlıdır.
+       Aradaki pencerede satır "Taslak hazır — gönderilmedi · 20 dakika
+       GECİKME" diyordu: iki söz aynı satırda çelişiyordu. */
+    expect(gorunenDurum({ kayitDurumu: 'taslak', geriSayim: gecmis(25) }))
+      .toBe('suresi_gecti');
+  });
+
+  it('süresi DOLMAMIŞ taslak taslak kalır', () => {
+    expect(gorunenDurum({ kayitDurumu: 'taslak', geriSayim: gecmis(1) })).toBe('taslak');
+  });
+
+  it('SÜRESİZ yükümlülükte hiçbir zaman "geçti" gösterilmez', () => {
+    const suresiz = geriSayim({ baslangic: Date.now() - 1000 * SAAT, simdi: Date.now(), sureSaat: null });
+    expect(gorunenDurum({ kayitDurumu: 'taslak', geriSayim: suresiz })).toBe('taslak');
+  });
+
+  it('İNSAN KARARI ekranda geri alınmaz — kapalı kayıt olduğu gibi görünür', () => {
+    /* Ekran uzlaştırması motorun kararını taklit eder, İNSANINKİNİ
+       değil: gönderilmiş bir bildirim gecikmeli de olsa gönderilmiştir. */
+    for (const d of ['gonderildi', 'teyit_alindi', 'uygulanmaz'] as const) {
+      expect(gorunenDurum({ kayitDurumu: d, geriSayim: gecmis(99) })).toBe(d);
+    }
+  });
+
+  it('ekran YAZMAZ: karar motorun yazabildiği kümenin dışına çıkamaz', () => {
+    const sonuc = gorunenDurum({ kayitDurumu: 'taslak', geriSayim: gecmis(25) });
+    expect(MOTORUN_YAZABILECEGI).toContain(sonuc);
   });
 });

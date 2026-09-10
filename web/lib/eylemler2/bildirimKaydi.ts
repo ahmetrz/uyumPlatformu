@@ -38,7 +38,7 @@ import { t } from '../dil/terimler';
 import {
   KAYIT_DURUM_SOZU, gonderimKapisi, teyitKapisi, uygulanmazKapisi,
 } from '../uyum/bildirimKaydi';
-import { type Sonuc, tamam, hata, iz, bosluksuz } from './ortak';
+import { type Sonuc, tamam, hata, iz, bosluksuz, type IzIstemcisi } from './ortak';
 
 /** Kaydı, olayını ve kapsam yetkisini birlikte çözer. */
 async function kayitKapisi(kayitId: string) {
@@ -60,8 +60,21 @@ async function kayitKapisi(kayitId: string) {
   return { k, kayit };
 }
 
-/** Denetim izi — üç eylemin ortak kaydı; durum geçişi ADIYLA yazılır. */
-async function izYaz(o: {
+/* ── YAZMA VE İZ TEK İŞLEMDE ───────────────────────────────────────────
+   Bağımsız inceleme bulgusu (P1, #47 turu 1): durum yazımı ile denetim
+   izi İKİ ayrı çağrıydı. Aradaki çöküş — ya da better-sqlite3'ün TEK
+   bağlantısını paylaşan eşzamanlı bir işlemin geri alınması — kaydı
+   "gönderildi · referans dolu" bırakıp izi düşürebilirdi: bir uyum
+   ürününde bildirimi KİMİN, NE ZAMAN yaptığını söyleyen tek kayıt odur.
+   Ürünün kendi cümlesiyle "kayıt ancak referansla bir KANIT olur";
+   kanıtlayan tarafın kendisi sessizce kaybolamaz.
+
+   Emsal aynı depoda duruyordu ve izlenmemişti: `olay.ts` →
+   `etkiDogrula`, "Alan yazımı ve denetim izi TEK işlemde: izi düşmeyen
+   bir doğrulama kaydı kalamaz." */
+
+/** Denetim izi — durum geçişi ADIYLA yazılır. İŞLEM İÇİNDE çağrılır. */
+async function izYaz(tx: IzIstemcisi, o: {
   aktorId: string;
   kayitId: string;
   once: string;
@@ -77,7 +90,7 @@ async function izYaz(o: {
     once: o.once,
     sonra: o.sonra,
     gerekce: o.gerekce,
-  });
+  }, tx);
 }
 
 /**
@@ -113,25 +126,26 @@ export async function bildirimGonderildiIsaretle(girdi: {
       if (!kanit) throw new Error('Gönderim kanıtı bulunamadı');
     }
 
-    await db.bildirimKaydi.update({
-      where: { id: kayit.id },
-      data: {
-        durum: 'gonderildi',
-        referansNo: v.referansNo.trim(),
-        gonderenId: k.id,
-        gonderimZamani: new Date(),
-        kanitId: v.kanitId || null,
-      },
-    });
-
-    await izYaz({
-      aktorId: k.id,
-      kayitId: kayit.id,
-      once: KAYIT_DURUM_SOZU[kayit.durum as keyof typeof KAYIT_DURUM_SOZU] ?? kayit.durum,
-      sonra: KAYIT_DURUM_SOZU.gonderildi,
-      gerekce: `${kayit.olay.kod} · ${kayit.yukumluluk.kod} · ${kayit.yukumluluk.merci}`
-        + ` · referans ${v.referansNo.trim()}`
-        + (v.kanitId ? ' · kanıt bağlandı' : ' · kanıt bağlanmadı'),
+    await db.$transaction(async (tx) => {
+      await tx.bildirimKaydi.update({
+        where: { id: kayit.id },
+        data: {
+          durum: 'gonderildi',
+          referansNo: v.referansNo.trim(),
+          gonderenId: k.id,
+          gonderimZamani: new Date(),
+          kanitId: v.kanitId || null,
+        },
+      });
+      await izYaz(tx, {
+        aktorId: k.id,
+        kayitId: kayit.id,
+        once: KAYIT_DURUM_SOZU[kayit.durum as keyof typeof KAYIT_DURUM_SOZU] ?? kayit.durum,
+        sonra: KAYIT_DURUM_SOZU.gonderildi,
+        gerekce: `${kayit.olay.kod} · ${kayit.yukumluluk.kod} · ${kayit.yukumluluk.merci}`
+          + ` · referans ${v.referansNo.trim()}`
+          + (v.kanitId ? ' · kanıt bağlandı' : ' · kanıt bağlanmadı'),
+      });
     });
 
     revalidatePath('/olaylar');
@@ -150,18 +164,19 @@ export async function bildirimTeyitIsaretle(girdi: { kayitId: string }): Promise
     const kapi = teyitKapisi({ mevcutDurum: kayit.durum });
     if (!kapi.ok) return { ok: false, hata: kapi.sebep };
 
-    await db.bildirimKaydi.update({
-      where: { id: kayit.id },
-      data: { durum: 'teyit_alindi', teyitZamani: new Date() },
-    });
-
-    await izYaz({
-      aktorId: k.id,
-      kayitId: kayit.id,
-      once: KAYIT_DURUM_SOZU.gonderildi,
-      sonra: KAYIT_DURUM_SOZU.teyit_alindi,
-      gerekce: `${kayit.olay.kod} · ${kayit.yukumluluk.kod} · ${kayit.yukumluluk.merci}`
-        + ` · gönderim referansı ${kayit.referansNo ?? 'YOK'}`,
+    await db.$transaction(async (tx) => {
+      await tx.bildirimKaydi.update({
+        where: { id: kayit.id },
+        data: { durum: 'teyit_alindi', teyitZamani: new Date() },
+      });
+      await izYaz(tx, {
+        aktorId: k.id,
+        kayitId: kayit.id,
+        once: KAYIT_DURUM_SOZU.gonderildi,
+        sonra: KAYIT_DURUM_SOZU.teyit_alindi,
+        gerekce: `${kayit.olay.kod} · ${kayit.yukumluluk.kod} · ${kayit.yukumluluk.merci}`
+          + ` · gönderim referansı ${kayit.referansNo ?? 'YOK'}`,
+      });
     });
 
     revalidatePath('/olaylar');
@@ -192,17 +207,18 @@ export async function bildirimUygulanmazIsaretle(girdi: {
     const kapi = uygulanmazKapisi({ mevcutDurum: kayit.durum, gerekce: v.gerekce });
     if (!kapi.ok) return { ok: false, hata: kapi.sebep };
 
-    await db.bildirimKaydi.update({
-      where: { id: kayit.id },
-      data: { durum: 'uygulanmaz', uygulanmazGerekcesi: v.gerekce.trim() },
-    });
-
-    await izYaz({
-      aktorId: k.id,
-      kayitId: kayit.id,
-      once: KAYIT_DURUM_SOZU[kayit.durum as keyof typeof KAYIT_DURUM_SOZU] ?? kayit.durum,
-      sonra: KAYIT_DURUM_SOZU.uygulanmaz,
-      gerekce: `${kayit.olay.kod} · ${kayit.yukumluluk.kod} · ${v.gerekce.trim()}`,
+    await db.$transaction(async (tx) => {
+      await tx.bildirimKaydi.update({
+        where: { id: kayit.id },
+        data: { durum: 'uygulanmaz', uygulanmazGerekcesi: v.gerekce.trim() },
+      });
+      await izYaz(tx, {
+        aktorId: k.id,
+        kayitId: kayit.id,
+        once: KAYIT_DURUM_SOZU[kayit.durum as keyof typeof KAYIT_DURUM_SOZU] ?? kayit.durum,
+        sonra: KAYIT_DURUM_SOZU.uygulanmaz,
+        gerekce: `${kayit.olay.kod} · ${kayit.yukumluluk.kod} · ${v.gerekce.trim()}`,
+      });
     });
 
     revalidatePath('/olaylar');
@@ -240,19 +256,20 @@ export async function bildirimTaslakDuzenle(girdi: {
     }
 
     const metin = v.taslakMetin.trim();
-    await db.bildirimKaydi.update({
-      where: { id: kayit.id },
-      data: { taslakMetin: metin === '' ? null : metin },
-    });
-
-    await iz({
-      aktorId: k.id,
-      varlikTipi: 'BildirimKaydi',
-      varlikId: kayit.id,
-      eylem: 'guncelleme',
-      alan: 'taslakMetin',
-      sonra: metin === '' ? 'taslak boşaltıldı' : `${metin.length} karakter`,
-      gerekce: `${kayit.olay.kod} · ${kayit.yukumluluk.kod} taslağı düzenlendi`,
+    await db.$transaction(async (tx) => {
+      await tx.bildirimKaydi.update({
+        where: { id: kayit.id },
+        data: { taslakMetin: metin === '' ? null : metin },
+      });
+      await iz({
+        aktorId: k.id,
+        varlikTipi: 'BildirimKaydi',
+        varlikId: kayit.id,
+        eylem: 'guncelleme',
+        alan: 'taslakMetin',
+        sonra: metin === '' ? 'taslak boşaltıldı' : `${metin.length} karakter`,
+        gerekce: `${kayit.olay.kod} · ${kayit.yukumluluk.kod} taslağı düzenlendi`,
+      }, tx);
     });
 
     revalidatePath('/olaylar');

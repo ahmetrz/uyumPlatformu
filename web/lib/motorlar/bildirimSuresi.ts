@@ -105,7 +105,8 @@ export async function bildirimSurelerini(): Promise<BildirimSuresiKosusu> {
        işini taklit eden ikinci bir gerçek doğururdu). */
     const kayit = await olayinKayitlarini(
       db,
-      { id: o.id, siddet: o.siddet, baslangic: o.baslangic, bildirimGerekli: o.bildirimGerekli, regulasyonIdleri },
+      { id: o.id, kod: o.kod, siddet: o.siddet, baslangic: o.baslangic,
+        bildirimGerekli: o.bildirimGerekli, regulasyonIdleri },
       kurallar as SureliYukumluluk[],
       simdi,
     );

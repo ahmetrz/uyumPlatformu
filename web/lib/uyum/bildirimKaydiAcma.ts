@@ -18,9 +18,10 @@
    `tests/bekci/bildirim-motoru.test.ts`). */
 
 import type { db as Db } from '../db';
+import { iz } from '../eylemler2/ortak';
 import {
   geriSayim, motorYazabilirMi, motorunKarari, uyanYukumlulukler,
-  type SureliYukumluluk,
+  SURESIZ_SOZU, type SureliYukumluluk,
 } from './bildirimKaydi';
 
 export type KayitKosusu = {
@@ -34,6 +35,8 @@ export type KayitKosusu = {
 
 export type OlaySatiri = {
   id: string;
+  /** İz kaydında insanın tanıyacağı ad; yoksa id yazılır. */
+  kod?: string | null;
   siddet: string;
   baslangic: Date;
   bildirimGerekli: boolean | null;
@@ -80,13 +83,29 @@ export async function olayinKayitlarini(
          Taslak METNİ ürün YAZMAZ: mercinin şablonu paketten gelir ve
          cevapları kurum doldurur. Boş bırakmak, uydurmaktan iyidir. */
       const acilis = motorunKarari({ mevcutDurum: 'taslak', geriSayim: gs }) ?? 'taslak';
-      await istemci.bildirimKaydi.create({
-        data: {
-          olayId: olay.id,
-          yukumlulukId: y.id,
-          durum: acilis,
-          sonTarih: gs.sonTarih === null ? null : new Date(gs.sonTarih),
-        },
+      /* MOTORUN YAZDIĞI DA İZ BIRAKIR — bağımsız inceleme bulgusu (P2,
+         #47 turu 1). Bir mevzuat yükümlülüğünün DOĞDUĞU ve SÜRESİNİN
+         GEÇTİĞİ anlar bu özelliğin en denetim-kritik olaylarıdır ve
+         hiçbir iz bırakmıyordu. Emsal aynı depoda: `motorlar/sonTarih.ts`
+         riski otomatik yeniden açarken `kaynak: 'is_kosusu'` ile ize
+         düşüyor. Aktör YOK (`aktorId: null`) çünkü kararı insan vermedi;
+         iz bunu saklamaz, ADIYLA söyler. */
+      await istemci.$transaction(async (tx) => {
+        const kayit = await tx.bildirimKaydi.create({
+          data: {
+            olayId: olay.id,
+            yukumlulukId: y.id,
+            durum: acilis,
+            sonTarih: gs.sonTarih === null ? null : new Date(gs.sonTarih),
+          },
+        });
+        await iz({
+          aktorId: null, varlikTipi: 'BildirimKaydi', varlikId: kayit.id,
+          eylem: 'olusturma', alan: 'durum', once: null,
+          sonra: acilis === 'suresi_gecti' ? 'Süresi geçmiş açıldı' : 'Taslak açıldı',
+          gerekce: `motor · ${olay.kod ?? olay.id} · ${y.kod} · ${y.merci}`
+            + ` · ${gs.sureVar ? `son tarih ${new Date(gs.sonTarih!).toISOString()}` : SURESIZ_SOZU}`,
+        }, tx);
       });
       sonuc.acilanTaslak += 1;
       if (acilis === 'suresi_gecti') sonuc.suresiGecen += 1;
@@ -99,7 +118,16 @@ export async function olayinKayitlarini(
     /* Bekçi kuşağı: motorun yazacağı her durum listeden geçer. Kod bir gün
        başka bir durum hesaplarsa burada durur, veritabanında değil. */
     if (!motorYazabilirMi(yeniDurum)) continue;
-    await istemci.bildirimKaydi.update({ where: { id: mevcut.id }, data: { durum: yeniDurum } });
+    await istemci.$transaction(async (tx) => {
+      await tx.bildirimKaydi.update({ where: { id: mevcut.id }, data: { durum: yeniDurum } });
+      await iz({
+        aktorId: null, varlikTipi: 'BildirimKaydi', varlikId: mevcut.id,
+        eylem: 'guncelleme', alan: 'durum',
+        once: 'Taslak hazır — gönderilmedi', sonra: 'SÜRE GEÇTİ — hâlâ gönderilmedi',
+        gerekce: `motor · ${olay.kod ?? olay.id} · ${y.kod} · ${y.merci}`
+          + ' · süre doldu, bildirim hâlâ gönderilmedi',
+      }, tx);
+    });
     sonuc.suresiGecen += 1;
   }
   return sonuc;
@@ -125,7 +153,7 @@ export async function acikOlaylarinKayitlarini(istemci: typeof Db): Promise<Kayi
 
   const olaylar = await istemci.olay.findMany({
     where: { durum: { in: ['acik', 'mudahale'] } },
-    select: { id: true, siddet: true, baslangic: true, tesisId: true, bildirimGerekli: true },
+    select: { id: true, kod: true, siddet: true, baslangic: true, tesisId: true, bildirimGerekli: true },
   });
 
   const simdi = Date.now();

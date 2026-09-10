@@ -461,7 +461,19 @@ async function sil(varlikTipi: string, esik: Date): Promise<number> {
     case 'Bulgu':
       return (await db.bulgu.deleteMany({ where: { tespitTarihi: { lt: esik } } })).count;
     case 'Kanit':
-      return (await db.kanit.deleteMany({ where: { olusturuldu: { lt: esik } } })).count;
+      /* GÖNDERİLMİŞ BİR BİLDİRİMİN KANITI İMHA EDİLMEZ — bağımsız
+         inceleme bulgusu (P1, #47 turu 1). `BildirimKaydi.kanitId`
+         ON DELETE SET NULL taşır; salt tarihe bakan bu süpürme, bir
+         mevzuat bildiriminin YAPILDIĞINI kanıtlayan dosyayı silip bağı
+         SESSİZCE koparıyordu. Kayıt "Gönderildi · referans dolu"
+         görünmeye devam ederdi ve kopuş hiçbir izde görünmezdi.
+         Saklama politikası kurumun kararıdır; ürünün işi, o kararın
+         denetim zincirini farkında olmadan kesmesini engellemektir.
+         Kayıt kapandığında (arşiv) bağ da düşer ve satır süpürmeye
+         normal şekilde girer. */
+      return (await db.kanit.deleteMany({
+        where: { olusturuldu: { lt: esik }, bildirimKayitlari: { none: {} } },
+      })).count;
     case 'IsKosusu':
       return (await db.isKosusu.deleteMany({ where: { baslangic: { lt: esik } } })).count;
     case 'ApiIstegi':

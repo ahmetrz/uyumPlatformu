@@ -1,5 +1,5 @@
 import { afterAll, beforeAll, describe, expect, it, vi } from 'vitest';
-import { copyFileSync, mkdtempSync } from 'node:fs';
+import { copyFileSync, mkdtempSync, readFileSync } from 'node:fs';
 import { rm } from 'node:fs/promises';
 import { tmpdir } from 'node:os';
 import path from 'node:path';
@@ -297,6 +297,99 @@ describe('insan kararı: "uygulanmaz" gerekçe ister', () => {
     await bildirimSurelerini();
     const k = await db.bildirimKaydi.findUniqueOrThrow({ where: { id: kayitId } });
     expect(k.durum).toBe('uygulanmaz');
+  });
+});
+
+/* ═══ BAĞIMSIZ İNCELEME BULGULARI · #47 turu 1 ═══════════════════════ */
+
+describe('durum ve denetim izi TEK İŞLEMDE yazılır [OLY-BIL-004]', () => {
+  /* P1 · Sınıf 1. İki ayrı çağrı, aradaki çöküşte kaydı "gönderildi ·
+     referans dolu" bırakıp izi düşürebilirdi. Emsal aynı depoda vardı
+     (`olay.ts` → `etkiDogrula`) ve izlenmemişti. */
+  it('kaynak dosyada durum yazımı ile iz AYNI transaction bloğunda', () => {
+    const kaynak = readFileSync('lib/eylemler2/bildirimKaydi.ts', 'utf8');
+    /* Dört eylemin dördü de işlem açar. */
+    expect((kaynak.match(/db\.\$transaction\(/g) ?? []).length).toBe(4);
+    /* İŞLEM DIŞINDA kalan bir `bildirimKaydi.update` KALMADI: kalsaydı
+       kural yazılı olur, kod eskisi gibi çalışırdı. */
+    expect(/\bdb\.bildirimKaydi\.update\(/.test(kaynak)).toBe(false);
+    /* İz de işlem istemcisiyle yazılır — `iz(...)` ikinci argümansız
+       çağrılırsa varsayılan `db`ye düşer ve işlem dışında kalır. */
+    expect(/izYaz\(tx,/.test(kaynak)).toBe(true);
+  });
+
+  it('gönderim izi kaydın YANINDA duruyor (yazma ve iz birlikte)', async () => {
+    /* Kayıt bu dosyada önce `gonderildi`, sonra `teyit_alindi` oluyor;
+       aranan şey durum değil GÖNDERİM İZİ — referansı olan kayıt. */
+    const kayit = await db.bildirimKaydi.findFirstOrThrow({
+      where: { olayId, referansNo: { not: null } }, select: { id: true, referansNo: true },
+    });
+    const iz = await db.aktiviteKaydi.findFirst({
+      where: {
+        varlikTipi: 'BildirimKaydi', varlikId: kayit.id, alan: 'durum',
+        yeniDeger: 'Gönderildi',
+      },
+    });
+    expect(iz, 'gönderilmiş kaydın izi yok').not.toBeNull();
+    expect(iz!.gerekce).toContain(kayit.referansNo!);
+  });
+});
+
+describe('MOTORUN yazdığı da iz bırakır [OLY-BIL-003]', () => {
+  /* P2 · Sınıf 1. Bir yükümlülüğün DOĞDUĞU ve SÜRESİNİN GEÇTİĞİ anlar
+     bu özelliğin en denetim-kritik olaylarıdır; hiçbir iz yoktu. */
+  it('taslak açılışı AKTÖRSÜZ bir ize düşer — kararı insan vermedi', async () => {
+    const kayit = await db.bildirimKaydi.findUniqueOrThrow({
+      where: { olayId_yukumlulukId: { olayId, yukumlulukId: suresizId } },
+      select: { id: true },
+    });
+    const iz = await db.aktiviteKaydi.findFirst({
+      where: { varlikTipi: 'BildirimKaydi', varlikId: kayit.id, eylem: 'olusturma' },
+    });
+    expect(iz, 'motorun açtığı kaydın izi yok').not.toBeNull();
+    expect(iz!.aktorId, 'motor kararı bir insana yazılamaz').toBeNull();
+    expect(iz!.gerekce).toContain('motor');
+    /* Süresiz yükümlülükte iz de "süre yok" der — sayı uydurmaz. */
+    expect(iz!.gerekce).toContain('Süre mevzuatta belirlenmedi');
+  });
+
+  it('süresi geçmiş açılan kaydın izi bunu ADIYLA söyler', async () => {
+    const kayit = await db.bildirimKaydi.findUniqueOrThrow({
+      where: { olayId_yukumlulukId: { olayId, yukumlulukId: sureliId } },
+      select: { id: true },
+    });
+    const iz = await db.aktiviteKaydi.findFirst({
+      where: { varlikTipi: 'BildirimKaydi', varlikId: kayit.id, eylem: 'olusturma' },
+    });
+    expect(iz!.yeniDeger).toBe('Süresi geçmiş açıldı');
+  });
+});
+
+describe('gönderim KANITI imha süpürmesinden korunur', () => {
+  /* P1 · Sınıf 2. `kanitId` ON DELETE SET NULL taşıyor; salt tarihe
+     bakan saklama süpürmesi bağı SESSİZCE koparıyordu. */
+  it('bildirim kaydına bağlı Kanit toplu silmeye GİRMEZ', async () => {
+    const kanit = await db.kanit.findFirstOrThrow({ select: { id: true } });
+    const kayit = await db.bildirimKaydi.findFirstOrThrow({
+      where: { olayId }, select: { id: true },
+    });
+    await db.bildirimKaydi.update({ where: { id: kayit.id }, data: { kanitId: kanit.id } });
+
+    /* Süpürmenin KENDİ koşulu koşulur: gelecekteki bir eşikle HER kanıt
+       aday olur; bağlı olan yine de dışarıda kalmalı. */
+    const adaylar = await db.kanit.findMany({
+      where: { olusturuldu: { lt: new Date(Date.now() + 10 * 365 * 24 * SAAT) },
+        bildirimKayitlari: { none: {} } },
+      select: { id: true },
+    });
+    expect(adaylar.map((x) => x.id)).not.toContain(kanit.id);
+
+    /* Kaynak dosyada da koşul duruyor: sorgu buradan kopyalandığı için
+       kod değişirse bu vaka yeşil kalıp yanıltmasın. */
+    const kaynak = readFileSync('lib/eylemler2/saklama.ts', 'utf8');
+    expect(/case 'Kanit':[\s\S]{0,900}?bildirimKayitlari: \{ none: \{\} \}/.test(kaynak)).toBe(true);
+
+    await db.bildirimKaydi.update({ where: { id: kayit.id }, data: { kanitId: null } });
   });
 });
 

@@ -208,6 +208,9 @@ export type OlayKaydi = {
   degisiklikler: Bag[];
   /** Kullanıcı bu olayın tesis kapsamında yazabiliyor mu (satır bazlı). */
   yazilabilir: boolean;
+  /** Bildirim kaydı eylemleri `uyum/onay` ister — `envanter/yazma` DEĞİL.
+      Ayrı alan: iki yetki ekseni tek bayrağa sığmaz (bkz. page.tsx). */
+  bildirimYetkili: boolean;
 };
 
 /** Olayın belirli bir tipteki mevcut bağları — çekmece bunu tek yerden okur. */

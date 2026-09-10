@@ -462,7 +462,8 @@ function BildirimKayitlariBlogu({ o }: { o: OlayKaydi }) {
             {k.uygulanmazGerekcesi && (
               <div className="ikincil">Gerekçe: {k.uygulanmazGerekcesi}</div>
             )}
-            <BildirimKaydiEylemleri kayitId={k.id} durum={k.durum} yazabilir={o.yazilabilir} />
+            <BildirimKaydiEylemleri kayitId={k.id} durum={k.durum}
+              yazabilir={o.bildirimYetkili} />
           </div>
         );
       })}

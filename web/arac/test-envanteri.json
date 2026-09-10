@@ -1,7 +1,7 @@
 {
-  "imza": "3a870ee26f429bdb66615a4ca9534769",
+  "imza": "15e30101069d3933dade16f12a3ffee0",
   "dosya": 205,
-  "vaka": 3741,
+  "vaka": 3754,
   "atlanan": 1,
   "dosyalar": {
     "tests/adaptor-yetenekleri.test.ts": {
@@ -41,7 +41,7 @@
       "atlanan": 0
     },
     "tests/bekci/bildirim-motoru.test.ts": {
-      "vaka": 7,
+      "vaka": 10,
       "atlanan": 0
     },
     "tests/bekci/cekirdek-taban.test.ts": {
@@ -113,11 +113,11 @@
       "atlanan": 0
     },
     "tests/bildirim-kaydi-eylem.test.ts": {
-      "vaka": 20,
+      "vaka": 25,
       "atlanan": 0
     },
     "tests/bildirim-kaydi.test.ts": {
-      "vaka": 34,
+      "vaka": 39,
       "atlanan": 0
     },
     "tests/bildirim-kutusu.test.ts": {

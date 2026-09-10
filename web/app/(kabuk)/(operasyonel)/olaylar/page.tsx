@@ -4,7 +4,7 @@ import { kapsamdaYetkili, modulYazabilir } from '@/app/kapsam';
 import { Yetkisiz } from '@/components/kabuk/temel';
 import { db } from '@/lib/db';
 import { bildirimKarari } from '@/lib/uyum/bildirimSuresi';
-import { geriSayim } from '@/lib/uyum/bildirimKaydi';
+import { geriSayim, gorunenDurum } from '@/lib/uyum/bildirimKaydi';
 import { simdiOku } from './veri';
 import { oneriOku, ETKI_ALANLARI } from '@/lib/motorlar/olayEtki';
 import OlaylarIstemci from './OlaylarIstemci';
@@ -258,9 +258,13 @@ export default async function Sayfa() {
         const gs = geriSayim({
           baslangic: o.baslangic.getTime(), simdi, sureSaat: b.yukumluluk.sureSaat,
         });
+        /* Ekranın gösterdiği durum, sayacın söylediğiyle uzlaştırılır —
+           gerekçe `lib/uyum/bildirimKaydi.ts` → `gorunenDurum`da. Yazma
+           yok: veritabanını motor günceller. */
+        const gorunen = gorunenDurum({ kayitDurumu: b.durum, geriSayim: gs });
         return {
           id: b.id,
-          durum: b.durum,
+          durum: gorunen,
           yukumlulukKod: b.yukumluluk.kod,
           yukumlulukAd: b.yukumluluk.ad,
           merci: b.yukumluluk.merci,
@@ -302,6 +306,17 @@ export default async function Sayfa() {
          yazamayabilir. Sunucu eylemi ayrıca denetler; bu bayrak yalnız
          yüzeyi kapatır ki kullanıcı reddedilecek bir formu doldurmasın. */
       yazilabilir: yazabilir && kapsamdaYetkili(kullanici, 'envanter', 'yazma', o.tesisId),
+      /* BİLDİRİM EYLEMLERİ AYRI EKSEN — bağımsız inceleme bulgusu (P2,
+         #47 turu 1). Düğmelerin görünürlüğü `envanter/yazma`ya bağlıydı,
+         sunucu eylemi ise `uyum/onay` istiyor. `tesis_yoneticisi` ·
+         `bt_yoneticisi` · `ot_yoneticisi` rolleri birincisini taşıyor,
+         ikincisini taşımıyor: kullanıcı düğmeyi GÖRÜYOR, referansı
+         dolduruyor, gönderiyor ve sunucu reddediyor. Güvenlik açığı
+         değil (sunucu doğru engelliyor) ama emek israfı ve ürünün kendi
+         cümlesiyle çelişiyor: "bir mevzuat bildiriminin yapıldığını
+         beyan etmek yazma yetkisiyle yapılmaz". Aynı ekranda
+         `EtkiDogrulama` bu ayrımı zaten doğru yapıyordu. */
+      bildirimYetkili: kapsamdaYetkili(kullanici, 'uyum', 'onay', o.tesisId),
     };
   });
 

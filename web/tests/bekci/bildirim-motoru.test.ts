@@ -135,6 +135,46 @@ describe('motor bildirim kaydına insan kararı YAZAMAZ [URN-OLY-001]', () => {
     expect(/['"`]taslak['"`]/.test(acmayan)).toBe(false);
   });
 
+  it('EKRAN ham durumu geçmez — geri sayımla uzlaştırır', () => {
+    /* Bağımsız inceleme bulgusu (P1, #47 turu 1) buradan geri gelebilir:
+       `durum: b.durum` yazmak tek karakterlik bir geri adımdır ve saf
+       katmandaki vakalar yeşil kalmaya devam ederdi — `gorunenDurum`
+       doğru çalışır, ekran onu ÇAĞIRMAZ. Yapısal diş bu yüzden var.
+
+       Ekran neden ham durumu gösteremez: `durum`u yalnız motor yazar ve
+       motor periyodik koşar; geri sayım her istekte canlıdır. İkisi
+       uzlaştırılmazsa satır aynı anda "Taslak hazır" ve "GECİKME" der. */
+    const ekran = readFileSync(
+      path.join(LIB, '..', 'app', '(kabuk)', '(operasyonel)', 'olaylar', 'page.tsx'), 'utf8');
+    const kayitBlogu = yorumsuz(ekran).slice(ekran.indexOf('bildirimKayitlari:'));
+    expect(/gorunenDurum\(/.test(kayitBlogu),
+      'ekran geri sayımla uzlaştırmıyor').toBe(true);
+    expect(/durum: b\.durum/.test(kayitBlogu),
+      'ekran HAM durumu geçiriyor — çelişen satır geri geldi').toBe(false);
+  });
+
+  it('bildirim eylemleri UYUM/ONAY ekseninden yetkilenir', () => {
+    /* Bağımsız inceleme bulgusu (P2, #47 turu 1): düğmelerin görünürlüğü
+       `envanter/yazma`ya bağlıydı, sunucu eylemi `uyum/onay` istiyordu.
+       Üç rol birincisini taşıyıp ikincisini taşımıyor — kullanıcı düğmeyi
+       görüyor, dolduruyor, sunucu reddediyor. */
+    const ekran = yorumsuz(readFileSync(
+      path.join(LIB, '..', 'app', '(kabuk)', '(operasyonel)', 'olaylar', 'page.tsx'), 'utf8'));
+    expect(/bildirimYetkili:\s*kapsamdaYetkili\([^)]*'uyum',\s*'onay'/.test(ekran)).toBe(true);
+    const istemci = yorumsuz(readFileSync(
+      path.join(LIB, '..', 'app', '(kabuk)', '(operasyonel)', 'olaylar', 'OlaylarIstemci.tsx'), 'utf8'));
+    const blok = istemci.slice(istemci.indexOf('BildirimKaydiEylemleri kayitId'));
+    expect(/yazabilir=\{o\.bildirimYetkili\}/.test(blok),
+      'bildirim eylemleri hâlâ envanter/yazma bayrağına bağlı').toBe(true);
+  });
+
+  it('SABOTAJ: ham durumu geçiren ekran metni KIRMIZI', () => {
+    const sahte = 'bildirimKayitlari: x.map((b) => ({ durum: b.durum }))';
+    expect(/durum: b\.durum/.test(sahte)).toBe(true);
+    const dogru = 'bildirimKayitlari: x.map((b) => ({ durum: gorunenDurum({ ... }) }))';
+    expect(/durum: b\.durum/.test(dogru)).toBe(false);
+  });
+
   it('döngü taşınsa da bekçi onu İZLER — küme türetiliyor', () => {
     /* Kusur sınıfı: kural "şu dizin temiz olsun" diye yazılırsa, kod başka
        bir dizine taşındığı gün bekçi sessizce boşa düşer. Ölçüldü: döngü

@@ -4,8 +4,8 @@
 
 | Ölçü | Değer |
 | --- | --- |
-| Senaryo | 331 |
-| Testi olan senaryo | 331 |
+| Senaryo | 332 |
+| Testi olan senaryo | 332 |
 | **GAP** | **0** |
 | Hayalet işaret (kütükte olmayan kimlik) | 0 |
 | Kütüksüz test dosyası | 0 |
@@ -18,15 +18,15 @@
 | ACCESSIBILITY | 8 | 8 | 0 |
 | API | 12 | 12 | 0 |
 | CONCURRENCY | 7 | 7 | 0 |
-| DOMAIN | 190 | 190 | 0 |
+| DOMAIN | 191 | 191 | 0 |
 | ENGINE | 33 | 33 | 0 |
 | INTEGRATION | 40 | 40 | 0 |
 | MIGRATION | 5 | 5 | 0 |
 | RBAC | 32 | 32 | 0 |
 | RESPONSIVE | 8 | 8 | 0 |
 | SCOPE | 30 | 30 | 0 |
-| SERVER | 128 | 128 | 0 |
-| UI | 92 | 92 | 0 |
+| SERVER | 129 | 129 | 0 |
+| UI | 93 | 93 | 0 |
 | VISUAL | 4 | 4 | 0 |
 | WORKFLOW | 34 | 34 | 0 |
 
@@ -138,6 +138,7 @@
 | `OLY-BIL-004` | Olay | SERVER · DOMAIN · UI | `bildirim-kaydi-eylem.test.ts` | REFERANSSIZ gönderim REDDEDİLİR ve kayıt DEĞİŞMEZ | evet | geçti |
 | `OLY-BIL-004` | Olay | SERVER · DOMAIN · UI | `bildirim-kaydi-eylem.test.ts` | gönderim DENETİM İZİNE düşer ve izde referans numarası vardır | evet | geçti |
 | `OLY-BIL-004` | Olay | SERVER · DOMAIN · UI | `bildirim-kaydi.test.ts` | REFERANSSIZ gönderim REDDEDİLİR | evet | geçti |
+| `OLY-BIL-005` | Olay | SERVER · DOMAIN · UI | `disa-aktarim-paketi.test.ts` | kapsamdaki olayın bildirim kayıtları pakete girer | evet | geçti |
 | `DNT-FRM-001` | Denetim | SERVER · DOMAIN · UI | `denetim-formu-eylem.test.ts` | öz denetim formu üretilir; BOŞ HÜCRE SIFIR | evet | geçti |
 | `DNT-FRM-001` | Denetim | SERVER · DOMAIN · UI | `denetim-formu-eylem.test.ts` | SoA da aynı kapıdan geçer ve yedi sütun taşır | evet | geçti |
 | `DNT-FRM-002` | Denetim | UI · DOMAIN | `denetim-formu.test.ts` | GEREKÇESİZ kapsam dışı İŞARETLENİR — gerekçe uydurulmaz | evet | geçti |

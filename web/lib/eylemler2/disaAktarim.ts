@@ -132,7 +132,18 @@ export async function kanitPaketiUretEylem(girdi: {
     const bitis = tarihCoz(v.bitis, 'Bitiş tarihi');
 
     const { paket, json } = await kanitPaketiUret({
-      kapsam: { regulasyonId: v.regulasyonId, tesisIdleri: istenen, baslangic, bitis },
+      kapsam: {
+        regulasyonId: v.regulasyonId,
+        tesisIdleri: istenen,
+        /* Kurumsal (tesisi olmayan) kayıt yalnız KAPSAMI DARALTILMAMIŞ
+           yetkiye açılır — `/olaylar` ekranıyla birebir aynı kural
+           (`izinli === null` = kurum geneli). Tek tesise yetkili bir dış
+           denetçiye şirketin kurumsal ihlallerini vermek, kapsam sınırını
+           kanıt paketi üzerinden delmek olurdu. */
+        kurumsalDahil: izinli === null,
+        baslangic,
+        bitis,
+      },
       ureten: { id: k.id, adSoyad: k.adSoyad },
       urunSurumu: URUN_SURUMU,
     });
@@ -151,7 +162,14 @@ export async function kanitPaketiUretEylem(girdi: {
       sonra: paket.ozet,
       gerekce: `Kanıt paketi · ${reg} · ${paket.baslik.kapsam.tesisler.map((t) => t.kod).join(', ')}`
         + ` · ${v.baslangic}–${v.bitis} · ${paket.sayimlar.madde} madde, `
-        + `${paket.sayimlar.bulgu} bulgu, ${paket.sayimlar.izSatiri} iz satırı`,
+        + `${paket.sayimlar.bulgu} bulgu, ${paket.sayimlar.izSatiri} iz satırı`
+        /* Bildirim sayısı da ize YAZILIR — bağımsız inceleme bulgusu
+           (P3, #48): senaryo kütüğü "paketteki kayıt sayıları izde"
+           diyordu, kod bildirimi hiç yazmıyordu. Denetçiye giden iz
+           satırı paketin içeriğini eksik anlatıyordu. */
+        + `, ${paket.sayimlar.bildirim} bildirim`
+        + (paket.sayimlar.acikBildirim > 0
+          ? ` (${paket.sayimlar.acikBildirim} gönderilmedi)` : ''),
     });
 
     return {

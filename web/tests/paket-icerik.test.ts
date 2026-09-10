@@ -1,5 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import path from 'node:path';
+import { readFileSync } from 'node:fs';
 import { hataSatiri, paketiDogrula } from '@/lib/paket/dogrula';
 import { kademeAnahtari, maddeMetniDurumu } from '@/lib/paket/bicim';
 import { SOZLUK_SATIRI, cerceve, fiksturEslemesi, paketYaz, type PaketDosyalari } from './yardim/paket';
@@ -224,5 +225,154 @@ describe('TR-ENERJI içeriği: resmî metin, köken, uygulanabilirlik [URN-PKT-0
     expect(s.icerik!.manifest.lisans).toMatchObject({ tur: 'kamuya_acik', metinDahil: true });
     expect(s.icerik!.manifest.lisans.not).toMatch(/FSEK md\. 31/);
     for (const c of cerceveleri()) expect(c.kimlik.lisans.not, c.kimlik.kod).toMatch(/FSEK md\. 31/);
+  });
+});
+
+
+/* ═══ YÜKÜMLÜLÜK DAYANAĞI · ATIF ÖLÇÜLÜR ═════════════════════════════
+
+   Bağımsız inceleme bulgusu (P1, #48). `dayanak` serbest metindir ve
+   HİÇBİR kapı onun kaynağa uyup uymadığını ölçmüyordu. Ölçüldü:
+   `EPDK-USOM-OLAY` maddesinin dayanağı "Ek-1…Ek-7, OYS-50/56/59"
+   diyordu; oysa USOM bildirim kriteri maddesinin KODU EKE GÖRE
+   DEĞİŞİYOR — Ek-1/2'de OYS-50, Ek-3/4/5'te OYS-47, Ek-6'da OYS-56,
+   Ek-7'de OYS-59. Yazılan atıf yedi ekin beşinde yanlış maddeyi
+   gösteriyordu (yedekleme, iş sürekliliği, log senkronizasyonu) ve
+   OYS-47 hiç yazılmamıştı. Biçim doğru, alan dolu, hiçbir kapı görmez:
+   R-D'nin tarif ettiği sınıfın ta kendisi.
+
+   Kapı ATFIN DOĞRULUĞUNU ölçemez ama ATFIN VAR OLDUĞUNU ölçebilir:
+   `dayanak` bir "Ek-N ... OYS-MM" çifti sayıyorsa, o ek dosyasında o
+   kodlu madde GERÇEKTEN durmalıdır. Kabul edilen sınır: maddenin
+   İÇERİĞİNİN iddiayı desteklediğini bağımsız inceleme doğrular. */
+
+describe('yükümlülük dayanağındaki madde atıfları paketin kendi metnine uyar', () => {
+  const KOK = path.join(process.cwd(), 'paketler', 'TR-ENERJI');
+  const yukumlulukler = JSON.parse(
+    readFileSync(path.join(KOK, 'yukumlulukler.json'), 'utf8'),
+  ) as { kod: string; dayanak: string; merci: string }[];
+
+  /** "Ek-1/2 OYS-50" · "Ek-6 OYS-56" gibi çiftleri çıkarır. */
+  function atiflar(dayanak: string): { ek: string; kod: string }[] {
+    const cikan: { ek: string; kod: string }[] = [];
+    for (const m of dayanak.matchAll(/Ek-([\d/]+)\s+(OYS-\d+)/g)) {
+      for (const ek of m[1].split('/')) cikan.push({ ek, kod: m[2] });
+    }
+    return cikan;
+  }
+
+  /** Ekteki `kod → { baslik, metin }` eşlemesi (3. ve 4. sütun). */
+  const ektekiMaddeler = (ek: string): Map<string, { baslik: string; metin: string }> => {
+    const csv = readFileSync(path.join(KOK, 'cerceve', `EPDK-SGYM-EK${ek}.csv`), 'utf8');
+    const m = new Map<string, { baslik: string; metin: string }>();
+    for (const satir of csv.split('\n').slice(1)) {
+      const s = satir.split(';');
+      if (s[0]) m.set(s[0], { baslik: (s[2] ?? '').trim(), metin: (s[3] ?? '').trim() });
+    }
+    return m;
+  };
+
+  /** Merciden kısaltma: "… Merkezi (USOM)" → "USOM". */
+  const merciKisaltmasi = (merci: string): string | null =>
+    merci.match(/\(([A-ZÇĞİÖŞÜ]{2,10})\)/)?.[1] ?? null;
+
+  /** `dayanak`ta tırnak içinde adı geçen kontrol başlığı. */
+  const iddiaEdilenBaslik = (dayanak: string): string | null =>
+    dayanak.match(/[""]([^""]+)[""]/)?.[1]?.trim() ?? null;
+
+  it('atıf çıkarıcı, kısaltmalı yazımı (Ek-3/4/5) AÇAR', () => {
+    /* Kalıp kendini ölçer: "Ek-3/4/5 OYS-47" tek eşleşmedir ama ÜÇ
+       atıftır. Açmasaydı kapı yalnız ilk eki denetler, kalan ikisi
+       sessizce ölçüsüz kalırdı. */
+    expect(atiflar('… Ek-3/4/5 OYS-47, Ek-6 OYS-56 …')).toEqual([
+      { ek: '3', kod: 'OYS-47' }, { ek: '4', kod: 'OYS-47' },
+      { ek: '5', kod: 'OYS-47' }, { ek: '6', kod: 'OYS-56' },
+    ]);
+  });
+
+  it('atıfta geçen HER madde, o ekte GERÇEKTEN vardır', () => {
+    const kusurlar = kusurlariBul(yukumlulukler);
+    const sayilan = yukumlulukler.reduce((n, y) => n + atiflar(y.dayanak).length, 0);
+    expect(kusurlar, kusurlar.join('\n')).toEqual([]);
+    /* Sıfır atıf ölçmek, hiçbir şeye bakmadan temiz raporlamaktır. */
+    expect(sayilan, 'hiç madde atfı ölçülmedi — kalıp mı bozuldu').toBeGreaterThanOrEqual(7);
+  });
+
+  /** Kapının GERÇEK boru hattı — vaka da, sabotaj da bunu koşar. */
+  function kusurlariBul(satirlar: { kod: string; dayanak: string; merci: string }[]): string[] {
+    const kusurlar: string[] = [];
+    for (const y of satirlar) {
+      const iddia = iddiaEdilenBaslik(y.dayanak);
+      for (const a of atiflar(y.dayanak)) {
+        const madde = ektekiMaddeler(a.ek).get(a.kod);
+        if (madde === undefined) {
+          kusurlar.push(`${y.kod}: Ek-${a.ek} içinde ${a.kod} YOK`);
+          continue;
+        }
+        const { baslik } = madde;
+        /* VARLIK YETMEZ: aynı kod her ekte BAŞKA bir maddedir ve
+           "doğru kod, yanlış ek" hatası varlık kontrolünden geçerdi —
+           ölçüldü, `OYS-47` yedi ekin altısında mevcut ama yalnız
+           üçünde USOM kriteridir. Atıf tırnak içinde bir kontrol
+           BAŞLIĞI söylüyorsa, gösterilen maddenin başlığı O OLMALIDIR.
+           Kapı hâlâ metnin iddiayı desteklediğini doğrulamaz (kabul
+           edilmiş sınır) ama artık yanlış MADDEYİ gösteremez. */
+        if (iddia !== null && baslik !== iddia) {
+          kusurlar.push(`${y.kod}: Ek-${a.ek} ${a.kod} → "${baslik}" (iddia: "${iddia}")`);
+          continue;
+        }
+        /* BAŞLIK DA YETMEZ — ölçüldü (#48 turu 2 sabotajı): EPDK AYNI
+           başlığı farklı maddelerde kullanıyor, yani "doğru başlık,
+           yanlış madde" başlık kontrolünden geçiyordu. Yükümlülüğün
+           MERCİSİ bir kısaltma taşıyorsa (USOM) gösterilen maddenin
+           METNİ o mercii anmalıdır: bir USOM bildirim yükümlülüğünün
+           dayanağı, USOM'dan hiç söz etmeyen bir maddeye asılamaz.
+           Kapı hâlâ metnin iddiayı TAM olarak desteklediğini
+           doğrulamaz — o bağımsız incelemenin işi (§1.10). */
+        const kisaltma = merciKisaltmasi(y.merci);
+        if (kisaltma !== null && !madde.metin.includes(kisaltma)) {
+          kusurlar.push(`${y.kod}: Ek-${a.ek} ${a.kod} metninde "${kisaltma}" geçmiyor`);
+        }
+      }
+    }
+    return kusurlar;
+  }
+
+  it('SABOTAJ: olmayan bir maddeye atıf KIRMIZI yakar', () => {
+    /* İlk hâlinde bu vaka `atiflar` ve `ektekiKodlar` yardımcılarını AYRI
+       AYRI sınıyordu; kapının kendi döngüsünü hiç koşmuyordu (bağımsız
+       inceleme, #48 turu 2). Biri döngüyü ya da `toEqual([])` satırını
+       gevşetse bu test yine yeşil kalırdı. Bugün sahte veri GERÇEK boru
+       hattından geçer. */
+    const M = 'Ulusal Siber Olaylara Müdahale Merkezi (USOM)';
+    expect(kusurlariBul([{ kod: 'SAHTE', merci: M, dayanak: '"Bir Başlık" Ek-1 OYS-9999' }]))
+      .toEqual(['SAHTE: Ek-1 içinde OYS-9999 YOK']);
+
+    /* ASIL KUSUR SINIFI: kod VAR ama BAŞKA maddedir. Bu, gerçekte
+       yaşanan hatanın ta kendisi (#48 turu 1: Ek-3'ün OYS-50'si USOM
+       kriteri değil, "Olayların yaşam döngüsü"dür). */
+    const yanlisEk = kusurlariBul([{
+      kod: 'SAHTE', merci: M,
+      dayanak: '"Siber Güvenlik Olaylarını Analiz Etme ve Bildirme" Ek-6 OYS-47',
+    }]);
+    expect(yanlisEk).toHaveLength(1);
+    expect(yanlisEk[0]).toContain('iddia:');
+
+    /* AYNI BAŞLIK, BAŞKA MADDE — gerçekte yaşanan hata (#48 turu 1):
+       Ek-3'ün OYS-50'si de "Siber Güvenlik Olaylarını Analiz Etme ve
+       Bildirme" başlığını taşır ama metni "Olayların yaşam döngüsü…"dür
+       ve USOM'dan hiç söz etmez. Başlık kontrolü bunu GEÇİRİYORDU. */
+    const ayniBaslik = kusurlariBul([{
+      kod: 'SAHTE', merci: M,
+      dayanak: '"Siber Güvenlik Olaylarını Analiz Etme ve Bildirme" Ek-3 OYS-50',
+    }]);
+    expect(ayniBaslik, 'aynı başlıklı YANLIŞ madde kapıdan geçti').toHaveLength(1);
+    expect(ayniBaslik[0]).toContain('USOM');
+
+    /* Doğru atıf temiz geçer — kapı her şeyi kırmızı yakmıyor. */
+    expect(kusurlariBul([{
+      kod: 'GERCEK', merci: M,
+      dayanak: '"Siber Güvenlik Olaylarını Analiz Etme ve Bildirme" Ek-3 OYS-47',
+    }])).toEqual([]);
   });
 });

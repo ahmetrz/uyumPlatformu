@@ -370,6 +370,24 @@ export const UYUM_SENARYOLARI: Senaryo[] = [
     katmanlar: ['SERVER', 'DOMAIN', 'UI'],
   },
 
+  {
+    id: 'OLY-BIL-005', alan: 'Olay', rota: '/raporlar/kanit-paketi', eksen: 'veri',
+    amac: 'Denetçiye "bu olay mevzuata bildirildi mi" sorusunun cevabını VERMEK',
+    rol: 'denetim sorumlusu', kapsam: 'kendi kapsamı',
+    onkosul: 'Kapsamdaki bir olayda bildirim kaydı var', veriHali: 'kısmi',
+    eylem: 'Kanıt paketi üretilir (`disaAktarim.kanitPaketiUretEylem`)',
+    beklenenSonuc: 'Kapsamdaki olayların bildirim kayıtları pakete GİRER: merci,'
+      + ' durum, son tarih, referans numarası, gönderen ve denetim izi.'
+      + ' TASLAK METNİ girmez — gönderilmemiş bir metin kanıt değildir ve'
+      + ' pakete konsaydı denetçi onu gönderilen metin sanardı.'
+      + ' Regülasyonu BOŞ olan yükümlülük (her regülasyona uyan) düşmez',
+    beklenenEkran: 'Üretim sonrası satırda "N bildirim" ve gönderilmemiş varsa'
+      + ' "(M gönderilmedi)" yazar; sıfır bildirim de yazılır',
+    beklenenIz: 'KanitPaketi · uretim (paketteki kayıt sayıları izde)',
+    beklenenBildirim: 'yok',
+    katmanlar: ['SERVER', 'DOMAIN', 'UI'],
+  },
+
   /* ── R12 · Denetim formları ─────────────────────────────────────── */
   {
     id: 'DNT-FRM-001', alan: 'Denetim', rota: '/raporlar/denetim-formlari',

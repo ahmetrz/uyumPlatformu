@@ -233,6 +233,82 @@ kalır ve ekran "Süre mevzuatta belirlenmedi" der — modelin `sureSaat`
 alanı tam bu yüzden nullable yapıldı; bir saat uydurmak, olmayan bir
 sayacı işletmek olurdu.
 
+**10 Eylül 2026 · yükümlülük içeriği · ERİŞİLEBİLEN kadarı eklendi (R10).**
+EPDK sitesi açık ve paketteki yönetmelik/ek metinleri zaten birincil
+kaynaktan indirilmişti; o metinden çıkarılabilen **bir** bildirim
+yükümlülüğü eklendi:
+
+| Kod | Merci | Süre | Dayanak |
+| --- | --- | --- | --- |
+| `EPDK-USOM-OLAY` | USOM | **BOŞ** — metin süre vermiyor | "Siber Güvenlik Olaylarını Analiz Etme ve Bildirme" kontrolü; kodu EKE GÖRE değişir (aşağıdaki tablo) |
+| `KVKK-IHLAL-72` | KVKK Kurulu | 72 saat | 6698 s. md. 12/5 + Kurul kararı 2019/10 |
+
+**Kontrol kodu ekten eke DEĞİŞİR — ölçüldü.** İlk yazımda dayanak
+"Ek-1…Ek-7, OYS-50/56/59" diyordu ve bu yedi ekin BEŞİNDE yanlış maddeyi
+gösteriyordu (yedekleme · iş sürekliliği · log senkronizasyonu · olay
+yaşam döngüsü); üstelik gerçekte kullanılan OYS-47 hiç yazılmamıştı.
+Bağımsız inceleme yakaladı (#48). Ölçülen gerçek:
+
+| Ek | Sektör | USOM bildirim kriteri maddesinin kodu |
+| --- | --- | --- |
+| Ek-1 | Elektrik dağıtım | **OYS-50** |
+| Ek-2 | Doğal gaz dağıtım | **OYS-50** |
+| Ek-3 | Elektrik üretim | **OYS-47** |
+| Ek-4 | Rafineri | **OYS-47** |
+| Ek-5 | Doğal gaz depolama | **OYS-47** |
+| Ek-6 | Doğal gaz ve ham petrol iletim | **OYS-56** |
+| Ek-7 | Elektrik iletim | **OYS-59** |
+
+Yanlış atıf hiçbir kapıya görünmüyordu: alan dolu, biçim doğru, iki taraf
+da geçerli metin — R-D'nin tarif ettiği sınıf. Bugün atıf ÜÇ dişle
+ölçülüyor (`web/tests/paket-icerik.test.ts`):
+
+1. **Madde VAR MI** — `dayanak` bir "Ek-N … OYS-MM" çifti sayıyorsa o
+   kodlu madde o ek dosyasında gerçekten durmalıdır.
+2. **BAŞLIK tutuyor mu** — atıf tırnak içinde bir kontrol başlığı
+   söylüyorsa, gösterilen maddenin başlığı o olmalıdır. Tek başına
+   yetmiyor: ölçüldü, EPDK aynı başlığı farklı maddelerde kullanıyor ve
+   "doğru başlık, yanlış madde" bu dişten geçiyordu.
+3. **MERCİ metinde geçiyor mu** — yükümlülüğün mercisi bir kısaltma
+   taşıyorsa (USOM), gösterilen maddenin METNİ onu anmalıdır. Bir USOM
+   bildirim yükümlülüğünün dayanağı, USOM'dan hiç söz etmeyen bir maddeye
+   asılamaz. Sabotaj: atıf Ek-3/4/5'te OYS-50'ye çevrildiğinde kapı üç
+   satırla kırmızı yanıyor.
+
+Metnin iddiayı TAM olarak desteklediğini yine bağımsız inceleme doğrular
+— kabul edilmiş sınır, `docs/SEKTOR_PAKETI_SOZLESMESI.md` §1.10 ile aynı.
+
+USOM satırının **süresi boş bırakıldı ve bu bir eksiklik değil**: EPDK
+metni hangi olayların USOM'a bildirileceğine dair KRİTERİ yükümlü
+kuruluşun tanımlamasını istiyor, bir saat vermiyor. Ekran bu satırda
+sayaç göstermez, "Süre mevzuatta belirlenmedi" der. Aynı sebeple
+`asgariSiddet` en alt kademededir: mevzuat eşiği kuruma bırakmışken ürünün
+bir eşik uydurması, mevzuatın söylemediğini söylemek olurdu — taslak her
+olayda açılır, "bu kapsamda değil" kararını insan verir.
+
+**EPBS raporlama yükümlülükleri BİLEREK eklenmedi.** Yönetmelik md. 10/2,
+10/3 ve 10/4 üç ayrı raporlama süresi veriyor (öz denetim raporu: bir ay ·
+ilerleme raporu: bir ay · sektörel denetim raporu: on iki ay + bir ay) ve
+üçü de **Enerji Piyasası Bildirim Sistemi** üzerinden. Bunlar **olaydan
+doğmaz, takvimden doğar**; `BildirimYukumlulugu` ise olayı şiddet eşiğiyle
+eşleştirir. Takvim yükümlülüğünü olay yükümlülüğü alanına yazmak, R-D'nin
+tarif ettiği anlam eşleme hatasının ta kendisi olurdu: biçim doğru, değer
+aralıkta, hiçbir kapı görmez. Bu üç yükümlülük **periyodik yükümlülük
+modeli** geldiğinde eklenir (R0 · sahibi KODLAYAN).
+
+### İSTENEN BELGELER — Ahmet indirip verecek
+
+Aşağıdaki yükümlülükler eklenemedi çünkü metinlerine erişilemiyor.
+Süre ve merci **uydurulmadı**. Her satır, indirilmesi gereken belgeyi
+ADIYLA söyler:
+
+| # | İstenen belge | Neden gerekli | Erişim denemesi |
+| --- | --- | --- | --- |
+| 1 | **7545 sayılı Kanun** (Siber Güvenlik Kanunu) — Resmî Gazete'de yayımlanan TAM METİN, özellikle **md. 7** ve varsa ikincil düzenlemesi | Siber olay bildirim yükümlülüğünün merci ve süresi | `mevzuat.gov.tr` HTTP 000 · `resmigazete.gov.tr` HTTP 000 (10 Eyl 2026; aynı turda `epdk.gov.tr` HTTP 200 — sorun ağda değil) |
+| 2 | **Kurumsal SOME Kurulum ve Yönetim Rehberi** (USOM/BTK) | EPDK Ek-1 OYS-50 bu rehbere ATIF yapıyor; USOM bildiriminin süresi ve kanalı orada tanımlı olabilir | denenmedi — belge adı EPDK metninden çıkarıldı, kaynak adresi bilinmiyor |
+| 3 | **SPK VII-128.10 Bilgi Sistemleri Yönetimi Tebliği** — Resmî Gazete metni | Önemli bulgu bildirimi (10 iş günü iddiası ikincil kaynaktan; birincil doğrulama yok) | `resmigazete.gov.tr` erişilemiyor; Lexpera ikincil |
+| 4 | **KVKK Veri İhlali Bildirim Usul ve Esasları** — Kurul kararının TAM metni | 72 saatlik süre eklendi ama gecikme gerekçesi ve form alanları için tam metin gerekli | kvkk.gov.tr sayfası kanun metnini vermemişti (8 Eyl ölçümü) |
+
 Belge şu anda EPDK'nın hangi sayfasında listelendiği
 **bulunamadı** (Yetkinlik Modeli sayfasında bağı yok, arama motoru da
 göstermedi); doğrudan adresi çalışıyor ve iki ayrı indirmede aynı

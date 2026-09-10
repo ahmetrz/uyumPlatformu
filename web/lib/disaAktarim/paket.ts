@@ -1,6 +1,7 @@
 import 'server-only';
 import { createHash } from 'node:crypto';
 import { db } from '../db';
+import { geriSayim, gorunenDurum } from '../uyum/bildirimKaydi';
 import { sirMaskesi, sirSizintisiVarMi } from '../entegrasyon/sir';
 import { connectorSagligi, type SaglikDurumu } from '../entegrasyon/saglikOzeti';
 import {
@@ -46,7 +47,10 @@ import {
     şemayı bekleyen bir okuyucu imza alanını görmez ve paketi İMZALI
     sanabilirdi; sessiz şema değişikliği tam olarak bu paketin engellemek
     için var olduğu şeydir. */
-export const PAKET_SEMA_SURUMU = 2;
+/* 3 · R10 · bildirim kayıtları pakete girdi (taslak METİN hariç).
+   Denetçinin "bu olay bildirildi mi" sorusunun cevabı buradadır ve o
+   soru bir uyum denetiminin en doğrudan sorusudur. */
+export const PAKET_SEMA_SURUMU = 3;
 
 /**
  * Paketin imza beyanı.
@@ -78,6 +82,22 @@ export type PaketKapsami = {
   regulasyonId: string;
   /** Çağıran YETKİYLE DARALTILMIŞ küme verir; bu modül yetki hesaplamaz. */
   tesisIdleri: string[];
+  /* KURUMSAL (tesisi olmayan) KAYIT AYRI BİR YETKİ SORUSUDUR.
+     Bağımsız inceleme bulgusu (P1, #48 turu 2) ve kusuru AÇAN ilk
+     düzeltmenin kendisiydi: "kurumsal ihlalin bildirimi hiçbir pakette
+     görünmüyor" bulgusu kapatılırken kayıtlar HER kapsama konuldu ve
+     ürünün kendi kuralı delindi. `/olaylar` ekranı yıllardır şunu
+     söylüyor: "Tesisi OLMAYAN olay kapsamı daraltılmış kullanıcıya
+     GÖSTERİLMEZ — hangi tesiste olduğu yazılmamış bir olayı dar kapsamlı
+     birine açmak, kapsam sınırını sessizce delmek olurdu." Tek tesise
+     yetkili bir DIŞ DENETÇİ, ekranda göremediği kurumsal bir KVKK
+     ihlalini kanıt paketinde görüyordu; `kapsam.not`un bunu itiraf
+     etmesi erişimi meşrulaştırmaz, yalnız görünür kılar.
+
+     Kararı ÇAĞIRAN verir çünkü kullanıcıyı bilen odur: kapsamı
+     daraltılmamış (kurum geneli) yetki varsa true. Bu modül yetki
+     hesaplamaz — yukarıdaki satırın kuralıyla aynı. */
+  kurumsalDahil: boolean;
   baslangic: Date;
   bitis: Date;
 };
@@ -129,6 +149,47 @@ export type BulguSatiri = {
   kapanmaTarihi: string | null;
   maddeKodu: string;
   tesisKodu: string;
+  koken: PaketKokeni;
+};
+
+/* ── R10 · BİLDİRİM KAYDI SATIRI ──────────────────────────────────────
+   Denetçi paketi açtığında "bu olay mevzuata bildirildi mi, ne zaman,
+   hangi referansla" sorusunun cevabını burada bulur.
+
+   TASLAK METNİ GİRMEZ. İki sebep: (1) taslak GÖNDERİLMİŞ belge değildir
+   ve pakete konursa denetçi onu gönderilen metin sanar; (2) serbest
+   metindir ve içine bir sistem çıktısı yapıştırılmış olabilir. Pakete
+   giren şey KAYIT ve DURUMLARDIR — kimin, ne zaman, hangi referansla
+   karar verdiği. Gönderilen metnin kendisi mercinin kütüğündedir ve bu
+   paket ona referans numarasıyla bağlanır.
+
+   `sureSaat === null` olan yükümlülükte `sonTarih` de yoktur ve bu bir
+   EKSİKLİK DEĞİL, mevzuatın hâlidir: `sureSozu` bunu cümleyle söyler.
+   Bilinmeyen ≠ sıfır. */
+export type BildirimSatiri = {
+  id: string;
+  olayKodu: string;
+  olayBasligi: string;
+  tesisKodu: string | null;
+  yukumlulukKodu: string;
+  yukumlulukAdi: string;
+  merci: string;
+  durum: string;
+  /** Kapanmamış bildirim: `taslak` ya da `suresi_gecti`. */
+  acik: boolean;
+  /** Mevzuatın verdiği süre; BOŞ ise süre belirlenmemiştir. */
+  sureSaat: number | null;
+  /** Süre yoksa `null` — sıfır YAZILMAZ. */
+  sonTarih: string | null;
+  /** Süresizliği denetçiye CÜMLEYLE söyler; boş hücre bırakılmaz. */
+  sureSozu: string;
+  referansNo: string | null;
+  gonderimZamani: string | null;
+  gonderen: string | null;
+  teyitZamani: string | null;
+  /** Kanıt bağı; `null` ise "gönderim kanıtı iliştirilmedi". */
+  kanitId: string | null;
+  uygulanmazGerekcesi: string | null;
   koken: PaketKokeni;
 };
 
@@ -210,6 +271,16 @@ export type PaketSayimlari = {
   izKirpildi: boolean;
   izToplami: number;
   connector: number;
+  /* ── R10 ─ Bildirim sayıları AYRI AYRI durur: "kaç bildirim var" ile
+     "kaçı hâlâ gönderilmedi" ayrı sorulardır ve tek sayı ikisini de
+     cevaplayamaz. */
+  bildirim: number;
+  /** Gönderilmemiş (taslak ya da süresi geçmiş). */
+  acikBildirim: number;
+  /** SÜRESİ GEÇMİŞ ve hâlâ gönderilmemiş — denetimin en pahalı satırı. */
+  suresiGecenBildirim: number;
+  /** Mevzuat süre belirlemediği için geri sayımı olmayan kayıt. */
+  suresizBildirim: number;
 };
 
 export type PaketGovdesi = {
@@ -218,6 +289,7 @@ export type PaketGovdesi = {
   bulgular: BulguSatiri[];
   denetimIzi: IzSatiri[];
   connectorlar: ConnectorSatiri[];
+  bildirimler: BildirimSatiri[];
   sayimlar: PaketSayimlari;
 };
 
@@ -476,7 +548,13 @@ export async function kanitPaketiUret(girdi: {
       kapsamOgesi: { tesisId: { in: tesisler.map((t) => t.id) } },
       surec: { regulasyonId: regulasyon.id },
     },
-    orderBy: [{ kapsamOgesiId: 'asc' }, { maddeId: 'asc' }],
+    /* ÜÇÜNCÜ ANAHTAR ŞART — bağımsız inceleme bulgusu (P2, #48 turu 2).
+       `(kapsamOgesiId, maddeId)` biricik DEĞİL: `@@unique` kısıtı
+       `[surecId, maddeId, kapsamOgesiId]` ve bu sorgu bir regülasyonun
+       BİRDEN ÇOK sürecini tarıyor (yıllık denetim dönemleri normaldir).
+       İki süreç aynı çifti taşırsa sıra kararsız kalır ve aynı veriden
+       üretilen iki paketin BÜTÜNLÜK DAMGASI tutmaz. `id` biriciktir. */
+    orderBy: [{ kapsamOgesiId: 'asc' }, { maddeId: 'asc' }, { id: 'asc' }],
     select: {
       id: true, durum: true, guven: true, kanitBayat: true, sonDegerlendirme: true,
       madde: { select: { kod: true, baslik: true } },
@@ -487,7 +565,10 @@ export async function kanitPaketiUret(girdi: {
 
   const hamBulgular = await db.bulgu.findMany({
     where: { silindi: null, maddeDurumuId: { in: maddeDurumlari.map((m) => m.id) } },
-    orderBy: { tespitTarihi: 'desc' },
+    /* Aynı sınıf: `tespitTarihi` biricik değil (varsayılanı `now()`).
+       Damga dizinin SIRASINI da özetler; `kanonik()` yalnız obje
+       anahtarlarını sıralar, dizileri sıralamaz. */
+    orderBy: [{ tespitTarihi: 'desc' }, { id: 'asc' }],
     select: {
       id: true, baslik: true, onemDerecesi: true, durum: true, tespitTarihi: true,
       hedefTarih: true, kapanmaTarihi: true,
@@ -506,9 +587,93 @@ export async function kanitPaketiUret(girdi: {
     return aralikta || sonundaAcik;
   });
 
+  /* ── R10 · BİLDİRİM KAYITLARI ────────────────────────────────────────
+     Kapsam üç yönlüdür ve üçü de bilinçlidir:
+
+     TESİS — kaydın tesisi olayından gelir; kapsam dışı tesisin bildirimi
+     bu pakete girmez.
+
+     REGÜLASYON — yükümlülüğün `regulasyonId`si NULL ise o yükümlülük
+     HER regülasyon için geçerlidir (KVKK ihlal bildirimi böyledir) ve
+     pakete GİRER. Yalnız `regulasyonId: kapsam.regulasyonId` yazmak,
+     üç değerli mantıkta NULL satırları sessizce düşürür ve denetçi
+     yapılmış bir bildirimi hiç görmez — `OR` dalı bu yüzden var
+     (URN-VER-001 ile aynı sınıf).
+
+     TARİH — bulgularla AYNI kural: aralıkta doğan ya da aralık sonunda
+     hâlâ AÇIK olan kayıt girer. Yalnız doğuş tarihine bakmak, aralıktan
+     önce açılıp hâlâ gönderilmemiş bildirimi — denetimin en çok
+     ilgilendiği satırı — paketin dışında bırakırdı. */
+  const hamBildirimler = await db.bildirimKaydi.findMany({
+    where: {
+      olay: {
+        /* KURUMSAL OLAY DA GİRER — bağımsız inceleme bulgusu (P2, #48).
+           `Olay.tesisId` nullable ve "tesisi olmayan olay kurumsaldır"
+           bu üründe birinci sınıf bir durumdur (`erisim.ts`): motor
+           kurumsal bir olay için de kayıt açar (regülasyonu boş olan
+           yükümlülükler tetiklenir — KVKK ihlali, USOM bildirimi).
+           `tesisId: { in: [...] }` üç değerli mantıkta NULL satırı ASLA
+           eşlemez; şirket genelini etkileyen bir ihlalin bildirimi
+           hiçbir tesisin kanıt paketinde görünmüyordu, üstelik sessizce.
+           Kurumsal kayıt her kapsama girer çünkü kurumun tamamına aittir;
+           `kapsam.not` bunu denetçiye SÖYLER. */
+        OR: kapsam.kurumsalDahil
+          ? [{ tesisId: { in: tesisler.map((t) => t.id) } }, { tesisId: null }]
+          : [{ tesisId: { in: tesisler.map((t) => t.id) } }],
+      },
+      yukumluluk: {
+        OR: [{ regulasyonId: null }, { regulasyonId: regulasyon.id }],
+      },
+    },
+    /* İKİNCİ ANAHTAR ŞART: aynı olay için kayıtlar döngüde art arda
+       açılır ve `acildi` milisaniyede ÇAKIŞABİLİR. Tek anahtarlı sırada
+       SQL kararlı sıra garantisi vermez; aynı veriden üretilen iki paket
+       farklı sırada dizilir ve BÜTÜNLÜK DAMGASI tutmaz (şüpheli olarak
+       raporlandı, ucuz olduğu için kapatıldı). */
+    orderBy: [{ acildi: 'asc' }, { id: 'asc' }],
+    select: {
+      id: true, durum: true, sonTarih: true, referansNo: true,
+      gonderimZamani: true, teyitZamani: true, kanitId: true,
+      uygulanmazGerekcesi: true, acildi: true, guncellendi: true,
+      olay: { select: { kod: true, baslik: true, baslangic: true, tesisId: true } },
+      yukumluluk: { select: { kod: true, ad: true, merci: true, sureSaat: true } },
+      gonderen: { select: { adSoyad: true } },
+    },
+  });
+  const bildirimAcik = (d: string) => d === 'taslak' || d === 'suresi_gecti';
+  /* KAPANIŞ ZAMANI TARİHSELDİR — bağımsız inceleme bulgusu (P1, #48).
+     İlk hâl "aralık sonunda açık mıydı" sorusunu kaydın CANLI `durum`
+     sütunuyla cevaplıyordu; oysa o sütun BUGÜNÜ anlatır. Ölçülen sonuç:
+     Aralık 2025'te açılan, Ocak boyunca gönderilmemiş kalan ve Mart'ta
+     gönderilen bir kayıt, Ocak dönemi için üretilen pakete HİÇ girmiyordu
+     — ne satırda ne sayımda. Denetçinin en çok ilgilendiği kayıt (dönem
+     boyunca açık kalmış bildirim), sırf paket üretilirken kapanmış
+     olduğu için görünmez oluyordu.
+
+     Bugün kapanış zamanı kaydın KENDİ alanlarından okunur ve kural
+     bulgularınkiyle GERÇEKTEN aynıdır: aralıkta doğan ya da aralık
+     sonunda hâlâ kapanmamış olan kayıt girer. `uygulanmaz` kararının
+     ayrı bir zaman damgası yok; kaydın son güncellenme anı o kararın
+     kendisidir ve kullanılan tek yer burasıdır. */
+  const kapanisZamani = (b: { durum: string; gonderimZamani: Date | null;
+    teyitZamani: Date | null; guncellendi: Date }): Date | null => {
+    if (bildirimAcik(b.durum)) return null;
+    return b.teyitZamani ?? b.gonderimZamani ?? b.guncellendi;
+  };
+  const bildirimler = hamBildirimler.filter((b) => {
+    const dogus = b.acildi;
+    const aralikta = dogus >= kapsam.baslangic && dogus <= kapsam.bitis;
+    const kapanma = kapanisZamani(b);
+    const sonundaAcik = dogus <= kapsam.bitis
+      && (kapanma === null || kapanma > kapsam.bitis);
+    return aralikta || sonundaAcik;
+  });
+  const tesisKodu = new Map(tesisler.map((t) => [t.id, t.kod]));
+
   const kokenler = await kokenleriTopla([
     { varlikTipi: 'MaddeDurumu', idler: maddeDurumlari.map((m) => m.id) },
     { varlikTipi: 'Bulgu', idler: bulgular.map((b) => b.id) },
+    { varlikTipi: 'BildirimKaydi', idler: bildirimler.map((b) => b.id) },
   ]);
   const kokenAl = (tip: string, id: string): PaketKokeni =>
     kokenler.get(`${tip}|${id}`) ?? kokensiz();
@@ -518,6 +683,9 @@ export async function kanitPaketiUret(girdi: {
   const izHedefleri = [
     ...maddeDurumlari.map((m) => m.id),
     ...bulgular.map((b) => b.id),
+    /* Bildirim kayıtlarının izi de pakete girer: "kim, ne zaman
+       gönderildi işaretledi" sorusunun cevabı orada durur. */
+    ...bildirimler.map((b) => b.id),
     ...tesisler.map((t) => t.id),
     regulasyon.id,
   ];
@@ -529,7 +697,13 @@ export async function kanitPaketiUret(girdi: {
     db.aktiviteKaydi.count({ where: izKosulu }),
     db.aktiviteKaydi.findMany({
       where: izKosulu,
-      orderBy: { zaman: 'desc' },
+      /* Aynı sınıf ve en yüksek çakışma olasılığı burada: denetim izi
+         ekleme-yalnız bir kütük ve döngü içinde art arda yazılıyor —
+         bu PR'ın kendi gerekçesinde "milisaniyede çakışabilir" diye
+         kabul edilen senaryonun ta kendisi. Üstelik `take: IZ_SINIRI`
+         var: kararsız sıra yalnız damgayı değil, HANGİ 2000 satırın
+         pakete gireceğini de değiştirir. */
+      orderBy: [{ zaman: 'desc' }, { id: 'asc' }],
       take: IZ_SINIRI,
       select: {
         id: true, zaman: true, varlikTipi: true, varlikId: true, eylem: true,
@@ -607,6 +781,39 @@ export async function kanitPaketiUret(girdi: {
     koken: kokenAl('Bulgu', b.id),
   }));
 
+  const bildirimSatirlari: BildirimSatiri[] = bildirimler.map((b) => {
+    const gs = geriSayim({
+      baslangic: b.olay.baslangic.getTime(),
+      simdi: simdi.getTime(),
+      sureSaat: b.yukumluluk.sureSaat,
+    });
+    return {
+      id: b.id,
+      olayKodu: b.olay.kod,
+      olayBasligi: b.olay.baslik,
+      tesisKodu: b.olay.tesisId ? tesisKodu.get(b.olay.tesisId) ?? null : null,
+      yukumlulukKodu: b.yukumluluk.kod,
+      yukumlulukAdi: b.yukumluluk.ad,
+      merci: b.yukumluluk.merci,
+      /* EKRANLA AYNI KARAR: kaydın `durum`unu motor periyodik yazar,
+         geri sayım anlıktır. Paket ham durumu yazsaydı, ekranda "süresi
+         geçti" görünen bir kayıt denetim paketinde "taslak" derdi —
+         aynı ürünün iki belgesi çelişirdi. */
+      durum: gorunenDurum({ kayitDurumu: b.durum, geriSayim: gs }),
+      acik: bildirimAcik(gorunenDurum({ kayitDurumu: b.durum, geriSayim: gs })),
+      sureSaat: b.yukumluluk.sureSaat,
+      sonTarih: iso(b.sonTarih),
+      sureSozu: gs.soz,
+      referansNo: b.referansNo,
+      gonderimZamani: iso(b.gonderimZamani),
+      gonderen: b.gonderen?.adSoyad ?? null,
+      teyitZamani: iso(b.teyitZamani),
+      kanitId: b.kanitId,
+      uygulanmazGerekcesi: b.uygulanmazGerekcesi,
+      koken: kokenAl('BildirimKaydi', b.id),
+    };
+  });
+
   const izler: IzSatiri[] = izSatirlari.map((a) => ({
     id: a.id,
     zaman: a.zaman.toISOString(),
@@ -632,13 +839,22 @@ export async function kanitPaketiUret(girdi: {
         baslangic: kapsam.baslangic.toISOString(),
         bitis: kapsam.bitis.toISOString(),
         not: 'Madde durumları paketin ÜRETİM ANI itibarıyla alınmıştır; '
-          + 'tarih aralığı bulgulara ve denetim izine uygulanır.',
+          + 'tarih aralığı bulgulara, bildirim kayıtlarına ve denetim izine '
+          + 'uygulanır. Bildirim kayıtlarının DURUMU da üretim anı itibarıyladır '
+          + '(geri sayım anlık hesaplanır); kapsama girip girmedikleri ise '
+          + 'aralığa göre belirlenir. Kurumsal (tesise bağlı olmayan) olayların '
+          + 'bildirim kayıtları ' + (kapsam.kurumsalDahil
+            ? 'bu pakete GİRER — üreten kurum geneli yetkiye sahiptir.'
+            : 'bu pakete GİRMEZ: üretenin yetkisi belirli '
+              + 'tesislerle sınırlıdır ve kurumsal kayıt hiçbirine ait değildir. '
+              + 'Kurum geneli yetkiyle üretilen paket onları içerir.'),
       },
     },
     maddeler: maddeSatirlari,
     bulgular: bulguSatirlari,
     denetimIzi: izler,
     connectorlar: connectorSatirlari,
+    bildirimler: bildirimSatirlari,
     sayimlar: {
       madde: maddeSatirlari.length,
       kokensizMadde: maddeSatirlari.filter((m) => !m.koken.bilinen).length,
@@ -649,6 +865,10 @@ export async function kanitPaketiUret(girdi: {
       izKirpildi: izToplami > izler.length,
       izToplami,
       connector: connectorSatirlari.length,
+      bildirim: bildirimSatirlari.length,
+      acikBildirim: bildirimSatirlari.filter((b) => b.acik).length,
+      suresiGecenBildirim: bildirimSatirlari.filter((b) => b.durum === 'suresi_gecti').length,
+      suresizBildirim: bildirimSatirlari.filter((b) => b.sureSaat === null).length,
     },
   };
 

@@ -41,6 +41,10 @@ export type KapsamSatiri = {
 
 type Uretim = {
   ozet: string; dosyaAdi: string; madde: number; bulgu: number; iz: number;
+  /* R10 · Bildirim sayıları AYRI durur: "kaç bildirim" ile "kaçı hâlâ
+     gönderilmedi" ayrı sorulardır. Sıfır bildirim de YAZILIR — paketin
+     bu bölümü boş çıktıysa denetçi bunu bilmelidir. */
+  bildirim: number; acikBildirim: number;
   /** UY-18 · paketin imza durumu ve denetçiye yazılan tam cümle. */
   imzaDurumu: ImzaDurumu; imzaBeyani: string;
 };
@@ -202,6 +206,8 @@ function PaketCekmecesi({ kapsam, bugun, kapat }: {
         madde: sonuc.sayimlar.madde,
         bulgu: sonuc.sayimlar.bulgu,
         iz: sonuc.sayimlar.izSatiri,
+        bildirim: sonuc.sayimlar.bildirim,
+        acikBildirim: sonuc.sayimlar.acikBildirim,
         imzaDurumu: sonuc.imza.durum,
         imzaBeyani: sonuc.imza.beyan,
       });
@@ -263,7 +269,9 @@ function PaketCekmecesi({ kapsam, bugun, kapat }: {
           <div className="ab-panel-alan">
             <span className="etiket">İçerik</span>
             <span className="deger">
-              {`${uretim.madde} madde · ${uretim.bulgu} bulgu · ${uretim.iz} iz satırı`}
+              {`${uretim.madde} madde · ${uretim.bulgu} bulgu · ${uretim.iz} iz satırı`
+                + ` · ${uretim.bildirim} bildirim`
+                + (uretim.acikBildirim > 0 ? ` (${uretim.acikBildirim} gönderilmedi)` : '')}
             </span>
           </div>
           {/* UY-18 · İmza durumu damganın YANINDA durur ve onunla

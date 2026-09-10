@@ -7,5 +7,14 @@
     "dayanak": "6698 s. KVKK md. 12/5 · Kişisel Verileri Koruma Kurulunun 24.01.2019 tarih ve 2019/10 sayılı kararı: veri sorumlusu ihlali öğrendiği tarihten itibaren gecikmeksizin ve en geç 72 saat içinde Kurula bildirir; geç kalınırsa gerekçesi bildirimle birlikte açıklanır.",
     "merci": "Kişisel Verileri Koruma Kurulu",
     "kanalNotu": "Kişisel Veri İhlal Bildirim Formu üzerinden"
+  },
+  {
+    "kod": "EPDK-USOM-OLAY",
+    "ad": "Siber güvenlik olayının USOM'a bildirimi",
+    "asgariSiddet": "dusuk",
+    "sureSaat": null,
+    "dayanak": "EPDK Enerji Sektöründe Siber Güvenlik Yetkinlik Modeli Yönetmeliği Ek-1…Ek-7, OYS-50/56/59 (Olay Yönetimi ve Süreklilik): hangi olayların USOM'a bildirileceğine dair kriter tanımlanmalı ve periyodik gözden geçirilmelidir. Süre bu metinde BELİRLENMEMİŞTİR.",
+    "merci": "Ulusal Siber Olaylara Müdahale Merkezi (USOM)",
+    "kanalNotu": "Kurumsal SOME üzerinden"
   }
 ]

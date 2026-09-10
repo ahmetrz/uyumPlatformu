@@ -1,6 +1,7 @@
 import 'server-only';
 import { createHash } from 'node:crypto';
 import { db } from '../db';
+import { geriSayim, gorunenDurum } from '../uyum/bildirimKaydi';
 import { sirMaskesi, sirSizintisiVarMi } from '../entegrasyon/sir';
 import { connectorSagligi, type SaglikDurumu } from '../entegrasyon/saglikOzeti';
 import {
@@ -46,7 +47,10 @@ import {
     şemayı bekleyen bir okuyucu imza alanını görmez ve paketi İMZALI
     sanabilirdi; sessiz şema değişikliği tam olarak bu paketin engellemek
     için var olduğu şeydir. */
-export const PAKET_SEMA_SURUMU = 2;
+/* 3 · R10 · bildirim kayıtları pakete girdi (taslak METİN hariç).
+   Denetçinin "bu olay bildirildi mi" sorusunun cevabı buradadır ve o
+   soru bir uyum denetiminin en doğrudan sorusudur. */
+export const PAKET_SEMA_SURUMU = 3;
 
 /**
  * Paketin imza beyanı.
@@ -132,6 +136,47 @@ export type BulguSatiri = {
   koken: PaketKokeni;
 };
 
+/* ── R10 · BİLDİRİM KAYDI SATIRI ──────────────────────────────────────
+   Denetçi paketi açtığında "bu olay mevzuata bildirildi mi, ne zaman,
+   hangi referansla" sorusunun cevabını burada bulur.
+
+   TASLAK METNİ GİRMEZ. İki sebep: (1) taslak GÖNDERİLMİŞ belge değildir
+   ve pakete konursa denetçi onu gönderilen metin sanar; (2) serbest
+   metindir ve içine bir sistem çıktısı yapıştırılmış olabilir. Pakete
+   giren şey KAYIT ve DURUMLARDIR — kimin, ne zaman, hangi referansla
+   karar verdiği. Gönderilen metnin kendisi mercinin kütüğündedir ve bu
+   paket ona referans numarasıyla bağlanır.
+
+   `sureSaat === null` olan yükümlülükte `sonTarih` de yoktur ve bu bir
+   EKSİKLİK DEĞİL, mevzuatın hâlidir: `sureSozu` bunu cümleyle söyler.
+   Bilinmeyen ≠ sıfır. */
+export type BildirimSatiri = {
+  id: string;
+  olayKodu: string;
+  olayBasligi: string;
+  tesisKodu: string | null;
+  yukumlulukKodu: string;
+  yukumlulukAdi: string;
+  merci: string;
+  durum: string;
+  /** Kapanmamış bildirim: `taslak` ya da `suresi_gecti`. */
+  acik: boolean;
+  /** Mevzuatın verdiği süre; BOŞ ise süre belirlenmemiştir. */
+  sureSaat: number | null;
+  /** Süre yoksa `null` — sıfır YAZILMAZ. */
+  sonTarih: string | null;
+  /** Süresizliği denetçiye CÜMLEYLE söyler; boş hücre bırakılmaz. */
+  sureSozu: string;
+  referansNo: string | null;
+  gonderimZamani: string | null;
+  gonderen: string | null;
+  teyitZamani: string | null;
+  /** Kanıt bağı; `null` ise "gönderim kanıtı iliştirilmedi". */
+  kanitId: string | null;
+  uygulanmazGerekcesi: string | null;
+  koken: PaketKokeni;
+};
+
 export type IzSatiri = {
   id: string;
   zaman: string;
@@ -210,6 +255,16 @@ export type PaketSayimlari = {
   izKirpildi: boolean;
   izToplami: number;
   connector: number;
+  /* ── R10 ─ Bildirim sayıları AYRI AYRI durur: "kaç bildirim var" ile
+     "kaçı hâlâ gönderilmedi" ayrı sorulardır ve tek sayı ikisini de
+     cevaplayamaz. */
+  bildirim: number;
+  /** Gönderilmemiş (taslak ya da süresi geçmiş). */
+  acikBildirim: number;
+  /** SÜRESİ GEÇMİŞ ve hâlâ gönderilmemiş — denetimin en pahalı satırı. */
+  suresiGecenBildirim: number;
+  /** Mevzuat süre belirlemediği için geri sayımı olmayan kayıt. */
+  suresizBildirim: number;
 };
 
 export type PaketGovdesi = {
@@ -218,6 +273,7 @@ export type PaketGovdesi = {
   bulgular: BulguSatiri[];
   denetimIzi: IzSatiri[];
   connectorlar: ConnectorSatiri[];
+  bildirimler: BildirimSatiri[];
   sayimlar: PaketSayimlari;
 };
 
@@ -506,9 +562,53 @@ export async function kanitPaketiUret(girdi: {
     return aralikta || sonundaAcik;
   });
 
+  /* ── R10 · BİLDİRİM KAYITLARI ────────────────────────────────────────
+     Kapsam üç yönlüdür ve üçü de bilinçlidir:
+
+     TESİS — kaydın tesisi olayından gelir; kapsam dışı tesisin bildirimi
+     bu pakete girmez.
+
+     REGÜLASYON — yükümlülüğün `regulasyonId`si NULL ise o yükümlülük
+     HER regülasyon için geçerlidir (KVKK ihlal bildirimi böyledir) ve
+     pakete GİRER. Yalnız `regulasyonId: kapsam.regulasyonId` yazmak,
+     üç değerli mantıkta NULL satırları sessizce düşürür ve denetçi
+     yapılmış bir bildirimi hiç görmez — `OR` dalı bu yüzden var
+     (URN-VER-001 ile aynı sınıf).
+
+     TARİH — bulgularla AYNI kural: aralıkta doğan ya da aralık sonunda
+     hâlâ AÇIK olan kayıt girer. Yalnız doğuş tarihine bakmak, aralıktan
+     önce açılıp hâlâ gönderilmemiş bildirimi — denetimin en çok
+     ilgilendiği satırı — paketin dışında bırakırdı. */
+  const hamBildirimler = await db.bildirimKaydi.findMany({
+    where: {
+      olay: { tesisId: { in: tesisler.map((t) => t.id) } },
+      yukumluluk: {
+        OR: [{ regulasyonId: null }, { regulasyonId: regulasyon.id }],
+      },
+    },
+    orderBy: [{ acildi: 'asc' }],
+    select: {
+      id: true, durum: true, sonTarih: true, referansNo: true,
+      gonderimZamani: true, teyitZamani: true, kanitId: true,
+      uygulanmazGerekcesi: true, acildi: true,
+      olay: { select: { kod: true, baslik: true, baslangic: true, tesisId: true } },
+      yukumluluk: { select: { kod: true, ad: true, merci: true, sureSaat: true } },
+      gonderen: { select: { adSoyad: true } },
+    },
+  });
+  const bildirimAcik = (d: string) => d === 'taslak' || d === 'suresi_gecti';
+  const bildirimler = hamBildirimler.filter((b) => {
+    const dogus = b.acildi;
+    const aralikta = dogus >= kapsam.baslangic && dogus <= kapsam.bitis;
+    const sonundaAcik = dogus <= kapsam.bitis && bildirimAcik(b.durum);
+    return aralikta || sonundaAcik;
+  });
+  const tesisKodu = new Map(tesisler.map((t) => [t.id, t.kod]));
+
   const kokenler = await kokenleriTopla([
     { varlikTipi: 'MaddeDurumu', idler: maddeDurumlari.map((m) => m.id) },
     { varlikTipi: 'Bulgu', idler: bulgular.map((b) => b.id) },
+    { varlikTipi: 'BildirimKaydi', idler: bildirimler.map((b) => b.id) },
   ]);
   const kokenAl = (tip: string, id: string): PaketKokeni =>
     kokenler.get(`${tip}|${id}`) ?? kokensiz();
@@ -518,6 +618,9 @@ export async function kanitPaketiUret(girdi: {
   const izHedefleri = [
     ...maddeDurumlari.map((m) => m.id),
     ...bulgular.map((b) => b.id),
+    /* Bildirim kayıtlarının izi de pakete girer: "kim, ne zaman
+       gönderildi işaretledi" sorusunun cevabı orada durur. */
+    ...bildirimler.map((b) => b.id),
     ...tesisler.map((t) => t.id),
     regulasyon.id,
   ];
@@ -607,6 +710,39 @@ export async function kanitPaketiUret(girdi: {
     koken: kokenAl('Bulgu', b.id),
   }));
 
+  const bildirimSatirlari: BildirimSatiri[] = bildirimler.map((b) => {
+    const gs = geriSayim({
+      baslangic: b.olay.baslangic.getTime(),
+      simdi: simdi.getTime(),
+      sureSaat: b.yukumluluk.sureSaat,
+    });
+    return {
+      id: b.id,
+      olayKodu: b.olay.kod,
+      olayBasligi: b.olay.baslik,
+      tesisKodu: b.olay.tesisId ? tesisKodu.get(b.olay.tesisId) ?? null : null,
+      yukumlulukKodu: b.yukumluluk.kod,
+      yukumlulukAdi: b.yukumluluk.ad,
+      merci: b.yukumluluk.merci,
+      /* EKRANLA AYNI KARAR: kaydın `durum`unu motor periyodik yazar,
+         geri sayım anlıktır. Paket ham durumu yazsaydı, ekranda "süresi
+         geçti" görünen bir kayıt denetim paketinde "taslak" derdi —
+         aynı ürünün iki belgesi çelişirdi. */
+      durum: gorunenDurum({ kayitDurumu: b.durum, geriSayim: gs }),
+      acik: bildirimAcik(gorunenDurum({ kayitDurumu: b.durum, geriSayim: gs })),
+      sureSaat: b.yukumluluk.sureSaat,
+      sonTarih: iso(b.sonTarih),
+      sureSozu: gs.soz,
+      referansNo: b.referansNo,
+      gonderimZamani: iso(b.gonderimZamani),
+      gonderen: b.gonderen?.adSoyad ?? null,
+      teyitZamani: iso(b.teyitZamani),
+      kanitId: b.kanitId,
+      uygulanmazGerekcesi: b.uygulanmazGerekcesi,
+      koken: kokenAl('BildirimKaydi', b.id),
+    };
+  });
+
   const izler: IzSatiri[] = izSatirlari.map((a) => ({
     id: a.id,
     zaman: a.zaman.toISOString(),
@@ -639,6 +775,7 @@ export async function kanitPaketiUret(girdi: {
     bulgular: bulguSatirlari,
     denetimIzi: izler,
     connectorlar: connectorSatirlari,
+    bildirimler: bildirimSatirlari,
     sayimlar: {
       madde: maddeSatirlari.length,
       kokensizMadde: maddeSatirlari.filter((m) => !m.koken.bilinen).length,
@@ -649,6 +786,10 @@ export async function kanitPaketiUret(girdi: {
       izKirpildi: izToplami > izler.length,
       izToplami,
       connector: connectorSatirlari.length,
+      bildirim: bildirimSatirlari.length,
+      acikBildirim: bildirimSatirlari.filter((b) => b.acik).length,
+      suresiGecenBildirim: bildirimSatirlari.filter((b) => b.durum === 'suresi_gecti').length,
+      suresizBildirim: bildirimSatirlari.filter((b) => b.sureSaat === null).length,
     },
   };
 

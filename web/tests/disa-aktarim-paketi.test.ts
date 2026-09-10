@@ -312,3 +312,146 @@ describe('Paket içeriği', () => {
     })).rejects.toThrow(/en az bir tesis/);
   });
 });
+
+/* ═══ 5 · R10 · BİLDİRİM KAYITLARI PAKETTE [OLY-BIL-005] ══════════════
+
+   Denetçinin en doğrudan sorusu: "bu olay mevzuata bildirildi mi?"
+   Cevabı pakette YOKSA kayıt ürünün içinde kalır ve denetimde işe
+   yaramaz. Burada ölçülen dört sözleşme:
+
+   · kapsamdaki olayların bildirim kayıtları pakete GİRER,
+   · TASLAK METNİ girmez — gönderilmemiş bir metin kanıt değildir,
+   · süresi belirlenmemiş yükümlülükte sonTarih boş kalır ve satır
+     bunu CÜMLEYLE söyler (boş hücre bırakılmaz),
+   · regülasyonu NULL olan yükümlülük (her regülasyona uyan) düşmez. */
+
+describe('bildirim kayıtları pakete girer [OLY-BIL-005]', () => {
+  let olayId = '';
+  let yukumlulukId = '';
+  let suresizId = '';
+
+  beforeAll(async () => {
+    /* Kapsamdaki tesiste, aralık İÇİNDE bir olay ve iki yükümlülük. */
+    const olay = await db.olay.create({
+      data: {
+        kod: `PKT-OLAY-${Date.now()}`, baslik: 'Kurgusal bildirim olayı',
+        siddet: 'kritik', durum: 'acik', tesisId: izinliTesisId,
+        baslangic: new Date(ARALIK.baslangic.getTime() + 60_000),
+      },
+    });
+    olayId = olay.id;
+
+    /* regulasyonId NULL: HER regülasyon için geçerli (KVKK böyle). */
+    const y = await db.bildirimYukumlulugu.create({
+      data: {
+        kod: `PKT-SURELI-${Date.now()}`, ad: 'Süreli yükümlülük',
+        asgariSiddet: 'orta', sureSaat: 72, dayanak: 'Kurgusal',
+        merci: 'Kurgusal Merci P', kanalNotu: 'Kurumun formu üzerinden',
+      },
+    });
+    yukumlulukId = y.id;
+    const sz = await db.bildirimYukumlulugu.create({
+      data: {
+        kod: `PKT-SURESIZ-${Date.now()}`, ad: 'Süresiz yükümlülük',
+        asgariSiddet: 'orta', sureSaat: null, dayanak: 'Kurgusal',
+        merci: 'Kurgusal Merci Q',
+      },
+    });
+    suresizId = sz.id;
+
+    await db.bildirimKaydi.create({
+      data: {
+        olayId, yukumlulukId, durum: 'gonderildi',
+        referansNo: 'PKT-REF-2026-1', gonderimZamani: new Date(),
+        sonTarih: new Date(olay.baslangic.getTime() + 72 * 3_600_000),
+        taslakMetin: 'BU METIN PAKETE GIRMEMELI — gonderilmemis taslak',
+      },
+    });
+    await db.bildirimKaydi.create({
+      data: { olayId, yukumlulukId: suresizId, durum: 'taslak', sonTarih: null },
+    });
+  });
+
+  it('kapsamdaki olayın bildirim kayıtları pakete girer [OLY-BIL-005]', async () => {
+    const paket = await paketUret();
+    const kodlar = paket.bildirimler.map((b) => b.yukumlulukKodu);
+    expect(paket.sayimlar.bildirim).toBeGreaterThanOrEqual(2);
+    expect(kodlar).toEqual(expect.arrayContaining(
+      [expect.stringContaining('PKT-SURELI'), expect.stringContaining('PKT-SURESIZ')]));
+  });
+
+  it('regülasyonu BOŞ olan yükümlülük DÜŞMEZ — üç değerli mantık', async () => {
+    /* `regulasyonId: kapsam.regulasyonId` yazmak NULL satırları sessizce
+       düşürürdü ve denetçi yapılmış bir bildirimi hiç görmezdi. */
+    const paket = await paketUret();
+    const sureli = paket.bildirimler.find((b) => b.yukumlulukKodu.startsWith('PKT-SURELI'));
+    expect(sureli, 'regülasyonu NULL olan yükümlülük pakete girmedi').toBeDefined();
+  });
+
+  it('TASLAK METNİ pakete GİRMEZ', async () => {
+    const paket = await paketUret();
+    const json = JSON.stringify(paket);
+    expect(json).not.toContain('BU METIN PAKETE GIRMEMELI');
+    /* Alan adı da yok: şemada taslakMetin diye bir sütun bulunmamalı. */
+    for (const b of paket.bildirimler) {
+      expect(Object.keys(b)).not.toContain('taslakMetin');
+    }
+  });
+
+  it('gönderim referansı ve zamanı pakette DURUR', async () => {
+    const paket = await paketUret();
+    const sureli = paket.bildirimler.find((b) => b.yukumlulukKodu.startsWith('PKT-SURELI'))!;
+    expect(sureli.referansNo).toBe('PKT-REF-2026-1');
+    expect(sureli.gonderimZamani).not.toBeNull();
+    expect(sureli.durum).toBe('gonderildi');
+    expect(sureli.acik).toBe(false);
+  });
+
+  it('SÜRESİZ yükümlülükte sonTarih boş, satır bunu CÜMLEYLE söyler', async () => {
+    const paket = await paketUret();
+    const sz = paket.bildirimler.find((b) => b.yukumlulukKodu.startsWith('PKT-SURESIZ'))!;
+    expect(sz.sureSaat).toBeNull();
+    expect(sz.sonTarih).toBeNull();
+    /* Boş hücre bırakılmaz: denetçi "veri yok" ile "süre yok"u ayırt
+       edebilmeli. Bilinmeyen ≠ sıfır. */
+    expect(sz.sureSozu).toBe('Süre mevzuatta belirlenmedi');
+    expect(sz.acik).toBe(true);
+    expect(paket.sayimlar.suresizBildirim).toBeGreaterThanOrEqual(1);
+  });
+
+  it('bildirim kayıtlarının DENETİM İZİ de pakete girer', async () => {
+    const kayit = await db.bildirimKaydi.findFirstOrThrow({
+      where: { olayId }, select: { id: true },
+    });
+    await db.aktiviteKaydi.create({
+      data: {
+        varlikTipi: 'BildirimKaydi', varlikId: kayit.id, eylem: 'guncelleme',
+        alan: 'durum', gerekce: 'paket testi izi',
+        zaman: new Date(ARALIK.baslangic.getTime() + 120_000),
+      },
+    });
+    const paket = await paketUret();
+    expect(paket.denetimIzi.some((i) => i.varlikId === kayit.id),
+      'bildirim kaydının izi pakete girmedi').toBe(true);
+  });
+
+  it('kapsam DIŞI tesisin bildirimi pakete GİRMEZ', async () => {
+    const yasakOlay = await db.olay.create({
+      data: {
+        kod: `PKT-YASAK-${Date.now()}`, baslik: 'Kapsam dışı olay',
+        siddet: 'kritik', durum: 'acik', tesisId: yasakTesisId,
+        baslangic: new Date(ARALIK.baslangic.getTime() + 60_000),
+      },
+    });
+    await db.bildirimKaydi.create({
+      data: { olayId: yasakOlay.id, yukumlulukId, durum: 'taslak' },
+    });
+    const paket = await paketUret();
+    expect(paket.bildirimler.map((b) => b.olayKodu)).not.toContain(yasakOlay.kod);
+  });
+
+  it('şema sürümü YÜKSELDİ — okuyucu eski paketle karışmasın', async () => {
+    const paket = await paketUret();
+    expect(paket.baslik.semaSurumu).toBe(3);
+  });
+});

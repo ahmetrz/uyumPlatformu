@@ -233,6 +233,47 @@ kalır ve ekran "Süre mevzuatta belirlenmedi" der — modelin `sureSaat`
 alanı tam bu yüzden nullable yapıldı; bir saat uydurmak, olmayan bir
 sayacı işletmek olurdu.
 
+**10 Eylül 2026 · yükümlülük içeriği · ERİŞİLEBİLEN kadarı eklendi (R10).**
+EPDK sitesi açık ve paketteki yönetmelik/ek metinleri zaten birincil
+kaynaktan indirilmişti; o metinden çıkarılabilen **bir** bildirim
+yükümlülüğü eklendi:
+
+| Kod | Merci | Süre | Dayanak |
+| --- | --- | --- | --- |
+| `EPDK-USOM-OLAY` | USOM | **BOŞ** — metin süre vermiyor | Ek-1…Ek-7 · OYS-50/56/59 (Olay Yönetimi ve Süreklilik) |
+| `KVKK-IHLAL-72` | KVKK Kurulu | 72 saat | 6698 s. md. 12/5 + Kurul kararı 2019/10 |
+
+USOM satırının **süresi boş bırakıldı ve bu bir eksiklik değil**: EPDK
+metni hangi olayların USOM'a bildirileceğine dair KRİTERİ yükümlü
+kuruluşun tanımlamasını istiyor, bir saat vermiyor. Ekran bu satırda
+sayaç göstermez, "Süre mevzuatta belirlenmedi" der. Aynı sebeple
+`asgariSiddet` en alt kademededir: mevzuat eşiği kuruma bırakmışken ürünün
+bir eşik uydurması, mevzuatın söylemediğini söylemek olurdu — taslak her
+olayda açılır, "bu kapsamda değil" kararını insan verir.
+
+**EPBS raporlama yükümlülükleri BİLEREK eklenmedi.** Yönetmelik md. 10/2,
+10/3 ve 10/4 üç ayrı raporlama süresi veriyor (öz denetim raporu: bir ay ·
+ilerleme raporu: bir ay · sektörel denetim raporu: on iki ay + bir ay) ve
+üçü de **Enerji Piyasası Bildirim Sistemi** üzerinden. Bunlar **olaydan
+doğmaz, takvimden doğar**; `BildirimYukumlulugu` ise olayı şiddet eşiğiyle
+eşleştirir. Takvim yükümlülüğünü olay yükümlülüğü alanına yazmak, R-D'nin
+tarif ettiği anlam eşleme hatasının ta kendisi olurdu: biçim doğru, değer
+aralıkta, hiçbir kapı görmez. Bu üç yükümlülük **periyodik yükümlülük
+modeli** geldiğinde eklenir (R0 · sahibi KODLAYAN).
+
+### İSTENEN BELGELER — Ahmet indirip verecek
+
+Aşağıdaki yükümlülükler eklenemedi çünkü metinlerine erişilemiyor.
+Süre ve merci **uydurulmadı**. Her satır, indirilmesi gereken belgeyi
+ADIYLA söyler:
+
+| # | İstenen belge | Neden gerekli | Erişim denemesi |
+| --- | --- | --- | --- |
+| 1 | **7545 sayılı Kanun** (Siber Güvenlik Kanunu) — Resmî Gazete'de yayımlanan TAM METİN, özellikle **md. 7** ve varsa ikincil düzenlemesi | Siber olay bildirim yükümlülüğünün merci ve süresi | `mevzuat.gov.tr` HTTP 000 · `resmigazete.gov.tr` HTTP 000 (10 Eyl 2026; aynı turda `epdk.gov.tr` HTTP 200 — sorun ağda değil) |
+| 2 | **Kurumsal SOME Kurulum ve Yönetim Rehberi** (USOM/BTK) | EPDK Ek-1 OYS-50 bu rehbere ATIF yapıyor; USOM bildiriminin süresi ve kanalı orada tanımlı olabilir | denenmedi — belge adı EPDK metninden çıkarıldı, kaynak adresi bilinmiyor |
+| 3 | **SPK VII-128.10 Bilgi Sistemleri Yönetimi Tebliği** — Resmî Gazete metni | Önemli bulgu bildirimi (10 iş günü iddiası ikincil kaynaktan; birincil doğrulama yok) | `resmigazete.gov.tr` erişilemiyor; Lexpera ikincil |
+| 4 | **KVKK Veri İhlali Bildirim Usul ve Esasları** — Kurul kararının TAM metni | 72 saatlik süre eklendi ama gecikme gerekçesi ve form alanları için tam metin gerekli | kvkk.gov.tr sayfası kanun metnini vermemişti (8 Eyl ölçümü) |
+
 Belge şu anda EPDK'nın hangi sayfasında listelendiği
 **bulunamadı** (Yetkinlik Modeli sayfasında bağı yok, arama motoru da
 göstermedi); doğrudan adresi çalışıyor ve iki ayrı indirmede aynı

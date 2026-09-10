@@ -8,7 +8,7 @@
     "ad": "Elektrik Üretimi"
   },
   "dil": "tr",
-  "surum": "0.5.0",
+  "surum": "0.6.0",
   "yayinci": "Uyum ve Yönetişim Platformu",
   "lisans": {
     "tur": "kamuya_acik",
@@ -40,7 +40,7 @@
     "rapor/EPDK-SGYM-KARNE.json": "cd968751845193cc7f121175021ae11e32d8a40372a9822a34910a2598e49fa7",
     "roller.json": "5b5fac069b4c82c8b52b58a2d4edf6a4b22f977448aff19c497f1acd3cdb18e4",
     "sozluk.json": "a09bb80a9ea6498d1e9c69192ef6f5d47ab9992f426016bfa60f894835a36a3c",
-    "yukumlulukler.json": "012af945dfe0fe5fc1b2173c8c57cae0cb7b7d0384cd46e73e55e0074b0819e8"
+    "yukumlulukler.json": "f67547016072e9399253bfe767808bdab8cb5fd178a1bd2705f603339db60f55"
   },
   "imza": null,
   "aciklama": "EPDK Enerji Sektöründe Siber Güvenlik Yetkinlik Modeli Yönetmeliği (RG 06.06.2023/32213, son hâli RG 25.11.2025/33088) ve YEDİ sektör eki (Ek-1…Ek-7, 3 691 teknik kontrol). Madde METNİ birincil kaynaktan (EPDK resmî sitesi) aktarıldı; her maddede kaynak adresi, belge içi konum ve erişim tarihi durur. Her çerçeve uygulanabilirlik BEYANI (hangi kapsam öğesi türüne, hangi koşulla) ve manifest her çerçeve için ALAN EŞLEME BEYANI taşır. Sürümler TASLAK gelir; aktifleştirme insan kararıdır.",

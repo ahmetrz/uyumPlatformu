@@ -52,20 +52,32 @@ const TEMEL: PaketDosyalari = {
   'cerceve/SAB-REG.csv': `${CSV_BASLIK}\n1;;Amaç;;0;;\n2;;Kapsam;;1;;\n`,
 };
 const manifest = { kod: 'SABLON-PAKET', sektor: { kod: 'SABLON-SEKTOR', ad: 'Şablon' } };
+/* Form şablonu da ALAN EŞLEME BEYANI ister (R-D · URN-PKT-022): şablonun
+   her alanı bir ürün alanıdır ve beyansız alan kırmızıdır. Bu dosyanın
+   ölçtüğü şey beyan değil ŞABLON BİÇİMİ, bu yüzden beyan burada bir
+   sabittir; beyanın kendi dişleri `paket-alan-eslemesi.test.ts`te. */
+const G = 'Ürünün bu alanı şablonun sorduğu sorunun cevabının yazıldığı yerdir; anlamı sorunun kendisidir.';
+const esleme = (...alanlar: string[]) => ({
+  'SAB-FORM': alanlar.map((a) => ({ kaynakAlan: null, urunAlani: a, gerekce: G })),
+});
+/** İki alanlı (varsayılan) form için manifest. */
+const MAN = { ...manifest, alanEslemesi: esleme('politikaVar', 'tarih') };
+/** Tek alanlı form için manifest — fazla beyan ÖLÜ BEYAN olurdu. */
+const MAN_TEK = { ...manifest, alanEslemesi: esleme('politikaVar') };
 const siniflar = (d: string) => paketiDogrula(d).hatalar.map((h) => `${h.sinif}|${h.dosya}|${h.konum ?? ''}`);
 
 describe('doğrulayıcı · form ve rapor şablonu [URN-PKT-012]', () => {
   it('JSON form ve rapor geçer, sayılır; dosya adı koddan farklıysa KİMLİK [URN-PKT-012]', () => {
-    const s = paketiDogrula(paketYaz({ ...TEMEL, 'form/SAB-FORM.json': FORM(), 'rapor/SAB-RAPOR.json': RAPOR() }, manifest));
+    const s = paketiDogrula(paketYaz({ ...TEMEL, 'form/SAB-FORM.json': FORM(), 'rapor/SAB-RAPOR.json': RAPOR() }, MAN));
     expect(s.ok, s.hatalar.map(hataSatiri).join('\n')).toBe(true);
     expect(s.sayilar).toMatchObject({ formlar: 1, raporlar: 1 });
-    expect(siniflar(paketYaz({ ...TEMEL, 'form/BASKA.json': FORM() }, manifest))).toContain('KİMLİK|form/BASKA.json|kod');
+    expect(siniflar(paketYaz({ ...TEMEL, 'form/BASKA.json': FORM() }, MAN))).toContain('KİMLİK|form/BASKA.json|kod');
   });
 
   it('XLSX: sayfa ve hücreler dosyaya karşı okunur — yok sayfa, aralık dışı hücre, hücresiz alan BIÇIM; doğru olan geçer [URN-PKT-012]', () => {
     const dogru = paketYaz({ ...TEMEL, 'form/SAB-FORM.xlsx': xlsx().toString('binary'),
       'form/SAB-FORM.json': FORM({ dosya: 'SAB-FORM.xlsx', sayfa: 'Form', bolumler: [{ kod: 'genel', baslik: 'Genel', alanlar: [
-        { anahtar: 'politikaVar', etiket: 'Politika', tip: 'mantik', hucre: 'B2' }, { anahtar: 'tarih', etiket: 'Tarih', tip: 'tarih', hucre: 'B3' }] }] }) }, manifest);
+        { anahtar: 'politikaVar', etiket: 'Politika', tip: 'mantik', hucre: 'B2' }, { anahtar: 'tarih', etiket: 'Tarih', tip: 'tarih', hucre: 'B3' }] }] }) }, MAN);
     // paketYaz metni utf8 yazar; ikili dosyayı ayrıca gerçek baytlarıyla yaz
     writeFileSync(path.join(dogru, 'form', 'SAB-FORM.xlsx'), xlsx());
     const sonuc = paketiDogrula(dogru);
@@ -73,14 +85,14 @@ describe('doğrulayıcı · form ve rapor şablonu [URN-PKT-012]', () => {
     expect(sonuc.hatalar.filter((h) => !/özet uyuşmazlığı/.test(h.mesaj)).map(hataSatiri)).toEqual([]);
 
     const yokSayfaDizini = paketYaz({ ...TEMEL, 'form/SAB-FORM.json': FORM({ dosya: 'SAB-FORM.xlsx', sayfa: 'Form', bolumler: [{ kod: 'genel', baslik: 'Genel', alanlar: [
-      { anahtar: 'politikaVar', etiket: 'Politika', tip: 'mantik', hucre: 'B2' }] }] }) }, manifest);
+      { anahtar: 'politikaVar', etiket: 'Politika', tip: 'mantik', hucre: 'B2' }] }] }) }, MAN_TEK);
     writeFileSync(path.join(yokSayfaDizini, 'form', 'SAB-FORM.xlsx'), xlsx('Baska'));
     const yokSayfa = paketiDogrula(yokSayfaDizini);
     expect(yokSayfa.hatalar.some((h) => h.sinif === 'BIÇIM' && h.konum === 'sayfa' && /sayfa yok: Form \(dosyadaki sayfalar: Baska\)/.test(h.mesaj)),
       yokSayfa.hatalar.map(hataSatiri).join('\n')).toBe(true);
 
     const disari = paketYaz({ ...TEMEL, 'form/SAB-FORM.json': FORM({ dosya: 'SAB-FORM.xlsx', sayfa: 'Form', bolumler: [{ kod: 'genel', baslik: 'Genel', alanlar: [
-      { anahtar: 'politikaVar', etiket: 'Politika', tip: 'mantik', hucre: 'Z99' }, { anahtar: 'tarih', etiket: 'Tarih', tip: 'tarih' }] }] }) }, manifest);
+      { anahtar: 'politikaVar', etiket: 'Politika', tip: 'mantik', hucre: 'Z99' }, { anahtar: 'tarih', etiket: 'Tarih', tip: 'tarih' }] }] }) }, MAN);
     writeFileSync(path.join(disari, 'form', 'SAB-FORM.xlsx'), xlsx());
     const d = paketiDogrula(disari).hatalar.filter((h) => !/özet|listesinde yok/.test(h.mesaj));
     expect(d.map((h) => h.konum)).toEqual(['genel.politikaVar.hucre', 'genel.tarih.hucre']);
@@ -94,25 +106,25 @@ describe('doğrulayıcı · form ve rapor şablonu [URN-PKT-012]', () => {
     const t = paketYaz({ ...TEMEL,
       'cerceve/SAB-ISO.json': cerceve('SAB-ISO', { tur: 'telifli', metinDahil: false }),
       'cerceve/SAB-ISO.csv': `${CSV_BASLIK}\nA.5;;Organizasyonel kontroller;;0;;\n`,
-      'form/SAB-FORM.json': FORM({ dosya: 'SAB-FORM.xlsx', sayfa: 'Form' }, { hucre: 'B2' }) }, manifest);
+      'form/SAB-FORM.json': FORM({ dosya: 'SAB-FORM.xlsx', sayfa: 'Form' }, { hucre: 'B2' }) }, MAN);
     writeFileSync(path.join(t, 'form', 'SAB-FORM.xlsx'), xlsx());
     const h = paketiDogrula(t).hatalar.filter((x) => x.sinif === 'LİSANS');
     expect(h.map((x) => x.mesaj).join('\n')).toMatch(/telifli çerçeve taşıyan paket \(SAB-ISO\) XLSX form taşıyamaz/);
   });
 
   it('telifli pakette XLSX form LİSANS; JSON yapı geçer; hücre var dosya yoksa BIÇIM [URN-PKT-012]', () => {
-    const telifli = { ...manifest, lisans: { tur: 'telifli', metinDahil: false } };
+    const telifli = { ...MAN, lisans: { tur: 'telifli', metinDahil: false } };
     const t = paketYaz({ ...TEMEL, 'form/SAB-FORM.json': FORM({ dosya: 'SAB-FORM.xlsx', sayfa: 'Form' }, { hucre: 'B2' }) }, telifli);
     writeFileSync(path.join(t, 'form', 'SAB-FORM.xlsx'), xlsx());
     expect(paketiDogrula(t).hatalar.some((h) => h.sinif === 'LİSANS' && /telifli paket XLSX form taşıyamaz/.test(h.mesaj))).toBe(true);
     expect(paketiDogrula(paketYaz({ ...TEMEL, 'form/SAB-FORM.json': FORM() }, telifli)).ok).toBe(true);
-    expect(siniflar(paketYaz({ ...TEMEL, 'form/SAB-FORM.json': FORM({}, { hucre: 'B2' }) }, manifest))).toContain('BIÇIM|form/SAB-FORM.json|genel.politikaVar');
+    expect(siniflar(paketYaz({ ...TEMEL, 'form/SAB-FORM.json': FORM({}, { hucre: 'B2' }) }, MAN))).toContain('BIÇIM|form/SAB-FORM.json|genel.politikaVar');
   });
 
   it('rapor: sıralama alanların permütasyonu olmalı; secim tipi seçenek ister [URN-PKT-012]', () => {
     expect(siniflar(paketYaz({ ...TEMEL, 'rapor/SAB-RAPOR.json': RAPOR({ siralama: ['oge'] }) }, manifest))).toContain('BIÇIM|rapor/SAB-RAPOR.json|siralama');
     expect(siniflar(paketYaz({ ...TEMEL, 'rapor/SAB-RAPOR.json': RAPOR({ siralama: ['oge', 'durum', 'yok'] }) }, manifest))).toContain('BIÇIM|rapor/SAB-RAPOR.json|siralama');
-    expect(siniflar(paketYaz({ ...TEMEL, 'form/SAB-FORM.json': FORM({}, { tip: 'secim' }) }, manifest))).toContain('BIÇIM|form/SAB-FORM.json|genel.politikaVar');
+    expect(siniflar(paketYaz({ ...TEMEL, 'form/SAB-FORM.json': FORM({}, { tip: 'secim' }) }, MAN))).toContain('BIÇIM|form/SAB-FORM.json|genel.politikaVar');
   });
 });
 
@@ -122,13 +134,13 @@ describe('kurucu · şablon kataloğu, köken, uzlaştırma [URN-PKT-012]', () =
   const kur = (dosyalar: PaketDosyalari, m: Record<string, unknown>) => paketiKur(paketYaz(dosyalar, m), { kuranId, istemci: db });
 
   it('kopuk madde referansı KİMLİK ve hiçbir satır yazılmaz; çözülen referansla şablonlar koken=paket yazılır [URN-PKT-012]', async () => {
-    const kopuk = await kur({ ...TEMEL, 'form/SAB-FORM.json': FORM({}, { maddeKod: 'SAB-REG-99' }) }, { ...manifest, surum: '0.1.0' });
+    const kopuk = await kur({ ...TEMEL, 'form/SAB-FORM.json': FORM({}, { maddeKod: 'SAB-REG-99' }) }, { ...MAN, surum: '0.1.0' });
     expect(kopuk.ok).toBe(false);
     if (!kopuk.ok) expect(kopuk.hatalar[0]).toMatchObject({ sinif: 'KİMLİK', dosya: 'form/SAB-FORM.json', mesaj: expect.stringContaining('SAB-REG-99') });
     expect(await db.icerikPaketi.findUnique({ where: { kod: 'SABLON-PAKET' } })).toBeNull();
     expect(await db.formSablonu.findUnique({ where: { kod: 'SAB-FORM' } })).toBeNull();
 
-    const s = await kur({ ...TEMEL, 'form/SAB-FORM.json': FORM(), 'rapor/SAB-RAPOR.json': RAPOR() }, { ...manifest, surum: '0.1.0' });
+    const s = await kur({ ...TEMEL, 'form/SAB-FORM.json': FORM(), 'rapor/SAB-RAPOR.json': RAPOR() }, { ...MAN, surum: '0.1.0' });
     expect(s.ok, JSON.stringify(s)).toBe(true);
     if (!s.ok) return;
     expect(s.rapor.sayilar).toMatchObject({ formlar: 1, raporlar: 1 });
@@ -150,7 +162,7 @@ describe('kurucu · şablon kataloğu, köken, uzlaştırma [URN-PKT-012]', () =
     expect(s.rapor.pasiflestirilen).toMatchObject({ formlar: 1, raporlar: 1 });
     expect(await db.formSablonu.findUniqueOrThrow({ where: { kod: 'SAB-FORM' } })).toMatchObject({ aktif: false });
     expect(await db.raporSablonu.findUniqueOrThrow({ where: { kod: 'SAB-RAPOR' } })).toMatchObject({ aktif: false });
-    const g = await kur({ ...TEMEL, 'form/SAB-FORM.json': FORM() }, { ...manifest, surum: '0.3.0' });
+    const g = await kur({ ...TEMEL, 'form/SAB-FORM.json': FORM() }, { ...MAN, surum: '0.3.0' });
     expect(g.ok).toBe(true);
     expect(await db.formSablonu.findUniqueOrThrow({ where: { kod: 'SAB-FORM' } })).toMatchObject({ aktif: true });
     const k = await paketiKaldir('SABLON-PAKET', db);

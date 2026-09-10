@@ -29,6 +29,7 @@ import { db } from '../db';
 import { DEMO } from '../demo';
 import { izinVar, izinliTesisIdleri } from '../erisim';
 import { MARKA_AD } from '../marka';
+import { DURUMLAR } from '../sabitler';
 import { damgaliAd } from '../disaAktarim/csv';
 import { formSatiri, FORM_SUTUNLARI, type FormOlcumu } from '../denetim/formDoldurma';
 import { SOA_SUTUNLARI, soaSatiri } from '../denetim/soa';
@@ -36,7 +37,12 @@ import { maddeGirdisi, soaGirdisi } from '../denetim/formVerisi';
 import {
   formCsv, formXlsx, formlarinOlcumu, type FormBolumu, type Kunye,
 } from '../denetim/formDisaAktarim';
-import { FORM_TURLERI, FORM_TURU_ADI, type FormTuru } from '../denetim/formTuru';
+import {
+  FORM_TURU_ADI, cekirdekTuru, sablonKodu,
+} from '../denetim/formTuru';
+import {
+  SABLON_SUTUNLARI, sablonuDoldur, type Sablon,
+} from '../denetim/sablonDoldurma';
 import { hata, iz } from './ortak';
 
 export type DenetimFormuSonucu =
@@ -54,7 +60,10 @@ export type DenetimFormuSonucu =
 const Sema = z.object({
   regulasyonId: z.string().trim().min(1, 'Çerçeve seçin'),
   tesisIdleri: z.array(z.string().trim().min(1)).min(1, 'En az bir kapsam seçin'),
-  tur: z.enum(FORM_TURLERI),
+  /* Çekirdek türü ya da `sablon:<KOD>`; şablon kodları kurulumdan gelir,
+     derleme anında bilinemez, bu yüzden enum değil süzgeç. */
+  tur: z.string().trim().min(1, 'Form türü seçin')
+    .refine((t) => cekirdekTuru(t) || sablonKodu(t) !== null, 'Bilinmeyen form türü'),
 });
 
 /**
@@ -66,7 +75,7 @@ const Sema = z.object({
 export async function denetimFormuUretEylem(girdi: {
   regulasyonId: string;
   tesisIdleri: string[];
-  tur: FormTuru;
+  tur: string;
 }): Promise<DenetimFormuSonucu> {
   const istekId = randomUUID();
   let kullaniciId: string | null = null;
@@ -125,8 +134,42 @@ export async function denetimFormuUretEylem(girdi: {
       if (mevcut) mevcut.push(s); else gruplar.set(ad, [s]);
     }
 
-    const bolumler: FormBolumu[] = [...gruplar.entries()].map(([ad, grup]) => {
-      const eslenmis = grup.map((s) => ({
+    if (gruplar.size === 0) {
+      /* Sıfır satırlık bir form üretmek, denetçiye "bu çerçevede hiçbir
+         kontrol yok" demektir — oysa olan şey kapsamda kayıt olmamasıdır.
+         İkisi ayrı ve bu ayrım gizlenmez. */
+      throw new Error('Seçilen kapsamda bu çerçeveye ait kayıt yok — form üretilmedi');
+    }
+
+    const sablonKod = sablonKodu(v.tur);
+    let bolumler: FormBolumu[];
+    let formAdi: string;
+    let taban: string;
+
+    if (sablonKod !== null) {
+      /* PAKET ŞABLONU. Çekirdek şablonu ÜRETMEZ, yalnız doldurur: bölümler
+         ve sorular paketten gelir. Pasif şablon doldurulmaz — pasifleşmiş
+         bir şablonu doldurmak, paket güncellemesiyle geri çekilmiş bir
+         soruya bugünün verisiyle cevap vermek olurdu. */
+      const kayit = await db.formSablonu.findFirst({
+        where: { kod: sablonKod, aktif: true },
+        select: { kod: true, ad: true, tanimJson: true },
+      });
+      if (!kayit) throw new Error(`Form şablonu kurulu değil ya da pasif: ${sablonKod}`);
+      const sablon = JSON.parse(kayit.tanimJson) as Sablon;
+
+      /* Durum sayımı kovaları BURADA kurulur: altı çekirdek durumun altısı
+         da sıfırla açılır ki ölçülmüş sıfır ile hiç sayılmamış kova
+         birbirine karışmasın. Kova kurulmadan doldurucuya gitseydi, boş
+         çıkan durum "Değerlendirilmedi" derdi — oysa sayıldı ve sıfırdı. */
+      const sayimlar = new Map<string, number>(DURUMLAR.map((d) => [d, 0]));
+      for (const s of satirlar) {
+        /* Kurulumda tanınmayan bir durum kodu varsa kova açılır: bilinmeyen
+           kod sessizce bir başkasının kovasına eklenmez. */
+        sayimlar.set(s.durum, (sayimlar.get(s.durum) ?? 0) + 1);
+      }
+
+      const maddeHaritasi = new Map(satirlar.map((s) => [s.madde.kod, maddeGirdisi({
         madde: s.madde,
         durum: s.durum,
         olgunlukSeviyesi: s.olgunlukSeviyesi,
@@ -134,22 +177,34 @@ export async function denetimFormuUretEylem(girdi: {
         sorumluAdi: s.sorumlu?.adSoyad ?? null,
         sonDegerlendirme: s.sonDegerlendirme,
         kanitSayisi: s._count.kanitBaglantilari,
-      }));
-      return v.tur === 'soa'
-        ? { ad, sutunlar: SOA_SUTUNLARI, satirlar: eslenmis.map((e) => soaSatiri(soaGirdisi(e))) }
-        : { ad, sutunlar: FORM_SUTUNLARI, satirlar: eslenmis.map((e) => formSatiri(maddeGirdisi(e))) };
-    });
+      })]));
 
-    if (bolumler.length === 0) {
-      /* Sıfır satırlık bir form üretmek, denetçiye "bu çerçevede hiçbir
-         kontrol yok" demektir — oysa olan şey kapsamda kayıt olmamasıdır.
-         İkisi ayrı ve bu ayrım gizlenmez. */
-      throw new Error('Seçilen kapsamda bu çerçeveye ait kayıt yok — form üretilmedi');
+      bolumler = sablonuDoldur(sablon, maddeHaritasi, sayimlar)
+        .map((b) => ({ ad: b.ad, sutunlar: SABLON_SUTUNLARI, satirlar: b.satirlar }));
+      formAdi = kayit.ad;
+      taban = `${kayit.kod}_${regulasyon.kod}`;
+    } else {
+      bolumler = [...gruplar.entries()].map(([ad, grup]) => {
+        const eslenmis = grup.map((s) => ({
+          madde: s.madde,
+          durum: s.durum,
+          olgunlukSeviyesi: s.olgunlukSeviyesi,
+          not: s.not,
+          sorumluAdi: s.sorumlu?.adSoyad ?? null,
+          sonDegerlendirme: s.sonDegerlendirme,
+          kanitSayisi: s._count.kanitBaglantilari,
+        }));
+        return v.tur === 'soa'
+          ? { ad, sutunlar: SOA_SUTUNLARI, satirlar: eslenmis.map((e) => soaSatiri(soaGirdisi(e))) }
+          : { ad, sutunlar: FORM_SUTUNLARI, satirlar: eslenmis.map((e) => formSatiri(maddeGirdisi(e))) };
+      });
+      formAdi = FORM_TURU_ADI[v.tur === 'soa' ? 'soa' : 'oz_denetim'];
+      taban = `${v.tur === 'soa' ? 'soa' : 'oz-denetim'}_${regulasyon.kod}`;
     }
 
     const simdi = Date.now();
     const kunye: Kunye = {
-      baslik: `${FORM_TURU_ADI[v.tur]} · ${regulasyon.kod}`,
+      baslik: `${formAdi} · ${regulasyon.kod}`,
       alanlar: [
         { etiket: 'Ürün', deger: MARKA_AD },
         { etiket: 'Çerçeve', deger: `${regulasyon.kod} — ${regulasyon.ad}` },
@@ -162,14 +217,13 @@ export async function denetimFormuUretEylem(girdi: {
     const olcum = formlarinOlcumu(bolumler);
     const csv = formCsv(kunye, bolumler);
     const xlsx = formXlsx(kunye, bolumler);
-    const taban = `${v.tur === 'soa' ? 'soa' : 'oz-denetim'}_${regulasyon.kod}`;
 
     await iz({
       aktorId: k.id,
       varlikTipi: 'DenetimFormu',
       varlikId: istekId,
       eylem: 'olusturma',
-      gerekce: `${FORM_TURU_ADI[v.tur]} · ${regulasyon.kod} · ${[...gruplar.keys()].join(', ')}`
+      gerekce: `${formAdi} · ${regulasyon.kod} · ${[...gruplar.keys()].join(', ')}`
         + ` · ${olcum.satir} satır · ${olcum.hucre} hücre · boş 0`
         + ` · ölçülmedi ${olcum.olculmedi}`
         + ` · gerekçesiz kapsam dışı ${olcum.gerekcesizKapsamDisi}`,

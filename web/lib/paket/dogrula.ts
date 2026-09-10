@@ -455,73 +455,6 @@ export function paketiDogrula(dizin: string): DogrulamaSonucu {
   }
   tekil(DOSYALAR.cerceveDizini, 'KİMLİK', cerceveler.map((c) => c.kimlik.kod), 'çerçeve kodu');
 
-  /* ── ALAN EŞLEME BEYANI (§1/10) ──────────────────────────────────────
-     Ölçüldü (bağımsız inceleme, PR #43 tur 2): EPDK Ek-3'ün "Seviye"
-     kademesi ürünün HEDEF OLGUNLUK alanına yazılmıştı — biçim doğru, iki
-     taraf da geçerli veri, hiçbir kapı göremedi; 508 zorunlu kontrolün
-     hedefi bozuldu. Kapı ANLAM ölçemez; beyanın VARLIĞINI ölçer:
-     · temsilî olmayan her çerçeve alan eşlemesi beyan eder,
-     · dosyada DOLU her sütun beyanda geçer (beyansız eşleme kırmızı),
-     · beyanda geçip dosyada boş kalan sütun ÖLÜ beyandır (kırmızı),
-     · bir ürün alanı iki kez beyan edilemez (iki kaynak tek alana
-       yazılıyorsa bunu SÖYLEYEN tek satır yazılır),
-     · temsilî çerçeve (kaynak belgesi YOK) eşleme beyan edemez,
-     · pakette olmayan çerçeveye beyan yazılamaz (ölü atıf).
-     Gerekçenin DOĞRU olduğunu kapı söyleyemez — bu kabul edilmiş sınır
-     `docs/SEKTOR_PAKETI_SOZLESMESI.md` §1/10'da yazılıdır. */
-  const esleme = manifest.alanEslemesi ?? {};
-  const cerceveKodlari = new Set(cerceveler.map((c) => c.kimlik.kod));
-  for (const kod of Object.keys(esleme)) {
-    if (!cerceveKodlari.has(kod)) {
-      hatalar.push({ sinif: 'ALAN EŞLEME', dosya: DOSYALAR.manifest, konum: `alanEslemesi.${kod}`,
-        mesaj: `alan eşlemesi pakette olmayan bir çerçeveye yazılmış: ${kod}`,
-        duzeltme: `çerçeve kodunu düzeltin ya da beyanı silin; paketin çerçeveleri: ${[...cerceveKodlari].join(', ') || '(yok)'}` });
-    }
-  }
-  for (const c of cerceveler) {
-    const kod = c.kimlik.kod;
-    const konum = `alanEslemesi.${kod}`;
-    const satirlar = esleme[kod];
-    if (c.kimlik.temsili) {
-      if (satirlar) {
-        hatalar.push({ sinif: 'ALAN EŞLEME', dosya: DOSYALAR.manifest, konum,
-          mesaj: `${kod} temsilî — kaynak belgesi yok, eşlenecek kaynak alanı da yok`,
-          duzeltme: 'temsilî çerçevenin alan eşlemesini silin; içerik gerçekten bir belgeden geliyorsa `temsili` alanını kaldırın' });
-      }
-      continue;
-    }
-    if (!satirlar) {
-      hatalar.push({ sinif: 'ALAN EŞLEME', dosya: DOSYALAR.manifest, konum,
-        mesaj: `${kod} için alan eşleme beyanı yok — dolu sütunlar: ${c.doluSutunlar.join(', ')}`,
-        duzeltme: 'manifeste `alanEslemesi` altında her dolu sütun için { kaynakAlan, urunAlani, gerekce } yazın; gerekçe ürün alanının ANLAMINI anlatsın' });
-      continue;
-    }
-    const beyanEdilen = new Map<string, number>();
-    for (const r of satirlar) beyanEdilen.set(r.urunAlani, (beyanEdilen.get(r.urunAlani) ?? 0) + 1);
-    for (const [alan, n] of beyanEdilen) {
-      if (n > 1) {
-        hatalar.push({ sinif: 'ALAN EŞLEME', dosya: DOSYALAR.manifest, konum: `${konum}.${alan}`,
-          mesaj: `${kod}: "${alan}" ürün alanı ${n} kez beyan edilmiş — hangi kaynağın oraya yazıldığı belirsiz`,
-          duzeltme: 'tek satır yazın; iki kaynak alanı gerçekten birleşiyorsa bunu kaynakAlan ve gerekçede SÖYLEYİN' });
-      }
-    }
-    for (const sutunAdi of c.doluSutunlar) {
-      if (!beyanEdilen.has(sutunAdi)) {
-        hatalar.push({ sinif: 'ALAN EŞLEME', dosya: DOSYALAR.manifest, konum: `${konum}.${sutunAdi}`,
-          mesaj: `${kod}: "${sutunAdi}" sütunu dolu ama beyansız — kaynağın hangi alanından geldiği yazılmamış`,
-          duzeltme: `alanEslemesi.${kod} listesine { kaynakAlan, urunAlani: "${sutunAdi}", gerekce } ekleyin; değer kaynakta yoksa kaynakAlan null olur` });
-      }
-    }
-    for (const alan of beyanEdilen.keys()) {
-      if (!c.doluSutunlar.includes(alan)) {
-        hatalar.push({ sinif: 'ALAN EŞLEME', dosya: DOSYALAR.manifest, konum: `${konum}.${alan}`,
-          mesaj: `${kod}: "${alan}" beyan edilmiş ama madde dosyasında hiçbir satırda dolu değil — ölü beyan`,
-          duzeltme: 'beyanı silin ya da sütunu doldurun; okunan beyan dosyanın bugünkü hâlini anlatmalı' });
-      }
-    }
-  }
-
-
   /* ── uygulanabilirlik beyanı (§1/9) ──────────────────────────────────
      Tür kodu paketin kendi türlerinden ya da çekirdek türlerden; koşul
      alanı paketin KURALDA KULLANILIR dediği özniteliklerinden ya da
@@ -685,6 +618,12 @@ export function paketiDogrula(dizin: string): DogrulamaSonucu {
       if (a.tip === 'secim' && !(a.secenekler && a.secenekler.length)) hatalar.push({ sinif: 'BIÇIM', dosya, konum, mesaj: 'secim tipi seçenek listesi ister', duzeltme: '`secenekler: [{deger, ad}]` yazın' });
       if (a.secenekler && a.tip !== 'secim') hatalar.push({ sinif: 'BIÇIM', dosya, konum, mesaj: `seçenek listesi yalnız secim tipinde olur (tip=${a.tip})`, duzeltme: 'seçenekleri kaldırın ya da tipi secim yapın' });
       if (a.hucre && !f.dosya) hatalar.push({ sinif: 'BIÇIM', dosya, konum, mesaj: 'hücre var ama form XLSX dosyası beyan etmiyor', duzeltme: '`dosya` yazın ya da hücreyi kaldırın' });
+      /* Tek madde mi, küme mi: bir alan ikisini birden soramaz. `maddeKod`
+         "şu kontrolün durumu", `sayimDurumu` "şu durumdaki kontrol sayısı"
+         der; ikisi bir aradayken doldurucunun hangisini yazacağı okuyana
+         göre değişirdi. */
+      if (a.maddeKod && a.sayimDurumu) hatalar.push({ sinif: 'BIÇIM', dosya, konum, mesaj: `alan hem madde referansı hem durum sayımı taşıyor (${a.maddeKod} · ${a.sayimDurumu})`, duzeltme: 'birini silin: `maddeKod` tek kontrolü, `sayimDurumu` kümeyi sorar' });
+      if (a.sayimDurumu && a.tip !== 'sayi') hatalar.push({ sinif: 'BIÇIM', dosya, konum, mesaj: `durum sayımı alanının tipi \`sayi\` olmalı (tip=${a.tip})`, duzeltme: 'tipi `sayi` yapın ya da `sayimDurumu` alanını kaldırın' });
     }
     if (f.dosya) {
       /* Yasak ÇERÇEVE düzeyini de görür: manifesti kamuya açık ama içinde
@@ -731,6 +670,107 @@ export function paketiDogrula(dizin: string): DogrulamaSonucu {
     formlar.push(f);
   }
   tekil(DOSYALAR.formDizini, 'KİMLİK', formlar.map((f) => f.kod), 'form kodu');
+
+  /* ── ALAN EŞLEME BEYANI (§1/10) ──────────────────────────────────────
+     Ölçüldü (bağımsız inceleme, PR #43 tur 2): EPDK Ek-3'ün "Seviye"
+     kademesi ürünün HEDEF OLGUNLUK alanına yazılmıştı — biçim doğru, iki
+     taraf da geçerli veri, hiçbir kapı göremedi; 508 zorunlu kontrolün
+     hedefi bozuldu. Kapı ANLAM ölçemez; beyanın VARLIĞINI ölçer:
+     · temsilî olmayan her çerçeve alan eşlemesi beyan eder,
+     · dosyada DOLU her sütun beyanda geçer (beyansız eşleme kırmızı),
+     · beyanda geçip dosyada boş kalan sütun ÖLÜ beyandır (kırmızı),
+     · bir ürün alanı iki kez beyan edilemez (iki kaynak tek alana
+       yazılıyorsa bunu SÖYLEYEN tek satır yazılır),
+     · temsilî çerçeve (kaynak belgesi YOK) eşleme beyan edemez,
+     · pakette olmayan çerçeveye beyan yazılamaz (ölü atıf).
+     Gerekçenin DOĞRU olduğunu kapı söyleyemez — bu kabul edilmiş sınır
+     `docs/SEKTOR_PAKETI_SOZLESMESI.md` §1/10'da yazılıdır.
+
+     FORM ŞABLONU DA BEYAN EDER. Aynı kusur sınıfı formda daha sessizdir:
+     düzenleyicinin belgesindeki bir soru ürünün YANLIŞ alanına
+     bağlandığında form dolu, biçim doğru ve her hücre geçerli görünür —
+     ama denetçiye verilen cevap başka bir sorunun cevabıdır. Formda
+     "dolu sütun" kavramı alanın KENDİSİDİR: şablonun her alanı bir ürün
+     alanıdır ve beyan edilmemiş alan kırmızıdır. Kaynak belgede karşılığı
+     olmayan alan (kurumun dolduracağı serbest soru) beyandan MUAF DEĞİL:
+     `kaynakAlan: null` ile beyan edilir — "bu alan kaynakta yok" cümlesi
+     de bir beyandır ve okunabilir olmalıdır. */
+  const esleme = manifest.alanEslemesi ?? {};
+  /* Beyan taşıyabilen birimler: çerçeveler ve form şablonları. Okunamayan
+     form JSON'u da bilinen sayılır — yoksa tek bir sözdizimi hatası hem
+     "form okunamadı" hem "olmayan koda beyan" diye İKİ kırmızı üretir ve
+     ikincisi yanlış yeri gösterirdi. */
+  const okunamayanFormKodlari = formJsonlari.map((d) => d.slice(0, -'.json'.length));
+  const bilinenKodlar = new Set<string>([
+    ...cerceveler.map((c) => c.kimlik.kod),
+    ...formlar.map((f) => f.kod),
+    ...okunamayanFormKodlari,
+  ]);
+  for (const kod of Object.keys(esleme)) {
+    if (!bilinenKodlar.has(kod)) {
+      hatalar.push({ sinif: 'ALAN EŞLEME', dosya: DOSYALAR.manifest, konum: `alanEslemesi.${kod}`,
+        mesaj: `alan eşlemesi pakette olmayan bir çerçeveye ya da form şablonuna yazılmış: ${kod}`,
+        duzeltme: `kodu düzeltin ya da beyanı silin; paketin beyan taşıyanları: ${[...bilinenKodlar].sort().join(', ') || '(yok)'}` });
+    }
+  }
+
+  /* Çerçeve ve form aynı üç dişten geçer: eksik beyan · çifte beyan · ölü
+     beyan. Tek yerde yazılır ki bir gün biri gevşetildiğinde öbürü de
+     gevşemesin — iki ayrı kopya, iki ayrı sıkılık demektir. */
+  const beyanBirimleri: { kod: string; dosya: string; alanlar: string[] }[] = [
+    ...cerceveler
+      .filter((c) => !c.kimlik.temsili)
+      .map((c) => ({ kod: c.kimlik.kod, dosya: c.dosya, alanlar: c.doluSutunlar })),
+    ...formlar.map((f) => ({
+      kod: f.kod,
+      dosya: `${DOSYALAR.formDizini}/${f.kod}.json`,
+      alanlar: f.bolumler.flatMap((b) => b.alanlar.map((a) => a.anahtar)),
+    })),
+  ];
+
+  for (const c of cerceveler) {
+    if (!c.kimlik.temsili) continue;
+    if (esleme[c.kimlik.kod]) {
+      hatalar.push({ sinif: 'ALAN EŞLEME', dosya: DOSYALAR.manifest, konum: `alanEslemesi.${c.kimlik.kod}`,
+        mesaj: `${c.kimlik.kod} temsilî — kaynak belgesi yok, eşlenecek kaynak alanı da yok`,
+        duzeltme: 'temsilî çerçevenin alan eşlemesini silin; içerik gerçekten bir belgeden geliyorsa `temsili` alanını kaldırın' });
+    }
+  }
+
+  for (const birim of beyanBirimleri) {
+    const kod = birim.kod;
+    const konum = `alanEslemesi.${kod}`;
+    const satirlar = esleme[kod];
+    if (!satirlar) {
+      hatalar.push({ sinif: 'ALAN EŞLEME', dosya: DOSYALAR.manifest, konum,
+        mesaj: `${kod} için alan eşleme beyanı yok — dolu sütunlar: ${birim.alanlar.join(', ')}`,
+        duzeltme: 'manifeste `alanEslemesi` altında her dolu sütun için { kaynakAlan, urunAlani, gerekce } yazın; gerekçe ürün alanının ANLAMINI anlatsın' });
+      continue;
+    }
+    const beyanEdilen = new Map<string, number>();
+    for (const r of satirlar) beyanEdilen.set(r.urunAlani, (beyanEdilen.get(r.urunAlani) ?? 0) + 1);
+    for (const [alan, n] of beyanEdilen) {
+      if (n > 1) {
+        hatalar.push({ sinif: 'ALAN EŞLEME', dosya: DOSYALAR.manifest, konum: `${konum}.${alan}`,
+          mesaj: `${kod}: "${alan}" ürün alanı ${n} kez beyan edilmiş — hangi kaynağın oraya yazıldığı belirsiz`,
+          duzeltme: 'tek satır yazın; iki kaynak alanı gerçekten birleşiyorsa bunu kaynakAlan ve gerekçede SÖYLEYİN' });
+      }
+    }
+    for (const sutunAdi of birim.alanlar) {
+      if (!beyanEdilen.has(sutunAdi)) {
+        hatalar.push({ sinif: 'ALAN EŞLEME', dosya: DOSYALAR.manifest, konum: `${konum}.${sutunAdi}`,
+          mesaj: `${kod}: "${sutunAdi}" sütunu dolu ama beyansız — kaynağın hangi alanından geldiği yazılmamış`,
+          duzeltme: `alanEslemesi.${kod} listesine { kaynakAlan, urunAlani: "${sutunAdi}", gerekce } ekleyin; değer kaynakta yoksa kaynakAlan null olur` });
+      }
+    }
+    for (const alan of beyanEdilen.keys()) {
+      if (!birim.alanlar.includes(alan)) {
+        hatalar.push({ sinif: 'ALAN EŞLEME', dosya: DOSYALAR.manifest, konum: `${konum}.${alan}`,
+          mesaj: `${kod}: "${alan}" beyan edilmiş ama dosyada karşılığı yok — ölü beyan`,
+          duzeltme: 'beyanı silin ya da alanı ekleyin; okunan beyan dosyanın bugünkü hâlini anlatmalı' });
+      }
+    }
+  }
 
   /* ── rapor şablonları (2.2) — `rapor/<KOD>.json` ───────────────────── */
   const raporlar: RaporSablonu[] = [];

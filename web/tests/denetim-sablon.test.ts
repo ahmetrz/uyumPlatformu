@@ -39,7 +39,7 @@ const SABLON: Sablon = {
 
 const kurulum = new Map([['X-1', madde()]]);
 
-describe('şablon alanının üç sınıfı', () => {
+describe('şablon alanının dört sınıfı', () => {
   it('KONTROLE BAĞLI ve kurulumda VAR → durumu yazılır', () => {
     const s = sablonSatiri({ anahtar: 'a', etiket: 'A', tip: 'mantik', maddeKod: 'X-1' }, kurulum);
     expect(s.hucreler.find((h) => h.anahtar === 'deger')?.deger).toBe('Uyumlu');
@@ -99,7 +99,7 @@ describe('şablonun tamamı', () => {
 
   it('örtüşme SAYIYLA söylenir — "kısmen dolu" diye bir şey yok', () => {
     expect(sablonOrtusmesi(SABLON, kurulum))
-      .toEqual({ alan: 3, bagli: 1, baglanmadi: 1, serbest: 1 });
+      .toEqual({ alan: 3, bagli: 1, baglanmadi: 1, sayim: 0, serbest: 1 });
   });
 
   it('BOŞ kurulumda hiçbir alan bağlanmaz ve bu sayıyla görünür', () => {
@@ -109,15 +109,69 @@ describe('şablonun tamamı', () => {
   });
 });
 
+describe('DURUM SAYIMI alanı — sayılmamış kova sıfır değildir', () => {
+  const SAYIM = { anahtar: 'tamUyum', etiket: 'Tam Uyum sayısı', tip: 'sayi', sayimDurumu: 'uyumlu' } as const;
+
+  it('sayım YAPILDIYSA sayı yazılır ve kaynağı durum kovasıdır', () => {
+    const s = sablonSatiri(SAYIM, kurulum, new Map([['uyumlu', 42]]));
+    expect(s.hucreler.find((h) => h.anahtar === 'deger')?.deger).toBe('42');
+    expect(s.hucreler.find((h) => h.anahtar === 'kaynak')?.deger).toBe('Kapsamda "Uyumlu" sayımı');
+    expect(s.isaretler).toEqual([]);
+  });
+
+  it('ÖLÇÜLMÜŞ SIFIR sıfırdır — "Değerlendirilmedi" değil', () => {
+    /* Kova kuruldu ve içi boş çıktı: bu gerçek bir cevaptır ve iyi
+       haberdir. Ölçülmemişle aynı sözü yazmak, ölçümü değersizleştirirdi. */
+    const s = sablonSatiri(SAYIM, kurulum, new Map([['uyumlu', 0]]));
+    expect(s.hucreler.find((h) => h.anahtar === 'deger')?.deger).toBe('0');
+    expect(s.isaretler).toEqual([]);
+  });
+
+  it('SAYIM HİÇ YAPILMADIYSA "Değerlendirilmedi" — 0 YAZILMAZ', () => {
+    const s = sablonSatiri(SAYIM, kurulum, null);
+    expect(s.hucreler.find((h) => h.anahtar === 'deger')?.deger).toBe(DEGERLENDIRILMEDI);
+    expect(s.hucreler.find((h) => h.anahtar === 'kaynak')?.deger).toBe('Kapsam sayımı yapılmadı');
+    expect(s.isaretler).toContain('olculmedi');
+  });
+
+  it('kova EKSİKSE de "Değerlendirilmedi" — bilinmeyen ≠ sıfır', () => {
+    /* Yarım bir sayım haritası geldiğinde eksik kovaya 0 yazmak, hiç
+       bakılmamış bir durumu "hiç yok" diye raporlamak olurdu. */
+    const s = sablonSatiri(SAYIM, kurulum, new Map([['uyumsuz', 3]]));
+    expect(s.hucreler.find((h) => h.anahtar === 'deger')?.deger).toBe(DEGERLENDIRILMEDI);
+    expect(s.isaretler).toContain('olculmedi');
+  });
+
+  it('sayım alanı SERBEST alan gibi görünmez — kontrol sütunu kovayı söyler', () => {
+    const s = sablonSatiri(SAYIM, kurulum, new Map([['uyumlu', 1]]));
+    expect(s.hucreler.find((h) => h.anahtar === 'maddeKod')?.deger)
+      .toBe('Durum sayımı · Uyumlu');
+  });
+
+  it('örtüşme sayımı AYRI kovada sayar', () => {
+    const sablon: Sablon = { kod: 'X', ad: 'X', bolumler: [{ kod: 'b', baslik: 'B', alanlar: [
+      { anahtar: 'a', etiket: 'A', tip: 'sayi', sayimDurumu: 'uyumlu' },
+      { anahtar: 'b', etiket: 'B', tip: 'mantik', maddeKod: 'X-1' },
+      { anahtar: 'c', etiket: 'C', tip: 'metin' },
+    ] }] };
+    expect(sablonOrtusmesi(sablon, kurulum))
+      .toEqual({ alan: 3, bagli: 1, baglanmadi: 0, sayim: 1, serbest: 1 });
+  });
+});
+
 describe('GERÇEK paket şablonu okunur', () => {
   /* Sözleşmenin hayal değil GERÇEK olduğunun kanıtı: depodaki tek form
      şablonu bu doldurucudan geçiyor. İÇERİĞİ kapsam dışı (TR-BANKACILIK)
      ve buraya girmiyor; ölçülen şey yalnız BİÇİM uyumu ve doldurucunun
      boş hücre bırakmadığı. */
-  it('depodaki şablon doldurucudan geçer ve boş hücre bırakmaz', async () => {
+  const DEPODAKILER = [
+    'paketler/TR-BANKACILIK/form/BDDK-BS-OZDEGERLENDIRME.json',
+    'paketler/TR-ENERJI/form/EPDK-DENETIM-MUTABAKAT.json',
+  ];
+
+  it.each(DEPODAKILER)('%s doldurucudan geçer ve boş hücre bırakmaz', async (yol) => {
     const { readFileSync } = await import('node:fs');
-    const ham = JSON.parse(readFileSync(
-      'paketler/TR-BANKACILIK/form/BDDK-BS-OZDEGERLENDIRME.json', 'utf8')) as Sablon;
+    const ham = JSON.parse(readFileSync(yol, 'utf8')) as Sablon;
     const bolumler = sablonuDoldur(ham, new Map());
     expect(bolumler.length).toBeGreaterThan(0);
     for (const b of bolumler) {
@@ -129,7 +183,23 @@ describe('GERÇEK paket şablonu okunur', () => {
        görünür — form dolu GÖRÜNMEZ. */
     const o = sablonOrtusmesi(ham, new Map());
     expect(o.bagli).toBe(0);
-    expect(o.baglanmadi + o.serbest).toBe(o.alan);
+    expect(o.baglanmadi + o.sayim + o.serbest).toBe(o.alan);
     expect(o.alan).toBeGreaterThan(5);
+  });
+
+  it('EPDK mutabakat şablonu SAYIM alanı taşır ve sayımsız üretimde 0 yazmaz', async () => {
+    /* Şablonun asıl yükü ana başlık sayılarıdır; sayım yapılmadan
+       üretilirse dört kova birden "Değerlendirilmedi" der — dolu bir
+       belge gibi görünmez. */
+    const { readFileSync } = await import('node:fs');
+    const ham = JSON.parse(readFileSync(
+      'paketler/TR-ENERJI/form/EPDK-DENETIM-MUTABAKAT.json', 'utf8')) as Sablon;
+    const o = sablonOrtusmesi(ham, new Map());
+    expect(o.sayim).toBeGreaterThan(0);
+    const degerler = sablonuDoldur(ham, new Map(), null)
+      .flatMap((b) => b.satirlar)
+      .map((s) => s.hucreler.find((h) => h.anahtar === 'deger')?.deger);
+    expect(degerler).not.toContain('0');
+    expect(degerler.filter((d) => d === DEGERLENDIRILMEDI).length).toBe(o.alan);
   });
 });

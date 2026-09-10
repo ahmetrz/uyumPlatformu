@@ -94,6 +94,29 @@ try {
     kaydet(bant.ad, 'öz denetim formu seçeneği', icerir(cekmeceMetni, 'Öz denetim formu'));
     kaydet(bant.ad, 'SoA seçeneği', icerir(cekmeceMetni, 'Uygulanabilirlik beyan'));
 
+    /* 6b · PAKET FORM ŞABLONU — enerji merceği. Şablon ÇEKİRDEKTE yoktur;
+       kurulu paketten gelir ve yalnız kurulu olduğu kurulumda görünür.
+       Kurulu şablon YOKSA bu bir kusur değildir ama sessiz de geçilmez:
+       o zaman ölçülen şey "yalnız iki çekirdek formu var"dır. */
+    const sablonSecenekleri = cekmece.locator('input[name="formTuru"][value^="sablon:"]');
+    const sablonSayisi = await sablonSecenekleri.count();
+    const cekirdekSayisi = await cekmece.locator('input[name="formTuru"]').count() - sablonSayisi;
+    kaydet(bant.ad, 'çekirdek form türü sayısı 2', cekirdekSayisi === 2, `${cekirdekSayisi}`);
+    kaydet(bant.ad, 'kurulu paket şablonu', true, `${sablonSayisi} şablon`);
+    if (sablonSayisi > 0) {
+      const deger = await sablonSecenekleri.first().getAttribute('value');
+      const etiket = await cekmece
+        .locator('label:has(input[name="formTuru"][value^="sablon:"])')
+        .first().innerText();
+      kaydet(bant.ad, 'şablon seçeneği adıyla duruyor', etiket.trim().length > 0,
+        etiket.replace(/\s+/g, ' ').trim());
+      /* Şablonun KÖKENİ ve büyüklüğü seçenekle birlikte yazılı: hangi
+         paketten geldiği ve kaç alan sorduğu, üretimden ÖNCE görünür. */
+      kaydet(bant.ad, 'şablon kaynağı ve alan sayısı seçenekte',
+        /paketi/.test(etiket) && /\d+ alan/.test(etiket));
+      kaydet(bant.ad, 'şablon seçeneği `sablon:` önekli', (deger ?? '').startsWith('sablon:'), deger ?? '');
+    }
+
     /* 7 · Kusur çekmecede de ADIYLA duruyor. */
     kaydet(bant.ad, 'çekmecede gerekçesiz kapsam dışı alanı',
       icerir(cekmeceMetni, 'Gerekçesiz kapsam dışı'));
@@ -129,6 +152,30 @@ try {
       kaydet(bant.ad, 'CSV ve XLSX adları',
         inenler.some((a) => a.endsWith('.csv')) && inenler.some((a) => a.endsWith('.xlsx')),
         inenler.join(' · '));
+
+      /* 10 · ŞABLONLA ÜRETİM. Çekirdek formunun yeşil olması, paketten
+         gelen şablonun da dolduğunu göstermez: şablonun alanları başka bir
+         yoldan (durum sayımı · bağlanmamış alan · serbest alan) geçer ve
+         boş hücre kapısı ORADA da tutmalıdır. */
+      if (sablonSayisi > 0) {
+        const oncekiSayi = inenler.length;
+        await sablonSecenekleri.first().check();
+        await dugme.click();
+        await Promise.race([
+          cekmece.getByText(/Boş hücre/i).waitFor({ timeout: 90000 }),
+          cekmece.locator('[role="alert"]').waitFor({ timeout: 90000 }),
+        ]);
+        const sablonSonra = (await cekmece.innerText()).replace(/\s+/g, ' ');
+        const sablonUyari = await cekmece.locator('[role="alert"]').count();
+        kaydet(bant.ad, 'şablonla üretim hata vermedi', sablonUyari === 0,
+          sablonUyari > 0 ? sablonSonra.slice(0, 160) : '');
+        kaydet(bant.ad, 'şablonla üretimde "Boş hücre 0"',
+          /Boş hücre 0(?!\d)/i.test(sablonSonra),
+          sablonSonra.match(/Boş hücre \S+/i)?.[0] ?? 'bulunamadı');
+        for (let i = 0; i < 20 && inenler.length < oncekiSayi + 2; i += 1) await page.waitForTimeout(250);
+        kaydet(bant.ad, 'şablon dosyaları indi', inenler.length >= oncekiSayi + 2,
+          inenler.slice(oncekiSayi).join(' · '));
+      }
     }
 
     await context.close();
@@ -139,8 +186,12 @@ try {
    Liste boş kalırsa (fikstür bu ekranı beslemiyorsa) betik yalnız boş-hâl
    iddiasını sayar ve "geçti" der — hiçbir şeye bakmadan temiz raporlamak
    tam olarak budur. Ölçüldü: CI'da tam koşum 34 iddia üretiyor; taban
-   onun altına düşmeye izin vermez ve düşerse SEBEBİNİ yazar. */
-const ASGARI_IDDIA = 30;
+   onun altına düşmeye izin vermez ve düşerse SEBEBİNİ yazar.
+
+   Taban 30 → 42: şablon ölçümü eklendi (iki bantta seçenek iddiaları +
+   geniş bantta şablonla üretim). Yükselme ÖLÇÜLDÜ: tam koşum 46 iddia
+   üretiyor; taban ölçülen sayının üstüne çıkarılmadı. */
+const ASGARI_IDDIA = 42;
 if (iddialar.length < ASGARI_IDDIA) {
   console.error(`\nÖLÇÜM YETERSİZ: ${iddialar.length} iddia ölçüldü, taban ${ASGARI_IDDIA}.`);
   console.error('  Liste boş kaldıysa bu bir EKRAN kusuru değil, fikstürün bu ekranı'

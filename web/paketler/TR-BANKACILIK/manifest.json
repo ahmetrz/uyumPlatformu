@@ -51,6 +51,48 @@
         "urunAlani": "sira",
         "gerekce": "Ürünün `sira` alanı maddenin listede GÖRÜNTÜLENME sırasıdır; önem, öncelik ya da risk sırası değildir ve hiçbir hesaba girmez. Kaynak belgede böyle bir alan yoktur: belgedeki okuma sırası korunsun diye değeri aktarımı yapan verir."
       }
+    ],
+    "BDDK-BS-OZDEGERLENDIRME": [
+      {
+        "kaynakAlan": null,
+        "urunAlani": "degerlendirmeDonemi",
+        "gerekce": "Formun ürün alanı, öz-değerlendirmenin HANGİ DÖNEMİ anlattığıdır: aynı kontrol kümesi iki dönemde iki farklı cevap verir ve dönem yazılmazsa cevabın ne zamana ait olduğu kaybolur. Kaynak yönetmelikte böyle bir alan yoktur — bu iskelet ürünün kendi sorusudur ve kurum doldurur."
+      },
+      {
+        "kaynakAlan": null,
+        "urunAlani": "degerlendirmeTarihi",
+        "gerekce": "Ürün alanı, değerlendirmenin YAPILDIĞI GÜNDÜR — kapsadığı dönemden ayrıdır (2025 dönemi 2026'da değerlendirilebilir) ve kanıtın tazeliği bu tarihe göre okunur. Kaynak yönetmelikte alan olarak yoktur; kurum doldurur."
+      },
+      {
+        "kaynakAlan": null,
+        "urunAlani": "kapsamTuru",
+        "gerekce": "Ürün alanı, değerlendirmenin BÜTÜN bilgi sistemlerini mi yalnız kritik olanları mı kapsadığını söyler; kapsamın genişliği cevapların anlamını değiştirir ve yazılmazsa kısmi bir değerlendirme tam sanılır. Yönetmelikte böyle bir seçim alanı yoktur — iskeleti kuran ekledi."
+      },
+      {
+        "kaynakAlan": "BDDK-BS · Kısım 2 · B1 bölüm başlığı: “Bilgi Sistemleri Yönetişimi”",
+        "urunAlani": "komiteVar",
+        "gerekce": "Ürün alanı, o bölümün sorduğu yönetişim yapısının KURULU OLUP OLMADIĞINI taşır (evet/hayır); bölümün olgunluğunu ya da yeterliliğini DEĞİL. Kaynakta bölüm başlığı vardır, soru yoktur: soruyu iskelet sorar, madde METNİ pakete girmez."
+      },
+      {
+        "kaynakAlan": "BDDK-BS · Kısım 2 · B2 bölüm başlığı: “Bilgi Sistemleri Risklerinin Yönetilmesi”",
+        "urunAlani": "riskDegerlendirmeYili",
+        "gerekce": "Ürün alanı, en son risk değerlendirmesinin YILIDIR — sayılabilir bir tazelik ölçüsüdür, risk seviyesi ya da bulgu sayısı değildir. Kaynakta bölüm başlığı vardır; yıl sorusu iskeletin kendi sorusudur."
+      },
+      {
+        "kaynakAlan": "BDDK-BS · Kısım 2 · B3 bölüm başlığı: “Bilgi Güvenliği Yönetimi”",
+        "urunAlani": "guvenlikPolitikasiVar",
+        "gerekce": "Ürün alanı, bilgi güvenliği politikasının ONAYLI olup olmadığını taşır; politikanın varlığı ile onaylanmış olması ayrı şeylerdir ve bu alan ikincisini sorar. Kaynakta bölüm başlığı vardır, soru yoktur."
+      },
+      {
+        "kaynakAlan": "BDDK-BS · Kısım 2 · B5 bölüm başlığı: “Bilgi Sistemleri Sürekliliği ve Erişilebilirlik Yönetimi”",
+        "urunAlani": "sureklilikTestiTarihi",
+        "gerekce": "Ürün alanı, süreklilik testinin en son YAPILDIĞI TARİHTİR — testin başarılı olup olmadığını söylemez, yalnız ne zaman koşulduğunu söyler. Kaynakta bölüm başlığı vardır; tarih sorusu iskeletindir."
+      },
+      {
+        "kaynakAlan": "BDDK-BS · Kısım 2 · B6 bölüm başlığı: “Bilgi Sistemlerine İlişkin Dış Hizmet Alımı”",
+        "urunAlani": "disHizmetEnvanteriVar",
+        "gerekce": "Ürün alanı, dış hizmet envanterinin GÜNCEL olup olmadığını taşır; envanterin var olması ile güncel olması ayrı şeylerdir ve bayat bir envanter yokluğundan daha yanıltıcıdır. Kaynakta bölüm başlığı vardır, soru yoktur."
+      }
     ]
   }
 }

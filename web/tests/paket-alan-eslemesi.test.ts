@@ -80,7 +80,7 @@ describe('alan eşleme beyanı — beyansız eşleme kırmızı [URN-PKT-022]', 
     const olu = [...TAM_BEYAN, { kaynakAlan: 'Seviye', urunAlani: 'seviye', gerekce: GEREKCE }];
     const h = paketiDogrula(paket({ 'TEST-REG': olu })).hatalar;
     expect(h.map((x) => `${x.sinif}|${x.konum}`)).toEqual(['ALAN EŞLEME|alanEslemesi.TEST-REG.seviye']);
-    expect(h[0].mesaj).toMatch(/beyan edilmiş ama madde dosyasında hiçbir satırda dolu değil — ölü beyan/);
+    expect(h[0].mesaj).toMatch(/beyan edilmiş ama dosyada karşılığı yok — ölü beyan/);
   });
 
   it('bir ürün alanı iki kez beyan edilemez — hangi kaynağın yazıldığı belirsiz kalır [URN-PKT-022]', () => {
@@ -111,13 +111,19 @@ describe('alan eşleme beyanı — beyansız eşleme kırmızı [URN-PKT-022]', 
   it('pakette olmayan çerçeveye beyan ölü atıftır [URN-PKT-022]', () => {
     const h = paketiDogrula(paket({ 'TEST-REG': TAM_BEYAN, 'YOK-BOYLE': TAM_BEYAN })).hatalar;
     expect(h.map((x) => `${x.sinif}|${x.konum}`)).toEqual(['ALAN EŞLEME|alanEslemesi.YOK-BOYLE']);
-    expect(h[0].mesaj).toMatch(/pakette olmayan bir çerçeveye yazılmış: YOK-BOYLE/);
+    expect(h[0].mesaj).toMatch(/pakette olmayan bir çerçeveye ya da form şablonuna yazılmış: YOK-BOYLE/);
   });
 
-  it('ürün alanı sütun listesinin dışına yazılamaz; gerekçe kısaltılamaz [URN-PKT-022]', () => {
-    /* Yazım hatası sessizce yutulmaz: `seviyye` bir sütun değildir, şema reddeder. */
+  it('ürün alanındaki yazım hatası yutulmaz; gerekçe kısaltılamaz [URN-PKT-022]', () => {
+    /* `seviyye` bir sütun değildir ve kırmızı yanar — ama artık ŞEMA
+       değil, ÖLÜ BEYAN dişi yakalar. Şema gevşetildi çünkü beyan iki ad
+       uzayına birden yazılıyor: çerçevede madde sütunu, form şablonunda
+       alan anahtarı (camelCase). Tek enum ikisini birden tutamazdı;
+       tutmaya çalışsaydı form alanları beyandan tamamen muaf kalırdı.
+       Kaybolan tek şey hatanın SINIFI (BIÇIM → ALAN EŞLEME); yakalanma
+       kesinliği aynı, mesaj daha da açık: dosyada karşılığı yok. */
     const yanlisAlan = [...TAM_BEYAN, { kaynakAlan: 'Seviye', urunAlani: 'seviyye', gerekce: GEREKCE }];
-    expect(siniflar(paket({ 'TEST-REG': yanlisAlan }))).toEqual(['BIÇIM|alanEslemesi.TEST-REG.7.urunAlani']);
+    expect(siniflar(paket({ 'TEST-REG': yanlisAlan }))).toEqual(['ALAN EŞLEME|alanEslemesi.TEST-REG.seviyye']);
     const kisa = TAM_BEYAN.map((r, i) => (i === 0 ? { ...r, gerekce: 'kolaydı' } : r));
     expect(siniflar(paket({ 'TEST-REG': kisa }))).toEqual(['BIÇIM|alanEslemesi.TEST-REG.0.gerekce']);
     expect(GEREKCE_ASGARI).toBe(40);
@@ -125,6 +131,104 @@ describe('alan eşleme beyanı — beyansız eşleme kırmızı [URN-PKT-022]', 
 
   it('boş beyan listesi beyan değildir [URN-PKT-022]', () => {
     expect(siniflar(paket({ 'TEST-REG': [] }))).toEqual(['BIÇIM|alanEslemesi.TEST-REG']);
+  });
+});
+
+describe('FORM ŞABLONU da beyan eder [URN-PKT-022]', () => {
+  /* Aynı kusur sınıfı formda daha sessizdir: düzenleyicinin belgesindeki
+     bir soru ürünün YANLIŞ alanına bağlandığında form dolu, biçim doğru ve
+     her hücre geçerli görünür — denetçiye verilen cevap başka bir sorunun
+     cevabıdır. Formda "dolu sütun" kavramı alanın KENDİSİDİR. */
+  const FORM_GEREKCE = 'Ürünün bu alanı sorunun cevabını değil, cevabın hangi kovaya yazılacağını belirler; anlamı budur.';
+  const FORM = (alanlar: unknown[]) => JSON.stringify({
+    kod: 'TEST-FORM', ad: 'Test formu', tur: 'denetim',
+    bolumler: [{ kod: 'genel', baslik: 'Genel', alanlar }],
+  });
+  const ALANLAR = [
+    { anahtar: 'donem', etiket: 'Dönem', tip: 'metin' },
+    { anahtar: 'tamUyum', etiket: 'Tam uyum sayısı', tip: 'sayi', sayimDurumu: 'uyumlu' },
+  ];
+  const FORM_BEYAN = [
+    { kaynakAlan: null, urunAlani: 'donem', gerekce: FORM_GEREKCE },
+    { kaynakAlan: 'Tam Uyum sayısı', urunAlani: 'tamUyum', gerekce: FORM_GEREKCE },
+  ];
+  const formlu = (esleme: unknown, alanlar: unknown[] = ALANLAR) => paketYaz(
+    {
+      'cerceve/TEST-REG.json': cerceve('TEST-REG', { tur: 'kamuya_acik', metinDahil: true }, {
+        temsili: false, kaynakUrl: 'https://ornek.gov.tr/belge',
+      }),
+      'cerceve/TEST-REG.csv': CSV,
+      'form/TEST-FORM.json': FORM(alanlar),
+    },
+    { alanEslemesi: esleme },
+  );
+
+  it('beyanı olan form GEÇER', () => {
+    expect(siniflar(formlu({ 'TEST-REG': TAM_BEYAN, 'TEST-FORM': FORM_BEYAN }))).toEqual([]);
+  });
+
+  it('beyansız form KIRMIZI — çerçeveyle aynı diş', () => {
+    const h = paketiDogrula(formlu({ 'TEST-REG': TAM_BEYAN })).hatalar;
+    expect(h.map((x) => `${x.sinif}|${x.konum ?? ''}`)).toEqual(['ALAN EŞLEME|alanEslemesi.TEST-FORM']);
+    expect(h[0].mesaj).toMatch(/donem, tamUyum/);
+  });
+
+  it('beyansız TEK ALAN da kırmızı — form yarım beyanla geçemez', () => {
+    const yarim = FORM_BEYAN.slice(0, 1);
+    expect(siniflar(formlu({ 'TEST-REG': TAM_BEYAN, 'TEST-FORM': yarim })))
+      .toEqual(['ALAN EŞLEME|alanEslemesi.TEST-FORM.tamUyum']);
+  });
+
+  it('şablonda olmayan alana beyan ÖLÜ BEYANDIR', () => {
+    const olu = [...FORM_BEYAN, { kaynakAlan: 'X', urunAlani: 'olmayanAlan', gerekce: FORM_GEREKCE }];
+    const h = paketiDogrula(formlu({ 'TEST-REG': TAM_BEYAN, 'TEST-FORM': olu })).hatalar;
+    expect(h.map((x) => `${x.sinif}|${x.konum ?? ''}`)).toEqual(['ALAN EŞLEME|alanEslemesi.TEST-FORM.olmayanAlan']);
+    expect(h[0].mesaj).toMatch(/ölü beyan/);
+  });
+
+  it('aynı alan iki kez beyan edilemez', () => {
+    const cift = [...FORM_BEYAN, { kaynakAlan: 'Başka kaynak', urunAlani: 'donem', gerekce: FORM_GEREKCE }];
+    expect(siniflar(formlu({ 'TEST-REG': TAM_BEYAN, 'TEST-FORM': cift })))
+      .toEqual(['ALAN EŞLEME|alanEslemesi.TEST-FORM.donem']);
+  });
+
+  it('SERBEST alan beyandan muaf DEĞİL — "kaynakta yok" da bir beyandır', () => {
+    /* `donem` kaynak belgede yoktur; beyanı `kaynakAlan: null` ile yazılır.
+       Muaf tutulsaydı, kaynağı olan bir alanı "serbest" diye işaretleyerek
+       beyandan kaçmak mümkün olurdu. */
+    const eksik = FORM_BEYAN.slice(1);
+    expect(siniflar(formlu({ 'TEST-REG': TAM_BEYAN, 'TEST-FORM': eksik })))
+      .toEqual(['ALAN EŞLEME|alanEslemesi.TEST-FORM.donem']);
+  });
+
+  it('durum sayımı alanı madde referansıyla BİRLİKTE olamaz', () => {
+    const cakisan = [
+      ALANLAR[0],
+      { anahtar: 'tamUyum', etiket: 'Tam uyum sayısı', tip: 'sayi', sayimDurumu: 'uyumlu', maddeKod: 'TEST-REG-A1' },
+    ];
+    const h = paketiDogrula(formlu({ 'TEST-REG': TAM_BEYAN, 'TEST-FORM': FORM_BEYAN }, cakisan)).hatalar;
+    expect(h.map((x) => `${x.sinif}|${x.konum ?? ''}`))
+      .toEqual(['BIÇIM|genel.tamUyum']);
+    expect(h[0].mesaj).toMatch(/hem madde referansı hem durum sayımı/);
+  });
+
+  it('durum sayımı alanının tipi `sayi` olmalı', () => {
+    const yanlisTip = [
+      ALANLAR[0],
+      { anahtar: 'tamUyum', etiket: 'Tam uyum sayısı', tip: 'metin', sayimDurumu: 'uyumlu' },
+    ];
+    const h = paketiDogrula(formlu({ 'TEST-REG': TAM_BEYAN, 'TEST-FORM': FORM_BEYAN }, yanlisTip)).hatalar;
+    expect(h.map((x) => `${x.sinif}|${x.konum ?? ''}`)).toEqual(['BIÇIM|genel.tamUyum']);
+    expect(h[0].mesaj).toMatch(/tipi `sayi` olmalı/);
+  });
+
+  it('bilinmeyen durum kodu şemada reddedilir — kova uydurulamaz', () => {
+    const uydurma = [
+      ALANLAR[0],
+      { anahtar: 'tamUyum', etiket: 'Tam uyum sayısı', tip: 'sayi', sayimDurumu: 'yariUyumlu' },
+    ];
+    expect(siniflar(formlu({ 'TEST-REG': TAM_BEYAN, 'TEST-FORM': FORM_BEYAN }, uydurma)))
+      .toEqual(['BIÇIM|bolumler.0.alanlar.1.sayimDurumu']);
   });
 });
 
@@ -161,7 +265,7 @@ describe('diskteki paketler beyanlıdır ve EPDK kademesi hedef olgunluğa yazı
       const m = JSON.parse(readFileSync(path.join(PAKETLER, ad, 'manifest.json'), 'utf8')) as { alanEslemesi?: unknown };
       return m.alanEslemesi !== undefined;
     });
-    expect(beyanli, 'hiçbir pakette beyan yok — ölçüm boş bakıyor').toEqual(['DEMO-TR-ORTAK', 'TR-BANKACILIK', 'TR-ENERJI']);
+    expect(beyanli, 'hiçbir pakette beyan yok — ölçüm boş bakıyor').toEqual(['DEMO-TR-ENERJI', 'DEMO-TR-ORTAK', 'TR-BANKACILIK', 'TR-ENERJI']);
     for (const ad of beyanli) {
       const esleme = paketiDogrula(path.join(PAKETLER, ad)).icerik!.manifest.alanEslemesi!;
       for (const [kod, satirlar] of Object.entries(esleme)) {

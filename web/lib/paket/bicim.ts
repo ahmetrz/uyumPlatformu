@@ -13,7 +13,7 @@
 import { createHash } from 'node:crypto';
 import { z } from 'zod';
 import type { Islem, Modul } from '../erisim';
-import { DENKLIKLER } from '../sabitler';
+import { DENKLIKLER, DURUMLAR } from '../sabitler';
 
 export const PAKET_TURLERI = ['sektor', 'yatay', 'demo', 'uluslararasi'] as const;
 export const LISANS_TURLERI = ['kamuya_acik', 'telifli'] as const;
@@ -122,8 +122,18 @@ export const GEREKCE_ASGARI = 40;
 export const AlanEslemeSatiriSemasi = z.object({
   /** kaynak belgedeki alanın ADI ("Seviye", "Kontrol No"); kaynakta yoksa null */
   kaynakAlan: z.string().min(1).max(120).nullable(),
-  /** ürünün madde sütunu — sütun listesinin dışına yazılamaz (yazım hatası sessizce yutulmaz) */
-  urunAlani: z.enum(MADDE_SUTUNLARI),
+  /** Beyanın yazıldığı ÜRÜN ALANI: çerçeve beyanında madde sütunu
+      (`kod`, `ust_kod`…), form şablonu beyanında alan anahtarı
+      (`komiteVar`). İki ad uzayı da burada geçerlidir; hangisinin
+      okunacağını beyanın anahtarı (çerçeve kodu mu form kodu mu) söyler.
+      Yazım hatasını ŞEMA yakalamaz, doğrulayıcının iki dişi yakalar:
+      dosyada karşılığı olmayan beyan ÖLÜ BEYAN, beyanı olmayan dolu alan
+      BEYANSIZ — ikisi de kırmızı. Tek dişe (şema enum'ı) güvenmek, form
+      alanlarını beyandan tamamen muaf tutmak demekti. */
+  urunAlani: z.union([
+    z.enum(MADDE_SUTUNLARI),
+    z.string().regex(ANAHTAR, 'ürün alanı: madde sütunu ya da form alanı anahtarı (camelCase)'),
+  ]),
   /** ürün alanının ANLAMI ve bu kaynağın oraya neden ait olduğu; dönüşümün kolaylığı gerekçe değildir */
   /* Tavan 1200: ölçülmüş bir kusuru anlatan gerekçe (EPDK "Seviye" satırı, 862 karakter) iki
      alanın anlamını AYRI AYRI söylemek zorundadır — 600'e sığmadı ve kısaltmak gerekçeyi
@@ -312,6 +322,14 @@ export const FormAlaniSemasi = z.object({
   tip: z.enum(ALAN_TIPLERI),
   secenekler: z.array(z.object({ deger: z.string().min(1), ad: etiket }).strict()).nullable().optional(),
   maddeKod: z.string().regex(MADDE_REFERANSI, 'madde referansı: <ÇERÇEVE>-<kod> (EPDK-SGYM-3)').nullable().optional(),
+  /** Alan bir DURUM SAYIMIDIR: kapsamda bu durum kodundaki madde sayısı.
+      `maddeKod` ile birlikte olamaz (biri tek maddeyi, öbürü kümeyi sorar)
+      ve tipi `sayi` olmalıdır — ikisi de doğrulayıcıda kırmızıdır. Kod
+      listesi ÇEKİRDEĞİN durum kümesidir (`lib/sabitler.ts` DURUMLAR):
+      düzenleyicinin sözcüğü ("Tam Uyum") pakette kalır, çekirdek kendi
+      kodunu sayar; hangi sözcüğün hangi koda karşılık geldiği alan eşleme
+      beyanında (R-D) yazılıdır. */
+  sayimDurumu: z.enum(DURUMLAR).nullable().optional(),
   zorunlu: z.boolean().default(false),
   /** XLSX'te bu alanın hücresi — `dosya` varsa zorunlu */
   hucre: z.string().regex(HUCRE_ADRESI, 'hücre adresi A1 biçiminde: B4').nullable().optional(),

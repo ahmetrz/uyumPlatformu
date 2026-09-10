@@ -4,7 +4,10 @@ import { db } from '@/lib/db';
 import { kopruKosulu } from '@/app/kapsam';
 import { Yetkisiz } from '@/components/kabuk/temel';
 import { KAPSAM_DISI_DURUMU } from '@/lib/denetim/formVerisi';
-import DenetimFormlariIstemci, { type FormSatiriOzeti } from './DenetimFormlariIstemci';
+import { sablonOrtusmesi, type Sablon } from '@/lib/denetim/sablonDoldurma';
+import DenetimFormlariIstemci, {
+  type FormSatiriOzeti, type SablonOzeti,
+} from './DenetimFormlariIstemci';
 
 export const metadata: Metadata = { title: 'Denetim formları' };
 
@@ -79,5 +82,55 @@ export default async function Sayfa() {
     || a.regulasyonKod.localeCompare(b.regulasyonKod, 'tr')
   ));
 
-  return <DenetimFormlariIstemci satirlar={liste} kisitliKapsam={izinli !== null} />;
+  /* PAKET FORM ŞABLONLARI. Çekirdeğin iki formu (öz denetim · SoA) her
+     kurulumda vardır; düzenleyicinin formu paketten gelir ve YALNIZ kurulu
+     olduğu kurulumda görünür — enerji kiracısı EPDK şablonunu görür,
+     bankacılık kiracısı görmez. Pasif şablon listeye girmez: paket
+     güncellemesiyle geri çekilmiş bir soruyu doldurulabilir göstermek,
+     bugünün verisiyle dünün sorusunu cevaplamak olurdu. */
+  const sablonKayitlari = await db.formSablonu.findMany({
+    where: { aktif: true },
+    select: { kod: true, ad: true, tanimJson: true, sektor: { select: { ad: true } } },
+    orderBy: { kod: 'asc' },
+  });
+
+  const cozulen = sablonKayitlari.map((r) => {
+    try {
+      return { r, sablon: JSON.parse(r.tanimJson) as Sablon };
+    } catch {
+      /* Okunamayan şablon GİZLENMEZ: kataloğa girmiş ama tanımı bozuk bir
+         şablon, olmayan bir şablondan farklı bir kusurdur ve ekranda
+         adıyla durur. */
+      return { r, sablon: null };
+    }
+  });
+
+  /* Şablonun bağlı olduğu kontroller KURULUMDA var mı — tek sorguda.
+     Bu sayı kapsamdan değil KURULUMDAN gelir: şablon ile paketin
+     ayrışması kapsam seçiminden önce olur. */
+  const referanslar = [...new Set(cozulen.flatMap(({ sablon }) => (sablon === null ? []
+    : sablon.bolumler.flatMap((b) => b.alanlar.map((a) => a.maddeKod ?? '').filter(Boolean)))))];
+  const kuruluMaddeler = referanslar.length === 0 ? [] : await db.madde.findMany({
+    where: { kod: { in: referanslar } }, select: { kod: true },
+  });
+  const kuruluKodlar = new Map(kuruluMaddeler.map((m) => [m.kod, true]));
+
+  const sablonlar: SablonOzeti[] = cozulen.map(({ r, sablon }) => {
+    if (sablon === null) {
+      return {
+        kod: r.kod, ad: r.ad, sektorAd: r.sektor?.ad ?? null, okunamadi: true,
+        alan: 0, bagli: 0, baglanmadi: 0, sayim: 0, serbest: 0,
+      };
+    }
+    const o = sablonOrtusmesi(sablon, kuruluKodlar);
+    return { kod: r.kod, ad: r.ad, sektorAd: r.sektor?.ad ?? null, okunamadi: false, ...o };
+  });
+
+  return (
+    <DenetimFormlariIstemci
+      satirlar={liste}
+      sablonlar={sablonlar}
+      kisitliKapsam={izinli !== null}
+    />
+  );
 }

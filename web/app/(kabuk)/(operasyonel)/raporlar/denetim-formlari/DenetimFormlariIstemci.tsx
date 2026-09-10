@@ -8,7 +8,9 @@ import {
   Cekmece, CekmeceKimlik, CekmeceAlanlar, CekmeceEylemler,
 } from '@/components/kabuk/panel';
 import { denetimFormuUretEylem } from '@/lib/eylemler2/denetimFormu';
-import { FORM_TURLERI, FORM_TURU_ADI, type FormTuru } from '@/lib/denetim/formTuru';
+import {
+  FORM_TURLERI, FORM_TURU_ADI, SABLON_ONEKI,
+} from '@/lib/denetim/formTuru';
 
 /* DENETİM FORMLARI EKRANI — tek canvas modülü.
 
@@ -42,8 +44,24 @@ export type FormSatiriOzeti = {
   degerlendirilmedi: number;
 };
 
+/** Kurulu paket form şablonu — ekran onu ÜRETMEZ, yalnız doldurulabilir gösterir. */
+export type SablonOzeti = {
+  kod: string;
+  ad: string;
+  /** Şablonu getiren sektör paketi; çekirdek şablonu yoktur, bu yüzden `null` beklenmez. */
+  sektorAd: string | null;
+  /** Tanımı okunamayan şablon GİZLENMEZ; kusuru adıyla durur. */
+  okunamadi: boolean;
+  alan: number;
+  bagli: number;
+  /** Şablonun sorduğu kontrol KURULUMDA yok — form dolu görünürdü. */
+  baglanmadi: number;
+  sayim: number;
+  serbest: number;
+};
+
 type Uretim = {
-  tur: FormTuru;
+  turAdi: string;
   csvAdi: string;
   xlsxAdi: string;
   satir: number;
@@ -74,18 +92,43 @@ function ikiliye(b64: string): ArrayBuffer {
   return arabellek;
 }
 
-export default function DenetimFormlariIstemci({ satirlar, kisitliKapsam }: {
+export default function DenetimFormlariIstemci({ satirlar, sablonlar, kisitliKapsam }: {
   satirlar: FormSatiriOzeti[];
+  sablonlar: SablonOzeti[];
   kisitliKapsam: boolean;
 }) {
   const [secim, setSecim] = useState<string | null>(null);
-  const [tur, setTur] = useState<FormTuru>('oz_denetim');
+  const [tur, setTur] = useState<string>('oz_denetim');
   const [uretim, setUretim] = useState<Uretim | null>(null);
   const [hata, setHata] = useState<string | null>(null);
   const [bekliyor, basla] = useTransition();
 
   const secilen = satirlar.find((s) => s.anahtar === secim) ?? null;
   const kusurlu = satirlar.filter((s) => s.gerekcesizKapsamDisi > 0).length;
+
+  /* Form türü seçenekleri TEK LİSTEDİR: çekirdeğin iki formu ve kurulu
+     paket şablonları yan yana durur. Şablonları ayrı bir ekrana ya da ayrı
+     bir sekmeye koymak, kullanıcıyı aynı işi yapmak için iki yere
+     bakmaya zorlardı — seçim aynı çekmecede, aynı adımda kalır.
+     Tanımı okunamayan şablon SEÇİLEMEZ ama listede durur ve neden
+     seçilemediğini söyler. */
+  const secenekler = [
+    ...FORM_TURLERI.map((t) => ({
+      deger: t as string, ad: FORM_TURU_ADI[t], not: null as string | null,
+      kusur: false, secilebilir: true,
+    })),
+    ...sablonlar.map((sb) => ({
+      deger: `${SABLON_ONEKI}${sb.kod}`,
+      ad: sb.ad,
+      not: sb.okunamadi
+        ? 'Şablon tanımı okunamadı — paket yeniden kurulmalı'
+        : `${sb.sektorAd ?? 'sektörsüz'} paketi · ${sb.alan} alan`
+          + (sb.baglanmadi > 0 ? ` · ${sb.baglanmadi} alan kuruluma bağlanmadı` : ''),
+      kusur: sb.okunamadi || sb.baglanmadi > 0,
+      secilebilir: !sb.okunamadi,
+    })),
+  ];
+  const secilenTurAdi = secenekler.find((o) => o.deger === tur)?.ad ?? tur;
 
   const tabloSatirlari: Satir[] = satirlar.map((s) => {
     const durum: Durum = s.gerekcesizKapsamDisi > 0 ? 'bd'
@@ -125,7 +168,7 @@ export default function DenetimFormlariIstemci({ satirlar, kisitliKapsam }: {
       indir(sonuc.xlsxAdi, ikiliye(sonuc.xlsxBase64),
         'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet');
       setUretim({
-        tur,
+        turAdi: secilenTurAdi,
         csvAdi: sonuc.csvAdi,
         xlsxAdi: sonuc.xlsxAdi,
         satir: sonuc.olcum.satir,
@@ -211,11 +254,18 @@ export default function DenetimFormlariIstemci({ satirlar, kisitliKapsam }: {
 
           <fieldset className="ab-alan" style={{ border: 0, padding: 0, margin: 0 }}>
             <legend className="etiket">Form türü</legend>
-            {FORM_TURLERI.map((t) => (
-              <label key={t} style={{ display: 'block' }}>
-                <input type="radio" name="formTuru" value={t} checked={tur === t}
-                  onChange={() => { setTur(t); setUretim(null); }} />
-                {' '}{FORM_TURU_ADI[t]}
+            {secenekler.map((o) => (
+              <label key={o.deger} style={{ display: 'block' }}>
+                <input type="radio" name="formTuru" value={o.deger} checked={tur === o.deger}
+                  disabled={!o.secilebilir}
+                  onChange={() => { setTur(o.deger); setUretim(null); }} />
+                {' '}{o.ad}
+                {o.not && (
+                  /* Şablonun kusuru ÜRETİMDEN ÖNCE, seçeneğin yanında
+                     durur: "kaç alan kuruluma bağlanmadı" sorusu, form
+                     denetçiye gittikten sonra sorulacak bir soru değildir. */
+                  <span className={`ikincil${o.kusur ? ' d-bd' : ''}`}> — {o.not}</span>
+                )}
               </label>
             ))}
           </fieldset>
@@ -228,7 +278,7 @@ export default function DenetimFormlariIstemci({ satirlar, kisitliKapsam }: {
                görülebilmelidir. Ölçülmemiş hücre sayısı da gizlenmez —
                bilinmeyen sıfır sayılmaz. */
             <CekmeceAlanlar alanlar={[
-              { etiket: 'Üretilen', deger: FORM_TURU_ADI[uretim.tur] },
+              { etiket: 'Üretilen', deger: uretim.turAdi },
               { etiket: 'Satır · hücre',
                 deger: <span className="mono">{uretim.satir} · {uretim.hucre}</span> },
               { etiket: 'Boş hücre', deger: <span className="mono">{uretim.bosHucre}</span>,

@@ -57,7 +57,7 @@ const ALAN_ROTALARI: Record<string, string[]> = {
   '/': ['/', '/tesisler'],
   '/portfoy': ['/portfoy', '/harita'],
   '/uyum': [
-    '/uyum', '/regulasyonlar', '/paketler', '/surecler', '/eslestirme', '/denetimler',
+    '/uyum', '/regulasyonlar', '/paketler', '/mevzuat-radari', '/surecler', '/eslestirme', '/denetimler',
     '/bulgular', '/projeler', '/raporlar', '/dokumanlar', '/kanitlar', '/aktivite',
     '/degerlendirme-aktarim', '/denetci-erisimi', '/saklama',
     '/gozden-gecirme', '/egitimler',
@@ -103,6 +103,11 @@ export const IKINCIL: Record<string, { baslik?: string; ogeler: Oge[] }[]> = {
       /* P4 · 2.6 · İçerik paketleri Regülasyonlar'ın YANINDA: paket
          regülasyonu getirir (taslak), aktifleştirme oradadır. */
       { ad: 'İçerik paketleri', yol: '/paketler' },
+      /* R1 · Mevzuat radarı Regülasyonlar'ın YANINDA: radar bir
+         regülasyonun DEĞİŞTİĞİNİ önerir, kararı oradaki akış verir.
+         Ayrı bir üst başlığa koymak, "mevzuat değişti" ile "mevzuatımız
+         ne" sorularını iki ayrı yere bölerdi. */
+      { ad: 'Mevzuat radarı', yol: '/mevzuat-radari' },
       { ad: 'Süreçler', yol: '/surecler' },
       { ad: 'Çapraz eşleme', yol: '/eslestirme' },
       /* UY-43 · Değerlendirme aktarımı MATRİSİN yanında durur çünkü

@@ -115,7 +115,7 @@ export default async function Giris({ searchParams }: {
 
         {saglayicilar.length > 0 && (
           <div style={{ marginTop: 'var(--s26)', paddingTop: 'var(--s20)',
-            borderTop: 'var(--bw) solid var(--hr2)' }}>
+            borderTop: 'var(--bw-hair) solid var(--hr2)' }}>
             <p className="etiket" style={{ margin: '0 0 var(--s10)' }}>
               Kurum kimlik sağlayıcısı
             </p>

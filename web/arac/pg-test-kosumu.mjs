@@ -28,7 +28,7 @@ import { existsSync } from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { aktifSaglayici } from './pg-istemci.mjs';
-import { artikAdlari, dusur, yetimleriSec, yetimleriSupur } from './pg-artik.mjs';
+import { ArtikHatasi, artikAdlari, dusur, yetimleriSec, yetimleriSupur } from './pg-artik.mjs';
 
 const WEB = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
 const url = process.env.TEST_PG_URL || process.env.PG_URL;
@@ -134,8 +134,15 @@ try {
       cikis = cikis || 1;
     }
   } catch (e) {
-    console.error(`artık ölçümü yapılamadı: ${e.message.split('\n')[0]}`);
-    cikis = cikis || 1;
+    /* ÜÇ HÂL AYRI: sızıntı VAR (yukarıda) · sızıntı YOK · ÖLÇÜLEMEDİ.
+       Üçüncüsü "temiz" değildir ve öyle yazılmaz — ama testlerin kendi
+       sonucunu da EZMEZ: kırmızı yalnız CI'da, çünkü orada ölçüm
+       ortamı bizim elimizdedir ve ölçemeyen bir kapı bir kusurdur.
+       Yerelde `psql` olmayabilir ve bu, koşumu kırmızı yakmaz. */
+    const olculemedi = e instanceof ArtikHatasi;
+    console.error(`${olculemedi ? 'ÖLÇÜLMEDİ' : 'artık ölçümü yapılamadı'}: `
+      + `${e.message.split('\n')[0]}`);
+    if (!olculemedi || process.env.CI) cikis = cikis || 1;
   }
   if (!sqliteyeDon()) cikis = cikis || 1;
 }

@@ -43,7 +43,7 @@
      node arac/pg-artik.mjs --say        → yetim artıkları say
      node arac/pg-artik.mjs --supur      → yetimleri süpür ve doğrula
    ═══════════════════════════════════════════════════════════════════════ */
-import { execFileSync } from 'node:child_process';
+import { spawnSync } from 'node:child_process';
 
 /** Test veritabanı adının kalıbı — şablon (`uyum_test_sablonu`) HARİÇ. */
 export const ARTIK_KALIBI = /^uyum_test_(\d+)_\d+$/;
@@ -73,8 +73,25 @@ export function yetimleriSec(adlar, yasiyorMu = sahipYasiyor) {
   });
 }
 
+/* ── ÖLÇÜM ARACI YOKSA FIRLATILMAZ, ADIYLA SÖYLENİR ────────────────────
+   İlk yazım `execFileSync` kullanıyordu ve `psql` bulunamadığında ham bir
+   `ENOENT` fırlatıyordu: koşum sebebi görünmeden kırmızı yanardı. Deponun
+   kendi kalıbı bunu `arac/pg-goc.mjs`te çoktan çözmüş — `spawnSync` +
+   `yokArac` bayrağı + "ÖLÇÜLMEDİ: psql bulunamadı". Aynısı burada.
+
+   Ölçülemeyen bir temizlik TEMİZ SAYILMAZ: `ArtikHatasi` fırlatılır,
+   çağıran onu "sızıntı var" ile karıştırmadan raporlar. */
+export class ArtikHatasi extends Error {}
+
 function psql(url, sql) {
-  return execFileSync('psql', [url, '-v', 'ON_ERROR_STOP=1', '-tAc', sql], { encoding: 'utf8' }).trim();
+  const r = spawnSync('psql', [url, '-v', 'ON_ERROR_STOP=1', '-tAc', sql], { encoding: 'utf8' });
+  if (r.error?.code === 'ENOENT') {
+    throw new ArtikHatasi('psql bulunamadı — test artıkları ÖLÇÜLEMEDİ');
+  }
+  if (r.status !== 0) {
+    throw new ArtikHatasi(`psql çıkışı ${r.status}: ${(r.stderr ?? '').trim().split('\n')[0]}`);
+  }
+  return (r.stdout ?? '').trim();
 }
 
 /** Sunucudaki test veritabanlarının adları (şablon dâhil değil). */

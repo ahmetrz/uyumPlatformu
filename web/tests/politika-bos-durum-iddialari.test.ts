@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { readFileSync } from 'node:fs';
+import { readdirSync, readFileSync } from 'node:fs';
 import path from 'node:path';
 
 /* ═══════════════════════════════════════════════════════════════════════
@@ -59,7 +59,6 @@ describe('boş durum cümlelerinin iddiaları GERÇEKTEN tutuluyor [SIS-BSD-002]
     /* `/gozden-gecirme` boş durumu: "kayıt olmadan 'yönetim gördü'
        denemez". Ölçüsü: hiçbir motor bu tabloya yazmıyor. */
     const motorlar = path.join(process.cwd(), 'lib', 'motorlar');
-    const { readdirSync } = require('node:fs') as typeof import('node:fs');
     const yazanlar = readdirSync(motorlar)
       .filter((f) => f.endsWith('.ts'))
       .filter((f) => /yonetimGozdenGecirme\s*\.\s*(create|update|upsert)/

@@ -150,9 +150,23 @@ beforeAll(() => {
 
 afterAll(async () => {
   if (!POSTGRES) {
-    /* ADIM ÖLÇÜMÜ HER KOŞUMDA YAZILIR — "çalıştı" yetmez. */
+    /* ── ADIM ÖLÇÜMÜ HER KOŞUMDA YAZILIR — "çalıştı" YETMEZ ────────────
+       `console.log` YETMİYORDU ve bu ölçüldü: vitest'in varsayılan
+       raportörü `afterAll` içindeki konsol çıktısını yutuyor, yani kapı
+       11/11 geçiyor ve adımların hiçbiri log'a düşmüyordu. Ölçümü
+       görünmeyen bir kapı, "çalıştı" demekten farksızdır.
+
+       Rapor DOSYAYA yazılır (`.parti/` altına, `kapi:parti` günlükleri
+       oradadır) ve ham `process.stdout` ile de basılır: ikisinden biri
+       yutulsa öbürü durur. Dosya yolu çıktıda YAZILI ki koşan kişi
+       nereye bakacağını bilsin. */
     const satirlar = adimlar.map((a) => `  ${a.sonuc === 'geçti' ? '✓' : '✗'} ${a.ad} · ${a.ms} ms · ${a.sonuc}`);
-    console.log(`\nBOŞ KURULUM DUMAN KAPISI · ${adimlar.length} adım\n${satirlar.join('\n')}`);
+    const rapor = `\nBOŞ KURULUM DUMAN KAPISI · ${adimlar.length} adım · `
+      + `${adimlar.filter((a) => a.sonuc === 'geçti').length} geçti · `
+      + `toplam ${adimlar.reduce((t, a) => t + a.ms, 0)} ms\n${satirlar.join('\n')}\n`;
+    const raporYolu = path.join(yuva, 'bos-kurulum-adimlar.txt');
+    writeFileSync(raporYolu, `${rapor}\n`);
+    process.stdout.write(`${rapor}  → ${path.relative(KOK, raporYolu)}\n`);
     await db.$disconnect();
   }
   rmSync(calisma, { recursive: true, force: true });

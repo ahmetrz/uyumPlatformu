@@ -4,8 +4,8 @@
 
 | Ölçü | Değer |
 | --- | --- |
-| Senaryo | 365 |
-| Testi olan senaryo | 365 |
+| Senaryo | 367 |
+| Testi olan senaryo | 367 |
 | **GAP** | **0** |
 | Hayalet işaret (kütükte olmayan kimlik) | 0 |
 | Kütüksüz test dosyası | 0 |
@@ -18,7 +18,7 @@
 | ACCESSIBILITY | 8 | 8 | 0 |
 | API | 12 | 12 | 0 |
 | CONCURRENCY | 8 | 8 | 0 |
-| DOMAIN | 216 | 216 | 0 |
+| DOMAIN | 218 | 218 | 0 |
 | ENGINE | 37 | 37 | 0 |
 | INTEGRATION | 42 | 42 | 0 |
 | MIGRATION | 10 | 10 | 0 |
@@ -298,7 +298,8 @@
 | `REG-BOS-001` | Uyum | DOMAIN · UI | `regulasyon-katalog-boslugu.test.ts` | TASLAKTA MADDE VARSA "yüklenmedi" DENMEZ — provanın kusuru | evet | geçti |
 | `REG-BOS-001` | Uyum | DOMAIN · UI | `regulasyon-katalog-boslugu.test.ts` | BOŞ TASLAK maddeli taslakla karışmaz | evet | geçti |
 | `REG-BOS-001` | Uyum | DOMAIN · UI | `regulasyon-katalog-boslugu.test.ts` | ÇOK TASLAK: toplam sayılır, hedef EN ÇOK maddeli olandır | evet | geçti |
-| `REG-BOS-001` | Uyum | DOMAIN · UI | `regulasyon-katalog-boslugu.test.ts` | ARŞİV sürüm "bekliyor" saymaz — karar verilecek bir şey değil | evet | geçti |
+| `REG-BOS-001` | Uyum | DOMAIN · UI | `regulasyon-katalog-boslugu.test.ts` | ARŞİV sürüm "bekliyor" saymaz ama "İÇİ BOŞ" da DEMEZ | evet | geçti |
+| `REG-BOS-001` | Uyum | DOMAIN · UI | `regulasyon-katalog-boslugu.test.ts` | GERÇEKTEN BOŞ sürüm hâlâ "içi boş" der — arşiv dişi hâli yutmaz | evet | geçti |
 | `REG-BOS-001` | Uyum | DOMAIN · UI | `regulasyon-katalog-boslugu.test.ts` | AKTİF sürüm maddesizken taslak doluysa yine BEKLİYOR | evet | geçti |
 | `KVK-ENV-006` | Uyum | UI · DOMAIN · RESPONSIVE | `veri-koruma-mantik.test.ts` | değerlendirilmemiş faaliyet ile tarihsiz aktarım AYRI sayılır | evet | geçti |
 | `KVK-ENV-006` | Uyum | UI · DOMAIN · RESPONSIVE | `veri-koruma-mantik.test.ts` | özel nitelikli FALSE ile NULL aynı kefeye konmaz | evet | geçti |
@@ -546,13 +547,15 @@
 | `SIS-BSD-002` | Sistem | DOMAIN · MIGRATION | `politika-bos-durum-iddialari.test.ts` | YÖNETİM GÖZDEN GEÇİRMESİ motorla doğmaz — kayıt insan işidir | evet | geçti |
 | `SIS-BSD-002` | Sistem | DOMAIN · MIGRATION | `politika-bos-durum-iddialari.test.ts` | DIŞ DENETÇİ erişimi TANIMSIZ olamaz — süre ve davet eden ZORUNLU | evet | geçti |
 | `SIS-BSD-002` | Sistem | DOMAIN · MIGRATION | `politika-bos-durum-iddialari.test.ts` | DEĞİŞİKLİK ekranı YALNIZ kütüğü okur — başka kaynak karıştırmaz | evet | geçti |
-| `SIS-BSD-001` | Sistem | UI · DOMAIN | `bekci/bos-durum.test.ts` | TÜRETME boş değil — kalıp bozulursa bekçi her şeyi geçirirdi | evet | geçti |
+| `SIS-BSD-001` | Sistem | UI · DOMAIN | `bekci/bos-durum.test.ts` | POPÜLASYON TABANI kütükten değil ÖLÇÜM TABANINDAN gelir | evet | geçti |
+| `SIS-BSD-001` | Sistem | UI · DOMAIN | `bekci/bos-durum.test.ts` | HER SATIR bir SINIF taşır — sınıfsız satır tavana giremez | evet | geçti |
 | `SIS-BSD-001` | Sistem | UI · DOMAIN | `bekci/bos-durum.test.ts` | KODDAKİ her boş durum kütükte VAR | evet | geçti |
 | `SIS-BSD-001` | Sistem | UI · DOMAIN | `bekci/bos-durum.test.ts` | KÜTÜKTEKİ her satır kodda VAR — ölü satır kalmaz | evet | geçti |
 | `SIS-BSD-001` | Sistem | UI · DOMAIN | `bekci/bos-durum.test.ts` | KÜTÜK ÖLÇÜMÜ elle yazılmaz — türetilenle BİREBİR | evet | geçti |
-| `SIS-BSD-001` | Sistem | UI · DOMAIN | `bekci/bos-durum.test.ts` | EYLEMSİZ boş durum SIFIRDIR — iyi haber dışında istisna yok | evet | geçti |
-| `SIS-BSD-001` | Sistem | UI · DOMAIN | `bekci/bos-durum.test.ts` | NEDENSİZ SAYISI TAVANI AŞMAZ — cırcır yalnız küçülür | evet | geçti |
-| `SIS-BSD-001` | Sistem | UI · DOMAIN | `bekci/bos-durum.test.ts` | TAVAN ölçülenin ÜSTÜNDE tutulmaz — gevşeklik dişi | evet | geçti |
+| `SIS-BSD-001` | Sistem | UI · DOMAIN | `bekci/bos-durum.test.ts` | İLK KURULUM boşluğunda EYLEMSİZ SIFIRDIR — istisnası yalnız iyi haber | evet | geçti |
+| `SIS-BSD-001` | Sistem | UI · DOMAIN | `bekci/bos-durum.test.ts` | SINIF TAVANLARI aşılmaz ve ölçülenin ÜSTÜNDE tutulmaz | evet | geçti |
+| `SIS-BSD-001` | Sistem | UI · DOMAIN | `bekci/bos-durum.test.ts` | SIFIR OLMAYAN her sınıf tavanı SAHİBİ ve KAPANIŞ AŞAMASIYLA beyanlı | evet | geçti |
+| `SIS-BSD-001` | Sistem | UI · DOMAIN | `bekci/bos-durum.test.ts` | TOPLAM TAVAN ölçülenle BİREBİR — özet sayı da elle yazılmaz | evet | geçti |
 | `SIS-BSD-001` | Sistem | UI · DOMAIN | `bekci/bos-durum.test.ts` | KALAN NEDENSİZ satır BEYANLIDIR ve ölçümü GERÇEKTİR | evet | geçti |
 | `SIS-BSD-001` | Sistem | UI · DOMAIN | `bekci/bos-durum.test.ts` | TABAN DAL CIRCIRI: nedensiz sayısı tabana göre BÜYÜYEMEZ | evet | geçti |
 | `SIS-BSD-001` | Sistem | UI · DOMAIN | `bekci/bos-durum.test.ts` | TEK TÜMCE sebebi söylemez — provanın kusuru | evet | geçti |
@@ -560,6 +563,11 @@
 | `SIS-BSD-001` | Sistem | UI · DOMAIN | `bekci/bos-durum.test.ts` | KISALTMA tümce ayırmaz — yanlış pozitif üretmez | evet | geçti |
 | `SIS-BSD-001` | Sistem | UI · DOMAIN | `bekci/bos-durum.test.ts` | ŞABLON YERİ tümce ayırmaz | evet | geçti |
 | `SIS-BSD-001` | Sistem | UI · DOMAIN | `bekci/bos-durum.test.ts` | ÖZNİTELİK okuyucu DENGELİ okur — iç içe süslü parantez kesmez | evet | geçti |
+| `SIS-BSD-001` | Sistem | UI · DOMAIN | `bekci/bos-durum.test.ts` | SINIR BEYANLIDIR: iki kelimelik kuyruk ölçütü GEÇER | evet | geçti |
+| `SIS-BSD-001` | Sistem | UI · DOMAIN | `bekci/bos-durum.test.ts` | SATIR İÇİ yüzey okunur: gövde, metin ve EYLEM | evet | geçti |
+| `SIS-BSD-001` | Sistem | UI · DOMAIN | `bekci/bos-durum.test.ts` | İFADE: dize SEÇEN açılır, HESAPLAYAN "…" olur | evet | geçti |
+| `SIS-BSD-001` | Sistem | UI · DOMAIN | `bekci/bos-durum.test.ts` | BosFiltre TANIM satırı okunur ve ÇAĞRI sayısı gerçektir | evet | geçti |
+| `SIS-BOS-001` | Sistem | MIGRATION · SERVER · WORKFLOW · DOMAIN | `bos-kurulum-duman.test.ts` | atlandıysa SEBEBİ ölçülür; adanmış kapıda atlama YASAK | evet | geçti |
 | `SIS-BOS-001` | Sistem | MIGRATION · SERVER · WORKFLOW · DOMAIN | `bos-kurulum-duman.test.ts` | 1 · GÖÇ ZİNCİRİ boş veritabanına uygulandı ve kurulum GERÇEKTEN boş | evet | geçti |
 | `SIS-BOS-001` | Sistem | MIGRATION · SERVER · WORKFLOW · DOMAIN | `bos-kurulum-duman.test.ts` | 2 · KURUCU HESAP açıldı — kurulum artık girilebilir | evet | geçti |
 | `SIS-BOS-001` | Sistem | MIGRATION · SERVER · WORKFLOW · DOMAIN | `bos-kurulum-duman.test.ts` | 3 · GİRİŞ yapıldı — oturum gerçekten açıldı | evet | geçti |
@@ -571,14 +579,21 @@
 | `SIS-BOS-001` | Sistem | MIGRATION · SERVER · WORKFLOW · DOMAIN | `bos-kurulum-duman.test.ts` | 9 · YEDEK alındı ve DOĞRULANDI | evet | geçti |
 | `SIS-BOS-001` | Sistem | MIGRATION · SERVER · WORKFLOW · DOMAIN | `bos-kurulum-duman.test.ts` | KAPININ KENDİSİ · dokuz adımın dokuzu da GEÇTİ ve tohuma dokunulmadı | evet | geçti |
 | `SIS-IZO-001` | Sistem | MIGRATION · CONCURRENCY | `pg-artik.test.ts` | SAHİP YAŞIYOR MU: ESRCH ölü, EPERM CANLI | evet | geçti |
+| `SIS-TAB-001` | Sistem | DOMAIN | `olcum-tabani.test.ts` | TABAN DALA GÖRE İNEN her taban `dususler` kaydı taşır | evet | geçti |
+| `SIS-TAB-002` | Sistem | DOMAIN | `bekci/bos-durum.test.ts` | TABAN DAL ÜÇ HÂLİ: yok · okundu · ÖLÇÜLEMEDİ | evet | geçti |
+| `SIS-KUR-001` | Sistem | DOMAIN · SERVER · RBAC · MIGRATION | `kurucu-hesap.test.ts` | atlandıysa SEBEBİ gerçek bir PostgreSQL koşumudur | evet | geçti |
 | `SIS-KUR-001` | Sistem | DOMAIN · SERVER · RBAC · MIGRATION | `kurucu-hesap.test.ts` | PAROLA ALT SINIRI ürünün sınırıyla AYNI — bağ | evet | geçti |
 | `SIS-KUR-001` | Sistem | DOMAIN · SERVER · RBAC · MIGRATION | `kurucu-hesap.test.ts` | ROL gerçek yetki kataloğunda VAR — bağ | evet | geçti |
+| `SIS-KUR-001` | Sistem | DOMAIN · SERVER · RBAC · MIGRATION | `kurucu-hesap.test.ts` | HATA METNİ parola özetini SIZDIRMAZ | evet | geçti |
+| `SIS-KUR-001` | Sistem | DOMAIN · SERVER · RBAC · MIGRATION | `kurucu-hesap.test.ts` | SQLITE YOLU Prisma kuralıyla çözülür ve GÖRÜNÜR | evet | geçti |
 | `SIS-KUR-001` | Sistem | DOMAIN · SERVER · RBAC · MIGRATION | `kurucu-hesap.test.ts` | PAROLA ÖZETİ girişin doğrulayıcısıyla UYUŞUR — bağ | evet | geçti |
 | `SIS-KUR-001` | Sistem | DOMAIN · SERVER · RBAC · MIGRATION | `kurucu-hesap.test.ts` | göç zinciri uygulandı ve kurulum GERÇEKTEN boş | evet | geçti |
 | `SIS-KUR-001` | Sistem | DOMAIN · SERVER · RBAC · MIGRATION | `kurucu-hesap.test.ts` | GEÇERSİZ girdi reddedilir ve HİÇBİR ŞEY yazılmaz | evet | geçti |
 | `SIS-KUR-001` | Sistem | DOMAIN · SERVER · RBAC · MIGRATION | `kurucu-hesap.test.ts` | kurucu hesap AÇILIR: kullanıcı + KÜRESEL yetki + denetim izi | evet | geçti |
 | `SIS-KUR-001` | Sistem | DOMAIN · SERVER · RBAC · MIGRATION | `kurucu-hesap.test.ts` | PAROLA denetim izine GİRMEZ — ne kendisi, ne özeti, ne uzunluğu | evet | geçti |
 | `SIS-KUR-001` | Sistem | DOMAIN · SERVER · RBAC · MIGRATION | `kurucu-hesap.test.ts` | ikinci koşu REDDEDİLİR ve üç tabloda da satır değişmez | evet | geçti |
+| `SIS-KUR-001` | Sistem | DOMAIN · SERVER · RBAC · MIGRATION | `kurucu-hesap.test.ts` | ARADAKİ AN: tekil satır varken kullanıcı tablosu BOŞ — araç REDDEDER | evet | geçti |
+| `SIS-KUR-001` | Sistem | DOMAIN · SERVER · RBAC · MIGRATION | `kurucu-hesap.test.ts` | SONUÇ: iki koşum BİRLİKTE başlar, kurulumda TEK yönetici kalır | evet | geçti |
 | `SIS-KUR-001` | Sistem | DOMAIN · SERVER · RBAC · MIGRATION | `kurucu-hesap.test.ts` | --parola verilirse araç koşmadan REDDEDER | evet | geçti |
 | `SIS-DGM-001` | Sistem | DOMAIN · SERVER · ENGINE · WORKFLOW | `politika-s2-eylem.test.ts` | VERİ KORUMA motoru başvuruya CEVAP YAZMAZ — yanıt alanı boş kalır | evet | geçti |
 | `SIS-YTK-011` | Sistem | RBAC · SCOPE · SERVER · DOMAIN | `politika-eylem-kapsami.test.ts` | iptalli anahtarda kapsam güncellemesi REDDEDİLİR, kapsam AYNI kalır | evet | geçti |
@@ -1003,6 +1018,7 @@
 | `URN-POL-001` | Ürünleştirme | DOMAIN | `bekci/politika-olcumu.test.ts` | IDDIA_DEGIL satırı politika değildir — diş ona bakmaz | evet | geçti |
 | `URN-POL-001` | Ürünleştirme | DOMAIN | `bekci/politika-olcumu.test.ts` | TOPLAM DÜŞERKEN SIZAN CÜMLE yakalanır — dişin var oluş sebebi | evet | geçti |
 | `URN-POL-001` | Ürünleştirme | DOMAIN | `bekci/politika-olcumu.test.ts` | GERÇEK KÜTÜK: taban dala göre yeni satırların hepsi kuralı geçer | evet | geçti |
+| `URN-POL-001` | Ürünleştirme | DOMAIN | `bekci/politika-olcumu.test.ts` | KÜTÜKTEKİ her `olculmedi` satırı ŞEMAYA uyar — üç alan da dolu | evet | geçti |
 | `URN-POL-001` | Ürünleştirme | DOMAIN | `bekci/politika-olcumu.test.ts` | ÖZNE koşulu alan doğrulamasını dışarıda tutar | evet | geçti |
 | `URN-POL-001` | Ürünleştirme | DOMAIN | `bekci/politika-olcumu.test.ts` | SİSTEM iddiası yakalanır | evet | geçti |
 | `URN-POL-001` | Ürünleştirme | DOMAIN | `bekci/politika-olcumu.test.ts` | YORUMDAKİ cümle kütüğe girmez | evet | geçti |

@@ -201,7 +201,12 @@ describe('güncelleme ve kaldırma — kiracı ezilmez, silme yok [URN-PKT-004]'
     if (!s.ok) expect(s.hatalar[0]).toMatchObject({ sinif: 'SÜRÜM', konum: 'surumEtiketi' });
     expect(await db.madde.count({ where: { regulasyonId: reg.id } })).toBe(once);
     expect(await db.maddeEslestirmesi.count({ where: { kaynakId: a.id } })).toBe(1);
-    expect(await db.icerikPaketiSurumu.findFirst({ where: { surum: '0.3.0' } })).toBeNull();
+    /* Sorgu PAKETE bağlanır: fikstürdeki BAŞKA bir paketin aynı sürüm
+       etiketini taşıması bu iddiayı yanlış kırmızı yakardı (ölçüldü —
+       DEMO-TR-ENERJI 0.3.0'a çıkınca oldu). */
+    expect(await db.icerikPaketiSurumu.findFirst({
+      where: { surum: '0.3.0', paket: { kod: 'TEST-PAKET' } },
+    })).toBeNull();
   });
 
   it('kaldırma = arşiv: paket/sürüm arşiv, taslak çerçeve arşiv, tür ve yükümlülük pasif; HİÇBİR satır silinmez [URN-PKT-004]', async () => {

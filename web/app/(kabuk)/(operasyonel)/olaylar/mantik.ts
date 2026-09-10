@@ -135,6 +135,26 @@ export type OneriGorunumu = {
 
 export type Bag = { id: string; kod: string; alt: string; yol: string };
 
+/** R10 · Çekmecede gösterilen bildirim kaydı — sunucudan KARARLI gelir. */
+export type BildirimKaydiGorunumu = {
+  id: string;
+  durum: string;
+  yukumlulukKod: string;
+  yukumlulukAd: string;
+  merci: string;
+  /** Kanal NOTU ("SİP üzerinden"); adres DEĞİLDİR ve sır taşımaz. */
+  kanalNotu: string | null;
+  /** `null` = mevzuat süreyi belirlememiş; geri sayım gösterilmez. */
+  sureSaat: number | null;
+  sonTarih: string | null;
+  /** Sunucunun verdiği söz: "2 gün 4 saat kaldı" ya da süresiz sözü. */
+  geriSayimSozu: string;
+  sureVar: boolean;
+  referansNo: string | null;
+  gonderimZamani: string | null;
+  uygulanmazGerekcesi: string | null;
+};
+
 export type OlayKaydi = {
   id: string;
   kod: string;
@@ -170,8 +190,13 @@ export type OlayKaydi = {
     durum: BildirimDurumu;
     sonTarih: string | null;
     kalanDakika: number | null;
-    kural: { ad: string; merci: string; sureSaat: number } | null;
+    /** `sureSaat: null` = süre mevzuatta belirlenmedi (R10) — geri sayım yok. */
+    kural: { ad: string; merci: string; sureSaat: number | null } | null;
   };
+  /* R10 · Olayın mevzuat bildirimi KAYITLARI — her merci için ayrı satır.
+     `bildirim` alanı UY-63'ün TEK kuralını taşır (liste ekranındaki sayaç);
+     bu liste ise gönderilecek BELGELERİN kütüğüdür ve ikisi ayrı şeydir. */
+  bildirimKayitlari: BildirimKaydiGorunumu[];
   /* Zincir bağları. `varliklar`/`sistemler` etki önerisini BESLER; öneri
      zincirinden AYRI taşınır çünkü öneri üretilmemişken de bağ vardır —
      "öneri yok" ile "bağ yok" karıştırılmamalı. */

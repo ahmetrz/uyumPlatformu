@@ -684,6 +684,8 @@ model Kanit {
 
   // FAZ G ters bağları
   egitimKayitlari EgitimKaydi[]
+  /// R10 · Bu kanıt bir mevzuat bildiriminin gönderim kanıtı olabilir.
+  bildirimKayitlari BildirimKaydi[]
 }
 
 /// UY-12 · Kanıt sürüm geçmişi — DEĞİŞMEZ kayıt.
@@ -883,6 +885,7 @@ model Kullanici {
   sahipOlduguMedya              TasinabilirMedya[]     @relation("MedyaSahibi")
   onayladigiMedyaKullanimlari   MedyaKullanimi[]       @relation("MedyaOnaylayan")
   guncelledigiBildirimKurallari BildirimYukumlulugu[]  @relation("BildirimKuraliGuncelleyen")
+  gonderdigiBildirimler         BildirimKaydi[]        @relation("BildirimKaydiGonderen")
   paketKurulumlari              IcerikPaketiSurumu[]   @relation("PaketKuran")
   yaptigiKontrolTestleri        KontrolTesti[]         @relation("KontrolTestEden")
   yurutuguGozdenGecirmeler      YonetimGozdenGecirme[] @relation("GozdenGecirmeYuruten")
@@ -2325,6 +2328,8 @@ model Olay {
   bulgular      OlayBulgu[]
   projeler      OlayProje[]
   degisiklikler OlayDegisiklik[]
+  /// R10 · Bu olay için açılmış mevzuat bildirimi kayıtları.
+  bildirimKayitlari BildirimKaydi[]
 }
 
 // ----------------------------------------------- proje/bütçe genişlemesi
@@ -3957,7 +3962,14 @@ model BildirimYukumlulugu {
   /// Bu şiddetten itibaren yükümlülük doğar: dusuk | orta | yuksek | kritik
   asgariSiddet  String   @default("yuksek")
   /// Olayın başlangıcından itibaren kaç SAAT içinde bildirilmeli.
-  sureSaat      Int
+  ///
+  /// R10 · NULLABLE: mevzuat her zaman bir saat vermez. 7545 md. 7
+  /// "gecikmeksizin" der ve saati ikincil düzenleme belirleyecektir; o
+  /// güne kadar buraya bir sayı yazmak, kimsenin değiştirmediği YANLIŞ
+  /// bir sayaç bırakır. `null` = süre mevzuatta belirlenmedi; geri sayım
+  /// GÖSTERİLMEZ ve `suresi_gecti` ASLA yazılmaz. Sıfır saatle aynı şey
+  /// DEĞİLDİR: sıfır "hemen geçti" demektir, null "geçecek süre yok".
+  sureSaat      Int?
   /// Hangi mevzuat maddesi bu süreyi gerektiriyor — zorunlu.
   dayanak       String
   /// Kime bildirilecek (kurum adı). Adres ya da uç nokta DEĞİL.
@@ -3970,8 +3982,70 @@ model BildirimYukumlulugu {
   koken         String   @default("kiraci")
   paketSurumId  String?
 
+  /// R10 · Mercinin istediği alanlar (JSON): olay zamanı, etkilenen sistem,
+  /// etki, alınan tedbir… Taslak bu şablonla hazırlanır; boşsa taslak
+  /// serbest metindir. Şablon SORU listesidir, cevap değil.
+  alanSablonuJson String?
+  /// R10 · Bildirimin hangi kanaldan yapıldığı — NOT, ADRES DEĞİL.
+  /// "SİP üzerinden", "KVKK ihlal bildirim formu" gibi. Bir uç nokta,
+  /// kullanıcı adı ya da anahtar buraya YAZILMAZ: sır yalnız
+  /// `sirReferansi` ile taşınır ve bu alan bir sır alanı değildir.
+  kanalNotu       String?
+
   regulasyon  Regulasyon? @relation(fields: [regulasyonId], references: [id])
   guncelleyen Kullanici?  @relation("BildirimKuraliGuncelleyen", fields: [guncelleyenId], references: [id])
+  kayitlar    BildirimKaydi[]
+}
+
+/// R10 · OLAY → MEVZUAT BİLDİRİMİ KAYDI (`OLY-BIL`).
+///
+/// Bir olay birden çok mercie bildirilir (7545 ayrı, KVKK ayrı) ve her
+/// birinin kendi süresi, durumu ve referans numarası olur. `Olay`
+/// üzerindeki tek `bildirimTarihi` alanı bunları tek hücreye sıkıştırıp
+/// HANGİ bildirimin yapıldığını belirsiz bırakıyordu; bu tablo her
+/// (olay, yükümlülük) çifti için AYRI bir kayıt tutar.
+///
+/// MOTOR GÖNDERMEZ. Motorun yazabileceği iki durum vardır: `taslak`
+/// (kaydı açar) ve `suresi_gecti`. `gonderildi`, `teyit_alindi` ve
+/// `uygulanmaz` yalnız İNSAN kararıdır — resmî bir bildirimin
+/// yapıldığını söyleyebilecek tek şey insandır (lib/uyum/bildirimKaydi.ts
+/// → MOTORUN_YAZABILECEGI; bekçi: tests/bekci/bildirim-motoru.test.ts).
+///
+/// `sonTarih` NULLABLE: yükümlülüğün süresi yoksa son tarih de yoktur.
+model BildirimKaydi {
+  id            String    @id @default(cuid())
+  olayId        String
+  yukumlulukId  String
+  /// taslak | gonderildi | teyit_alindi | suresi_gecti | uygulanmaz
+  durum         String    @default("taslak")
+  /// Olayın BAŞLANGICINDAN hesaplanır; süresiz yükümlülükte null.
+  sonTarih      DateTime?
+  /// Mercinin şablonuna göre doldurulan taslak; ürün buraya bir cevap
+  /// UYDURMAZ, alanları boş bırakıp kurumun doldurmasını bekler.
+  taslakMetin   String?
+  gonderenId    String?
+  gonderimZamani DateTime?
+  /// Merciden alınan referans numarası — gönderim işaretlemenin ŞARTI.
+  referansNo    String?
+  /// Gönderimin kanıtı (ekran çıktısı, e-posta, alındı belgesi).
+  kanitId       String?
+  teyitZamani   DateTime?
+  /// "Uygulanmaz" kararının gerekçesi — kararın ŞARTI.
+  uygulanmazGerekcesi String?
+  /// Motor kaydı ne zaman açtı.
+  acildi        DateTime  @default(now())
+  guncellendi   DateTime  @updatedAt
+
+  olay       Olay                 @relation(fields: [olayId], references: [id], onDelete: Cascade)
+  yukumluluk BildirimYukumlulugu  @relation(fields: [yukumlulukId], references: [id])
+  gonderen   Kullanici?           @relation("BildirimKaydiGonderen", fields: [gonderenId], references: [id])
+  kanit      Kanit?               @relation(fields: [kanitId], references: [id])
+
+  /// Aynı olay + aynı yükümlülük için İKİNCİ kayıt açılmaz: motor her
+  /// koşuda aynı taslağı yeniden açsaydı kuyruk okunmaz hâle gelirdi.
+  @@unique([olayId, yukumlulukId])
+  @@index([durum])
+  @@index([sonTarih])
 }
 
 /// UY-64 · Kontrol testi — kontrolün NASIL doğrulandığı.

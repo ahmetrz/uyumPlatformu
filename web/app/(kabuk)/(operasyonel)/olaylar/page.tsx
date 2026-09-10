@@ -4,6 +4,7 @@ import { kapsamdaYetkili, modulYazabilir } from '@/app/kapsam';
 import { Yetkisiz } from '@/components/kabuk/temel';
 import { db } from '@/lib/db';
 import { bildirimKarari } from '@/lib/uyum/bildirimSuresi';
+import { geriSayim } from '@/lib/uyum/bildirimKaydi';
 import { simdiOku } from './veri';
 import { oneriOku, ETKI_ALANLARI } from '@/lib/motorlar/olayEtki';
 import OlaylarIstemci from './OlaylarIstemci';
@@ -79,6 +80,19 @@ export default async function Sayfa() {
           etkiDogrulamaZamani: true,
           kokNeden: true, sinirlama: true, kurtarma: true, ogrenilenler: true,
           bildirimGerekli: true, bildirimTarihi: true,
+          /* R10 · Bu olayın mevzuat bildirimi kayıtları. Kayıt olayın
+             kendisiyle birlikte gelir: ayrı bir ekran açmak, denetçinin
+             ilk sorusunu ("bildirdiniz mi") bir tık uzağa taşırdı. */
+          bildirimKayitlari: {
+            select: {
+              id: true, durum: true, sonTarih: true, referansNo: true,
+              gonderimZamani: true, uygulanmazGerekcesi: true,
+              yukumluluk: {
+                select: { kod: true, ad: true, merci: true, sureSaat: true, kanalNotu: true },
+              },
+            },
+            orderBy: { yukumluluk: { kod: 'asc' } },
+          },
           tesis: { select: { kod: true, ad: true } },
           etkiDogrulayan: { select: { adSoyad: true } },
           varliklar: {
@@ -238,6 +252,30 @@ export default async function Sayfa() {
             : null,
         };
       })(),
+      /* R10 · Kayıtlar SUNUCUDAN sayılmış gelir; geri sayım kararı da
+         burada verilir. İstemci kendi saatine göre "geciktiniz" DEMEZ. */
+      bildirimKayitlari: o.bildirimKayitlari.map((b) => {
+        const gs = geriSayim({
+          baslangic: o.baslangic.getTime(), simdi, sureSaat: b.yukumluluk.sureSaat,
+        });
+        return {
+          id: b.id,
+          durum: b.durum,
+          yukumlulukKod: b.yukumluluk.kod,
+          yukumlulukAd: b.yukumluluk.ad,
+          merci: b.yukumluluk.merci,
+          /* Kanal NOTU — adres değil. Sır yalnız `sirReferansi` ile taşınır. */
+          kanalNotu: b.yukumluluk.kanalNotu,
+          sureSaat: b.yukumluluk.sureSaat,
+          sonTarih: b.sonTarih?.toISOString() ?? null,
+          /* Geri sayım SÖZÜ: süre yoksa "Süre mevzuatta belirlenmedi". */
+          geriSayimSozu: gs.soz,
+          sureVar: gs.sureVar,
+          referansNo: b.referansNo,
+          gonderimZamani: b.gonderimZamani?.toISOString() ?? null,
+          uygulanmazGerekcesi: b.uygulanmazGerekcesi,
+        };
+      }),
       varliklar: o.varliklar.map((v) => ({
         id: v.varlik.id, kod: v.varlik.etiket,
         alt: `${v.varlik.ad} · ${v.rol}`, yol: '/envanter',

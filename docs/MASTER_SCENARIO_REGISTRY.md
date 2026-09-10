@@ -13,7 +13,7 @@ it('kapsam dışı varlığa yazılamaz [ENV-YAZ-003]', …)
 Ayrı bir eşleme tablosu tutulsaydı, tablo ilk yeniden adlandırmada
 testten ayrışır ve kimse görmezdi.
 
-Senaryo: **327** · testli: **327** · GAP: **0**
+Senaryo: **331** · testli: **331** · GAP: **0**
 
 ## Aktivite · 2 senaryo
 
@@ -232,12 +232,16 @@ Senaryo: **327** · testli: **327** · GAP: **0**
 | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- |
 | `MEV-KYN-001` | /regulasyonlar | uyum uzmanı · kurum geneli | Takip edilecek kaynak tanımlanmamış · yok | Regülasyonlar ekranını açar | Kaynak yoksa "takip edilmiyor" yazılır | Adres ürünle GELMEZ; kurum tanımlar | yazma yok | yok | `senaryo-uyum.test.ts` |
 
-## Olay · 4 senaryo
+## Olay · 8 senaryo
 
 | ID | Rota | Rol · kapsam | Ön koşul · veri | Eylem | Beklenen sonuç | Ekran | Denetim izi | Görev/bildirim | Test |
 | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- |
 | `OLY-ETK-001` | /olaylar | olay sorumlusu · kendi tesisi | Varlığın sistemi tanımlı değil · kısmi | Etki önerisine bakar | Zincir kopar ve "bilinmiyor" der; "etki yok" DEMEZ | Motor etki alanlarına YAZMAZ, yalnız öneri üretir | yazma yok | yok | `olay-etki.test.ts` |
 | `OLY-ETK-002` | /olaylar | olay sorumlusu · tek tesis | Olay başka tesise taşınmak isteniyor · normal | Olayın tesisini değiştirmeyi dener | Hedef tesiste de yetki aranır ve reddedilir | Tesis seçimi kapsamla sınırlı | yazma yok | yok | `olay-konfigyedek-eylem.test.ts` |
+| `OLY-BIL-001` | /olaylar | uyum yöneticisi · kendi kapsamı | Şiddeti eşiği aşan açık bir olay ve birden çok aktif yükümlülük var · normal | Bildirim süresi motoru koşar (`bildirimSuresi.bildirimSurelerini`); insan çekmeceden "Gönderildi olarak işaretle" der (`bildirimKaydi.bildirimGonderildiIsaretle`) | Uyan her yükümlülük için AYRI bir BildirimKaydi taslağı açılır (en kısa süreli seçilmez); ikinci koşuda ikinci taslak AÇILMAZ; gönderim REFERANS NUMARASI olmadan reddedilir | Çekmecede her merci için ayrı satır: durum · geri sayım · kanal notu · referans numarası | BildirimKaydi · guncelleme (durum: Taslak→Gönderildi, gerekçede referans no) | Görev (son_tarih) — süre daralınca ya da geçince | `bildirim-kaydi-eylem.test.ts` · `bildirim-kaydi-eylem.test.ts` · `bildirim-kaydi.test.ts` |
+| `OLY-BIL-002` | /olaylar | uyum yöneticisi · kendi kapsamı | Yükümlülüğün `sureSaat` alanı BOŞ (7545 md. 7 "gecikmeksizin") · kısmi | Motor koşar ve olayın üstünden yüz saat geçmiştir | Kayıt açılır ama `sonTarih` NULL kalır; `suresi_gecti` ASLA yazılmaz — geçecek bir süre yoktur. Sıfır saat ile süresiz aynı şey değildir | Geri sayım GÖSTERİLMEZ: "Süre mevzuatta belirlenmedi" yazar ve satır BİLİNMEYEN sınıfındadır (yeşil değil) | yazma yok (durum değişmedi) | yok | `bildirim-kaydi-eylem.test.ts` · `bildirim-kaydi-eylem.test.ts` |
+| `OLY-BIL-003` | /olaylar | sistem (motor) · kurum geneli | Gönderilmiş bir kayıt var ve süresi geçmiş · çelişen | Motor yeniden koşar | Motor kapalı kayda DOKUNMAZ; yazabileceği durumlar yalnız `taslak` ve `suresi_gecti`tir. `gonderildi` · `teyit_alindi` · `uygulanmaz` insan kararıdır ve bekçi motor dosyalarını metin olarak tarar | Kayıt "Gönderildi" olarak kalır | yazma yok | yok | `bildirim-kaydi-eylem.test.ts` · `bildirim-kaydi-eylem.test.ts` |
+| `OLY-BIL-004` | /olaylar | uyum yöneticisi · kendi kapsamı | Açık bir bildirim taslağı var · kısmi | İnsan "Gönderildi olarak işaretle" der ama referans alanını BOŞ bırakır (`bildirimKaydi.bildirimGonderildiIsaretle`) | İstek REDDEDİLİR ve kayıt DEĞİŞMEZ. Referansı olmayan bir gönderim denetimde doğrulanamaz: mercinin kütüğüyle eşleştirilecek tek bağ odur. Referans verilince geçer ve denetim izine referans YAZILIR | Hata satırı alanın altında; kayıt hâlâ taslak durumunda | red: yazma yok · kabul: BildirimKaydi · guncelleme (gerekçede referans no) | yok | `bildirim-kaydi-eylem.test.ts` · `bildirim-kaydi-eylem.test.ts` · `bildirim-kaydi.test.ts` |
 | `OLY-BLD-001` | /olaylar | uyum yöneticisi · kurum geneli | Kural geçmiş olaylarda kullanılmış · normal | Bildirim kuralını siler | Kayıt SİLİNMEZ, pasifleştirilir — geçmiş olayın hangi kurala göre değerlendirildiği kalır | Kural pasif olarak görünür | BildirimYukumlulugu · guncelleme (aktif: true→false) | yok | `ters-kapsam-eylem.test.ts` |
 | `OLY-ETK-003` | /olaylar | tesis kullanıcısı · tek tesis | Olay başka tesiste · normal | Kapsam dışı olayın etki önerisini yenilemeyi dener | Reddedilir; hiçbir öneri yazılmaz | Yetki cümlesi | yazma yok | yok | `ters-kapsam-eylem.test.ts` |
 

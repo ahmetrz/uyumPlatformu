@@ -22,6 +22,10 @@ import {
   type OlayKaydi, type Tesis,
 } from './mantik';
 import { BILDIRIM_SINIFI, BILDIRIM_SOZU } from '@/lib/uyum/bildirimSuresi';
+import {
+  KAYIT_DURUM_SINIFI, KAYIT_DURUM_SOZU, kayitCumlesi, kayitOzeti,
+} from '@/lib/uyum/bildirimKaydi';
+import { BildirimKaydiEylemleri } from './Eylemler';
 
 /* O · Olaylar — "bu olay üretimi nasıl etkiledi, kim onayladı?"
 
@@ -354,12 +358,17 @@ function Detay({
           deger: o.bildirim.kural === null
             ? 'kural tanımlanmamış'
             : `${BILDIRIM_SOZU[o.bildirim.durum]}`
-              + ` · ${o.bildirim.kural.merci} · ${o.bildirim.kural.sureSaat} saat`
+              + ` · ${o.bildirim.kural.merci}`
+              /* R10 · Süre YOKSA "null saat" değil, mevzuatın hâli yazılır. */
+              + (o.bildirim.kural.sureSaat === null
+                ? ' · süre mevzuatta belirlenmedi'
+                : ` · ${o.bildirim.kural.sureSaat} saat`)
               + (o.bildirim.sonTarih ? ` · son: ${zamanTR(o.bildirim.sonTarih)}` : ''),
           durum: o.bildirim.kural === null ? 'unk' : BILDIRIM_SINIFI[o.bildirim.durum],
         },
       ]} />
 
+      <BildirimKayitlariBlogu o={o} />
       <EtkiBlogu o={o} />
       <ZincirBlogu o={o} />
 
@@ -397,6 +406,67 @@ function Detay({
       <OneriYenile olayId={o.id} yazabilir={o.yazilabilir}
         uretilme={o.oneri?.uretilme ?? null} />
     </>
+  );
+}
+
+/* R10 · BİLDİRİM YÜKÜMLÜLÜKLERİ — her merci için AYRI satır.
+
+   Ekranın burada cevapladığı soru "bildirim gerekli mi" DEĞİL: "hangi
+   mercie, ne zamana kadar, gönderdik mi". Üst taraftaki "Bildirim süresi"
+   satırı UY-63'ün TEK kuralını taşır (liste sayacı); bu blok gönderilecek
+   BELGELERİN kütüğüdür ve ikisi ayrı karar üretir.
+
+   SÜRESİZ YÜKÜMLÜLÜKTE GERİ SAYIM GÖSTERİLMEZ. "Süre mevzuatta
+   belirlenmedi" yazar ve bu satır YEŞİL değil BİLİNMEYEN'dir: ölçülemeyen
+   bir şeyi "yolunda" göstermek, bilinmeyeni sıfır saymanın ekrandaki
+   hâlidir. */
+function BildirimKayitlariBlogu({ o }: { o: OlayKaydi }) {
+  const kayitlar = o.bildirimKayitlari;
+  if (kayitlar.length === 0) return null;
+  const ozet = kayitOzeti(kayitlar.map((k) => ({ durum: k.durum, sureSaat: k.sureSaat })));
+
+  return (
+    <div className="ab-panel-blok" style={{ marginTop: 'var(--s24)' }}>
+      <p className="etiket" style={{ margin: '0 0 var(--s10)' }}>
+        Bildirim yükümlülükleri
+      </p>
+      <p className="ikincil" style={{ margin: '0 0 var(--s10)' }}>{kayitCumlesi(ozet)}</p>
+      {kayitlar.map((k) => {
+        const sinif = KAYIT_DURUM_SINIFI[k.durum as keyof typeof KAYIT_DURUM_SINIFI] ?? 'unk';
+        return (
+          <div key={k.id} className="ab-panel-satir" style={{ marginBottom: 'var(--s10)' }}>
+            <div>
+              <span className="mono">{k.yukumlulukKod}</span>
+              {' · '}
+              <span>{k.merci}</span>
+            </div>
+            <div className={`ikincil d-${sinif}`}>
+              {KAYIT_DURUM_SOZU[k.durum as keyof typeof KAYIT_DURUM_SOZU] ?? k.durum}
+              {/* Geri sayım YALNIZ süre varsa; yoksa mevzuatın hâli yazılır
+                  ve bilinmeyen sınıfıyla durur. */}
+              {' · '}
+              <span className={k.sureVar ? undefined : 'd-unk'}>{k.geriSayimSozu}</span>
+              {k.sonTarih && k.sureVar ? ` · son: ${zamanTR(k.sonTarih)}` : ''}
+            </div>
+            {k.kanalNotu && (
+              /* KANAL NOTU — adres değildir; bir uç nokta ya da anahtar
+                 buraya girmez. */
+              <div className="ikincil">Kanal: {k.kanalNotu}</div>
+            )}
+            {k.referansNo && (
+              <div className="ikincil">
+                Referans: <span className="mono">{k.referansNo}</span>
+                {k.gonderimZamani ? ` · ${zamanTR(k.gonderimZamani)}` : ''}
+              </div>
+            )}
+            {k.uygulanmazGerekcesi && (
+              <div className="ikincil">Gerekçe: {k.uygulanmazGerekcesi}</div>
+            )}
+            <BildirimKaydiEylemleri kayitId={k.id} durum={k.durum} yazabilir={o.yazilabilir} />
+          </div>
+        );
+      })}
+    </div>
   );
 }
 

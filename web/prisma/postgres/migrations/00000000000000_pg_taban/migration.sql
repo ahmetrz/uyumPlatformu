@@ -2311,7 +2311,7 @@ CREATE TABLE "BildirimYukumlulugu" (
     "ad" TEXT NOT NULL,
     "regulasyonId" TEXT,
     "asgariSiddet" TEXT NOT NULL DEFAULT 'yuksek',
-    "sureSaat" INTEGER NOT NULL,
+    "sureSaat" INTEGER,
     "dayanak" TEXT NOT NULL,
     "merci" TEXT NOT NULL,
     "aktif" BOOLEAN NOT NULL DEFAULT true,
@@ -2319,8 +2319,30 @@ CREATE TABLE "BildirimYukumlulugu" (
     "guncelleyenId" TEXT,
     "koken" TEXT NOT NULL DEFAULT 'kiraci',
     "paketSurumId" TEXT,
+    "alanSablonuJson" TEXT,
+    "kanalNotu" TEXT,
 
     CONSTRAINT "BildirimYukumlulugu_pkey" PRIMARY KEY ("id")
+);
+
+-- CreateTable
+CREATE TABLE "BildirimKaydi" (
+    "id" TEXT NOT NULL,
+    "olayId" TEXT NOT NULL,
+    "yukumlulukId" TEXT NOT NULL,
+    "durum" TEXT NOT NULL DEFAULT 'taslak',
+    "sonTarih" TIMESTAMP(3),
+    "taslakMetin" TEXT,
+    "gonderenId" TEXT,
+    "gonderimZamani" TIMESTAMP(3),
+    "referansNo" TEXT,
+    "kanitId" TEXT,
+    "teyitZamani" TIMESTAMP(3),
+    "uygulanmazGerekcesi" TEXT,
+    "acildi" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    "guncellendi" TIMESTAMP(3) NOT NULL,
+
+    CONSTRAINT "BildirimKaydi_pkey" PRIMARY KEY ("id")
 );
 
 -- CreateTable
@@ -3088,6 +3110,15 @@ CREATE INDEX "MedyaKullanimi_varlikId_baslangic_idx" ON "MedyaKullanimi"("varlik
 
 -- CreateIndex
 CREATE UNIQUE INDEX "BildirimYukumlulugu_kod_key" ON "BildirimYukumlulugu"("kod");
+
+-- CreateIndex
+CREATE INDEX "BildirimKaydi_durum_idx" ON "BildirimKaydi"("durum");
+
+-- CreateIndex
+CREATE INDEX "BildirimKaydi_sonTarih_idx" ON "BildirimKaydi"("sonTarih");
+
+-- CreateIndex
+CREATE UNIQUE INDEX "BildirimKaydi_olayId_yukumlulukId_key" ON "BildirimKaydi"("olayId", "yukumlulukId");
 
 -- CreateIndex
 CREATE INDEX "KontrolTesti_maddeDurumuId_testTarihi_idx" ON "KontrolTesti"("maddeDurumuId", "testTarihi");
@@ -3967,6 +3998,18 @@ ALTER TABLE "BildirimYukumlulugu" ADD CONSTRAINT "BildirimYukumlulugu_regulasyon
 
 -- AddForeignKey
 ALTER TABLE "BildirimYukumlulugu" ADD CONSTRAINT "BildirimYukumlulugu_guncelleyenId_fkey" FOREIGN KEY ("guncelleyenId") REFERENCES "Kullanici"("id") ON DELETE SET NULL ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE "BildirimKaydi" ADD CONSTRAINT "BildirimKaydi_olayId_fkey" FOREIGN KEY ("olayId") REFERENCES "Olay"("id") ON DELETE CASCADE ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE "BildirimKaydi" ADD CONSTRAINT "BildirimKaydi_yukumlulukId_fkey" FOREIGN KEY ("yukumlulukId") REFERENCES "BildirimYukumlulugu"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE "BildirimKaydi" ADD CONSTRAINT "BildirimKaydi_gonderenId_fkey" FOREIGN KEY ("gonderenId") REFERENCES "Kullanici"("id") ON DELETE SET NULL ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE "BildirimKaydi" ADD CONSTRAINT "BildirimKaydi_kanitId_fkey" FOREIGN KEY ("kanitId") REFERENCES "Kanit"("id") ON DELETE SET NULL ON UPDATE CASCADE;
 
 -- AddForeignKey
 ALTER TABLE "KontrolTesti" ADD CONSTRAINT "KontrolTesti_maddeDurumuId_fkey" FOREIGN KEY ("maddeDurumuId") REFERENCES "MaddeDurumu"("id") ON DELETE CASCADE ON UPDATE CASCADE;

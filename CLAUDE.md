@@ -319,7 +319,7 @@ CI'da (`.github/workflows/pr-kapisi.yml`) **on iş** koşar:
 | --- | --- |
 | `kapi` | lint · tsc · vitest · test envanteri · ters kapsam · dil · tasarım · sözlük kipi · şema sapması · göç zinciri · PostgreSQL taban tazeliği · gerekçe taraması (bilgi) · **kapı farkı** · **derleme ortamı beyanı** |
 | `derleme` | üretim derlemesi **BİR KEZ** + ortam damgası; `.next` (cache hariç · ölçüldü 74 MB) artefakt olur |
-| `kapi-rota` · `kapi-gezinme` · `kapi-tasma` · `kapi-axe` | dört tarayıcılı kapı **paralel**; dördü de AYNI artefaktı indirir ve ortam beyanını doğrular |
+| `kapi-rota` · `kapi-gezinme` · `kapi-tasma` · `kapi-axe` | dört tarayıcılı kapı **paralel**; dördü de AYNI artefaktı indirir ve ortam beyanını doğrular. `kapi-rota` tek sunucuyla ÜÇ kapı koşar: rota duman · denetim formu kanıtı (R12) · bildirim kaydı kanıtı (R10) |
 | `kapi-demo` | statik demo derlemesi + marka kapısı — ortamı FARKLI (`NEXT_PUBLIC_DEMO=1`), bu yüzden kendi derlemesini yapar |
 | `kapi-yavas` | **toplayıcı**: kapı koşmaz, beş işin sonucunu toplar. Adı korunuyor çünkü dal korumasındaki zorunlu check adıdır ve o ayar koddan görünmez |
 | `kapi-postgres` | postgres:16 servisi — `kapi:pg-goc` ve TAM test kümesi (iki sağlayıcıda da aynı sayı) |
@@ -342,9 +342,14 @@ yeniden ölçüldü. Artefakt taşımanın maliyeti ölçüldü ve küçük çı
 yükleme 7 sn, indirme 3–4 sn (74 MB).
 
 **Hiçbir kapı çıkarılmadı.** Seri kümenin 23 kapısının 23'ü duruyor ve
-bu bir testle sabit (`web/tests/kapi-is-kapsami.test.ts`); bölünmeyle
-ÜÇ kapı eklendi (derleme ortamı beyanı · damga · doğrulama) ve üçü de
-o testte adıyla beyanlı.
+bu bir testle sabit (`web/tests/kapi-is-kapsami.test.ts`); üstüne ALTI
+kapı eklendi ve altısı da o testte adıyla beyanlı — bölünmenin kendisi
+üçünü getirdi (derleme ortamı damgası · doğrulaması · `kapi:derleme-artefakti`),
+kalan üçü sonraki işlerde eklendi (`kanit:denetim-formu` ·
+`kapi:ithal-zinciri` · `kanit:bildirim-kaydi`). Ölçüm: 23 + 6 = **29
+benzersiz komut, 30 adım** (bir komut iki ayrı ortamda koşuyor ve bu iki
+ayrı kapıdır). Sayı elle sayılmaz, testte iki yönlü eşitlikle tutulur:
+kapı düşerse de, BEYANSIZ kapı eklenirse de kırmızı.
 
 **Paylaşılan derlemeyi tüketen her iş ORTAM BEYAN EDER**
 (`DERLEME_ORTAMI`). Beyansız tüketim kırmızıdır; beyanı üreticiden

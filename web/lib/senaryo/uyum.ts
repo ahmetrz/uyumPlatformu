@@ -308,6 +308,68 @@ export const UYUM_SENARYOLARI: Senaryo[] = [
     katmanlar: ['DOMAIN', 'INTEGRATION'],
   },
 
+  /* ── R10 · Olay → mevzuat bildirimi ─────────────────────────────── */
+  {
+    id: 'OLY-BIL-001', alan: 'Olay', rota: '/olaylar', eksen: 'akis',
+    amac: 'Bir olaydan doğan HER mevzuat bildirimini ayrı ayrı görmek ve göndermek',
+    rol: 'uyum yöneticisi', kapsam: 'kendi kapsamı',
+    onkosul: 'Şiddeti eşiği aşan açık bir olay ve birden çok aktif yükümlülük var',
+    veriHali: 'normal',
+    eylem: 'Bildirim süresi motoru koşar (`bildirimSuresi.bildirimSurelerini`);'
+      + ' insan çekmeceden "Gönderildi olarak işaretle" der'
+      + ' (`bildirimKaydi.bildirimGonderildiIsaretle`)',
+    beklenenSonuc: 'Uyan her yükümlülük için AYRI bir BildirimKaydi taslağı açılır'
+      + ' (en kısa süreli seçilmez); ikinci koşuda ikinci taslak AÇILMAZ;'
+      + ' gönderim REFERANS NUMARASI olmadan reddedilir',
+    beklenenEkran: 'Çekmecede her merci için ayrı satır: durum · geri sayım ·'
+      + ' kanal notu · referans numarası',
+    beklenenIz: 'BildirimKaydi · guncelleme (durum: Taslak→Gönderildi, gerekçede referans no)',
+    beklenenBildirim: 'Görev (son_tarih) — süre daralınca ya da geçince',
+    katmanlar: ['SERVER', 'DOMAIN', 'UI', 'WORKFLOW'],
+  },
+  {
+    id: 'OLY-BIL-002', alan: 'Olay', rota: '/olaylar', eksen: 'veri',
+    amac: 'Süresi mevzuatta BELİRLENMEMİŞ bir yükümlülükte saat uydurmamak',
+    rol: 'uyum yöneticisi', kapsam: 'kendi kapsamı',
+    onkosul: 'Yükümlülüğün `sureSaat` alanı BOŞ (7545 md. 7 "gecikmeksizin")',
+    veriHali: 'kısmi',
+    eylem: 'Motor koşar ve olayın üstünden yüz saat geçmiştir',
+    beklenenSonuc: 'Kayıt açılır ama `sonTarih` NULL kalır; `suresi_gecti` ASLA'
+      + ' yazılmaz — geçecek bir süre yoktur. Sıfır saat ile süresiz aynı şey değildir',
+    beklenenEkran: 'Geri sayım GÖSTERİLMEZ: "Süre mevzuatta belirlenmedi" yazar ve'
+      + ' satır BİLİNMEYEN sınıfındadır (yeşil değil)',
+    beklenenIz: 'yazma yok (durum değişmedi)', beklenenBildirim: 'yok',
+    katmanlar: ['SERVER', 'DOMAIN', 'UI'],
+  },
+  {
+    id: 'OLY-BIL-003', alan: 'Olay', rota: '/olaylar', eksen: 'yetki',
+    amac: 'Motorun bir bildirimi "gönderildi" diye işaretlemesini engellemek',
+    rol: 'sistem (motor)', kapsam: 'kurum geneli',
+    onkosul: 'Gönderilmiş bir kayıt var ve süresi geçmiş', veriHali: 'çelişen',
+    eylem: 'Motor yeniden koşar',
+    beklenenSonuc: 'Motor kapalı kayda DOKUNMAZ; yazabileceği durumlar yalnız'
+      + ' `taslak` ve `suresi_gecti`tir. `gonderildi` · `teyit_alindi` ·'
+      + ' `uygulanmaz` insan kararıdır ve bekçi motor dosyalarını metin olarak tarar',
+    beklenenEkran: 'Kayıt "Gönderildi" olarak kalır',
+    beklenenIz: 'yazma yok', beklenenBildirim: 'yok',
+    katmanlar: ['SERVER', 'DOMAIN', 'WORKFLOW'],
+  },
+  {
+    id: 'OLY-BIL-004', alan: 'Olay', rota: '/olaylar', eksen: 'yetki',
+    amac: 'Gönderilmemiş bir bildirimin "gönderildi" görünmesini engellemek',
+    rol: 'uyum yöneticisi', kapsam: 'kendi kapsamı',
+    onkosul: 'Açık bir bildirim taslağı var', veriHali: 'kısmi',
+    eylem: 'İnsan "Gönderildi olarak işaretle" der ama referans alanını BOŞ bırakır'
+      + ' (`bildirimKaydi.bildirimGonderildiIsaretle`)',
+    beklenenSonuc: 'İstek REDDEDİLİR ve kayıt DEĞİŞMEZ. Referansı olmayan bir'
+      + ' gönderim denetimde doğrulanamaz: mercinin kütüğüyle eşleştirilecek tek'
+      + ' bağ odur. Referans verilince geçer ve denetim izine referans YAZILIR',
+    beklenenEkran: 'Hata satırı alanın altında; kayıt hâlâ taslak durumunda',
+    beklenenIz: 'red: yazma yok · kabul: BildirimKaydi · guncelleme (gerekçede referans no)',
+    beklenenBildirim: 'yok',
+    katmanlar: ['SERVER', 'DOMAIN', 'UI'],
+  },
+
   /* ── R12 · Denetim formları ─────────────────────────────────────── */
   {
     id: 'DNT-FRM-001', alan: 'Denetim', rota: '/raporlar/denetim-formlari',

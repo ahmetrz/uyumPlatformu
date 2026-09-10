@@ -1835,6 +1835,47 @@ olarak belge, kod değil.
 **Kararlar.** *7545 süresi:* **Varsayılan boş** — ikincil mevzuat
 çıkınca R1 adayı üzerinden güncellenir.
 
+**DURUM (10 Eylül 2026 · ölçüldü).** Kabul kriterlerinin **dördü kapalı**,
+biri açık.
+
+| # | Kriter | Durum | Kanıt |
+| --- | --- | --- | --- |
+| 1 | Uyan HER yükümlülüğe ayrı taslak · idempotent | kapandı | `tests/bildirim-kaydi-eylem.test.ts` (20 vaka) |
+| 2 | `sureSaat=null` → geri sayım yok, `suresi_gecti` yok | kapandı | aynı dosya + `tests/bildirim-kaydi.test.ts` (34 vaka) |
+| 3 | Motor `gonderildi` YAZAMAZ | kapandı | `tests/bekci/bildirim-motoru.test.ts` — motor dosyaları METİN olarak taranır, dosya kümesi TÜRETİLİR |
+| 4 | Referanssız gönderim reddedilir · izde referans var | kapandı | birim + zincir + **tarayıcı** (`arac/bildirim-kaydi-kanit.mjs`, 27/27) |
+| 5 | Kanıt paketine bildirim kayıtları girer | **AÇIK** | — |
+
+**Açık kalan (OLY-BIL-005).** Kanıt paketi dışa aktarımına bildirim
+kayıtlarının girmesi YAPILMADI. *Sahibi:* KODLAYAN. *Kapanış aşaması:*
+R2 (kanıt paketi dışa aktarımı) — kayıtlar oraya, taslak metin HARİÇ,
+`disaAktarim` yolundan bağlanır; ayrı bir yol açmak ikinci bir gerçek
+üretirdi. Süresiz beyan değildir: aşaması ve sahibi yazılıdır.
+
+**Modelde ölçülen iki karar.**
+- `BildirimYukumlulugu.sureSaat` **nullable** yapıldı. `null ≠ 0`: sıfır
+  saat, DOĞDUĞU ANDA geçmiş bir sayaçtır ve mevzuatın söylemediği bir şeyi
+  söyler. Kural kapısı `null`u kabul eder, `0`ı REDDEDER.
+- Motorun yazabildiği küme İKİ durumla sınırlı: `taslak` ve
+  `suresi_gecti`. Kalan üçü insan kararıdır ve bekçi metin taramasıyla
+  tutar — kural yetmez, kapı gerekir (R-C ile aynı gerekçe).
+
+**Açılış durumu da hesaplanır — ölçüldü.** İlk tasarımda kayıt HER ZAMAN
+`taslak` açılıyordu. Süresi çoktan geçmiş bir olayda ekran aynı satırda
+"Taslak hazır — gönderilmedi · 6 gün 0 saat GECİKME" diyordu: iki cümle de
+doğru biçimliydi, ikisi de dolu veriydi, hiçbir kapı göremiyordu. Kusuru
+tarayıcı kanıtının ÇIKTISINI okuyan insan gördü. Bugün açılış durumu da
+`motorunKarari`den geçer ve kanıt betiği bu çelişkiyi ADIYLA ölçer
+(sabotajda 26/27 · kırmızı satır: çelişen cümlenin kendisi).
+
+**İçerik: 7545 md. 7 EKLENMEDİ — kaynak açılmadı.** TR-ENERJI
+yükümlülüklerine bugün yalnız **KVKK-IHLAL-72** girdi (6698 s. md. 12/5 +
+Kurul kararı 2019/10, 72 saat). 7545 sayılı Kanun md. 7 için iki resmî
+kaynak da denendi ve ikisi de açılmadı (Resmî Gazete: TLS hatası ·
+mevzuat.gov.tr: 503). Süre ve merci UYDURULMADI; ayrıntı ve istenen belge
+`docs/TR_SEKTOR_PAKETLERI.md` §7'de. EPDK SOME ve SPK yükümlülükleri de
+aynı sebeple bekliyor.
+
 ---
 
 ### R11 · Tehdit / zafiyet duyuru akışı (USOM, CISA ICS, KEV, EPSS)
@@ -2199,7 +2240,7 @@ yapılamaz. P6 ve P2 müşterinin şartına bağlıdır (aşağıda koşul).
 | Kalem | Ölçülmüş büyüklük | Bugün nerede |
 | --- | --- | --- |
 | **R12 · denetim formları** | dışa aktarım **CSV** (`disaAktarim/csv.ts` 148 satır) + **JSON kanıt paketi** (`paket.ts` 668 satır); **PDF üreten kod yok**, **XLSX yalnız okunuyor**; `FormSablonu` · `RaporSablonu` katalogları var ama `app/` altında **sıfır atıf** — şablon tabloda durur, yüzeye çıkmaz | P4'ün bıraktığı tek boşluk + paket tarafı form dosyası |
-| **R10 · bildirim yükümlülüğü** | model · motor (`lib/uyum/bildirimSuresi.ts` 241 satır saf karar + `lib/motorlar/` DB katmanı) · **ekran zinciri TAM** (`/olaylar` üçlüsü çağırıyor); eksik olan **`BildirimKaydi` modeli** ve **içerik**: `yukumlulukler.json` iki sektör paketinde de `[]` | süre motoru "bildirildi" yazmaz — insan kararı korunur |
+| **R10 · bildirim yükümlülüğü** | **KURULDU** (10 Eyl 2026): `BildirimKaydi` modeli · geri sayım · `lib/uyum/bildirimKaydiAcma.ts` ortak döngü · dört eylem · `/olaylar` çekmecesinde blok · bekçi + tarayıcı kanıtı (27/27). Kabul kriterlerinin 4/5'i kapalı; **OLY-BIL-005** (kanıt paketi) R2'ye ertelendi. **İçerik yarım**: TR-ENERJI'de yalnız KVKK 72 saat var; 7545 · EPDK SOME · SPK kaynak açılmadığı için eklenmedi | motor GÖNDERMEZ, `gonderildi` YAZAMAZ — insan kararı bekçiyle korunur |
 
 ### SONRAYA — koşulu yazılı erteleme
 

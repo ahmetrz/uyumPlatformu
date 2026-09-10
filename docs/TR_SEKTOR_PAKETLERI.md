@@ -216,6 +216,23 @@ md. 31 kapsamında serbesttir ve paketin lisans beyanı bunu söyler
 METNİDİR: açıklama paragrafları, denetim süreleri ve örnekleme kuralları
 şablona kopyalanmadı.
 
+**10 Eylül 2026 · bildirim yükümlülüğü içeriği (R10).** Aranan belge:
+**7545 sayılı Kanun md. 7** (siber olay bildirim yükümlülüğü) — bildirim
+merci ve süresinin resmî metni. `mevzuat.gov.tr` ve `resmigazete.gov.tr`
+**yine açılmadı** (ikisi de HTTP 000 — bağlantı kurulamıyor, TLS
+seviyesinde düşüyor; aynı turda `epdk.gov.tr` HTTP 200 verdi, yani sorun
+ağın kendisinde değil bu iki sitede). **Süre ve merci UYDURULMADI:**
+TR-ENERJI yükümlülüklerine bugün yalnız birincil metni doğrulanabilen
+**KVKK-IHLAL-72** girdi (6698 s. md. 12/5 + Kurul kararı 2019/10 — 72
+saat). EPDK SOME ve SPK VII-128.10 bildirimleri de aynı sebeple bekliyor.
+
+İstenen belge, erişim açıldığında: 7545 s. Kanun'un Resmî Gazete'de
+yayımlanan tam metni (md. 7 ve varsa ikincil düzenlemesi). Süre orada
+"gecikmeksizin" gibi bir ibareyle geçiyorsa `sureSaat` alanı **BOŞ**
+kalır ve ekran "Süre mevzuatta belirlenmedi" der — modelin `sureSaat`
+alanı tam bu yüzden nullable yapıldı; bir saat uydurmak, olmayan bir
+sayacı işletmek olurdu.
+
 Belge şu anda EPDK'nın hangi sayfasında listelendiği
 **bulunamadı** (Yetkinlik Modeli sayfasında bağı yok, arama motoru da
 göstermedi); doğrudan adresi çalışıyor ve iki ayrı indirmede aynı

@@ -108,6 +108,10 @@ const EKLENEN_KAPILAR = [
      `tsc`in kapsamında değil. Ölçüldü — bir aracın ihracı yok
      olunca üç araç kırıldı ve hızlı küme görmedi. */
   'npm run kapi:ithal-zinciri',
+  /* R10 · bildirim kaydı ekranının iki bantta kanıtı. Referanssız
+     gönderimin REDDEDİLDİĞİNİ tarayıcıda ölçer; bu iddia birim testine
+     sığmaz çünkü kapı sunucu eyleminde, düğme istemcidedir. */
+  'npm run kanit:bildirim-kaydi',
 ];
 
 describe('kapı kümesi bölünmeyle değişmez', () => {
@@ -138,12 +142,12 @@ describe('kapı kümesi bölünmeyle değişmez', () => {
        "sunucu ister" diye işaretlenir; kalanlar yerel kapanışta sunucusuz
        koşar ve kırmızı yanar — kusur kodda değil araçta.
 
-       Sayı 4 DEĞİL: `kapi-rota` işi aynı sunucuyla iki kapı koşuyor (rota
-       duman + denetim formları kanıtı). Bölünmenin ölçüsü kapı sayısı
-       değil, kapıların KENDİ İŞİNDEKİ yaşam döngüsüne göre doğru
-       sınıflanması. */
+       Sayı 4 DEĞİL: `kapi-rota` işi aynı sunucuyla ÜÇ kapı koşuyor (rota
+       duman + denetim formları kanıtı + bildirim kaydı kanıtı).
+       Bölünmenin ölçüsü kapı sayısı değil, kapıların KENDİ İŞİNDEKİ yaşam
+       döngüsüne göre doğru sınıflanması. */
     const tarayicili = kapiAdimlari(AKIS).filter((a) => a.sunucuIster);
-    expect(tarayicili).toHaveLength(5);
+    expect(tarayicili).toHaveLength(6);
     expect(new Set(tarayicili.map((a) => a.is)).size).toBe(4);
   });
 

@@ -1,6 +1,8 @@
 import 'server-only';
 import { db } from '../db';
 import { bildirimKarari, type Yukumluluk } from '../uyum/bildirimSuresi';
+import { olayinKayitlarini } from '../uyum/bildirimKaydiAcma';
+import type { SureliYukumluluk } from '../uyum/bildirimKaydi';
 
 /* ═══ UY-63 · Bildirim süresi motoru ═══════════════════════════════════
 
@@ -20,6 +22,10 @@ import { bildirimKarari, type Yukumluluk } from '../uyum/bildirimSuresi';
      bir bildirimin yapıldığını söyleyebilecek tek şey insandır; motorun
      "bildirildi" yazması, yapılmamış bir bildirimi yapılmış göstermek
      olurdu ve bu ürünün baştan beri reddettiği şeydir.
+   · R10 · `BildirimKaydi` üstünde YALNIZ iki durum yazar: `taslak` (kaydı
+     açar) ve `suresi_gecti`. `gonderildi` · `teyit_alindi` · `uygulanmaz`
+     insan kararıdır ve motor onlara DOKUNAMAZ — kapalı bir kaydı geri
+     açmaz, gönderilmiş bir kaydı süresi geçti diye işaretlemez.
    · Süre uydurmaz: kural yoksa sayaç işlemez ve motor hiçbir şey demez.
 
    ── HER OLAY İÇİN EN FAZLA BİR AÇIK GÖREV ─────────────────────────────
@@ -34,6 +40,15 @@ export type BildirimSuresiKosusu = {
   geciken: number;
   /** Yükümlülük kuralı hiç tanımlanmamışsa sayaç HİÇ işlemez. */
   kuralYok: boolean;
+  /* ── R10 · BİLDİRİM KAYDI ────────────────────────────────────────────
+     Görev bir HATIRLATMADIR; kayıt ise bildirimin KENDİSİNİN kütüğüdür.
+     İkisi ayrı sayılır: görev kapanabilir, kayıt kapanmaz. */
+  /** Bu koşuda AÇILAN taslak sayısı (idempotent: ikinci koşuda 0). */
+  acilanTaslak: number;
+  /** Bu koşuda `suresi_gecti` yazılan kayıt sayısı. */
+  suresiGecen: number;
+  /** Süresi mevzuatta belirlenmemiş olduğu için geri sayımı OLMAYAN kayıt. */
+  suresiz: number;
 };
 
 export async function bildirimSurelerini(): Promise<BildirimSuresiKosusu> {
@@ -49,7 +64,10 @@ export async function bildirimSurelerini(): Promise<BildirimSuresiKosusu> {
     /* Kural yoksa hiçbir şey yapılmaz ve bu bir HATA DEĞİLDİR: kurum
        henüz kendi bildirim sürelerini tanımlamamıştır. Ürün bir süre
        uydurup sayaç işletmez. */
-    return { islenen: 0, uretilen: 0, daralan: 0, geciken: 0, kuralYok: true };
+    return {
+      islenen: 0, uretilen: 0, daralan: 0, geciken: 0, kuralYok: true,
+      acilanTaslak: 0, suresiGecen: 0, suresiz: 0,
+    };
   }
 
   const olaylar = await db.olay.findMany({
@@ -64,6 +82,9 @@ export async function bildirimSurelerini(): Promise<BildirimSuresiKosusu> {
   let daralan = 0;
   let geciken = 0;
   let uretilen = 0;
+  let acilanTaslak = 0;
+  let suresiGecen = 0;
+  let suresiz = 0;
 
   for (const o of olaylar) {
     /* Tesisin tabi olduğu regülasyonlar: kurala bağlı yükümlülük
@@ -74,6 +95,23 @@ export async function bildirimSurelerini(): Promise<BildirimSuresiKosusu> {
         select: { regulasyonId: true },
       })).map((x) => x.regulasyonId)
       : [];
+
+    /* ── R10 · HER UYAN YÜKÜMLÜLÜK İÇİN AYRI KAYIT ────────────────────
+       UY-63 en kısa süreliyi seçiyordu; bir olay birden çok mercie
+       bildirilir (7545 ayrı, KVKK ayrı) ve seçim yapmak ikinci merciyi
+       görünmez bırakırdı. Döngünün KENDİSİ `lib/uyum/bildirimKaydiAcma.ts`
+       içindedir — tohum da onu çağırır (bu dosya `server-only` taşır ve
+       düz Node'da fırlatır; tohumun kayıtları elle yazması ise motorun
+       işini taklit eden ikinci bir gerçek doğururdu). */
+    const kayit = await olayinKayitlarini(
+      db,
+      { id: o.id, siddet: o.siddet, baslangic: o.baslangic, bildirimGerekli: o.bildirimGerekli, regulasyonIdleri },
+      kurallar as SureliYukumluluk[],
+      simdi,
+    );
+    acilanTaslak += kayit.acilanTaslak;
+    suresiGecen += kayit.suresiGecen;
+    suresiz += kayit.suresiz;
 
     const karar = bildirimKarari({
       siddet: o.siddet,
@@ -121,5 +159,8 @@ export async function bildirimSurelerini(): Promise<BildirimSuresiKosusu> {
     daralan,
     geciken,
     kuralYok: false,
+    acilanTaslak,
+    suresiGecen,
+    suresiz,
   };
 }

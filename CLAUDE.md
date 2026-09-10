@@ -187,6 +187,32 @@ VARLIĞINI ölçer, DOĞRULUĞUNU değil** — kabul edilmiş sınırdır ve
 `docs/SEKTOR_PAKETI_SOZLESMESI.md` §1.10'da yazılıdır: doğruluk bağımsız
 incelemenin işidir, "kapı yeşil" onu doğrulanmış saymaz.
 
+**Kırmızı yakmayan sabotaj BİR BULGUDUR (R-E).** Sabotaj turu iki şeyi
+birden ölçer: kodun kusurunu ve TESTİN KENDİSİNİ. Bir sabotaj kırmızı
+yakmıyorsa test, iddia ettiği şeyi sınamıyor demektir — kod doğru olsa
+bile o iddia ölçülmemiştir. Bu bir bulgudur: parti kapanmadan çözülür,
+"düzeltildi" yazılmaz, "sabotaj yakmadı, test şu şekilde düzeltildi"
+yazılır.
+
+**Yakmayan sabotaj sayısı HER RAPORDA yazılır** — test kümesinin sağlık
+göstergesidir ve sıfır olması beklenmez; bilinmeyen ≠ sıfır kuralının
+test katmanındaki karşılığıdır.
+
+Gerekçe ölçüldü (10 Eylül 2026, #47–#48): 22 sabotajın **dördü** kırmızı
+yakmadı ve üçü ölü kural olarak depoya girecekti.
+
+| Yakmayan sabotaj | Testin gerçekte ölçtüğü | Nasıl düzeltildi |
+| --- | --- | --- |
+| Durum korumasını kaldır | Sıralı çağrıda kapı zaten reddediyordu — YARIŞ hiç kurulmamıştı | İki eylem `Promise.all` ile başlatıldı: ikisi de bayat okumayla kapıdan geçiyor |
+| Atfı yanlış eke çevir | Kapı yalnız maddenin VARLIĞINI ölçüyordu | Başlık dişi eklendi |
+| Aynısı, ikinci kez | EPDK aynı başlığı farklı maddelerde kullanıyor | Mercinin kısaltması maddenin METNİNDE aranır |
+| Kapsam notunun bir cümlesini sil | Not aynı sözcüğü başka cümlede de taşıyordu | Sabotaj notun ESKİ hâline çevrildi (yanlış sabotaj, gerçek kusur yok) |
+
+Son satır kuralın öbür yüzüdür: yakmayan sabotaj her zaman testin kusuru
+değildir — SABOTAJIN kendisi de zayıf olabilir. Ayrım şudur: sabotaj
+kusurun ESKİ hâlini geri getiriyor mu? Getiriyorsa ve kırmızı yanmıyorsa
+bulgu testtedir; getirmiyorsa sabotaj yeniden yazılır.
+
 **İnceleme turu İKİ ile sınırlıdır (R-A).** Tur 1 → düzelt → tur 2 →
 düzelt → merge. Üçüncü turda çıkan bulgular YENİ PR olur. Gerekçe
 (ölçüldü, 9 Eylül 2026, #41): dal inmezse `main` ayrışır; birleştirme
@@ -351,7 +377,7 @@ CI'da (`.github/workflows/pr-kapisi.yml`) **on iş** koşar:
 | --- | --- |
 | `kapi` | lint · tsc · vitest · test envanteri · ters kapsam · dil · tasarım · sözlük kipi · şema sapması · göç zinciri · PostgreSQL taban tazeliği · gerekçe taraması (bilgi) · **kapı farkı** · **derleme ortamı beyanı** |
 | `derleme` | üretim derlemesi **BİR KEZ** + ortam damgası; `.next` (cache hariç · ölçüldü 74 MB) artefakt olur |
-| `kapi-rota` · `kapi-gezinme` · `kapi-tasma` · `kapi-axe` | dört tarayıcılı kapı **paralel**; dördü de AYNI artefaktı indirir ve ortam beyanını doğrular. `kapi-rota` tek sunucuyla ÜÇ kapı koşar: rota duman · denetim formu kanıtı (R12) · bildirim kaydı kanıtı (R10) |
+| `kapi-rota` · `kapi-gezinme` · `kapi-tasma` · `kapi-axe` | dört tarayıcılı kapı **paralel**; dördü de AYNI artefaktı indirir ve ortam beyanını doğrular. `kapi-rota` tek sunucuyla BEŞ kapı koşar: rota duman · denetim formu kanıtı (R12) · bildirim kaydı kanıtı (R10) · bildirim dönemi kanıtı (R10+) · kimlik ve SSO kanıtı (P6) |
 | `kapi-demo` | statik demo derlemesi + marka kapısı — ortamı FARKLI (`NEXT_PUBLIC_DEMO=1`), bu yüzden kendi derlemesini yapar |
 | `kapi-yavas` | **toplayıcı**: kapı koşmaz, beş işin sonucunu toplar. Adı korunuyor çünkü dal korumasındaki zorunlu check adıdır ve o ayar koddan görünmez |
 | `kapi-postgres` | postgres:16 servisi — `kapi:pg-goc` ve TAM test kümesi (iki sağlayıcıda da aynı sayı) |
@@ -377,11 +403,12 @@ yükleme 7 sn, indirme 3–4 sn (74 MB).
 bu bir testle sabit (`web/tests/kapi-is-kapsami.test.ts`); üstüne ALTI
 kapı eklendi ve altısı da o testte adıyla beyanlı — bölünmenin kendisi
 üçünü getirdi (derleme ortamı damgası · doğrulaması · `kapi:derleme-artefakti`),
-kalan üçü sonraki işlerde eklendi (`kanit:denetim-formu` ·
-`kapi:ithal-zinciri` · `kanit:bildirim-kaydi`). Ölçüm: 23 + 6 = **29
-benzersiz komut, 30 adım** (bir komut iki ayrı ortamda koşuyor ve bu iki
-ayrı kapıdır). Sayı elle sayılmaz, testte iki yönlü eşitlikle tutulur:
-kapı düşerse de, BEYANSIZ kapı eklenirse de kırmızı.
+kalan beşi sonraki işlerde eklendi (`kanit:denetim-formu` ·
+`kapi:ithal-zinciri` · `kanit:bildirim-kaydi` · `kanit:bildirim-donemi` ·
+`kanit:kimlik`). Ölçüm (10 Eyl 2026): 23 + 8 = **31 benzersiz komut, 32
+adım** (bir komut iki ayrı ortamda koşuyor ve bu iki ayrı kapıdır). Sayı
+elle sayılmaz, testte iki yönlü eşitlikle tutulur: kapı düşerse de,
+BEYANSIZ kapı eklenirse de kırmızı.
 
 **Paylaşılan derlemeyi tüketen her iş ORTAM BEYAN EDER**
 (`DERLEME_ORTAMI`). Beyansız tüketim kırmızıdır; beyanı üreticiden

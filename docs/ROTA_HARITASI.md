@@ -73,6 +73,9 @@ veri katmanında kapsam daralttığı modül(ler)dir (`izinliTesisIdleri`,
 | `/surecler/[id]` | zorunlu | uyum | Uyum kampanyası — kampanya × madde × santral değerlendirmeleri |
 | `/raporlar` | zorunlu | uyum · denetim | Portföy raporu — santral × süreç matrisi, rapor hedefi |
 | `/raporlar/kanit-paketi` | zorunlu | uyum · denetim | Kanıt paketi — paketlenebilir kapsamlar; üretim sunucu eylemine devredilir |
+| `/raporlar/denetim-formlari` | zorunlu | uyum · denetim | Denetim formları — öz denetim formu ve uygulanabilirlik beyanı; gerekçesiz kapsam dışı üretimden ÖNCE görünür |
+| `/raporlar/karne` | zorunlu | uyum | Uyum karnesi — yazdırılabilir tek sayfa; veri portföy ekranının aynısı, ikinci kez hesaplanmaz |
+| `/raporlar/takvim` | zorunlu | uyum | Raporlama takvimi — takvim tetikli bildirim yükümlülükleri; dönem, geri sayım ve teslim kararı. Dönemi mevzuatta belirlenmemiş yükümlülük listeden DÜŞMEZ |
 | `/eslestirme` | zorunlu | tanımlar | Çapraz eşleme — hangi madde hangi maddeyi karşılıyor; yalnız yaprak maddeler |
 | `/aktivite` | zorunlu | denetim | Denetim izi — kim neyi ne zaman değiştirdi; salt okunur |
 | `/dokumanlar` | zorunlu | uyum | Belge kütüğü — politika · prosedür · plan künyesi, yaşam döngüsü, gözden geçirme takvimi ve karşılıksız kontrol paneli; dosya kurumun doküman sisteminde kalır |

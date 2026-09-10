@@ -4,12 +4,12 @@
 
 | Ölçü | Değer |
 | --- | --- |
-| Senaryo | 332 |
-| Testi olan senaryo | 332 |
+| Senaryo | 342 |
+| Testi olan senaryo | 342 |
 | **GAP** | **0** |
 | Hayalet işaret (kütükte olmayan kimlik) | 0 |
 | Kütüksüz test dosyası | 0 |
-| Taranan test dosyası | 205 |
+| Taranan test dosyası | 216 |
 
 ## Katman başına kapsam
 
@@ -18,17 +18,17 @@
 | ACCESSIBILITY | 8 | 8 | 0 |
 | API | 12 | 12 | 0 |
 | CONCURRENCY | 7 | 7 | 0 |
-| DOMAIN | 191 | 191 | 0 |
+| DOMAIN | 198 | 198 | 0 |
 | ENGINE | 33 | 33 | 0 |
 | INTEGRATION | 40 | 40 | 0 |
 | MIGRATION | 5 | 5 | 0 |
-| RBAC | 32 | 32 | 0 |
+| RBAC | 35 | 35 | 0 |
 | RESPONSIVE | 8 | 8 | 0 |
 | SCOPE | 30 | 30 | 0 |
-| SERVER | 129 | 129 | 0 |
-| UI | 93 | 93 | 0 |
+| SERVER | 139 | 139 | 0 |
+| UI | 98 | 98 | 0 |
 | VISUAL | 4 | 4 | 0 |
-| WORKFLOW | 34 | 34 | 0 |
+| WORKFLOW | 35 | 35 | 0 |
 
 ## Satır satır
 
@@ -139,6 +139,36 @@
 | `OLY-BIL-004` | Olay | SERVER · DOMAIN · UI | `bildirim-kaydi-eylem.test.ts` | gönderim DENETİM İZİNE düşer ve izde referans numarası vardır | evet | geçti |
 | `OLY-BIL-004` | Olay | SERVER · DOMAIN · UI | `bildirim-kaydi.test.ts` | REFERANSSIZ gönderim REDDEDİLİR | evet | geçti |
 | `OLY-BIL-005` | Olay | SERVER · DOMAIN · UI | `disa-aktarim-paketi.test.ts` | kapsamdaki olayın bildirim kayıtları pakete girer | evet | geçti |
+| `OLY-BIL-006` | Olay | SERVER · DOMAIN · WORKFLOW | `bildirim-donemi-zincir.test.ts` | takvim tetikli her yükümlülük için içinde bulunulan dönem açılır | evet | geçti |
+| `OLY-BIL-006` | Olay | SERVER · DOMAIN · WORKFLOW | `bildirim-donemi-zincir.test.ts` | PERİYODU BELİRSİZ yükümlülükte dönem AÇILMAZ ve bu sayılır | evet | geçti |
+| `OLY-BIL-006` | Olay | SERVER · DOMAIN · WORKFLOW | `bildirim-donemi-zincir.test.ts` | motor HİÇBİR döneme verildi/teyit/uygulanmaz yazmadı | evet | geçti |
+| `OLY-BIL-006` | Olay | SERVER · DOMAIN · WORKFLOW | `bildirim-donemi.test.ts` | motorun yazabildiği küme İKİ durumdur | evet | geçti |
+| `OLY-BIL-006` | Olay | SERVER · DOMAIN · WORKFLOW | `bildirim-donemi.test.ts` | dönem BOŞSA pencere açılmaz ve ekran mevzuatın hâlini söyler | evet | geçti |
+| `OLY-BIL-007` | Olay | SERVER · DOMAIN · UI | `takvim-ekrani.test.ts` | açık dönem etiketi, durumu ve geri sayımıyla durur | evet | geçti |
+| `OLY-BIL-007` | Olay | SERVER · DOMAIN · UI | `takvim-ekrani.test.ts` | DÖNEMSİZ yükümlülük listeden DÜŞMEZ — kendi grubunda durur | evet | geçti |
+| `OLY-BIL-007` | Olay | SERVER · DOMAIN · UI | `takvim-ekrani.test.ts` | dönemsiz satırda SAYAÇ YOK — sıfır da değil | evet | geçti |
+| `OLY-BIL-007` | Olay | SERVER · DOMAIN · UI | `takvim-ekrani.test.ts` | teslim süresi olmayan DÖNEM açılır ama sayaç işlemez | evet | geçti |
+| `OLY-BIL-007` | Olay | SERVER · DOMAIN · UI | `takvim-ekrani.test.ts` | periyodu VAR ama dönemi açılmamış yükümlülük "motor işlemedi" der | evet | geçti |
+| `OLY-BIL-007` | Olay | SERVER · DOMAIN · UI | `takvim-ekrani.test.ts` | süresi geçmiş dönem, motor henüz yazmamışken de GEÇMİŞ görünür | evet | geçti |
+| `OLY-BIL-007` | Olay | SERVER · DOMAIN · UI | `takvim-ekrani.test.ts` | KAPALI dönemde süre geçse bile durum DEĞİŞMEZ | evet | geçti |
+| `OLY-BIL-007` | Olay | SERVER · DOMAIN · UI | `takvim-ekrani.test.ts` | sıralama: en yakın son tarih üstte, sayaçsızlar altta | evet | geçti |
+| `OLY-BIL-007` | Olay | SERVER · DOMAIN · UI | `takvim-ekrani.test.ts` | dönemsiz yükümlülük açık döneme EKLENMEZ | evet | geçti |
+| `OLY-BIL-007` | Olay | SERVER · DOMAIN · UI | `takvim-ekrani.test.ts` | teslim süresi olmayan dönem "teslimsiz" sayılır | evet | geçti |
+| `OLY-BIL-007` | Olay | SERVER · DOMAIN · UI | `takvim-ekrani.test.ts` | varsayılan mercek kapanmış dönemi gizler, BİLİNMEYENİ GİZLEMEZ | evet | geçti |
+| `OLY-BIL-007` | Olay | SERVER · DOMAIN · UI | `takvim-ekrani.test.ts` | "sayacı olmayan" merceği ürünün BİLMEDİKLERİNİ toplar | evet | geçti |
+| `OLY-BIL-007` | Olay | SERVER · DOMAIN · UI | `takvim-ekrani.test.ts` | "süresi geçti" merceği yalnız gecikmişleri verir | evet | geçti |
+| `OLY-BIL-007` | Olay | SERVER · DOMAIN · UI | `takvim-ekrani.test.ts` | "tümü" hiçbir satırı düşürmez | evet | geçti |
+| `OLY-BIL-008` | Olay | SERVER · DOMAIN · UI | `bildirim-donemi-eylem.test.ts` | referans boşken istek reddedilir ve dönem DEĞİŞMEZ | evet | geçti |
+| `OLY-BIL-008` | Olay | SERVER · DOMAIN · UI | `bildirim-donemi-eylem.test.ts` | referans verilince geçer ve iz REFERANSI taşır | evet | geçti |
+| `OLY-BIL-008` | Olay | SERVER · DOMAIN · UI | `bildirim-donemi-eylem.test.ts` | SÜRESİ GEÇMİŞ dönem verilebilir; gecikme ize ADIYLA yazılır | evet | geçti |
+| `OLY-BIL-008` | Olay | SERVER · DOMAIN · UI | `bildirim-donemi-eylem.test.ts` | olmayan kanıt bağlanamaz — dönem AÇIK kalır | evet | geçti |
+| `OLY-BIL-008` | Olay | SERVER · DOMAIN · UI | `bildirim-donemi-eylem.test.ts` | teyit VERİLMEMİŞ döneme işlenemez | evet | geçti |
+| `OLY-BIL-008` | Olay | SERVER · DOMAIN · UI | `bildirim-donemi-eylem.test.ts` | verilmiş dönem teyit alır | evet | geçti |
+| `OLY-BIL-008` | Olay | SERVER · DOMAIN · UI | `bildirim-donemi-eylem.test.ts` | uygulanmaz GEREKÇESİZ kapatılamaz | evet | geçti |
+| `OLY-BIL-008` | Olay | SERVER · DOMAIN · UI | `bildirim-donemi-eylem.test.ts` | uygulanmaz dönem SİLİNMEZ, gerekçesiyle durur | evet | geçti |
+| `OLY-BIL-008` | Olay | SERVER · DOMAIN · UI | `bildirim-donemi-eylem.test.ts` | KAPANMIŞ dönem yeniden kapatılamaz | evet | geçti |
+| `OLY-BIL-008` | Olay | SERVER · DOMAIN · UI | `bildirim-donemi-eylem.test.ts` | TESİSE KISITLI rol kurumsal takvim yükümlülüğüne DOKUNAMAZ | evet | geçti |
+| `OLY-BIL-008` | Olay | SERVER · DOMAIN · UI | `bildirim-donemi-eylem.test.ts` | EŞZAMANLI iki karar: biri geçer, öbürü SESSİZCE EZİLMEZ | evet | geçti |
 | `DNT-FRM-001` | Denetim | SERVER · DOMAIN · UI | `denetim-formu-eylem.test.ts` | öz denetim formu üretilir; BOŞ HÜCRE SIFIR | evet | geçti |
 | `DNT-FRM-001` | Denetim | SERVER · DOMAIN · UI | `denetim-formu-eylem.test.ts` | SoA da aynı kapıdan geçer ve yedi sütun taşır | evet | geçti |
 | `DNT-FRM-002` | Denetim | UI · DOMAIN | `denetim-formu.test.ts` | GEREKÇESİZ kapsam dışı İŞARETLENİR — gerekçe uydurulmaz | evet | geçti |
@@ -274,6 +304,98 @@
 | `SIS-GOC-002` | Sistem | MIGRATION · SERVER | `senaryo-platform.test.ts` | denetim izini koruyan tetikleyiciler göçlerde tanımlıdır | evet | geçti |
 | `SIS-GRS-001` | Sistem | VISUAL | `senaryo-platform.test.ts` | tasarım dili kapısı tanımlı ve CI\'da koşuyor | evet | geçti |
 | `SIS-GRS-002` | Sistem | VISUAL · RESPONSIVE | `senaryo-platform.test.ts` | dar bant ve dizüstü kapıları koda gömülü eşikler taşır | evet | geçti |
+| `SIS-KML-001` | Sistem | SERVER · RBAC · UI | `kimlik-oidc.test.ts` | eşlenen grup ürün rolüne çevrilir | evet | geçti |
+| `SIS-KML-001` | Sistem | SERVER · RBAC · UI | `kimlik-oidc.test.ts` | EŞLENMEYEN grup sessizce ATILMAZ, adıyla sayılır | evet | geçti |
+| `SIS-KML-001` | Sistem | SERVER · RBAC · UI | `kimlik-oidc.test.ts` | rol iddiası tanımlı DEĞİLSE hiçbir rol çıkarılmaz | evet | geçti |
+| `SIS-KML-001` | Sistem | SERVER · RBAC · UI | `kimlik-oidc.test.ts` | boşlukla ayrılmış tek dizeli iddia da okunur | evet | geçti |
+| `SIS-KML-001` | Sistem | SERVER · RBAC · UI | `kimlik-saglayici-eylem.test.ts` | BOZUK sır referansı reddedilir ve kayıt AÇILMAZ | evet | geçti |
+| `SIS-KML-001` | Sistem | SERVER · RBAC · UI | `kimlik-saglayici-eylem.test.ts` | BOZUK rol eşlemesi reddedilir — sessizce boş sayılmaz | evet | geçti |
+| `SIS-KML-001` | Sistem | SERVER · RBAC · UI | `kimlik-saglayici-eylem.test.ts` | geçerli kayıt BAĞLI DEĞİL ve AKTİF DEĞİL doğar | evet | geçti |
+| `SIS-KML-001` | Sistem | SERVER · RBAC · UI | `kimlik-saglayici-eylem.test.ts` | denetim izi MASKELİ adres taşır, sır DEĞERİ taşımaz | evet | geçti |
+| `SIS-KML-002` | Sistem | SERVER · DOMAIN | `kimlik-oidc.test.ts` | meydan okuma doğrulayıcının SHA-256 özetidir | evet | geçti |
+| `SIS-KML-002` | Sistem | SERVER · DOMAIN | `kimlik-oidc.test.ts` | iki üretim AYNI doğrulayıcıyı vermez | evet | geçti |
+| `SIS-KML-002` | Sistem | SERVER · DOMAIN | `kimlik-oidc.test.ts` | yetkilendirme adresi state · nonce · S256 taşır | evet | geçti |
+| `SIS-KML-002` | Sistem | SERVER · DOMAIN | `kimlik-oidc.test.ts` | imzası ve iddiaları doğru jeton kabul edilir | evet | geçti |
+| `SIS-KML-002` | Sistem | SERVER · DOMAIN | `kimlik-oidc.test.ts` | `aud` dizi olabilir ve içinde bizim istemci varsa geçer | evet | geçti |
+| `SIS-KML-002` | Sistem | SERVER · DOMAIN | `kimlik-oidc.test.ts` | süre payı içindeki jeton geçer (saat kayması) | evet | geçti |
+| `SIS-KML-002` | Sistem | SERVER · DOMAIN | `kimlik-oidc.test.ts` | BAŞKA anahtarla imzalanmış jeton reddedilir | evet | geçti |
+| `SIS-KML-002` | Sistem | SERVER · DOMAIN | `kimlik-oidc.test.ts` | gövdesi kurcalanmış jeton reddedilir | evet | geçti |
+| `SIS-KML-002` | Sistem | SERVER · DOMAIN | `kimlik-oidc.test.ts` | `alg: none` REDDEDİLİR — imzasız jeton kimlik kanıtı değildir | evet | geçti |
+| `SIS-KML-002` | Sistem | SERVER · DOMAIN | `kimlik-oidc.test.ts` | HMAC (`HS256`) REDDEDİLİR — açık anahtarı sır sanma tuzağı | evet | geçti |
+| `SIS-KML-002` | Sistem | SERVER · DOMAIN | `kimlik-oidc.test.ts` | BAŞKA issuer\'ın verdiği jeton reddedilir | evet | geçti |
+| `SIS-KML-002` | Sistem | SERVER · DOMAIN | `kimlik-oidc.test.ts` | BAŞKA istemciye verilmiş jeton reddedilir | evet | geçti |
+| `SIS-KML-002` | Sistem | SERVER · DOMAIN | `kimlik-oidc.test.ts` | nonce UYUŞMAZSA reddedilir — yeniden oynatma | evet | geçti |
+| `SIS-KML-002` | Sistem | SERVER · DOMAIN | `kimlik-oidc.test.ts` | nonce HİÇ YOKSA da reddedilir — eksik ≠ geçerli | evet | geçti |
+| `SIS-KML-002` | Sistem | SERVER · DOMAIN | `kimlik-oidc.test.ts` | süresi dolmuş jeton reddedilir | evet | geçti |
+| `SIS-KML-002` | Sistem | SERVER · DOMAIN | `kimlik-oidc.test.ts` | `exp` HİÇ YOKSA da reddedilir | evet | geçti |
+| `SIS-KML-002` | Sistem | SERVER · DOMAIN | `kimlik-oidc.test.ts` | gelecekte düzenlenmiş jeton reddedilir | evet | geçti |
+| `SIS-KML-002` | Sistem | SERVER · DOMAIN | `kimlik-oidc.test.ts` | `sub` yoksa reddedilir — kimliksiz jeton | evet | geçti |
+| `SIS-KML-002` | Sistem | SERVER · DOMAIN | `kimlik-oidc.test.ts` | JWKS\'te olmayan `kid` reddedilir | evet | geçti |
+| `SIS-KML-002` | Sistem | SERVER · DOMAIN | `kimlik-oidc.test.ts` | `kid` yokken BİRDEN ÇOK anahtar varsa tahmin EDİLMEZ | evet | geçti |
+| `SIS-KML-002` | Sistem | SERVER · DOMAIN | `kimlik-oidc.test.ts` | bozuk bir JWK girdisi doğrulamayı ÇÖKERTMEZ, atlanır | evet | geçti |
+| `SIS-KML-002` | Sistem | SERVER · DOMAIN | `kimlik-oidc.test.ts` | üç parçalı olmayan metin reddedilir | evet | geçti |
+| `SIS-KML-002` | Sistem | SERVER · DOMAIN | `kimlik-oidc.test.ts` | başlık okunabilir ama gövde imzasız DÖNMEZ | evet | geçti |
+| `SIS-KML-003` | Sistem | SERVER · RBAC | `kimlik-akis.test.ts` | bağlı `sub` mevcut kullanıcıya çözülür | evet | geçti |
+| `SIS-KML-003` | Sistem | SERVER · RBAC | `kimlik-akis.test.ts` | IdP grubu ürün rolüne ÖNERİ olarak çevrilir — yetki YAZILMAZ | evet | geçti |
+| `SIS-KML-003` | Sistem | SERVER · RBAC | `kimlik-akis.test.ts` | JIT kapalıyken giriş reddedilir | evet | geçti |
+| `SIS-KML-003` | Sistem | SERVER · RBAC | `kimlik-akis.test.ts` | JIT AÇIKKEN hesap açılır ama YETKİSİZ doğar | evet | geçti |
+| `SIS-KML-003` | Sistem | SERVER · RBAC | `kimlik-akis.test.ts` | JIT açık ama JETONDA E-POSTA YOKSA hesap açılmaz | evet | geçti |
+| `SIS-KML-003` | Sistem | SERVER · RBAC | `kimlik-akis.test.ts` | BAĞLI OLMAYAN sağlayıcı akışa hiç girmez | evet | geçti |
+| `SIS-KML-003` | Sistem | SERVER · RBAC | `kimlik-akis.test.ts` | SIR REFERANSI çözülemezse akış durur | evet | geçti |
+| `SIS-KML-003` | Sistem | SERVER · RBAC | `kimlik-akis.test.ts` | jeton ucu hata dönerse akış durur | evet | geçti |
+| `SIS-KML-003` | Sistem | SERVER · RBAC | `kimlik-akis.test.ts` | NONCE UYUŞMAYAN jeton reddedilir — zincirde de | evet | geçti |
+| `SIS-KML-003` | Sistem | SERVER · RBAC | `kimlik-akis.test.ts` | PASİF kullanıcının kurum girişi reddedilir | evet | geçti |
+| `SIS-KML-004` | Sistem | SERVER · DOMAIN · UI | `kimlik-mfa-zincir.test.ts` | kayıt AÇILIR ama DOĞRULANMAMIŞ doğar | evet | geçti |
+| `SIS-KML-004` | Sistem | SERVER · DOMAIN · UI | `kimlik-mfa-zincir.test.ts` | SIR VERİTABANINDA AÇIK DURMAZ — zarf yazılır | evet | geçti |
+| `SIS-KML-004` | Sistem | SERVER · DOMAIN · UI | `kimlik-mfa-zincir.test.ts` | YANLIŞ kod doğrulamaz, kayıt kurulu OLMAZ | evet | geçti |
+| `SIS-KML-004` | Sistem | SERVER · DOMAIN · UI | `kimlik-mfa-zincir.test.ts` | DOĞRU kod kaydı kurar ve kurtarma kodları BİR KEZ döner | evet | geçti |
+| `SIS-KML-004` | Sistem | SERVER · DOMAIN · UI | `kimlik-mfa-zincir.test.ts` | AYNI kod ikinci kez giriş DOĞRULAMAZ | evet | geçti |
+| `SIS-KML-004` | Sistem | SERVER · DOMAIN · UI | `kimlik-mfa-zincir.test.ts` | SONRAKİ adımın kodu giriş doğrular | evet | geçti |
+| `SIS-KML-004` | Sistem | SERVER · DOMAIN · UI | `kimlik-mfa-zincir.test.ts` | kurtarma kodu çalışır ve BİR KEZ kullanılır | evet | geçti |
+| `SIS-KML-004` | Sistem | SERVER · DOMAIN · UI | `kimlik-mfa-zincir.test.ts` | boşluklu/küçük harfli kurtarma kodu da kabul edilir | evet | geçti |
+| `SIS-KML-004` | Sistem | SERVER · DOMAIN · UI | `kimlik-mfa-zincir.test.ts` | anahtar referansı tanımsızken kayıt açılmaz | evet | geçti |
+| `SIS-KML-004` | Sistem | SERVER · DOMAIN · UI | `kimlik-mfa-zincir.test.ts` | anahtar DEĞİŞİRSE eski kayıt "kod yanlış" demez, anahtar der | evet | geçti |
+| `SIS-KML-004` | Sistem | SERVER · DOMAIN · UI | `kimlik-totp.test.ts` | on sayacın onu da RFC ile birebir | evet | geçti |
+| `SIS-KML-004` | Sistem | SERVER · DOMAIN · UI | `kimlik-totp.test.ts` | beş zaman noktasının beşi de RFC ile birebir | evet | geçti |
+| `SIS-KML-004` | Sistem | SERVER · DOMAIN · UI | `kimlik-totp.test.ts` | adım 30 saniyedir: adım İÇİNDE sabit, SINIRINDA değişir | evet | geçti |
+| `SIS-KML-004` | Sistem | SERVER · DOMAIN · UI | `kimlik-totp.test.ts` | kodlanan çözülür ve aynı bayta döner | evet | geçti |
+| `SIS-KML-004` | Sistem | SERVER · DOMAIN · UI | `kimlik-totp.test.ts` | boşluk ve küçük harf hoş görülür — elle giriş | evet | geçti |
+| `SIS-KML-004` | Sistem | SERVER · DOMAIN · UI | `kimlik-totp.test.ts` | bozuk karakter SESSİZCE ATLANMAZ, null döner | evet | geçti |
+| `SIS-KML-004` | Sistem | SERVER · DOMAIN · UI | `kimlik-totp.test.ts` | şimdiki adımın kodu geçer | evet | geçti |
+| `SIS-KML-004` | Sistem | SERVER · DOMAIN · UI | `kimlik-totp.test.ts` | bir önceki ve bir sonraki adım da geçer (saat kayması) | evet | geçti |
+| `SIS-KML-004` | Sistem | SERVER · DOMAIN · UI | `kimlik-totp.test.ts` | İKİ adım öteki kod GEÇMEZ — pencere ±1 | evet | geçti |
+| `SIS-KML-004` | Sistem | SERVER · DOMAIN · UI | `kimlik-totp.test.ts` | AYNI kod ikinci kez KABUL EDİLMEZ | evet | geçti |
+| `SIS-KML-004` | Sistem | SERVER · DOMAIN · UI | `kimlik-totp.test.ts` | GERİYE dönük bir adım da tekrar sayılır | evet | geçti |
+| `SIS-KML-004` | Sistem | SERVER · DOMAIN · UI | `kimlik-totp.test.ts` | yanlış uzunluktaki kod BİÇİM olarak reddedilir | evet | geçti |
+| `SIS-KML-004` | Sistem | SERVER · DOMAIN · UI | `kimlik-totp.test.ts` | bozuk sır "kod yanlış" DEĞİL, "sır bozuk" der | evet | geçti |
+| `SIS-KML-004` | Sistem | SERVER · DOMAIN · UI | `kimlik-totp.test.ts` | üretilen sır 160 bit ve her seferinde farklı | evet | geçti |
+| `SIS-KML-004` | Sistem | SERVER · DOMAIN · UI | `kimlik-totp.test.ts` | otpauth URI standart alanları taşır | evet | geçti |
+| `SIS-KML-004` | Sistem | SERVER · DOMAIN · UI | `kimlik-totp.test.ts` | kurtarma kodları sayıca ve uzunlukça sabit, hepsi FARKLI | evet | geçti |
+| `SIS-KML-004` | Sistem | SERVER · DOMAIN · UI | `kimlik-totp.test.ts` | normalize boşluk ve tireyi yok sayar | evet | geçti |
+| `SIS-KML-005` | Sistem | SERVER · RBAC · DOMAIN | `kimlik-mfa-zincir.test.ts` | politika zorunlu ise kaldırma REDDEDİLİR | evet | geçti |
+| `SIS-KML-005` | Sistem | SERVER · RBAC · DOMAIN | `kimlik-mfa-zincir.test.ts` | politika kapalıyken kaldırılır ve kurtarma kodları da düşer | evet | geçti |
+| `SIS-KML-005` | Sistem | SERVER · RBAC · DOMAIN | `kimlik-saglayici-eylem.test.ts` | ATIL süre mutlaktan büyük olamaz | evet | geçti |
+| `SIS-KML-005` | Sistem | SERVER · RBAC · DOMAIN | `kimlik-saglayici-eylem.test.ts` | tavanı aşan mutlak süre reddedilir | evet | geçti |
+| `SIS-KML-005` | Sistem | SERVER · RBAC · DOMAIN | `kimlik-saglayici-eylem.test.ts` | geçerli politika yazılır ve iz VARSAYILANI adıyla anar | evet | geçti |
+| `SIS-KML-005` | Sistem | SERVER · RBAC · DOMAIN | `kimlik-totp.test.ts` | kayıt YOKSA varsayılan uygulanır — 12/2 DEĞİŞMEDİ | evet | geçti |
+| `SIS-KML-005` | Sistem | SERVER · RBAC · DOMAIN | `kimlik-totp.test.ts` | eksik alan varsayılandan tamamlanır, SIFIR sayılmaz | evet | geçti |
+| `SIS-KML-005` | Sistem | SERVER · RBAC · DOMAIN | `kimlik-totp.test.ts` | tavanı aşan mutlak süre reddedilir | evet | geçti |
+| `SIS-KML-005` | Sistem | SERVER · RBAC · DOMAIN | `kimlik-totp.test.ts` | tabanın altındaki atıl süre reddedilir | evet | geçti |
+| `SIS-KML-005` | Sistem | SERVER · RBAC · DOMAIN | `kimlik-totp.test.ts` | ATIL süre MUTLAKTAN büyük olamaz | evet | geçti |
+| `SIS-KML-005` | Sistem | SERVER · RBAC · DOMAIN | `kimlik-totp.test.ts` | sıkılaştırma geçer | evet | geçti |
+| `SIS-KML-005` | Sistem | SERVER · RBAC · DOMAIN | `kimlik-totp.test.ts` | politika kapalıysa kapı açık | evet | geçti |
+| `SIS-KML-005` | Sistem | SERVER · RBAC · DOMAIN | `kimlik-totp.test.ts` | zorunluyken TOTP\'siz YEREL hesap giremez | evet | geçti |
+| `SIS-KML-005` | Sistem | SERVER · RBAC · DOMAIN | `kimlik-totp.test.ts` | zorunluyken TOTP\'li yerel hesap girer | evet | geçti |
+| `SIS-KML-005` | Sistem | SERVER · RBAC · DOMAIN | `kimlik-totp.test.ts` | KURUM hesabında ikinci faktör IdP\'nin işidir | evet | geçti |
+| `SIS-KML-006` | Sistem | SERVER · UI | `kimlik-oidc.test.ts` | tam yapılandırma geçer | evet | geçti |
+| `SIS-KML-006` | Sistem | SERVER · UI | `kimlik-oidc.test.ts` | eksik alan ADIYLA sayılır — "bağlı değil" sessiz değildir | evet | geçti |
+| `SIS-KML-006` | Sistem | SERVER · UI | `kimlik-oidc.test.ts` | SIR REFERANSI eksikse yapılandırma tamamlanmaz | evet | geçti |
+| `SIS-KML-006` | Sistem | SERVER · UI | `kimlik-oidc.test.ts` | HTTP uç REDDEDİLİR (localhost hariç) | evet | geçti |
+| `SIS-KML-006` | Sistem | SERVER · UI | `kimlik-saglayici-eylem.test.ts` | EKSİK yapılandırma bağlanamaz, eksik ADIYLA söylenir | evet | geçti |
+| `SIS-KML-006` | Sistem | SERVER · UI | `kimlik-saglayici-eylem.test.ts` | BAĞLI OLMAYAN sağlayıcı aktif EDİLEMEZ | evet | geçti |
+| `SIS-KML-006` | Sistem | SERVER · UI | `kimlik-saglayici-eylem.test.ts` | tam yapılandırma bağlanır, sonra aktif edilir | evet | geçti |
+| `SIS-KML-006` | Sistem | SERVER · UI | `kimlik-saglayici-eylem.test.ts` | YAPILANDIRMA DEĞİŞİRSE bağ ve aktiflik DÜŞER | evet | geçti |
+| `SIS-KML-006` | Sistem | SERVER · UI | `kimlik-saglayici-eylem.test.ts` | bağ düşerse aktiflik de düşer | evet | geçti |
 | `BLD-KTU-003` | Bildirim | DOMAIN · UI | `bildirim-kutusu.test.ts` | okunmamış bildirim yokken "en eski okunmamış" SIFIR GÜN DEĞİL, null olur | evet | geçti |
 | `RAP-URT-003` | Rapor | DOMAIN | `senaryo-platform.test.ts` | değerlendirilmemiş madde yüzdenin PAYDASINA girmez | evet | geçti |
 | `ESL-PRF-003` | Eşleme | DOMAIN · INTEGRATION | `esleme.test.ts` | VARSAYILAN BİR ÖLÇÜM DEĞİLDİR: kaynağın verdiği alan ile varsayılan ayırt edilir | evet | geçti |
@@ -644,6 +766,18 @@
 | `URN-KUR-010` | Kurulum | DOMAIN | `bekci/gunluk-sir.test.ts` | anahtar tanıma büyük/küçük harf ve ayraç duyarsızdır | evet | geçti |
 | `URN-KUR-010` | Kurulum | DOMAIN | `bekci/gunluk-sir.test.ts` | hata nesnesi yığın izi olmadan yazılır — iz iç yol sızdırır | evet | geçti |
 | `URN-KUR-010` | Kurulum | DOMAIN | `bekci/gunluk-sir.test.ts` | derin nesne sonsuza inmez | evet | geçti |
+| `URN-KML-001` | Kurulum | DOMAIN · SERVER | `bekci/kimlik-sir.test.ts` | `KimlikSaglayici` yalnız REFERANS taşır | evet | geçti |
+| `URN-KML-001` | Kurulum | DOMAIN · SERVER | `bekci/kimlik-sir.test.ts` | `MfaKaydi` düz sır değil ZARF taşır | evet | geçti |
+| `URN-KML-001` | Kurulum | DOMAIN · SERVER | `bekci/kimlik-sir.test.ts` | `MfaKurtarmaKodu` kodu değil ÖZETİ tutar | evet | geçti |
+| `URN-KML-001` | Kurulum | DOMAIN · SERVER | `bekci/kimlik-sir.test.ts` | SABOTAJ: `istemciSirri` sütunu eklenmiş bir şema YAKALANIR | evet | geçti |
+| `URN-KML-001` | Kurulum | DOMAIN · SERVER | `bekci/kimlik-sir.test.ts` | zod şemasında `...Referansi` dışında sır alanı yok | evet | geçti |
+| `URN-KML-001` | Kurulum | DOMAIN · SERVER | `bekci/kimlik-sir.test.ts` | çözülmüş bir sır BU DOSYADAN geçmez — `siriCoz` çağrılmaz | evet | geçti |
+| `URN-KML-001` | Kurulum | DOMAIN · SERVER | `bekci/kimlik-sir.test.ts` | ize giden metin MASKELİDİR | evet | geçti |
+| `URN-KML-001` | Kurulum | DOMAIN · SERVER | `bekci/kimlik-sir.test.ts` | `siriCoz` bu dosyada çağrılmaz | evet | geçti |
+| `URN-KML-001` | Kurulum | DOMAIN · SERVER | `bekci/kimlik-sir.test.ts` | yalnız `sirMaskesi` (adres) kullanılır | evet | geçti |
+| `URN-KML-001` | Kurulum | DOMAIN · SERVER | `bekci/kimlik-sir.test.ts` | istemci bileşenine giden tipte sır DEĞERİ alanı yok | evet | geçti |
+| `URN-KML-001` | Kurulum | DOMAIN · SERVER | `bekci/kimlik-sir.test.ts` | `sirZarfi` alanına yazan her yol `sifrele()`den geçer | evet | geçti |
+| `URN-KML-001` | Kurulum | DOMAIN · SERVER | `bekci/kimlik-sir.test.ts` | şifreleme anahtarı REFERANSTAN çözülür, koda gömülmez | evet | geçti |
 | `URN-KUR-011` | Kurulum | DOMAIN | `yedek-araci.test.ts` | yedek alır, doğrular ve göç durumunu raporlar | evet | geçti |
 | `URN-KUR-011` | Kurulum | DOMAIN | `yedek-araci.test.ts` | var olan yedeğin ÜSTÜNE YAZMAZ | evet | geçti |
 | `URN-KUR-011` | Kurulum | DOMAIN | `yedek-araci.test.ts` | MANTIKSAL karşılaştırma bayt karşılaştırması değildir | evet | geçti |
@@ -731,6 +865,16 @@
 | `disa-aktarim-xlsx.test.ts` | XLSX üretiminin saf kuralları — formül hücresi üretilmez, kalkan CSV ile aynı |
 | `bildirim-kaydi.test.ts` | Olaydan doğan mevzuat bildiriminin saf kuralları — motor GÖNDERMEZ, süresiz yükümlülükte geri sayım yoktur, referanssız gönderim reddedilir |
 | `bildirim-kaydi-eylem.test.ts` | Bildirim zincirinin kendisi — olaydan taslak doğar, ikinci koşuda ikinci taslak açılmaz, insan kararı iz bırakır |
+| `bildirim-donemi.test.ts` | Takvim tetikli yükümlülüğün saf kuralları — dönem yoksa pencere yok, teslim süresi yoksa sayaç yok, motor VERMEZ |
+| `bildirim-donemi-zincir.test.ts` | Dönem zincirinin kendisi — periyottan dönem doğar, ikinci koşuda ikinci dönem açılmaz, kapalı döneme motor dokunmaz |
+| `bildirim-donemi-eylem.test.ts` | Dönemi kapatan insan kararı — referanssız teslim reddedilir, tesise kısıtlı rol kurumsal yükümlülüğe dokunamaz, eşzamanlı iki karar sessizce ezişmez |
+| `takvim-ekrani.test.ts` | Raporlama takvimi ekranının saf katmanı — dönemsiz yükümlülük listeden düşmez, sayacı olmayan satır bilinmeyen sınıfında durur |
+| `kimlik-oidc.test.ts` | OIDC saf katmanı — sahte bir IdP'ye karşı imza, iss, aud, nonce ve exp doğrulaması; alg karıştırma ve yeniden oynatma reddi |
+| `kimlik-totp.test.ts` | TOTP ve oturum politikası saf katmanı — RFC vektörleri, ±1 adım penceresi, tekrar engeli, 12/2 varsayılanı |
+| `kimlik-akis.test.ts` | Kurum hesabıyla giriş zinciri — tanınmayan sub reddedilir ve kullanıcı açılmaz, JIT açıkken bile hesap yetkisiz doğar |
+| `kimlik-mfa-zincir.test.ts` | MFA zinciri — TOTP sırrı veritabanında zarflı durur, kurtarma kodu bir kez kullanılır, zorunlu politikada kayıt kaldırılamaz |
+| `kimlik-saglayici-eylem.test.ts` | Kimlik sağlayıcı yönetimi — sır DEĞERİ kabul edilmez, kaydet/bağla/aktif et üç ayrı karardır, yapılandırma değişince bağ düşer |
+| `bekci/disa-aktarim-kapsami.test.ts` | Dışa aktarım kapsamı EKRAN kapsamından geniş olamaz — yüzey listesi türetilir, kapsam kararı tek kaynaktan okunur |
 | `bekci/bildirim-motoru.test.ts` | Motor dosyaları METİN olarak taranır: insan kararı olan durum kodu motora yazılamaz |
 | `ithal-zinciri.test.ts` | Araç zincirinin YAPISAL ölçüsü — bir aracın ihracı silinince ya da dosyası üzerine yazılınca kırmızı; modül ÇALIŞTIRILMADAN ölçülür |
 | `kapi-is-kapsami.test.ts` | Kapı kümesinin İŞ katmanı — iş adları türetilir, bölünmeyle hiçbir kapı düşmez |

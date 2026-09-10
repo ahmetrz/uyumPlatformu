@@ -564,6 +564,27 @@ export const URUNLESTIRME_SENARYOLARI: Senaryo[] = [
     katmanlar: ['DOMAIN'],
   },
   {
+    id: 'URN-KML-001', alan: 'Kurulum', rota: '—', eksen: 'yetki',
+    amac: 'Kimlik katmanı ürüne YENİ bir sır değeri sokamasın — kural yetmez, kapı gerekir',
+    rol: 'ürünü sürdüren geliştirici · bağımsız inceleyen',
+    kapsam: 'prisma/schema.prisma · lib/kimlik/ · lib/eylemler2/kimlikSaglayici.ts'
+      + ' · ayarlar/kimlik ekranı',
+    onkosul: 'P6 ile OIDC `client_secret` ve TOTP paylaşılan sırrı kavramları ürüne girdi;'
+      + ' ikisi de "sır değeri saklanmaz" kuralına delik açma fırsatıdır',
+    veriHali: 'aykiri',
+    eylem: 'Şema, eylem katmanı, ekran verisi ve ekran tipi sır DEĞERİ alanı için taranır;'
+      + ' `sirZarfi` yazan her dosyanın `sifrele()` çağırdığı ölçülür',
+    beklenenSonuc: '`KimlikSaglayici` yalnız `istemciSirriReferansi` taşır (adres, değer değil);'
+      + ' `MfaKaydi` düz sır değil AES-256-GCM ZARFI taşır ve şifreleme anahtarı veritabanında'
+      + ' YOKTUR (sır referansından çözülür); `MfaKurtarmaKodu` kodun kendisini değil scrypt'
+      + ' ÖZETİNİ tutar; eylem katmanı sır değeri kabul etmez ve `siriCoz` çağırmaz;'
+      + ' ekran verisi sırrı ÇÖZMEZ, yalnız `sirMaskesi` (adres) gösterir. Ekran tipindeki'
+      + ' sır-kokan alanlar GEREKÇELİ izin listesindedir ve liste ölü satır taşıyamaz',
+    beklenenEkran: 'Sır alanı MASKELİ adres gösterir; sırrın DEĞERİ hiçbir ekranda görünmez',
+    beklenenIz: 'yazma yok (bekçi)', beklenenBildirim: 'yok',
+    katmanlar: ['DOMAIN', 'SERVER'],
+  },
+  {
     id: 'URN-KUR-011', alan: 'Kurulum', rota: '—', eksen: 'veri',
     amac: 'Ürünün KENDİ yedeği, müşteriye dayattığı kuralı tutsun: geri yüklenebildiği kanıtlanmamış yedek, yedek değildir — ve kanıt DOSYALARINI da taşısın',
     rol: 'kurulumu işleten operatör · ürünü sürdüren geliştirici', kapsam: 'arac/yedek.mjs · kanıt deposu · docs/URUN_YEDEKLEME.md',

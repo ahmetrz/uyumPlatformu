@@ -112,6 +112,15 @@ const EKLENEN_KAPILAR = [
      gönderimin REDDEDİLDİĞİNİ tarayıcıda ölçer; bu iddia birim testine
      sığmaz çünkü kapı sunucu eyleminde, düğme istemcidedir. */
   'npm run kanit:bildirim-kaydi',
+  /* R10+ · takvim tetikli yükümlülüğün iki bantta kanıtı. Brifin 2.5'i:
+     dönem açılıyor · geri sayım doğru · SÜRESİZ dönemde sayaç YOK ·
+     motor "yapıldı" yazamıyor. Sonuncusu birim testine sığmaz: kapı
+     sunucu eyleminde, düğme istemcidedir. */
+  'npm run kanit:bildirim-donemi',
+  /* P6 · kimlik ve SSO ekranlarının iki bantta kanıtı. SIR DEĞERİNİN
+     hiçbir ekranda görünmediğini ve bağlı olmayan sağlayıcının giriş
+     ekranında çıkmadığını tarayıcıda ölçer. */
+  'npm run kanit:kimlik',
 ];
 
 describe('kapı kümesi bölünmeyle değişmez', () => {
@@ -142,12 +151,12 @@ describe('kapı kümesi bölünmeyle değişmez', () => {
        "sunucu ister" diye işaretlenir; kalanlar yerel kapanışta sunucusuz
        koşar ve kırmızı yanar — kusur kodda değil araçta.
 
-       Sayı 4 DEĞİL: `kapi-rota` işi aynı sunucuyla ÜÇ kapı koşuyor (rota
-       duman + denetim formları kanıtı + bildirim kaydı kanıtı).
-       Bölünmenin ölçüsü kapı sayısı değil, kapıların KENDİ İŞİNDEKİ yaşam
-       döngüsüne göre doğru sınıflanması. */
+       Sayı 4 DEĞİL: `kapi-rota` işi aynı sunucuyla BEŞ kapı koşuyor
+       (rota duman + denetim formları + bildirim kaydı + bildirim dönemi +
+       kimlik kanıtı). Bölünmenin ölçüsü kapı sayısı değil, kapıların
+       KENDİ İŞİNDEKİ yaşam döngüsüne göre doğru sınıflanması. */
     const tarayicili = kapiAdimlari(AKIS).filter((a) => a.sunucuIster);
-    expect(tarayicili).toHaveLength(6);
+    expect(tarayicili).toHaveLength(8);
     expect(new Set(tarayicili.map((a) => a.is)).size).toBe(4);
   });
 

@@ -1051,6 +1051,96 @@ export const PLATFORM_SENARYOLARI_4: Senaryo[] = [
     beklenenIz: 'yazma yok', beklenenBildirim: 'yok',
     katmanlar: ['VISUAL', 'RESPONSIVE'],
   },
+  /* ── P6 · Kimlik ve SSO ─────────────────────────────────────────── */
+  {
+    id: 'SIS-KML-001', alan: 'Sistem', rota: '/ayarlar/kimlik', eksen: 'yetki',
+    amac: 'Kurum kimlik sağlayıcısını, sırrını üründe SAKLAMADAN tanımlamak',
+    rol: 'yönetici', kapsam: 'kurum geneli',
+    onkosul: 'Kurulumda kimlik sağlayıcı yok', veriHali: 'yok',
+    eylem: 'OIDC sağlayıcısı tanımlanır (`kimlikSaglayici.kimlikSaglayiciKaydet`)',
+    beklenenSonuc: 'İstemci sırrının DEĞERİ kabul EDİLMEZ; yalnız `sirReferansi`'
+      + ' (env: · dosya: · vault:) alınır. Biçimi bozuk ya da sağlayıcısı'
+      + ' tanınmayan referans reddedilir. Kayıt `bagli=false` ve `aktif=false`'
+      + ' doğar — bağlamak ayrı bir insan kararıdır',
+    beklenenEkran: 'Sır alanı MASKELİ adres gösterir, değeri değil',
+    beklenenIz: 'KimlikSaglayici · olusturma (gerekçede maskeli referans)',
+    beklenenBildirim: 'yok',
+    katmanlar: ['SERVER', 'RBAC', 'UI'],
+  },
+  {
+    id: 'SIS-KML-002', alan: 'Sistem', rota: '—', eksen: 'yetki',
+    amac: 'Sahte ya da başkasına ait bir kimlik jetonunun kabul edilmemesi',
+    rol: 'son kullanıcı', kapsam: 'kendi kapsamı',
+    onkosul: 'Bağlı bir OIDC sağlayıcısı var', veriHali: 'normal',
+    eylem: 'Kimlik jetonu doğrulanır (`oidc.kimlikJetonuDogrula`)',
+    beklenenSonuc: 'İmza, `iss`, `aud`, `nonce`, `exp` ve `sub` AYRI AYRI'
+      + ' doğrulanır; biri eksikse jeton REDDEDİLİR. `alg: none` ve HMAC'
+      + ' algoritmaları kabul edilmez. İmza geçmeden HİÇBİR iddia okunmaz',
+    beklenenEkran: 'Giriş ekranında tek ret cümlesi; sebep denetim izinde',
+    beklenenIz: 'KimlikGirisi · red (sebep adıyla)',
+    beklenenBildirim: 'yok',
+    katmanlar: ['SERVER', 'DOMAIN'],
+  },
+  {
+    id: 'SIS-KML-003', alan: 'Sistem', rota: '—', eksen: 'yetki',
+    amac: 'IdP\'de var olan ama üründe TANINMAYAN kimliğin hesap açtırmaması',
+    rol: 'son kullanıcı', kapsam: 'kendi kapsamı',
+    onkosul: 'Sağlayıcıda `jitAcik` KAPALI (varsayılan)', veriHali: 'yok',
+    eylem: 'Geçerli ama tanınmayan bir `sub` ile giriş denenir',
+    beklenenSonuc: 'Giriş REDDEDİLİR ve KULLANICI AÇILMAZ. Bir uyum ürününde'
+      + ' kimin hesabı olduğu bir yönetim kararıdır; otomatik açılan hesap'
+      + ' denetim izinde sahipsiz bir aktör bırakır. JIT açıkken bile açılan'
+      + ' hesap YETKİSİZ doğar',
+    beklenenEkran: 'Ne yapılacağını söyleyen ret cümlesi',
+    beklenenIz: 'KimlikGirisi · red (`sub` ÖZETİYLE — ham `sub` yazılmaz)',
+    beklenenBildirim: 'yok',
+    katmanlar: ['SERVER', 'RBAC'],
+  },
+  {
+    id: 'SIS-KML-004', alan: 'Sistem', rota: '/ayarlar', eksen: 'akis',
+    amac: 'İkinci faktörü kurmak ve kaybedilen telefonda kilitlenmemek',
+    rol: 'son kullanıcı', kapsam: 'kendi hesabı',
+    onkosul: 'MFA anahtar referansı kurulumda tanımlı', veriHali: 'yok',
+    eylem: 'TOTP kaydı açılır, ilk kod doğrulanır (`mfa.mfaKur` · `mfaDogrula`)',
+    beklenenSonuc: 'Sır ürünün veritabanında AÇIK durmaz: AES-256-GCM zarfıyla'
+      + ' durur ve ŞİFRELEME ANAHTARI veritabanında YOKTUR. Kayıt insan ilk'
+      + ' kodu doğrulayana kadar KURULU sayılmaz. Kurtarma kodları bir kez'
+      + ' gösterilir, ÖZETLERİ saklanır ve her biri BİR KEZ kullanılır.'
+      + ' Aynı TOTP kodu ikinci kez KABUL EDİLMEZ',
+    beklenenEkran: 'Anahtar referansı yoksa "bağlı değil" der, sessizce düşmez',
+    beklenenIz: 'MfaKaydi · olusturma · dogrulama (sır DEĞERİ ize girmez)',
+    beklenenBildirim: 'yok',
+    katmanlar: ['SERVER', 'DOMAIN', 'UI'],
+  },
+  {
+    id: 'SIS-KML-005', alan: 'Sistem', rota: '/ayarlar/kimlik', eksen: 'yetki',
+    amac: 'Kiracının oturum politikasını sıkılaştırabilmesi',
+    rol: 'yönetici', kapsam: 'kurum geneli',
+    onkosul: 'Politika kaydı yok (varsayılan geçerli)', veriHali: 'yok',
+    eylem: 'Mutlak/atıl süre ve "MFA zorunlu" ayarlanır',
+    beklenenSonuc: 'Kayıt yoksa 12 saat mutlak · 2 saat atıl VARSAYILANI'
+      + ' uygulanır. Atıl süre mutlaktan büyük olamaz; tavan ve tabanlar'
+      + ' gerekçelidir. "MFA zorunlu" açıkken TOTP\'si olmayan YEREL hesap'
+      + ' giriş YAPAMAZ — kurum hesabında ikinci faktör IdP\'nin işidir',
+    beklenenEkran: 'Varsayılan olduğu AÇIKÇA yazılır; boş alan sıfır sayılmaz',
+    beklenenIz: 'OturumPolitikasi · guncelleme',
+    beklenenBildirim: 'yok',
+    katmanlar: ['SERVER', 'RBAC', 'DOMAIN'],
+  },
+  {
+    id: 'SIS-KML-006', alan: 'Sistem', rota: '/giris', eksen: 'arayuz',
+    amac: 'Bağlı olmayan bir sağlayıcının giriş ekranında GÖRÜNMEMESİ',
+    rol: 'son kullanıcı', kapsam: 'kendi kapsamı',
+    onkosul: 'Sağlayıcı tanımlı ama `bagli=false`', veriHali: 'kısmi',
+    eylem: 'Giriş ekranı açılır',
+    beklenenSonuc: '"Kurum hesabıyla gir" düğmesi YALNIZ bağlı VE aktif'
+      + ' sağlayıcı varsa çizilir. Bağlanmamış sağlayıcı sessizce düşmez;'
+      + ' yönetim ekranında "bağlı değil" der ve eksiği ADIYLA söyler',
+    beklenenEkran: 'Olmayan bir yol düğme olarak gösterilmez',
+    beklenenIz: 'yazma yok', beklenenBildirim: 'yok',
+    katmanlar: ['SERVER', 'UI'],
+  },
+
   {
     id: 'BLD-KTU-003', alan: 'Bildirim', rota: '/bildirimler', eksen: 'veri',
     amac: 'Okunmamış bildirimi olmayan kullanıcının rozet görmemesi',

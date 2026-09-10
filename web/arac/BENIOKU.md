@@ -137,6 +137,24 @@ yeni dosyaya geri oynatabilir ve tohum "Veritabanı dolu" diyerek durur —
 ÖLÇÜLDÜ. Sunucu bu silmeden ÖNCE durdurulur, yoksa silinmiş inode'u
 tutmaya devam eder (yukarıdaki birinci tuzağın aynısı).
 
+### BEŞİNCİ TUZAK: GÖRÜNMEYEN İÇERİK (ölçüldü 10 Eyl 2026)
+
+`innerText` GÖRÜNEN metni döndürür; gizli bir düğümde BOŞ döner.
+`locator(...).count()` ise aynı düğümü DOM'da bulur. İkisini aynı sayfada
+kullanan bir betik "bağ var" derken "metin yok" diye kırmızı yakar ve
+kusur EKRANDA değil BETİKTEDİR.
+
+Ölçüldü: `kimlik-kanit.mjs` ilk turda `/giris` üzerinde BEŞ kırmızı
+verdi. Sebep: giriş ekranı sinematik bir açılışın içinde yaşıyor ve
+içerik animasyon bitene kadar görünmüyor. `a[href*="/kimlik/basla"]`
+iddiası GEÇİYOR, aynı bağın metnini arayan iddia KIRMIZI yanıyordu —
+çelişkinin kendisi tuzağın imzasıdır.
+
+**Kural:** animasyonlu ya da geç görünen yüzeylerde `textContent`
+okunur (stil uygulanmadan, ham metin). `text-transform: uppercase`
+sorunu da orada kendiliğinden düşer — Türkçe `İ` tuzağı `innerText`e
+özgüdür.
+
 **Kum havuzunda `kapi-compose` ÖLÇÜLEMEZ.** Docker derlemesinin ağı yok
 (`proxyconnect tcp: dial tcp 127.0.0.1:43743: connect: connection
 refused`; ölçüldü 10 Eyl 2026 — imaj katmanı önbellekteyken geçiyor,
@@ -213,6 +231,8 @@ biri gerekçesiyle beyan edilmiştir.
 | `derleme-ortami.mjs` | — (kütüphane) | derlemeye dayanan kapıların önkoşulu: boş alan (derlemeden önce) + statik çıktının TAM olduğu (ölçmeden önce) | çağıran kapı düşer |
 | `turkce-arama.mjs` | — (kütüphane) | Türkçe metin araması: çift küçültme + Unicode sözcük sınırı. **Sondalarda düz `/…/i` KULLANMAYIN** | — |
 | `marka-kapisi.mjs` | `marka:kapi` | ürün adı tek kaynaktan mı geliyor: nöbetçi adla statik demo derlemesi koşar, üretilen çıktıya bakar (tarayıcı istemez) | varsayılan ad işlenmiş yüzeyde geçiyor **ya da** nöbetçi görünmesi gereken yüzeyde yok |
+| `bildirim-donemi-kanit.mjs` **(CI · bloklayıcı)** | `kanit:bildirim-donemi` | Takvim tetikli yükümlülük ekranı iki bantta: dönem açıldı mı · geri sayım doğru mu · SÜRESİZ dönemde sayaç YOK mu · referanssız teslim REDDEDİLİYOR mu. Fikstürü DEĞİŞTİRMEZ (red hiçbir dönemi kapatmaz) | sayaç gösterilen süresiz dönem · kabul edilen referanssız teslim · ölçüm tabanının altına düşen iddia sayısı |
+| `kimlik-kanit.mjs` **(CI · bloklayıcı)** | `kanit:kimlik` | P6 kimlik ekranları iki bantta: yapıştırılan SIR DEĞERİ reddediliyor mu · sır ekranda GÖRÜNÜYOR mu · sağlayıcı bağlı değilken giriş ekranında çıkıyor mu. Fikstüre sağlayıcı EKLER ve sonda aktiflikten çıkarıp düğmenin DÜŞTÜĞÜNÜ doğrular | ekranda görünen sır değeri · bağlanmadan aktif olan sağlayıcı · reddedilmesi gereken kaydın geçmesi |
 | `kapi-farki.mjs` **(CI · bloklayıcı)** | `kapi:farki` | `package.json` betikleri ile PR kapısında koşanların farkı — tarayıcı istemez | beyansız betik (ne koşuyor ne gerekçeli) ya da bayat beyan |
 | `turkiye-siniri.mjs` | `harita:sinir` | üretir (kapı değil): Natural Earth'ten Türkiye silüeti | kaynak/öznitelik bulunamadı |
 | — | `test:kapsam` | vitest V8 kapsamı (`lib/**`, ekran `mantik.ts`/`ortak.ts`, `components/**`) | test kırığı |

@@ -22,6 +22,7 @@ import { KURULU_GUC } from '../lib/alan/oznitelik';
 import { hataSatiri } from '../lib/paket/dogrula';
 import { paketiKur } from '../lib/paket/kur';
 import { acikOlaylarinKayitlarini } from '../lib/uyum/bildirimKaydiAcma';
+import { acikDonemleriKur } from '../lib/uyum/bildirimDonemiAcma';
 import { MADDE_ALANLARI } from './seed-madde-alanlari';
 
 const parolaUret = (parola: string) => {
@@ -776,6 +777,15 @@ async function main() {
      bir gerçek olurdu; motor bir gün değişse tohum eski davranışı
      göstermeye devam ederdi. Gerçek motor koşar ve fikstür onun çıktısını
      taşır — `paketiKur`un gerçek kurucuyu koşmasıyla aynı gerekçe. */
+  /* Takvim tetikli yükümlülüklerin dönemleri de motorun kendi
+     döngüsünden açılır — tohumun elle dönem yazması, motorun işini
+     taklit eden ikinci bir gerçek doğururdu. */
+  const donem = await acikDonemleriKur(db);
+  console.log(`Bildirim dönemleri: ${donem.acilanDonem} dönem açıldı`
+    + ` · ${donem.suresiGecen} süresi geçti`
+    + ` · ${donem.donemsiz} yükümlülükte dönem mevzuatta belirlenmedi`
+    + ` · ${donem.teslimsiz} dönemde teslim süresi yok.`);
+
   const bildirim = await acikOlaylarinKayitlarini(db);
   console.log(`Bildirim kayıtları: ${bildirim.acilanTaslak} taslak açıldı`
     + ` · ${bildirim.suresiGecen} süresi geçti`

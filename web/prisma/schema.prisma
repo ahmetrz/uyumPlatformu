@@ -683,9 +683,10 @@ model Kanit {
   surumler           KanitSurumu[]
 
   // FAZ G ters bağları
-  egitimKayitlari EgitimKaydi[]
+  egitimKayitlari   EgitimKaydi[]
   /// R10 · Bu kanıt bir mevzuat bildiriminin gönderim kanıtı olabilir.
   bildirimKayitlari BildirimKaydi[]
+  bildirimDonemleri BildirimDonemi[]
 }
 
 /// UY-12 · Kanıt sürüm geçmişi — DEĞİŞMEZ kayıt.
@@ -841,6 +842,9 @@ model Kullanici {
   kesifYetkiKararlari      KesifKaydi[]             @relation("KesifYetkiKarari")
   erisimIncelemeleri       ErisimIncelemesi[]       @relation("ErisimInceleyen")
   kimlikHesaplari          KimlikHesabi[]
+  // P6 · kurum hesabı bağı ve MFA kaydı
+  kimlikBaglari            KimlikBagi[]             @relation("KimlikBagiKullanici")
+  mfaKaydi                 MfaKaydi?                @relation("MfaKullanici")
   talepDegisiklikler       Degisiklik[]             @relation("DegisiklikTalep")
   onayDegisiklikler        Degisiklik[]             @relation("DegisiklikOnay")
   adayKararlari            ProjeAdayi[]             @relation("AdayKarari")
@@ -886,6 +890,7 @@ model Kullanici {
   onayladigiMedyaKullanimlari   MedyaKullanimi[]       @relation("MedyaOnaylayan")
   guncelledigiBildirimKurallari BildirimYukumlulugu[]  @relation("BildirimKuraliGuncelleyen")
   gonderdigiBildirimler         BildirimKaydi[]        @relation("BildirimKaydiGonderen")
+  verdigiDonemler               BildirimDonemi[]       @relation("BildirimDonemiVeren")
   paketKurulumlari              IcerikPaketiSurumu[]   @relation("PaketKuran")
   yaptigiKontrolTestleri        KontrolTesti[]         @relation("KontrolTestEden")
   yurutuguGozdenGecirmeler      YonetimGozdenGecirme[] @relation("GozdenGecirmeYuruten")
@@ -2322,12 +2327,12 @@ model Olay {
   tesis          Tesis?     @relation(fields: [tesisId], references: [id])
   etkiDogrulayan Kullanici? @relation("OlayEtkiDogrulayan", fields: [etkiDogrulayanId], references: [id])
 
-  varliklar     OlayVarlik[]
-  sistemler     OlaySistem[]
-  riskler       OlayRisk[]
-  bulgular      OlayBulgu[]
-  projeler      OlayProje[]
-  degisiklikler OlayDegisiklik[]
+  varliklar         OlayVarlik[]
+  sistemler         OlaySistem[]
+  riskler           OlayRisk[]
+  bulgular          OlayBulgu[]
+  projeler          OlayProje[]
+  degisiklikler     OlayDegisiklik[]
   /// R10 · Bu olay için açılmış mevzuat bildirimi kayıtları.
   bildirimKayitlari BildirimKaydi[]
 }
@@ -3992,9 +3997,74 @@ model BildirimYukumlulugu {
   /// `sirReferansi` ile taşınır ve bu alan bir sır alanı değildir.
   kanalNotu       String?
 
-  regulasyon  Regulasyon? @relation(fields: [regulasyonId], references: [id])
-  guncelleyen Kullanici?  @relation("BildirimKuraliGuncelleyen", fields: [guncelleyenId], references: [id])
+  /// R10+ · TETİKLEYİCİ TÜRÜ: `olay` | `takvim`.
+  ///
+  /// Ölçüldü (#48): EPDK Yönetmeliği md. 10/2, 10/3 ve 10/4 üç raporlama
+  /// süresi veriyor ama bunlar OLAYDAN değil TAKVİMDEN doğuyor. Bir
+  /// takvim yükümlülüğünü olay yükümlülüğü alanına yazmak, biçimi doğru
+  /// ve değeri aralıkta bir ANLAM EŞLEME HATASIDIR (R-D): `asgariSiddet`
+  /// bir takvim yükümlülüğü için anlamsızdır ve hiçbir kapı görmez.
+  /// Tür PAKETTE beyan edilir, koda gömülmez.
+  tetikleyici     String  @default("olay")
+  /// Takvim tetikli yükümlülüğün DÖNEMİ: `yillik` | `ceyreklik` | `aylik`.
+  ///
+  /// NULL = dönem mevzuatta BELİRLENMEDİ. Sayaç işlemez ve ekran bunu
+  /// cümleyle söyler — `sureSaat` ile aynı gerekçe: mevzuatın vermediği
+  /// bir periyodu ürünün uydurması, kimsenin değiştirmediği yanlış bir
+  /// takvim bırakır. Olay tetiklide bu alan DOLDURULMAZ.
+  donem           String?
+  /// Dönemin başladığı gün (ISO tarih, yıl anlamsız): "01-01" gibi.
+  /// NULL ise dönem kiracının kendi mali/idari takvimine göre açılır ve
+  /// ürün bir tarih UYDURMAZ.
+  donemBaslangici String?
+  /// Dönem KAPANDIKTAN sonra teslim için kaç GÜN var. NULL = belirlenmedi.
+  teslimGun       Int?
+
+  regulasyon  Regulasyon?      @relation(fields: [regulasyonId], references: [id])
+  guncelleyen Kullanici?       @relation("BildirimKuraliGuncelleyen", fields: [guncelleyenId], references: [id])
   kayitlar    BildirimKaydi[]
+  donemler    BildirimDonemi[]
+}
+
+/// R10+ · TAKVİM TETİKLİ YÜKÜMLÜLÜĞÜN AÇILAN DÖNEMİ.
+///
+/// Olay tetiklide kayıt bir OLAYDAN doğar; takvim tetiklide bir DÖNEMDEN.
+/// İkisi ayrı tablodur çünkü ayrı sorular sorarlar: "bu olay bildirildi
+/// mi" ile "bu dönemin raporu verildi mi". Aynı tabloya sıkıştırmak,
+/// `olayId`yi nullable yapıp iki gerçeği tek satırda tutmak olurdu.
+///
+/// MOTOR DÖNEM AÇAR, GÖNDERMEZ. Yazabildiği iki durum vardır (`acik` ve
+/// `suresi_gecti`); `verildi` · `teyit_alindi` · `uygulanmaz` insan
+/// kararıdır — olay tarafındaki kuralın birebir aynısı.
+model BildirimDonemi {
+  id                  String    @id @default(cuid())
+  yukumlulukId        String
+  /// Dönemin insan tarafından okunan adı: "2026", "2026-Ç1", "2026-03".
+  donemEtiketi        String
+  /// Dönemin kapsadığı aralık. Motor bunlardan geri sayımı hesaplar.
+  baslangic           DateTime
+  bitis               DateTime
+  /// Teslim son tarihi. NULL = mevzuat teslim süresi vermedi; sayaç YOK.
+  sonTarih            DateTime?
+  /// acik | verildi | teyit_alindi | suresi_gecti | uygulanmaz
+  durum               String    @default("acik")
+  referansNo          String?
+  verenId             String?
+  verilmeZamani       DateTime?
+  teyitZamani         DateTime?
+  kanitId             String?
+  uygulanmazGerekcesi String?
+  acildi              DateTime  @default(now())
+  guncellendi         DateTime  @updatedAt
+
+  yukumluluk BildirimYukumlulugu @relation(fields: [yukumlulukId], references: [id])
+  veren      Kullanici?          @relation("BildirimDonemiVeren", fields: [verenId], references: [id])
+  kanit      Kanit?              @relation(fields: [kanitId], references: [id])
+
+  /// Aynı yükümlülüğün aynı dönemi İKİ KEZ açılmaz.
+  @@unique([yukumlulukId, donemEtiketi])
+  @@index([durum])
+  @@index([sonTarih])
 }
 
 /// R10 · OLAY → MEVZUAT BİLDİRİMİ KAYDI (`OLY-BIL`).
@@ -4013,33 +4083,33 @@ model BildirimYukumlulugu {
 ///
 /// `sonTarih` NULLABLE: yükümlülüğün süresi yoksa son tarih de yoktur.
 model BildirimKaydi {
-  id            String    @id @default(cuid())
-  olayId        String
-  yukumlulukId  String
+  id                  String    @id @default(cuid())
+  olayId              String
+  yukumlulukId        String
   /// taslak | gonderildi | teyit_alindi | suresi_gecti | uygulanmaz
-  durum         String    @default("taslak")
+  durum               String    @default("taslak")
   /// Olayın BAŞLANGICINDAN hesaplanır; süresiz yükümlülükte null.
-  sonTarih      DateTime?
+  sonTarih            DateTime?
   /// Mercinin şablonuna göre doldurulan taslak; ürün buraya bir cevap
   /// UYDURMAZ, alanları boş bırakıp kurumun doldurmasını bekler.
-  taslakMetin   String?
-  gonderenId    String?
-  gonderimZamani DateTime?
+  taslakMetin         String?
+  gonderenId          String?
+  gonderimZamani      DateTime?
   /// Merciden alınan referans numarası — gönderim işaretlemenin ŞARTI.
-  referansNo    String?
+  referansNo          String?
   /// Gönderimin kanıtı (ekran çıktısı, e-posta, alındı belgesi).
-  kanitId       String?
-  teyitZamani   DateTime?
+  kanitId             String?
+  teyitZamani         DateTime?
   /// "Uygulanmaz" kararının gerekçesi — kararın ŞARTI.
   uygulanmazGerekcesi String?
   /// Motor kaydı ne zaman açtı.
-  acildi        DateTime  @default(now())
-  guncellendi   DateTime  @updatedAt
+  acildi              DateTime  @default(now())
+  guncellendi         DateTime  @updatedAt
 
-  olay       Olay                 @relation(fields: [olayId], references: [id], onDelete: Cascade)
-  yukumluluk BildirimYukumlulugu  @relation(fields: [yukumlulukId], references: [id])
-  gonderen   Kullanici?           @relation("BildirimKaydiGonderen", fields: [gonderenId], references: [id])
-  kanit      Kanit?               @relation(fields: [kanitId], references: [id])
+  olay       Olay                @relation(fields: [olayId], references: [id], onDelete: Cascade)
+  yukumluluk BildirimYukumlulugu @relation(fields: [yukumlulukId], references: [id])
+  gonderen   Kullanici?          @relation("BildirimKaydiGonderen", fields: [gonderenId], references: [id])
+  kanit      Kanit?              @relation(fields: [kanitId], references: [id])
 
   /// Aynı olay + aynı yükümlülük için İKİNCİ kayıt açılmaz: motor her
   /// koşuda aynı taslağı yeniden açsaydı kuyruk okunmaz hâle gelirdi.
@@ -4398,4 +4468,147 @@ model RolKatalogu {
   paketSurumId String?
   olusturuldu  DateTime @default(now())
   guncellendi  DateTime @updatedAt
+}
+
+/// ═══ P6 · KİMLİK SAĞLAYICI (OIDC) ════════════════════════════════════
+///
+/// Kurum hesabıyla giriş. Bir kurulumda birden çok sağlayıcı tanımlı
+/// olabilir (kiracı başına) ama YALNIZ BAĞLI VE AKTİF olan giriş
+/// ekranında görünür — bağlanmamış sağlayıcı "bağlı değil" der, sessizce
+/// düşmez.
+///
+/// SIR DEĞERİ BURADA DURMAZ. `istemciSirriReferansi` bir REFERANSTIR
+/// (`env:` · `dosya:` · `vault:`); istemci sırrının kendisi ürünün
+/// veritabanına hiç girmez ve bekçi bunu ölçer
+/// (tests/bekci/kimlik-sir.test.ts · URN-KML-001).
+///
+/// UÇLAR ELLE GİRİLİR. Keşif belgesini (`/.well-known/...`) çekmek bir AĞ
+/// çağrısıdır ve yapılandırma anında yapılmaz: bu depoda hiçbir gerçek
+/// kimlik sağlayıcıya bağlanılmaz, kurulum ortamında da bağlantı bir
+/// İNSAN kararıdır. Uçları yönetici girer, ürün doğrular.
+model KimlikSaglayici {
+  id     String @id @default(cuid())
+  /// P2'ye kadar tek kurulum tek kiracıdır; alan kurulumun adını taşır ve
+  /// P2'de `Kiraci.id`ye bağlanır (docs/GELISTIRME_PAKETLERI.md §P2).
+  kiraci String @default("varsayilan")
+  ad     String
+  /// oidc | yerel — `yerel` satırı yalnız politikayı taşır, uç istemez.
+  tur    String @default("oidc")
+
+  issuer                String?
+  clientId              String?
+  /// SIR DEĞİL, SIRRA GİDEN ADRES.
+  istemciSirriReferansi String?
+  yetkilendirmeUcu      String?
+  jetonUcu              String?
+  jwksUcu               String?
+  yonlendirmeUri        String?
+
+  /// IdP'nin hangi iddiası rol taşıyor ("groups" · "roles"); boşsa rol
+  /// eşlemesi YAPILMAZ ve kullanıcı yetkisini üründen alır.
+  rolIddiasi      String?
+  /// { "<IdP grubu>": "<ürün rolü>" } — eşlemesi olmayan grup sessizce
+  /// atılmaz, ekranda ADIYLA görünür.
+  rolEslemesiJson String?
+
+  /// JIT KULLANICI AÇMA — VARSAYILAN KAPALI. Kapalıyken tanınmayan bir
+  /// `sub` REDDEDİLİR ve kullanıcı AÇILMAZ: bir uyum ürününde kimin
+  /// hesabı olduğu bir yönetim kararıdır, IdP'nin tek taraflı beyanı
+  /// değil. Açıksa bile açılan hesap YETKİSİZ doğar.
+  jitAcik Boolean @default(false)
+
+  /// Bağlı mı — yapılandırma tam ve insan "bağla" dedi mi.
+  bagli Boolean @default(false)
+  /// Giriş ekranında görünsün mü. `bagli` olmadan aktif edilemez.
+  aktif Boolean @default(false)
+
+  olusturuldu DateTime @default(now())
+  guncellendi DateTime @updatedAt
+
+  baglar KimlikBagi[]
+
+  @@unique([kiraci, ad])
+  @@index([aktif])
+}
+
+/// P6 · IdP'deki kimlik ile üründeki kullanıcının BAĞI.
+///
+/// `konu` IdP'nin `sub` iddiasıdır ve e-posta DEĞİLDİR: e-posta değişir,
+/// yeniden atanır, takma ad alır; `sub` sağlayıcı içinde kalıcıdır.
+/// E-postayla eşleştirmek, e-postası devralınan bir hesabın başkasının
+/// kimliğine düşmesi demektir.
+model KimlikBagi {
+  id          String @id @default(cuid())
+  saglayiciId String
+  kullaniciId String
+  konu        String
+
+  olusturuldu DateTime  @default(now())
+  sonGiris    DateTime?
+
+  saglayici KimlikSaglayici @relation(fields: [saglayiciId], references: [id], onDelete: Cascade)
+  kullanici Kullanici       @relation("KimlikBagiKullanici", fields: [kullaniciId], references: [id], onDelete: Cascade)
+
+  @@unique([saglayiciId, konu])
+  @@index([kullaniciId])
+}
+
+/// ═══ P6 · MFA (TOTP) ═════════════════════════════════════════════════
+///
+/// TOTP paylaşılan sır ister — doğrulama matematiği bunu zorunlu kılar.
+/// Ürünün "sır değeri saklanmaz" kuralı burada ZARFLA korunur:
+/// `sirZarfi` AES-256-GCM şifreli gövdedir ve ŞİFRELEME ANAHTARI
+/// veritabanında YOKTUR; anahtar bir sır referansıyla dışarıdan çözülür
+/// (`lib/kimlik/sifreleme.ts` · `MFA_ANAHTAR_REFERANSI`). Yedeği çalınan
+/// bir veritabanı MFA sırlarını vermez.
+model MfaKaydi {
+  id          String    @id @default(cuid())
+  kullaniciId String    @unique
+  /// totp — bugün tek tür. SMS ve e-posta YOKTUR ve eklenmeyecek:
+  /// ikisi de SIM devralma ve posta kutusu ele geçirmeye açıktır.
+  tur         String    @default("totp")
+  /// Şifreli zarf (JSON). DÜZ SIR DEĞİL.
+  sirZarfi    String
+  /// İnsan ilk kodu doğrulayana kadar kayıt KURULU SAYILMAZ: doğrulanmamış
+  /// bir kayıt, kullanıcıyı kendi hesabından kilitlerdi.
+  dogrulandi  Boolean   @default(false)
+  /// Kabul edilen son TOTP adımı — aynı kod iki kez geçmesin.
+  sonAdim     Int?
+  olusturuldu DateTime  @default(now())
+  sonKullanim DateTime?
+
+  kullanici       Kullanici         @relation("MfaKullanici", fields: [kullaniciId], references: [id], onDelete: Cascade)
+  kurtarmaKodlari MfaKurtarmaKodu[]
+}
+
+/// P6 · Kurtarma kodu — ÖZETİ saklanır, kendisi bir kez gösterilir.
+model MfaKurtarmaKodu {
+  id         String    @id @default(cuid())
+  kayitId    String
+  /// scrypt özeti (`lib/auth.ts` → `parolaOzetle` ile aynı biçim).
+  kodHash    String
+  kullanildi DateTime?
+
+  kayit MfaKaydi @relation(fields: [kayitId], references: [id], onDelete: Cascade)
+
+  @@index([kayitId])
+}
+
+/// ═══ P6 · KİRACI OTURUM POLİTİKASI ═══════════════════════════════════
+///
+/// Kayıt YOKSA varsayılan uygulanır (12 saat mutlak · 2 saat atıl);
+/// gerekçesi `lib/auth.ts` başlığında yazılı ve DEĞİŞMEDİ. Kiracı
+/// sıkılaştırabilir; tavanlar `lib/kimlik/politika.ts`te ve gerekçelidir.
+model OturumPolitikasi {
+  id         String  @id @default(cuid())
+  kiraci     String  @unique @default("varsayilan")
+  mutlakSaat Int     @default(12)
+  /// Çeyrek saat çözünürlüğü için DAKİKA tutulur: 0.25 saat bir tam sayı
+  /// alanda temsil edilemez ve kesirli saat, ekranda da kodda da yuvarlama
+  /// hatası üretirdi.
+  atilDakika Int     @default(120)
+  mfaZorunlu Boolean @default(false)
+
+  guncellendi   DateTime @updatedAt
+  guncelleyenId String?
 }

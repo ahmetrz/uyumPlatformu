@@ -25,7 +25,7 @@ import { aktifKullanici } from '../auth';
 import { kapsamAnahtari, kapsamSozlugu } from '../dil/sozlukOku';
 import { t } from '../dil/terimler';
 import { DEMO } from '../demo';
-import { izinVar, izinliTesisIdleri } from '../erisim';
+import { izinVar, disaAktarimKapsami } from '../erisim';
 import {
   kanitPaketiUret, type PaketImzasi, type PaketSayimlari,
 } from '../disaAktarim/paket';
@@ -108,8 +108,10 @@ export async function kanitPaketiUretEylem(girdi: {
     if (!k) throw new Error('Oturum gerekli');
     kullaniciId = k.id;
 
-    const izinli = izinliTesisIdleri(k, 'denetim');
-    if (izinli !== null && izinli.length === 0) {
+    /* KAPSAM KARARI TEK KAYNAKTAN — `erisim.ts` → `disaAktarimKapsami`.
+       Ekranın okuduğu kuralın aynısı; ikinci nüsha yok. */
+    const kapsam = disaAktarimKapsami(k, 'denetim');
+    if (kapsam.bos) {
       throw new Error('Denetim modülünde okuma yetkiniz yok — kanıt paketi üretilemez');
     }
     /* Her tesis TEK TEK denetlenir; ilkinin geçmesi kalanını geçirmez.
@@ -122,7 +124,7 @@ export async function kanitPaketiUretEylem(girdi: {
        sektörünü öğrenmek kullanıcının hakkı değil. */
     const disarida = istenen.filter((t) => !izinVar(k, 'denetim', 'okuma', { tesisId: t }));
     if (disarida.length > 0) {
-      const sozluk = await kapsamSozlugu(kapsamAnahtari(izinli));
+      const sozluk = await kapsamSozlugu(kapsamAnahtari(kapsam.tesisIdleri));
       const sozcuk = t(sozluk, 'tesis', disarida.length === 1 ? 'tekil' : 'cogul');
       throw new Error(
         `İstenen ${disarida.length} ${sozcuk} yetkinizin kapsamı dışında — paket üretilmedi`);
@@ -140,7 +142,7 @@ export async function kanitPaketiUretEylem(girdi: {
            (`izinli === null` = kurum geneli). Tek tesise yetkili bir dış
            denetçiye şirketin kurumsal ihlallerini vermek, kapsam sınırını
            kanıt paketi üzerinden delmek olurdu. */
-        kurumsalDahil: izinli === null,
+        kurumsalDahil: kapsam.kurumsalDahil,
         baslangic,
         bitis,
       },

@@ -2,6 +2,7 @@ import 'server-only';
 import { db } from '../db';
 import { bildirimKarari, type Yukumluluk } from '../uyum/bildirimSuresi';
 import { olayinKayitlarini } from '../uyum/bildirimKaydiAcma';
+import { acikDonemleriKur } from '../uyum/bildirimDonemiAcma';
 import type { SureliYukumluluk } from '../uyum/bildirimKaydi';
 
 /* ═══ UY-63 · Bildirim süresi motoru ═══════════════════════════════════
@@ -49,6 +50,14 @@ export type BildirimSuresiKosusu = {
   suresiGecen: number;
   /** Süresi mevzuatta belirlenmemiş olduğu için geri sayımı OLMAYAN kayıt. */
   suresiz: number;
+  /* ── R10+ · TAKVİM TETİKLİ ──────────────────────────────────────────
+     Aynı motor iki tetikleyiciyi de yürütür: olay tetiklide kayıt bir
+     OLAYDAN doğar, takvim tetiklide bir DÖNEMDEN. Sayılar AYRI durur —
+     "kaç taslak açıldı" ile "kaç dönem açıldı" ayrı sorulardır. */
+  acilanDonem: number;
+  donemSuresiGecen: number;
+  /** Periyodu mevzuatta belirlenmediği için dönem AÇILAMAYAN yükümlülük. */
+  donemsiz: number;
 };
 
 export async function bildirimSurelerini(): Promise<BildirimSuresiKosusu> {
@@ -67,6 +76,7 @@ export async function bildirimSurelerini(): Promise<BildirimSuresiKosusu> {
     return {
       islenen: 0, uretilen: 0, daralan: 0, geciken: 0, kuralYok: true,
       acilanTaslak: 0, suresiGecen: 0, suresiz: 0,
+      acilanDonem: 0, donemSuresiGecen: 0, donemsiz: 0,
     };
   }
 
@@ -160,6 +170,11 @@ export async function bildirimSurelerini(): Promise<BildirimSuresiKosusu> {
     daralan,
     geciken,
     kuralYok: false,
+    ...(await acikDonemleriKur(db).then((d) => ({
+      acilanDonem: d.acilanDonem,
+      donemSuresiGecen: d.suresiGecen,
+      donemsiz: d.donemsiz,
+    }))),
     acilanTaslak,
     suresiGecen,
     suresiz,

@@ -304,7 +304,52 @@ export const YukumlulukSatiriSemasi = z.object({
       kullanıcı adı ya da anahtar buraya YAZILMAZ; sır yalnız
       `sirReferansi` ile taşınır ve bu bir sır alanı değildir. */
   kanalNotu: z.string().min(1).max(200).nullable().optional(),
-}).strict();
+  /* ── TETİKLEYİCİ TÜRÜ PAKETTE BEYAN EDİLİR ─────────────────────────
+     Ölçüldü (#48): EPDK Yönetmeliği md. 10/2, 10/3, 10/4 üç raporlama
+     süresi veriyor ve üçü de OLAYDAN değil TAKVİMDEN doğuyor. Model
+     yalnız olay tetikli olduğu için bu yükümlülükler ürüne HİÇ
+     giremiyordu; olay alanına yazmak ise biçimi doğru bir ANLAM EŞLEME
+     HATASI olurdu (R-D) — `asgariSiddet` bir takvim yükümlülüğü için
+     anlamsızdır ve hiçbir kapı bunu göremez. Tür KODA GÖMÜLMEZ. */
+  tetikleyici: z.enum(['olay', 'takvim']).default('olay'),
+  /** Takvim tetiklinin periyodu. `null` = mevzuat belirlemedi; dönem
+      AÇILMAZ ve ekran "dönem mevzuatta belirlenmedi" der. Olay
+      tetiklide DOLDURULMAZ. */
+  donem: z.enum(['yillik', 'ceyreklik', 'aylik']).nullable().optional(),
+  /** Dönemin başladığı gün ("MM-DD"); `null` ise takvim yılı VARSAYILIR
+      ve varsayım ekrana kadar beyan edilir. Kiracının mali yılı farklı
+      olabilir ve ürün onun adına bir takvim dayatmaz. */
+  donemBaslangici: z.string().regex(/^(0[1-9]|1[0-2])-(0[1-9]|1\d|2[0-8])$/).nullable().optional(),
+  /** Dönem KAPANDIKTAN sonra teslim için kaç gün. `null` = belirlenmedi;
+      sayaç işlemez. Sıfır yasak: sıfır gün, dönem biter bitmez geçmiş
+      bir sayaçtır. */
+  teslimGun: z.number().int().positive().nullable().optional(),
+}).strict()
+  .superRefine((y, ctx) => {
+    /* TÜR ile ALANLAR TUTARLI OLMALI. Bir olay yükümlülüğüne dönem
+       yazmak ya da bir takvim yükümlülüğüne şiddet eşiği koymak,
+       biçimi geçerli ama ANLAMI yanlış bir satır üretir — kapı bunu
+       ancak burada görebilir. */
+    if (y.tetikleyici === 'takvim') {
+      if (y.sureSaat !== null) {
+        ctx.addIssue({
+          code: 'custom',
+          message: 'Takvim tetikli yükümlülükte `sureSaat` KULLANILMAZ: '
+            + 'süre olaydan değil dönemden sayılır (`teslimGun`).',
+        });
+      }
+    } else {
+      for (const alan of ['donem', 'donemBaslangici', 'teslimGun'] as const) {
+        if (y[alan] !== undefined && y[alan] !== null) {
+          ctx.addIssue({
+            code: 'custom',
+            message: `Olay tetikli yükümlülükte \`${alan}\` KULLANILMAZ: `
+              + 'yükümlülük takvimden değil olaydan doğar.',
+          });
+        }
+      }
+    }
+  });
 export type YukumlulukSatiri = z.infer<typeof YukumlulukSatiriSemasi>;
 
 /* ── 2.2 · Form ve rapor şablonu türleri (§1/6–7) ─────────────────────

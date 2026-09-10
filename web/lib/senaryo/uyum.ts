@@ -388,6 +388,61 @@ export const UYUM_SENARYOLARI: Senaryo[] = [
     katmanlar: ['SERVER', 'DOMAIN', 'UI'],
   },
 
+  {
+    id: 'OLY-BIL-006', alan: 'Olay', rota: '/raporlar/takvim', eksen: 'akis',
+    amac: 'TAKVİMDEN doğan raporlama yükümlülüğünü olay yükümlülüğüyle karıştırmadan izlemek',
+    rol: 'uyum yöneticisi', kapsam: 'kurum geneli',
+    onkosul: 'Takvim tetikli aktif bir yükümlülük var (EPBS raporlaması gibi)',
+    veriHali: 'kısmi',
+    eylem: 'Bildirim süresi motoru koşar (`bildirimDonemiAcma.acikDonemleriKur`)',
+    beklenenSonuc: 'İçinde bulunulan DÖNEM açılır ve teslim son tarihi dönem'
+      + ' KAPANDIKTAN sonra başlar; ikinci koşuda ikinci dönem AÇILMAZ.'
+      + ' Periyot mevzuatta belirlenmemişse dönem HİÇ açılmaz ve bu sayılır;'
+      + ' teslim süresi belirlenmemişse dönem açılır ama SAYAÇ İŞLEMEZ.'
+      + ' Motor `verildi` · `teyit_alindi` · `uygulanmaz` YAZAMAZ',
+    beklenenEkran: 'Dönem etiketi, durum ve geri sayım; süresiz olanda'
+      + ' "Teslim süresi mevzuatta belirlenmedi"',
+    beklenenIz: 'BildirimDonemi · olusturma (aktörsüz — kararı insan vermedi)',
+    beklenenBildirim: 'yok',
+    katmanlar: ['SERVER', 'DOMAIN', 'WORKFLOW'],
+  },
+
+  {
+    id: 'OLY-BIL-007', alan: 'Olay', rota: '/raporlar/takvim', eksen: 'veri',
+    amac: 'Periyodu BİLİNMEYEN yükümlülüğün "yolunda" görünmesini engellemek',
+    rol: 'uyum yöneticisi', kapsam: 'kurum geneli',
+    onkosul: 'Kurulu pakette hem periyotlu hem periyotsuz takvim yükümlülüğü var',
+    veriHali: 'kısmi',
+    eylem: 'Raporlama takvimi ekranı açılır',
+    beklenenSonuc: 'Açılmış dönem etiketiyle ve geri sayımıyla durur. Teslim'
+      + ' süresi belirlenmemiş dönemde ve periyodu hiç belirlenmemiş'
+      + ' yükümlülükte SAYAÇ YOKTUR: satır "belirlenmedi" der ve BİLİNMEYEN'
+      + ' sınıfında durur. Dönemsiz yükümlülük listeden DÜŞMEZ — gizlenseydi'
+      + ' ekran "her şey yolunda" derdi',
+    beklenenEkran: '"Dönemi belirlenmemiş" AYRI metriktir: açık döneme eklenmez,'
+      + ' sıfıra da çekilmez',
+    beklenenIz: 'yok — okuma',
+    beklenenBildirim: 'yok',
+    katmanlar: ['SERVER', 'DOMAIN', 'UI'],
+  },
+  {
+    id: 'OLY-BIL-008', alan: 'Olay', rota: '/raporlar/takvim', eksen: 'yetki',
+    amac: 'Verilmemiş bir dönem raporunun "verildi" görünmesini engellemek',
+    rol: 'uyum yöneticisi', kapsam: 'kurum geneli',
+    onkosul: 'Açık bir raporlama dönemi var', veriHali: 'kısmi',
+    eylem: 'İnsan "Verildi olarak işaretle" der ama referans alanını BOŞ bırakır'
+      + ' (`bildirimDonemi.donemVerildiIsaretle`)',
+    beklenenSonuc: 'İstek REDDEDİLİR ve dönem DEĞİŞMEZ. Kapsam KAPSAMSIZ sorulur:'
+      + ' takvim yükümlülüğü kurumsaldır ve tesise kısıtlı rol geçemez.'
+      + ' Referans verilince geçer; süresi geçmiş bir dönemde de verilebilir ve'
+      + ' gecikme denetim izine ADIYLA yazılır',
+    beklenenEkran: 'Hata satırı alanın altında; dönem hâlâ açık ve teslim kaydı yok',
+    beklenenIz: 'red: yazma yok · kabul: BildirimDonemi · guncelleme'
+      + ' (gerekçede referans no ve gecikme)',
+    beklenenBildirim: 'yok',
+    katmanlar: ['SERVER', 'DOMAIN', 'UI'],
+  },
+
   /* ── R12 · Denetim formları ─────────────────────────────────────── */
   {
     id: 'DNT-FRM-001', alan: 'Denetim', rota: '/raporlar/denetim-formlari',

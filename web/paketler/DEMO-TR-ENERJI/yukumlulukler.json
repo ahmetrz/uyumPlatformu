@@ -16,5 +16,44 @@
     "dayanak": "KURGUSAL. Mevzuatın SÜRE BELİRLEMEDİĞİ hâli demo verisinde görünür kılar: geri sayım gösterilmez, \"süre mevzuatta belirlenmedi\" yazar ve kayıt ASLA \"süresi geçti\" olmaz. Saat uydurulmaz.",
     "merci": "Kurgusal Merci B",
     "kanalNotu": "Kurgusal bildirim kanalı"
+  },
+  {
+    "tetikleyici": "takvim",
+    "asgariSiddet": "dusuk",
+    "sureSaat": null,
+    "kanalNotu": "Kurgusal bildirim sistemi üzerinden",
+    "kod": "DEMO-DONEM-YILLIK",
+    "ad": "Kurgusal yıllık uyum raporu",
+    "merci": "Kurgusal Düzenleyici Kurum",
+    "donem": "yillik",
+    "donemBaslangici": "01-01",
+    "teslimGun": 30,
+    "dayanak": "KURGUSAL. Takvim tetikli yükümlülüğün ekranda nasıl göründüğünü göstermek için yazıldı; hiçbir gerçek mevzuata karşılık gelmez."
+  },
+  {
+    "tetikleyici": "takvim",
+    "asgariSiddet": "dusuk",
+    "sureSaat": null,
+    "kanalNotu": "Kurgusal bildirim sistemi üzerinden",
+    "kod": "DEMO-DONEM-TESLIMSIZ",
+    "ad": "Kurgusal çeyreklik bildirim (teslim süresi yok)",
+    "merci": "Kurgusal Merci T",
+    "donem": "ceyreklik",
+    "donemBaslangici": null,
+    "teslimGun": null,
+    "dayanak": "KURGUSAL. Mevzuatın TESLİM SÜRESİ vermediği hâli demo verisinde göstermek için: dönem açılır ama sayaç işlemez."
+  },
+  {
+    "tetikleyici": "takvim",
+    "asgariSiddet": "dusuk",
+    "sureSaat": null,
+    "kanalNotu": "Kurgusal bildirim sistemi üzerinden",
+    "kod": "DEMO-DONEM-BELIRSIZ",
+    "ad": "Kurgusal periyodik yükümlülük (dönem belirsiz)",
+    "merci": "Kurgusal Merci U",
+    "donem": null,
+    "donemBaslangici": null,
+    "teslimGun": null,
+    "dayanak": "KURGUSAL. Mevzuatın PERİYOT vermediği hâli göstermek için: dönem hiç açılmaz ve ürün bir takvim uydurmaz."
   }
 ]

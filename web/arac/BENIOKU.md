@@ -155,11 +155,28 @@ okunur (stil uygulanmadan, ham metin). `text-transform: uppercase`
 sorunu da orada kendiliğinden düşer — Türkçe `İ` tuzağı `innerText`e
 özgüdür.
 
-**Kum havuzunda `kapi-compose` ÖLÇÜLEMEZ.** Docker derlemesinin ağı yok
-(`proxyconnect tcp: dial tcp 127.0.0.1:43743: connect: connection
-refused`; ölçüldü 10 Eyl 2026 — imaj katmanı önbellekteyken geçiyor,
-önbellek boşaltılınca `apt`/`wget` adımı düşüyor). Bu kapı yerelde
-"geçti" ya da "kırmızı" değil **ölçülmedi**dir; gerçek ölçümü CI yapar.
+**Kum havuzunda `kapi-compose` ÖLÇÜLEMEZ — ama SEBEBİ ağ değil.**
+
+Bu satır bir kez YANLIŞ yazıldı ve düzeltilmesi ölçümle oldu. Önceki hâli
+"docker derlemesinin ağı yok" diyordu ve kanıtı bir `proxyconnect` hata
+metniydi. Yeniden ölçüldü (10 Eyl 2026, ikinci tur): `docker run` da
+`docker build` de ağa ÇIKIYOR (üç koşuda da `apt-get update` geçti).
+Gerçek engel iki tanedir ve ikisi de ürünün dışındadır:
+
+1. **TLS kesme.** Kum havuzu araya giren bir vekil kullanıyor; `wget`
+   `postgresql.org` sertifikasını doğrulayamayıp **çıkış kodu 5** ile
+   düşüyordu. Bu kurulumun kendi kancası var ve çalışıyor:
+   `CA_DEMETI=/root/.ccr/ca-bundle.crt npm run kapi:compose` — compose
+   dosyası bunu `ca_demeti` sırrı olarak geçirir, Dockerfile `[ -s … ]`
+   ile görür. Kancayla birlikte uygulama imajı DERLENDİ ve yığın KALKTI.
+2. **Disk tavanı.** Kum havuzunun yazılabilir alanı sabittir; ikinci imaj
+   (tohum hedefi) katmanları dışa aktarırken `no space left on device`
+   ile düştü. `docker system prune -af --volumes` 7 GB açtı, o da yetmedi.
+
+Yani kapı yerelde "geçti" ya da "kırmızı" değil **ölçülmedi**dir ve
+gerekçesi DİSKTİR, ağ değil. Gerçek ölçümü CI yapar (runner diski daha
+büyük). Yanlış teşhis bir sonraki kişiyi ağ ayarlarında saatlerce
+dolaştırırdı; bu yüzden satır düzeltildi, silinmedi.
 
 ## Kalite kapıları (KK-1…KK-8)
 

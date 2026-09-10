@@ -37,7 +37,8 @@ export type Yukumluluk = {
   ad: string;
   regulasyonId: string | null;
   asgariSiddet: string;
-  sureSaat: number;
+  /** R10 · NULLABLE: mevzuat süreyi belirlememiş olabilir. Sıfır DEĞİLDİR. */
+  sureSaat: number | null;
   merci: string;
   aktif: boolean;
 };
@@ -57,6 +58,12 @@ export function siddetYeterli(olay: string, asgari: string): boolean {
  * bağlayıcıdır. En uzunu seçmek, kurumu kendi kurallarından birine
  * göre geciktirirdi.
  *
+ * SÜRESİZ KURAL (R10 · `sureSaat === null`) yarışa girmez ama YOK da
+ * sayılmaz: süreli bir kural varsa o kazanır, yalnız süresizler uyuyorsa
+ * en küçük kodlu süresiz döner ve karar `sure_belirsiz` olur. Süresizi
+ * "sonsuz süre" sayıp yarışa sokmak, geri sayımı olan bir kuralı
+ * bastırmasına yol açardı; hiç saymamak ise yükümlülüğü görünmez yapardı.
+ *
  * Regülasyona bağlı kural yalnız o regülasyon olayın kapsamındaysa
  * uyar; regülasyonsuz kural her olaya uyar (kurum geneli kural).
  */
@@ -72,7 +79,9 @@ export function uyanYukumluluk(o: {
     return o.regulasyonIdleri.includes(k.regulasyonId);
   });
   if (uyanlar.length === 0) return null;
-  return uyanlar.reduce((a, b) => (b.sureSaat < a.sureSaat ? b : a));
+  const sureliler = uyanlar.filter((k): k is Yukumluluk & { sureSaat: number } => k.sureSaat !== null);
+  if (sureliler.length > 0) return sureliler.reduce((a, b) => (b.sureSaat < a.sureSaat ? b : a));
+  return uyanlar.slice().sort((a, b) => a.kod.localeCompare(b.kod, 'tr'))[0];
 }
 
 /** Son bildirim anı — olayın BAŞLANGICINDAN sayılır. */
@@ -83,11 +92,14 @@ export function sonTarih(baslangic: number, sureSaat: number): number {
 /* ── Durum ───────────────────────────────────────────────────────────── */
 
 export type BildirimDurumu =
-  | 'yukumluluk_yok' | 'sure_isliyor' | 'sure_daraliyor'
+  | 'yukumluluk_yok' | 'sure_belirsiz' | 'sure_isliyor' | 'sure_daraliyor'
   | 'GECIKTI' | 'bildirildi' | 'gec_bildirildi';
 
 export const BILDIRIM_SOZU: Record<BildirimDurumu, string> = {
   yukumluluk_yok: 'bildirim yükümlülüğü doğmadı',
+  /* Yükümlülük VAR, süre YOK. "Süre işliyor" demek olmayan bir sayacı
+     ima ederdi; "yükümlülük yok" demek ise yükümlülüğü silerdi. */
+  sure_belirsiz: 'yükümlülük var · süre mevzuatta belirlenmedi',
   sure_isliyor: 'süre işliyor',
   sure_daraliyor: 'süre daralıyor',
   GECIKTI: 'SÜRE GEÇTİ — hâlâ bildirilmedi',
@@ -99,6 +111,9 @@ export const BILDIRIM_SOZU: Record<BildirimDurumu, string> = {
 
 export const BILDIRIM_SINIFI: Record<BildirimDurumu, 'ok' | 'md' | 'bd' | 'unk' | 'pl'> = {
   yukumluluk_yok: 'pl',
+  /* BİLİNMEYEN — yeşil DEĞİL: süresi belirsiz bir yükümlülük "yolunda"
+     değildir, ölçülemeyendir. */
+  sure_belirsiz: 'unk',
   sure_isliyor: 'ok',
   sure_daraliyor: 'md',
   GECIKTI: 'bd',
@@ -145,6 +160,17 @@ export function bildirimKarari(o: {
   });
   if (!k) return bos;
 
+  /* SÜRE YOKSA SAYAÇ YOK. Buraya bir varsayılan koymak (24 saat, 72
+     saat…) mevzuatın söylemediği bir şeyi ürünün söylemesi olurdu. */
+  if (k.sureSaat === null) {
+    return {
+      durum: o.bildirimTarihi !== null ? 'bildirildi' : 'sure_belirsiz',
+      sonTarih: null,
+      kalanDakika: null,
+      yukumluluk: k,
+    };
+  }
+
   const son = sonTarih(o.baslangic, k.sureSaat);
   const kalan = Math.round((son - o.simdi) / 60_000);
 
@@ -173,13 +199,25 @@ export function bildirimKarari(o: {
 export type Karar = { ok: true } | { ok: false; sebep: string };
 
 export function kuralKapisi(o: {
-  sureSaat: number; asgariSiddet: string; dayanak: string; merci: string;
+  sureSaat: number | null; asgariSiddet: string; dayanak: string; merci: string;
 }): Karar {
-  if (!Number.isInteger(o.sureSaat) || o.sureSaat <= 0) {
-    return { ok: false, sebep: 'Bildirim süresi en az 1 saat olmalı.' };
-  }
-  if (o.sureSaat > 24 * 90) {
-    return { ok: false, sebep: 'Bildirim süresi 90 günü aşamaz; kural yanlış girilmiş olmalı.' };
+  /* R10 · SÜRE BOŞ BIRAKILABİLİR ve bu bir eksiklik değil bir BEYANDIR:
+     "mevzuat süreyi belirlemedi". Boş bırakan kural yine dayanak ve merci
+     ister — hangi maddeye dayandığı ve kime bildirileceği bilinmeden
+     yükümlülük savunulamaz. Boş süre 0 ile aynı şey değildir; sıfır hâlâ
+     reddedilir çünkü "sıfır saat" bir sayaçtır ve daha doğduğu anda
+     geçmiştir. */
+  if (o.sureSaat !== null) {
+    if (!Number.isInteger(o.sureSaat) || o.sureSaat <= 0) {
+      return {
+        ok: false,
+        sebep: 'Bildirim süresi en az 1 saat olmalı. Mevzuat süre belirlemediyse '
+          + 'alanı BOŞ bırakın: sıfır saat, doğduğu anda geçmiş bir sayaçtır.',
+      };
+    }
+    if (o.sureSaat > 24 * 90) {
+      return { ok: false, sebep: 'Bildirim süresi 90 günü aşamaz; kural yanlış girilmiş olmalı.' };
+    }
   }
   if (!SIDDET_SIRASI.includes(o.asgariSiddet as Siddet)) {
     return { ok: false, sebep: `Tanınmayan şiddet eşiği: "${o.asgariSiddet}".` };
@@ -204,6 +242,8 @@ export function kuralKapisi(o: {
 export type BildirimOzeti = {
   toplam: number;
   yukumlulukVar: number;
+  /** Yükümlülüğü olan ama süresi mevzuatta belirlenmemiş olaylar. */
+  sureBelirsiz: number;
   sureIsliyor: number;
   daraliyor: number;
   gecikti: number;
@@ -216,6 +256,7 @@ export function bildirimOzeti(kararlar: readonly BildirimKarari[]): BildirimOzet
   return {
     toplam: kararlar.length,
     yukumlulukVar: kararlar.filter((k) => k.yukumluluk !== null).length,
+    sureBelirsiz: say('sure_belirsiz'),
     sureIsliyor: say('sure_isliyor'),
     daraliyor: say('sure_daraliyor'),
     gecikti: say('GECIKTI'),
@@ -236,6 +277,9 @@ export function bildirimCumlesi(o: BildirimOzeti): string {
   }
   if (o.yukumlulukVar === 0) {
     return 'Açık olayların hiçbirinde bildirim yükümlülüğü doğmadı.';
+  }
+  if (o.sureBelirsiz > 0 && o.sureIsliyor === 0) {
+    return `${o.sureBelirsiz} olayda yükümlülük var ama süre mevzuatta belirlenmedi.`;
   }
   return `${o.yukumlulukVar} olayda bildirim yükümlülüğü var; süresi geçen yok.`;
 }

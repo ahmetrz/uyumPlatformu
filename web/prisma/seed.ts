@@ -21,6 +21,7 @@ import { kapsamTurleriniKur, profiliAyir, TEIAS_SERI_OLMAYAN_KOSULU, tesislerden
 import { KURULU_GUC } from '../lib/alan/oznitelik';
 import { hataSatiri } from '../lib/paket/dogrula';
 import { paketiKur } from '../lib/paket/kur';
+import { acikOlaylarinKayitlarini } from '../lib/uyum/bildirimKaydiAcma';
 import { MADDE_ALANLARI } from './seed-madde-alanlari';
 
 const parolaUret = (parola: string) => {
@@ -769,6 +770,17 @@ async function main() {
     + ` · ${suVeri.proje} proje · ${suVeri.tedarikci} tedarikçi`);
 
   await dolulukKatmani(db);
+
+  /* R10 · BİLDİRİM TASLAKLARINI MOTOR AÇAR — tohum ELLE YAZMAZ.
+     Kayıtları buraya elle yazmak, motorun yaptığı işi taklit eden ikinci
+     bir gerçek olurdu; motor bir gün değişse tohum eski davranışı
+     göstermeye devam ederdi. Gerçek motor koşar ve fikstür onun çıktısını
+     taşır — `paketiKur`un gerçek kurucuyu koşmasıyla aynı gerekçe. */
+  const bildirim = await acikOlaylarinKayitlarini(db);
+  console.log(`Bildirim kayıtları: ${bildirim.acilanTaslak} taslak açıldı`
+    + ` · ${bildirim.suresiGecen} süresi geçti`
+    + ` · ${bildirim.suresiz} kayıtta süre mevzuatta belirlenmedi`
+    + '.');
 
   console.log('Seed tamam. Geliştirme girişi: kullanici.a@demo.local / ' + GELISTIRME_PAROLASI);
 }

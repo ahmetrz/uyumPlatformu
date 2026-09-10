@@ -13,6 +13,7 @@ import { z } from 'zod';
 import { db } from '../db';
 import { yetkiZorunlu, kapsamZorunlu, KAPSAM_SONRA } from '../erisim';
 import { SIDDET_SIRASI, kuralKapisi } from '../uyum/bildirimSuresi';
+import { SURESIZ_SOZU } from '../uyum/bildirimKaydi';
 import { type Sonuc, tamam, hata, iz, bosluksuz } from './ortak';
 
 /**
@@ -27,7 +28,8 @@ export async function bildirimKuraliKaydet(girdi: {
   ad: string;
   regulasyonId?: string | null;
   asgariSiddet: string;
-  sureSaat: number;
+  /** BOŞ bırakılabilir: mevzuat süre belirlemediyse sayaç işlemez. */
+  sureSaat: number | null;
   dayanak: string;
   merci: string;
   aktif?: boolean;
@@ -40,7 +42,12 @@ export async function bildirimKuraliKaydet(girdi: {
       ad: bosluksuz('Kural adı').max(200),
       regulasyonId: z.string().trim().max(64).nullable().optional(),
       asgariSiddet: z.enum(SIDDET_SIRASI),
-      sureSaat: z.number().int(),
+      /* NULLABLE — bağımsız inceleme notu (P3, #47 turu 1). Şema
+         `sureSaat`i nullable yaptı ama bu İKİNCİ yazma yolu geride
+         kalmıştı: paket kurulumundan süresiz kural gelebiliyor, elle
+         kural ekleyen uyum yöneticisi giremiyordu. `kuralKapisi` zaten
+         `null`u kabul edip `0`ı reddediyor; tek gerçek orada durur. */
+      sureSaat: z.number().int().positive().nullable(),
       /* Boşluk kuralı BURADA DEĞİL `kuralKapisi`ndadır: zod'un genel
          "boş olamaz" mesajı, kapının "bu sürenin hangi mevzuattan
          geldiği yazılmadan kural savunulamaz" cümlesinin önüne geçiyordu
@@ -76,8 +83,9 @@ export async function bildirimKuraliKaydet(girdi: {
     await iz({
       aktorId: k.id, varlikTipi: 'BildirimYukumlulugu', varlikId: kayit.id,
       eylem: onceki ? 'guncelleme' : 'olusturma', alan: 'sureSaat',
-      once: onceki ? `${onceki.sureSaat} saat` : null,
-      sonra: `${v.ad}: ${v.asgariSiddet} ve üstü → ${v.sureSaat} saat · ${v.merci}`,
+      once: onceki ? (onceki.sureSaat === null ? SURESIZ_SOZU : `${onceki.sureSaat} saat`) : null,
+      sonra: `${v.ad}: ${v.asgariSiddet} ve üstü → `
+        + `${v.sureSaat === null ? SURESIZ_SOZU : `${v.sureSaat} saat`} · ${v.merci}`,
       gerekce: v.dayanak,
     });
 

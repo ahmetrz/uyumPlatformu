@@ -289,10 +289,21 @@ export const YukumlulukSatiriSemasi = z.object({
   /** paket içi ya da kurulu bir çerçevenin kodu; kurulumda doğrulanır */
   regulasyonKod: z.string().regex(CERCEVE_KODU).nullable().optional(),
   asgariSiddet: z.enum(SIDDETLER).default('yuksek'),
-  /** saat; belirtilmemiş süre paketle GELMEZ — satır açılmaz (`sureSaat` NOT NULL) */
-  sureSaat: z.number().int().positive(),
+  /** Saat; `null` = MEVZUAT SÜREYİ BELİRLEMEDİ (R10).
+      Bir tur boyunca bu alan zorunluydu ve sonucu şuydu: 7545 md. 7
+      "gecikmeksizin" dediği için o yükümlülük paketle HİÇ GELEMİYORDU —
+      yani ürün, süresi belirsiz bir yükümlülüğü hiç tanımıyordu. Buraya
+      bir saat yazmak (24 · 72) mevzuatın söylemediğini ürünün söylemesi
+      olurdu; boş bırakmak beyandır. Sıfır yasak: sıfır saat, doğduğu anda
+      geçmiş bir sayaçtır. */
+  sureSaat: z.number().int().positive().nullable(),
   dayanak: z.string().min(1).max(300),
   merci: z.string().min(1).max(120),
+  /** Bildirimin hangi kanaldan yapıldığı — NOT, ADRES DEĞİL.
+      "SİP üzerinden" · "KVKK ihlal bildirim formu" gibi. Bir uç nokta,
+      kullanıcı adı ya da anahtar buraya YAZILMAZ; sır yalnız
+      `sirReferansi` ile taşınır ve bu bir sır alanı değildir. */
+  kanalNotu: z.string().min(1).max(200).nullable().optional(),
 }).strict();
 export type YukumlulukSatiri = z.infer<typeof YukumlulukSatiriSemasi>;
 

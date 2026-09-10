@@ -1,1 +1,11 @@
-[]
+[
+  {
+    "kod": "KVKK-IHLAL-72",
+    "ad": "Kişisel veri ihlalinin Kurula bildirimi",
+    "asgariSiddet": "orta",
+    "sureSaat": 72,
+    "dayanak": "6698 s. KVKK md. 12/5 · Kişisel Verileri Koruma Kurulunun 24.01.2019 tarih ve 2019/10 sayılı kararı: veri sorumlusu ihlali öğrendiği tarihten itibaren gecikmeksizin ve en geç 72 saat içinde Kurula bildirir; geç kalınırsa gerekçesi bildirimle birlikte açıklanır.",
+    "merci": "Kişisel Verileri Koruma Kurulu",
+    "kanalNotu": "Kişisel Veri İhlal Bildirim Formu üzerinden"
+  }
+]

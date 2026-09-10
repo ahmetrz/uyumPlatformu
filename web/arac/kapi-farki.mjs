@@ -433,8 +433,27 @@ export function isOrtami(isAkisiMetni) {
   /* `uses:` adımları kurulumdur (checkout, setup-node, cache); araç
      onları koşmaz — yerel node ve yerel bağımlılıklar kullanılır. */
   const kurulumlar = [...isAkisiMetni.matchAll(/^\s*uses:\s*(\S+)/gm)].map((m) => m[1]);
+
+  /* `run:` KURULUM ADIMLARI DA SAYILIR — ölçüldü ve maliyeti görüldü.
+     Bunlar `uses:` değildir, bu yüzden yukarıdaki listeye girmezler;
+     kapı da değildirler, bu yüzden `kapiAdimlari()` onları düşürür. Yani
+     ARADA KAYBOLUYORLARDI: CI'nın `kapi-rota` işi tarayıcılı kapılardan
+     ÖNCE `npx tsx prisma/seed.ts` koşar, yerel kapanış koşmaz ve bunu
+     hiçbir yere yazmazdı. Sonuç: fikstür tüketen bir kapı (R10 bildirim
+     kanıtı bir taslağı "gönderildi" yapar) ikinci yerel koşumda ölçüm
+     yapamaz ve kapanış bunu KIRMIZI diye gösterir — kod kusursuzken.
+     Sunucu başlatma/durdurma bu listede YOKTUR: onları araç gerçekten
+     koşuyor. Liste koşulacak şeyi değiştirmez, FARKI GÖRÜNÜR YAPAR. */
+  const { adimlar } = sunucuYasamDongusu(isAkisiMetni);
+  const kurulumKomutlari = [...new Set(adimlar
+    .filter((a) => KURULUM_KALIBI.test(a.komut)
+      && !/next start|fuser\s+-k/.test(a.komut)
+      && !/npm ci/.test(a.komut))
+    .map((a) => `${a.is}: ${a.komut.split('\n').map((x) => x.trim())
+      .filter(Boolean).join(' ; ')}`))];
+
   const nodeSurumu = isAkisiMetni.match(/node-version:\s*['"]?([\d.]+)/);
-  return { bulunan, kurulumlar, nodeSurumu: nodeSurumu?.[1] ?? null };
+  return { bulunan, kurulumlar, kurulumKomutlari, nodeSurumu: nodeSurumu?.[1] ?? null };
 }
 
 export function fark({ betikler, isAkisiMetni, beyan = BEYAN }) {

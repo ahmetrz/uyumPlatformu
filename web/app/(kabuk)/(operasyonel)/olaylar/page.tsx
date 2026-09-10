@@ -4,6 +4,7 @@ import { kapsamdaYetkili, modulYazabilir } from '@/app/kapsam';
 import { Yetkisiz } from '@/components/kabuk/temel';
 import { db } from '@/lib/db';
 import { bildirimKarari } from '@/lib/uyum/bildirimSuresi';
+import { geriSayim, gorunenDurum } from '@/lib/uyum/bildirimKaydi';
 import { simdiOku } from './veri';
 import { oneriOku, ETKI_ALANLARI } from '@/lib/motorlar/olayEtki';
 import OlaylarIstemci from './OlaylarIstemci';
@@ -79,6 +80,19 @@ export default async function Sayfa() {
           etkiDogrulamaZamani: true,
           kokNeden: true, sinirlama: true, kurtarma: true, ogrenilenler: true,
           bildirimGerekli: true, bildirimTarihi: true,
+          /* R10 · Bu olayın mevzuat bildirimi kayıtları. Kayıt olayın
+             kendisiyle birlikte gelir: ayrı bir ekran açmak, denetçinin
+             ilk sorusunu ("bildirdiniz mi") bir tık uzağa taşırdı. */
+          bildirimKayitlari: {
+            select: {
+              id: true, durum: true, sonTarih: true, referansNo: true,
+              gonderimZamani: true, uygulanmazGerekcesi: true,
+              yukumluluk: {
+                select: { kod: true, ad: true, merci: true, sureSaat: true, kanalNotu: true },
+              },
+            },
+            orderBy: { yukumluluk: { kod: 'asc' } },
+          },
           tesis: { select: { kod: true, ad: true } },
           etkiDogrulayan: { select: { adSoyad: true } },
           varliklar: {
@@ -238,6 +252,34 @@ export default async function Sayfa() {
             : null,
         };
       })(),
+      /* R10 · Kayıtlar SUNUCUDAN sayılmış gelir; geri sayım kararı da
+         burada verilir. İstemci kendi saatine göre "geciktiniz" DEMEZ. */
+      bildirimKayitlari: o.bildirimKayitlari.map((b) => {
+        const gs = geriSayim({
+          baslangic: o.baslangic.getTime(), simdi, sureSaat: b.yukumluluk.sureSaat,
+        });
+        /* Ekranın gösterdiği durum, sayacın söylediğiyle uzlaştırılır —
+           gerekçe `lib/uyum/bildirimKaydi.ts` → `gorunenDurum`da. Yazma
+           yok: veritabanını motor günceller. */
+        const gorunen = gorunenDurum({ kayitDurumu: b.durum, geriSayim: gs });
+        return {
+          id: b.id,
+          durum: gorunen,
+          yukumlulukKod: b.yukumluluk.kod,
+          yukumlulukAd: b.yukumluluk.ad,
+          merci: b.yukumluluk.merci,
+          /* Kanal NOTU — adres değil. Sır yalnız `sirReferansi` ile taşınır. */
+          kanalNotu: b.yukumluluk.kanalNotu,
+          sureSaat: b.yukumluluk.sureSaat,
+          sonTarih: b.sonTarih?.toISOString() ?? null,
+          /* Geri sayım SÖZÜ: süre yoksa "Süre mevzuatta belirlenmedi". */
+          geriSayimSozu: gs.soz,
+          sureVar: gs.sureVar,
+          referansNo: b.referansNo,
+          gonderimZamani: b.gonderimZamani?.toISOString() ?? null,
+          uygulanmazGerekcesi: b.uygulanmazGerekcesi,
+        };
+      }),
       varliklar: o.varliklar.map((v) => ({
         id: v.varlik.id, kod: v.varlik.etiket,
         alt: `${v.varlik.ad} · ${v.rol}`, yol: '/envanter',
@@ -264,6 +306,17 @@ export default async function Sayfa() {
          yazamayabilir. Sunucu eylemi ayrıca denetler; bu bayrak yalnız
          yüzeyi kapatır ki kullanıcı reddedilecek bir formu doldurmasın. */
       yazilabilir: yazabilir && kapsamdaYetkili(kullanici, 'envanter', 'yazma', o.tesisId),
+      /* BİLDİRİM EYLEMLERİ AYRI EKSEN — bağımsız inceleme bulgusu (P2,
+         #47 turu 1). Düğmelerin görünürlüğü `envanter/yazma`ya bağlıydı,
+         sunucu eylemi ise `uyum/onay` istiyor. `tesis_yoneticisi` ·
+         `bt_yoneticisi` · `ot_yoneticisi` rolleri birincisini taşıyor,
+         ikincisini taşımıyor: kullanıcı düğmeyi GÖRÜYOR, referansı
+         dolduruyor, gönderiyor ve sunucu reddediyor. Güvenlik açığı
+         değil (sunucu doğru engelliyor) ama emek israfı ve ürünün kendi
+         cümlesiyle çelişiyor: "bir mevzuat bildiriminin yapıldığını
+         beyan etmek yazma yetkisiyle yapılmaz". Aynı ekranda
+         `EtkiDogrulama` bu ayrımı zaten doğru yapıyordu. */
+      bildirimYetkili: kapsamdaYetkili(kullanici, 'uyum', 'onay', o.tesisId),
     };
   });
 

@@ -4,12 +4,12 @@
 
 | Ölçü | Değer |
 | --- | --- |
-| Senaryo | 327 |
-| Testi olan senaryo | 327 |
+| Senaryo | 331 |
+| Testi olan senaryo | 331 |
 | **GAP** | **0** |
 | Hayalet işaret (kütükte olmayan kimlik) | 0 |
 | Kütüksüz test dosyası | 0 |
-| Taranan test dosyası | 202 |
+| Taranan test dosyası | 205 |
 
 ## Katman başına kapsam
 
@@ -18,17 +18,17 @@
 | ACCESSIBILITY | 8 | 8 | 0 |
 | API | 12 | 12 | 0 |
 | CONCURRENCY | 7 | 7 | 0 |
-| DOMAIN | 186 | 186 | 0 |
+| DOMAIN | 190 | 190 | 0 |
 | ENGINE | 33 | 33 | 0 |
 | INTEGRATION | 40 | 40 | 0 |
 | MIGRATION | 5 | 5 | 0 |
 | RBAC | 32 | 32 | 0 |
 | RESPONSIVE | 8 | 8 | 0 |
 | SCOPE | 30 | 30 | 0 |
-| SERVER | 124 | 124 | 0 |
-| UI | 89 | 89 | 0 |
+| SERVER | 128 | 128 | 0 |
+| UI | 92 | 92 | 0 |
 | VISUAL | 4 | 4 | 0 |
-| WORKFLOW | 32 | 32 | 0 |
+| WORKFLOW | 34 | 34 | 0 |
 
 ## Satır satır
 
@@ -128,6 +128,16 @@
 | `KNT-SHP-001` | Kanıt | ENGINE · DOMAIN | `senaryo-uyum.test.ts` | sahibi de yükleyeni de olmayan kanıt SORUMSUZDUR | evet | geçti |
 | `KNT-PKT-001` | Kanıt | SERVER · DOMAIN | `disa-aktarim-paketi.test.ts` | yetkili kapsam üretilir ve denetim izine yazılır | evet | geçti |
 | `KNT-PKT-002` | Kanıt | DOMAIN · INTEGRATION | `senaryo-uyum.test.ts` | imza altyapısı bağlı değilken paket İMZALI görünmez | evet | geçti |
+| `OLY-BIL-001` | Olay | SERVER · DOMAIN · UI · WORKFLOW | `bildirim-kaydi-eylem.test.ts` | uyan HER yükümlülük için ayrı taslak açılır | evet | geçti |
+| `OLY-BIL-001` | Olay | SERVER · DOMAIN · UI · WORKFLOW | `bildirim-kaydi-eylem.test.ts` | İKİNCİ koşuda ikinci taslak AÇILMAZ — idempotent | evet | geçti |
+| `OLY-BIL-001` | Olay | SERVER · DOMAIN · UI · WORKFLOW | `bildirim-kaydi.test.ts` | uyanların HEPSİ döner — en kısa süreli seçilmez | evet | geçti |
+| `OLY-BIL-002` | Olay | SERVER · DOMAIN · UI | `bildirim-kaydi-eylem.test.ts` | SÜRESİZ yükümlülüğün kaydında son tarih YOKTUR | evet | geçti |
+| `OLY-BIL-002` | Olay | SERVER · DOMAIN · UI | `bildirim-kaydi-eylem.test.ts` | süresi geçen SÜRELİ kayıt suresi_gecti olur; SÜRESİZ olan OLMAZ | evet | geçti |
+| `OLY-BIL-003` | Olay | SERVER · DOMAIN · WORKFLOW | `bildirim-kaydi-eylem.test.ts` | motor HİÇBİR kayda gonderildi yazmadı | evet | geçti |
+| `OLY-BIL-003` | Olay | SERVER · DOMAIN · WORKFLOW | `bildirim-kaydi-eylem.test.ts` | MOTOR gönderilmiş kaydı suresi_gecti yapamaz | evet | geçti |
+| `OLY-BIL-004` | Olay | SERVER · DOMAIN · UI | `bildirim-kaydi-eylem.test.ts` | REFERANSSIZ gönderim REDDEDİLİR ve kayıt DEĞİŞMEZ | evet | geçti |
+| `OLY-BIL-004` | Olay | SERVER · DOMAIN · UI | `bildirim-kaydi-eylem.test.ts` | gönderim DENETİM İZİNE düşer ve izde referans numarası vardır | evet | geçti |
+| `OLY-BIL-004` | Olay | SERVER · DOMAIN · UI | `bildirim-kaydi.test.ts` | REFERANSSIZ gönderim REDDEDİLİR | evet | geçti |
 | `DNT-FRM-001` | Denetim | SERVER · DOMAIN · UI | `denetim-formu-eylem.test.ts` | öz denetim formu üretilir; BOŞ HÜCRE SIFIR | evet | geçti |
 | `DNT-FRM-001` | Denetim | SERVER · DOMAIN · UI | `denetim-formu-eylem.test.ts` | SoA da aynı kapıdan geçer ve yedi sütun taşır | evet | geçti |
 | `DNT-FRM-002` | Denetim | UI · DOMAIN | `denetim-formu.test.ts` | GEREKÇESİZ kapsam dışı İŞARETLENİR — gerekçe uydurulmaz | evet | geçti |
@@ -718,6 +728,9 @@
 | `denetim-formu.test.ts` | Denetim formunun saf kuralları — hiçbir hücre boş kalmaz, gerekçe uydurulmaz, hedef ile mevcut olgunluk karışmaz |
 | `derleme-artefakti.test.ts` | Paylaşılan derleme artefaktının ortam beyanı — beyansız tüketim ve gizli yol tuzağı |
 | `disa-aktarim-xlsx.test.ts` | XLSX üretiminin saf kuralları — formül hücresi üretilmez, kalkan CSV ile aynı |
+| `bildirim-kaydi.test.ts` | Olaydan doğan mevzuat bildiriminin saf kuralları — motor GÖNDERMEZ, süresiz yükümlülükte geri sayım yoktur, referanssız gönderim reddedilir |
+| `bildirim-kaydi-eylem.test.ts` | Bildirim zincirinin kendisi — olaydan taslak doğar, ikinci koşuda ikinci taslak açılmaz, insan kararı iz bırakır |
+| `bekci/bildirim-motoru.test.ts` | Motor dosyaları METİN olarak taranır: insan kararı olan durum kodu motora yazılamaz |
 | `ithal-zinciri.test.ts` | Araç zincirinin YAPISAL ölçüsü — bir aracın ihracı silinince ya da dosyası üzerine yazılınca kırmızı; modül ÇALIŞTIRILMADAN ölçülür |
 | `kapi-is-kapsami.test.ts` | Kapı kümesinin İŞ katmanı — iş adları türetilir, bölünmeyle hiçbir kapı düşmez |
 | `sunucu-durdurma.test.ts` | Başarısız OLAMAYAN temizlik adımı sınıfı — süreç adıyla öldürme, sonucu yutan `|| true` ve son koşulunu doğrulamayan adım |

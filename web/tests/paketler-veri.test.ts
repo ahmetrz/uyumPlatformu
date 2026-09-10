@@ -37,7 +37,7 @@ describe('/paketler · veri katmanı [URN-PKT-016]', () => {
     expect(ortak.disk!.sayilar).toMatchObject({ cerceveler: 3, maddeler: 11 });
     const enerji = v.satirlar.find((s) => s.kod === 'TR-ENERJI')!;
     expect(enerji.kurulu).toBeNull();
-    expect(enerji.disk).toMatchObject({ surum: '0.4.0', hatalar: [], sektor: 'ELEKTRIK-URETIM' });
+    expect(enerji.disk).toMatchObject({ surum: '0.5.0', hatalar: [], sektor: 'ELEKTRIK-URETIM' });
     expect(v.ozet).toEqual({ kurulu: 3, guncellemeVar: 0, dogrulanamadi: 0, taslakCerceve: 0 });
     // karar sırası: kurulu-güncel önce, kurulabilir sonra
     expect(v.satirlar.map((s) => s.hal)).toEqual(['guncel', 'guncel', 'guncel', 'kurulu_degil', 'kurulu_degil']);
@@ -60,7 +60,7 @@ describe('/paketler · veri katmanı [URN-PKT-016]', () => {
     expect(s['TR-BANKACILIK'].disk!.sayilar).toBeNull();
     expect(s['DEMO-TR-ENERJI'].hal).toBe('disk_yok');
     expect(s['DEMO-TR-ENERJI'].disk).toBeNull();
-    expect(s['DEMO-TR-ENERJI'].kurulu!.surum).toBe('0.2.0');
+    expect(s['DEMO-TR-ENERJI'].kurulu!.surum).toBe('0.3.0');
     expect(v.ozet).toMatchObject({ kurulu: 3, guncellemeVar: 1, dogrulanamadi: 1 });
     expect(v.satirlar.slice(0, 3).map((x) => x.hal)).toEqual(['guncelleme_var', 'dogrulanamadi', 'disk_yok']);
     const yok = await paketEkranVerisi(db, path.join(dizin, 'yok'));

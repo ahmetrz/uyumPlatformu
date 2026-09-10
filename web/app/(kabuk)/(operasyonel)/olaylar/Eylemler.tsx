@@ -11,6 +11,9 @@ import {
 } from '@/lib/eylemler2/olay';
 import { olayKaydet } from '@/lib/eylemler2/operasyon';
 import {
+  bildirimGonderildiIsaretle, bildirimTeyitIsaretle, bildirimUygulanmazIsaretle,
+} from '@/lib/eylemler2/bildirimKaydi';
+import {
   BAG_ETIKET, BAG_TIPLERI, DURUMLAR, ETKI_ALAN_ETIKET, OLAY_DURUM_SOZU,
   SEVIYE_KUMESI, SIDDETLER, SIDDET_SOZU, TESPIT_KAYNAKLARI, TESPIT_SOZU,
   TIPLER, TIP_SOZU,
@@ -573,5 +576,101 @@ export function OlayBaglari({ olay, adaylar, yazilabilir }: {
           : 'Bağ kurmak envanter yazma yetkisi ister; bu olayın kapsamında yetkiniz yok.'}
       </p>
     </div>
+  );
+}
+
+/* ── R10 · BİLDİRİM KAYDI EYLEMLERİ ───────────────────────────────────
+   Motor taslağı açar; buradaki üç karar İNSANINDIR ve ikisi bir ŞART
+   taşır: gönderim REFERANS NUMARASI ister, "uygulanmaz" GEREKÇE ister.
+
+   Form yalnız gerektiğinde açılır (okuma hâli düzenleme hâli değildir):
+   varsayılan görünüm iki düğmedir, alan seçim yapılınca gelir. */
+export function BildirimKaydiEylemleri({
+  kayitId, durum, yazabilir,
+}: { kayitId: string; durum: string; yazabilir: boolean }) {
+  const { bekliyor, hata, calistir } = useEylem();
+  const [acik, setAcik] = useState<'gonderim' | 'uygulanmaz' | null>(null);
+  const [referans, setReferans] = useState('');
+  const [gerekce, setGerekce] = useState('');
+
+  /* Kapalı kayıtta eylem YOKTUR: teyit alınmış ya da uygulanmaz
+     işaretlenmiş bir kayıt bu ekrandan geri alınmaz. */
+  if (!yazabilir || durum === 'teyit_alindi' || durum === 'uygulanmaz') return null;
+
+  const kapat = () => { setAcik(null); setReferans(''); setGerekce(''); };
+
+  if (acik === 'gonderim') {
+    return (
+      <div style={{ marginTop: 'var(--s10)' }}>
+        <Alan etiket="Merciden alınan referans numarası">
+          <input className="ab-girdi" value={referans} disabled={bekliyor}
+            onChange={(e) => setReferans(e.target.value)} />
+        </Alan>
+        <CekmeceEylemler
+          birincil={
+            <Dugme tur="birincil" disabled={bekliyor}
+              onClick={() => calistir(async () => {
+                const s = await bildirimGonderildiIsaretle({ kayitId, referansNo: referans });
+                if (s.ok) kapat();
+                return s;
+              })}>
+              {bekliyor ? 'İşleniyor…' : 'Gönderildi olarak işaretle'}
+            </Dugme>
+          }
+          ikincil={<Dugme tur="ikincil" disabled={bekliyor} onClick={kapat}>Vazgeç</Dugme>}
+          dipNot={hata ?? 'Referansı olmayan bir gönderim denetimde doğrulanamaz;'
+            + ' bu yüzden numara zorunludur.'}
+        />
+      </div>
+    );
+  }
+
+  if (acik === 'uygulanmaz') {
+    return (
+      <div style={{ marginTop: 'var(--s10)' }}>
+        <Alan etiket="Bu yükümlülük neden uygulanmıyor">
+          <textarea className="ab-girdi" rows={3} value={gerekce} disabled={bekliyor}
+            onChange={(e) => setGerekce(e.target.value)} />
+        </Alan>
+        <CekmeceEylemler
+          birincil={
+            <Dugme tur="birincil" disabled={bekliyor}
+              onClick={() => calistir(async () => {
+                const s = await bildirimUygulanmazIsaretle({ kayitId, gerekce });
+                if (s.ok) kapat();
+                return s;
+              })}>
+              {bekliyor ? 'İşleniyor…' : 'Uygulanmaz olarak kapat'}
+            </Dugme>
+          }
+          ikincil={<Dugme tur="ikincil" disabled={bekliyor} onClick={kapat}>Vazgeç</Dugme>}
+          dipNot={hata ?? 'Gerekçe kaydın kendisinde kalır; kayıt SİLİNMEZ.'}
+        />
+      </div>
+    );
+  }
+
+  return (
+    <CekmeceEylemler
+      birincil={durum === 'gonderildi'
+        ? (
+          <Dugme tur="ikincil" disabled={bekliyor}
+            onClick={() => calistir(() => bildirimTeyitIsaretle({ kayitId }))}>
+            {bekliyor ? 'İşleniyor…' : 'Merci teyidini işle'}
+          </Dugme>
+        )
+        : (
+          <Dugme tur="ikincil" disabled={bekliyor} onClick={() => setAcik('gonderim')}>
+            Gönderildi olarak işaretle
+          </Dugme>
+        )}
+      ikincil={durum === 'gonderildi' ? undefined : (
+        <Dugme tur="ikincil" disabled={bekliyor} onClick={() => setAcik('uygulanmaz')}>
+          Uygulanmaz
+        </Dugme>
+      )}
+      dipNot={hata ?? 'Bu kararları YALNIZ insan verir; motor taslağı açar,'
+        + ' geri sayımı işletir ve "gönderildi" YAZAMAZ.'}
+    />
   );
 }

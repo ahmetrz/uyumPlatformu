@@ -120,7 +120,7 @@ export const hata = (m: unknown): Sonuc => ({
    değiştir, izi dışarıda yaz" kalıbı, eşzamanlı bir başarısız çağrı varken
    İZİ KAYBETTİRİR. Durum değişimi ile izi aynı transaction'a koymak hem bu
    kaybı hem de tersini (iz var ama geçiş geri alınmış) engeller. */
-type IzIstemcisi = Prisma.TransactionClient | typeof db;
+export type IzIstemcisi = Prisma.TransactionClient | typeof db;
 
 export async function iz(veri: {
   aktorId?: string | null; varlikTipi: string; varlikId: string; eylem: string;

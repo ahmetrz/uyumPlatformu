@@ -344,6 +344,18 @@ jobs:
         working-directory: web
         run: npm run kanit:denetim-formu
 
+      # R10 · olay → mevzuat bildirimi. Aynı sunucuyu kullanır. Saf kural
+      # testte, zincir veritabanı testinde; burada ölçülen EKRANIN KENDİSİ
+      # ve en pahalı iddia: REFERANSSIZ GÖNDERİM TARAYICIDA REDDEDİLİYOR
+      # MU. Bu bir birim testiyle kanıtlanamaz — kapı sunucu eyleminde,
+      # düğme istemcide ve arada bir sunucu eylemi sınırı var; R12'de tam
+      # o sınırda bir kusur ölçüldü (tsc · lint · derleme temizdi, düğme
+      # 500 döndü). FİKSTÜRÜ DEĞİŞTİRİR (bir taslağı "gönderildi" yapar);
+      # CI her koşumda veritabanını yeniden kurduğu için sorun değil.
+      - name: Bildirim kaydı kanıtı · iki bant
+        working-directory: web
+        run: npm run kanit:bildirim-kaydi
+
       # SÜREÇ ADIYLA ÖLDÜRME — ÖLÇÜLDÜ VE İŞLEMEDİ. Bu adım bir zamanlar
       # `pkill -f 'next start' || true` idi ve HİÇBİR ŞEYİ öldürmüyordu:
       # `next start` açılıştan sonra süreç adını `next-server (vX.Y.Z)`

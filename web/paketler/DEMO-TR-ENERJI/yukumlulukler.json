@@ -1,0 +1,20 @@
+[
+  {
+    "kod": "DEMO-MERCI-A-24",
+    "ad": "Kurgusal Merci A'ya olay bildirimi (24 saat)",
+    "asgariSiddet": "orta",
+    "sureSaat": 24,
+    "dayanak": "KURGUSAL. Demo kiracısının ekranını beslemek için yazıldı; hiçbir mevzuata karşılık gelmez. Süreli yükümlülük yolunu (geri sayım · süre daralıyor · süre geçti) demo verisiyle görünür kılar.",
+    "merci": "Kurgusal Merci A",
+    "kanalNotu": "Kurumun kendi bildirim formu üzerinden"
+  },
+  {
+    "kod": "DEMO-MERCI-B-SURESIZ",
+    "ad": "Kurgusal Merci B'ye olay bildirimi (süre belirlenmemiş)",
+    "asgariSiddet": "orta",
+    "sureSaat": null,
+    "dayanak": "KURGUSAL. Mevzuatın SÜRE BELİRLEMEDİĞİ hâli demo verisinde görünür kılar: geri sayım gösterilmez, \"süre mevzuatta belirlenmedi\" yazar ve kayıt ASLA \"süresi geçti\" olmaz. Saat uydurulmaz.",
+    "merci": "Kurgusal Merci B",
+    "kanalNotu": "Kurgusal bildirim kanalı"
+  }
+]

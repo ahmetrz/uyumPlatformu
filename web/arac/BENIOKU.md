@@ -105,6 +105,44 @@ geldiğini kanıtlamaz.
 Uzun koşan bir kapı varken (`kapi:iki-sozluk` ~25 dk) portu BAŞKA bir iş
 için kapatmak, o kapıyı kod kusuru gibi görünen bir hatayla düşürür.
 
+### DÖRDÜNCÜ TUZAK: TÜKETİLMİŞ FİKSTÜR (ölçüldü 10 Eyl 2026)
+
+Bazı kanıt betikleri fikstürü DEĞİŞTİRİR. `bildirim-kaydi-kanit.mjs` bir
+taslağı "gönderildi" yapar — çünkü ölçtüğü şey ekranın metni değil,
+sunucu eyleminin KAPISIDIR (referanssız gönderim reddediliyor mu) ve o
+kapı ancak gerçekten tıklanınca ölçülür.
+
+CI'da bu görünmez: `kapi-rota` · `kapi-gezinme` · `kapi-tasma` ·
+`kapi-axe` işlerinin HEPSİ ölçümden önce `npx tsx prisma/seed.ts`
+koşar. Yerel `kapi:parti` bu adımı koşmaz (kurulum adımıdır) ve ikinci
+kapanışta kapı ölçüm yapamaz. Bugün iki şey yapıldı:
+
+1. Betik bunu **ölçemediğini SÖYLER**: "ÖLÇÜM YETERSİZ: 21 iddia
+   ölçüldü, taban 24 … Veritabanını yeniden kurun". Yani kırmızı, "kod
+   bozuk" değil "ölçemedim" der.
+2. `kapi:parti` artık **koşmadığı `run:` kurulum adımlarını ADIYLA
+   yazar** (`kurulum KOMUTU koşulmadı — kapi-rota: … prisma/seed.ts`).
+   Bu adımlar `uses:` listesine girmiyordu (onlar `run:`), kapı
+   listesine de girmiyordu (kurulum) — arada kayboluyorlardı.
+
+**Fikstür tüketen kapıdan önce:**
+
+```
+rm -f prisma/dev.db prisma/dev.db-journal prisma/dev.db-wal prisma/dev.db-shm
+npm run db:hazirla
+```
+
+`-wal` ve `-shm` de silinir: yalnız `dev.db` silinirse SQLite açık WAL'ı
+yeni dosyaya geri oynatabilir ve tohum "Veritabanı dolu" diyerek durur —
+ÖLÇÜLDÜ. Sunucu bu silmeden ÖNCE durdurulur, yoksa silinmiş inode'u
+tutmaya devam eder (yukarıdaki birinci tuzağın aynısı).
+
+**Kum havuzunda `kapi-compose` ÖLÇÜLEMEZ.** Docker derlemesinin ağı yok
+(`proxyconnect tcp: dial tcp 127.0.0.1:43743: connect: connection
+refused`; ölçüldü 10 Eyl 2026 — imaj katmanı önbellekteyken geçiyor,
+önbellek boşaltılınca `apt`/`wget` adımı düşüyor). Bu kapı yerelde
+"geçti" ya da "kırmızı" değil **ölçülmedi**dir; gerçek ölçümü CI yapar.
+
 ## Kalite kapıları (KK-1…KK-8)
 
 Statik kapılar (`npm run lint` · `npx tsc --noEmit` · `npm test` ·

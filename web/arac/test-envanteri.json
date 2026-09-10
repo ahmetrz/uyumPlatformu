@@ -1,7 +1,7 @@
 {
-  "imza": "e9691b4516b25da6821e13c5c2bf199b",
-  "dosya": 223,
-  "vaka": 4038,
+  "imza": "9ae425aa8249c65bb64318f792a4cc5a",
+  "dosya": 225,
+  "vaka": 4055,
   "atlanan": 1,
   "dosyalar": {
     "tests/adaptor-yetenekleri.test.ts": {
@@ -97,7 +97,7 @@
       "atlanan": 0
     },
     "tests/bekci/politika-olcumu.test.ts": {
-      "vaka": 15,
+      "vaka": 20,
       "atlanan": 0
     },
     "tests/bekci/radar-agsiz.test.ts": {
@@ -674,6 +674,14 @@
     },
     "tests/politika-demo-salt-okunur.test.ts": {
       "vaka": 5,
+      "atlanan": 0
+    },
+    "tests/politika-pasif-once.test.ts": {
+      "vaka": 5,
+      "atlanan": 0
+    },
+    "tests/politika-yetki-kapilari.test.ts": {
+      "vaka": 7,
       "atlanan": 0
     },
     "tests/proje-bagimliligi.test.ts": {

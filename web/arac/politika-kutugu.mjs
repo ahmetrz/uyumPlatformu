@@ -49,6 +49,31 @@ export function politikaMi(s) {
   return OZNE.test(s) && YUKLEM.test(s);
 }
 
+/* ── SONUÇ SINIFI · TÜRETİLİR ──────────────────────────────────────────
+   Bir politika cümlesinin ihlali ne yapar? Üç sonuç, üç sınıf:
+
+     S1 · YETKİ VE GÜVENLİK — ihlali VERİ SIZDIRIR ya da bir OT ağına
+          paket yollar. Bu sınıfta gerekçeli istisna KABUL EDİLMEZ.
+     S2 · ÜRÜN DEĞİŞMEZİ — ihlali GÜVENİ BOZAR: silinmez dediği kaydı
+          siler, dokunmaz dediği alana dokunur.
+     S3 · BİLGİLENDİRME — yanıltır ama zarar sınırlıdır ("veri yok",
+          "ölçülmedi", "süre belirlenmedi").
+
+   Sınıf ELLE VERİLMEZ, cümleden TÜRETİLİR ve bekçi yeniden türetip
+   kütüktekiyle karşılaştırır: elle verilseydi bir cümle S1'den S3'e
+   sessizce indirilebilir ve cırcırın en sıkı dişi buharlaşırdı.
+
+   Sıra bağlayıcıdır: bir cümle hem yetki hem değişmez işareti
+   taşıyorsa S1 kazanır — sınıflandırma GÜVENLİ TARAFA yanılır. */
+export const S1_KALIBI = /\byetki\w*|\bkapsam\w*|\byalnız SİZE\b|\bsır\b|\bMFA\b|dört göz|onaylayamaz|ağa .*paket|\btara(maz|nmaz|mıyor)\b|salt okunur|\bgöremez\b|\bgiremez\b|\bokuyucu\b|\bdemo hesab/iu;
+export const S2_KALIBI = /\bsilinmez\b|\bsilmez\b|\bdeğiştirilemez\b|\bdeğiştirmez\b|\bmotor\b|\bsunucu\b|aktifleştir\w*|uydur\w*|\barşiv\w*|\bdokunmaz\b|\byazmaz\b|\byazılmaz\b|\byazılamaz\b|\bkaydedilmez\b|\bgüncellenmez\b|\bkesmez\b|\büretmez\b|geri alınamaz|\bgizlenmez\b|\breddeder\b/iu;
+
+export function sonucSinifi(cumle) {
+  if (S1_KALIBI.test(cumle)) return 'S1';
+  if (S2_KALIBI.test(cumle)) return 'S2';
+  return 'S3';
+}
+
 export function turet() {
   const cikan = [];
   for (const kok of TARANAN) {
@@ -89,6 +114,7 @@ if (import.meta.url === `file://${process.argv[1]}`) {
       return {
         kod: `POL-${String(sonraki).padStart(3, '0')}`,
         cumle: b.cumle, yer: b.yer, sinif: 'SINIFLANDIRILMADI',
+        sonucSinifi: sonucSinifi(b.cumle),
       };
     });
     writeFileSync(KUTUK, `${JSON.stringify({ ...eski, satirlar }, null, 2)}\n`);

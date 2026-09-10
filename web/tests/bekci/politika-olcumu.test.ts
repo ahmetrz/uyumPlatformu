@@ -1,7 +1,8 @@
 import { describe, expect, it } from 'vitest';
+import { execFileSync } from 'node:child_process';
 import { existsSync, readFileSync } from 'node:fs';
 import path from 'node:path';
-import { politikaMi, turet, yorumsuz } from '../../arac/politika-kutugu.mjs';
+import { politikaMi, sonucSinifi, turet, yorumsuz } from '../../arac/politika-kutugu.mjs';
 
 /* ═══════════════════════════════════════════════════════════════════════
    R-F · EKRANIN POLİTİKA CÜMLESİ ÖLÇÜLÜR · BEKÇİ [URN-POL-001]
@@ -34,9 +35,10 @@ import { politikaMi, turet, yorumsuz } from '../../arac/politika-kutugu.mjs';
 const KUTUK = path.join(process.cwd(), 'arac', 'politika-cumleleri.json');
 const kutuk = JSON.parse(readFileSync(KUTUK, 'utf8')) as {
   not?: string;
-  tavanlar: { olculmeyen: number };
+  tavanlar: { olculmeyen: number; sinif: Record<string, number> };
   satirlar: {
     kod: string; cumle: string; yer: string; sinif: string; gerekce?: string;
+    sonucSinifi?: string;
     olcum?: { dosya: string; vaka: string };
     olculmedi?: { sahip: string; kapanisAsamasi: string };
   }[];
@@ -134,6 +136,87 @@ describe('her POLİTİKA satırı BEYANLI [URN-POL-001]', () => {
        kalıyordu (ölçüldü). */
     const olculmeyen = politikalar.filter((s) => s.olculmedi).length;
     expect(kutuk.tavanlar.olculmeyen).toBe(olculmeyen);
+  });
+});
+
+describe('SONUÇ SINIFI ve CIRCIR [URN-POL-001]', () => {
+  /* ── NEDEN SINIF ───────────────────────────────────────────────────
+     "51 politika ölçülmüyor" tek başına bir sayıdır; hangisinin ihlali
+     VERİ SIZDIRIR, hangisininki bir cümleyi yanıltır — bunu söylemez.
+     Üç sonuç sınıfı bu ayrımı yapar ve en sıkı dişi S1 taşır. */
+  const politikalar = kutuk.satirlar.filter((s) => s.sinif === 'POLITIKA');
+
+  it('HER politika satırı sonuç sınıfı TAŞIR [URN-POL-001]', () => {
+    const kusur = politikalar.filter((s) => !s.sonucSinifi).map((s) => s.kod);
+    expect(kusur, kusur.join(', ')).toEqual([]);
+  });
+
+  it('SINIF ELLE VERİLMEZ — kütüktekiyle TÜRETİLEN aynı [URN-POL-001]', () => {
+    /* Elle verilseydi bir cümle S1'den S3'e sessizce indirilebilir ve
+       cırcırın en sıkı dişi buharlaşırdı — `terimTavani` 85'ten 500'e
+       çekildiğinde on bir vakanın da yeşil kalması gibi. */
+    const kusur = politikalar
+      .filter((s) => s.sonucSinifi !== sonucSinifi(s.cumle))
+      .map((s) => `${s.kod}: kütük ${s.sonucSinifi}, türetilen ${sonucSinifi(s.cumle)}`);
+    expect(kusur, kusur.join('\n')).toEqual([]);
+  });
+
+  it('S1 · YETKİ VE GÜVENLİK: ÖLÇÜLMEYEN SIFIRDIR — istisna YOK [URN-POL-001]', () => {
+    /* Bu sınıfın ihlali veri sızdırır ya da bir OT ağına paket yollar.
+       R-C bekçisiyle aynı sertlik: gerekçeli istisna kabul edilmez. */
+    const acik = politikalar
+      .filter((s) => s.sonucSinifi === 'S1' && s.olculmedi)
+      .map((s) => `${s.kod} :: ${s.cumle.slice(0, 70)}`);
+    expect(acik, `ÖLÇÜLMEYEN S1 politikası:\n${acik.join('\n')}`).toEqual([]);
+    expect(kutuk.tavanlar.sinif.S1, 'S1 tavanı sıfır olmalı').toBe(0);
+  });
+
+  it('SINIF TAVANLARI ölçülenle BİREBİR — gevşeklik dişi [URN-POL-001]', () => {
+    const bugun: Record<string, number> = { S1: 0, S2: 0, S3: 0 };
+    for (const s of politikalar) if (s.olculmedi) bugun[s.sonucSinifi ?? 'S3'] += 1;
+    expect(kutuk.tavanlar.sinif).toEqual(bugun);
+  });
+
+  it('TABAN DAL CIRCIRI: liste tabana göre BÜYÜYEMEZ [URN-POL-001]', () => {
+    /* DÖRDÜNCÜ DİŞ. Tavan dosyanın kendi içinde tutarlı olabilir ve yine
+       de gevşemiş olabilir: satır eklenir, tavan da onunla yükselir.
+       Bu yüzden karşılaştırma TABAN DALDAN yapılır. Taban okunamazsa
+       (yerelde `origin/main` yoksa) diş ATLANIR ve "ölçülmedi" denir —
+       CI'da ise okunamamak KIRMIZIDIR ve öyle yazılır. */
+    const git = (a: string[]) => execFileSync('git', a,
+      { cwd: process.cwd(), encoding: 'utf8', stdio: ['ignore', 'pipe', 'ignore'] });
+
+    /* ÜÇ HÂL AYRI OKUNUR ve ikisi kırmızı DEĞİLDİR:
+         taban dal yok        → yerelde meşru, CI'da KIRMIZI
+         taban dalda dosya yok → kütüğü GETİREN dal; diş uygulanamaz
+         ikisi de var          → diş koşar */
+    let tabanDalVar = true;
+    try { git(['rev-parse', '--verify', 'origin/main']); } catch { tabanDalVar = false; }
+    if (!tabanDalVar) {
+      expect(process.env.CI ?? '',
+        "CI'da taban dal okunamadı — cırcırın dördüncü dişi ölçülemedi").toBe('');
+      return;
+    }
+    let taban: typeof kutuk | null = null;
+    try {
+      taban = JSON.parse(git(['show', 'origin/main:web/arac/politika-cumleleri.json']));
+    } catch {
+      /* Kütük tabanda YOK: bu dal onu getiriyor. Karşılaştıracak bir
+         geçmiş yok; diş bir sonraki turda işler. */
+      taban = null;
+    }
+    if (taban === null) return;
+    const bugun = politikalar.filter((s) => s.olculmedi).length;
+    const tabanSayi = (taban.satirlar ?? []).filter((s) => s.olculmedi).length;
+    expect(bugun, `ölçülmeyen politika ${tabanSayi} → ${bugun}: liste YALNIZ küçülebilir`)
+      .toBeLessThanOrEqual(tabanSayi);
+
+    /* Takas da yakalanır: bir S1'i ölçüp yerine yeni bir S1 eklemek
+       toplamı korur ama sınıfı bozar. */
+    const tabanS1 = (taban.satirlar ?? [])
+      .filter((s) => s.olculmedi && s.sonucSinifi === 'S1').length;
+    const bugunS1 = politikalar.filter((s) => s.olculmedi && s.sonucSinifi === 'S1').length;
+    expect(bugunS1, `ölçülmeyen S1 ${tabanS1} → ${bugunS1}`).toBeLessThanOrEqual(tabanS1);
   });
 });
 

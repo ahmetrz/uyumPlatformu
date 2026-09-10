@@ -8,7 +8,8 @@
       "olculmedi": {
         "sahip": "KODLAYAN",
         "kapanisAsamasi": "R0-17 · R-F ölçüm dalgası"
-      }
+      },
+      "sonucSinifi": "S2"
     },
     {
       "kod": "POL-002",
@@ -18,7 +19,8 @@
       "olculmedi": {
         "sahip": "KODLAYAN",
         "kapanisAsamasi": "R0-17 · R-F ölçüm dalgası"
-      }
+      },
+      "sonucSinifi": "S2"
     },
     {
       "kod": "POL-003",
@@ -28,7 +30,8 @@
       "olculmedi": {
         "sahip": "KODLAYAN",
         "kapanisAsamasi": "R0-17 · R-F ölçüm dalgası"
-      }
+      },
+      "sonucSinifi": "S2"
     },
     {
       "kod": "POL-004",
@@ -45,7 +48,8 @@
       "olculmedi": {
         "sahip": "KODLAYAN",
         "kapanisAsamasi": "R0-17 · R-F ölçüm dalgası"
-      }
+      },
+      "sonucSinifi": "S2"
     },
     {
       "kod": "POL-006",
@@ -55,7 +59,8 @@
       "olculmedi": {
         "sahip": "KODLAYAN",
         "kapanisAsamasi": "R0-17 · R-F ölçüm dalgası"
-      }
+      },
+      "sonucSinifi": "S3"
     },
     {
       "kod": "POL-007",
@@ -65,7 +70,8 @@
       "olcum": {
         "dosya": "tests/ters-kapsam-ekran.test.ts",
         "vaka": "hiçbir madde değerlendirilmemişse yüzde null kalır"
-      }
+      },
+      "sonucSinifi": "S1"
     },
     {
       "kod": "POL-008",
@@ -86,9 +92,10 @@
       "cumle": "${t(sozluk, 'tesis', 'cogul')}, kısıtlı yetki yalnız o kümeyi gösterir;",
       "yer": "app/(kabuk)/(operasyonel)/yardim/page.tsx",
       "sinif": "POLITIKA",
-      "olculmedi": {
-        "sahip": "KODLAYAN",
-        "kapanisAsamasi": "R0-17 · R-F ölçüm dalgası"
+      "sonucSinifi": "S1",
+      "olcum": {
+        "dosya": "tests/erisim.test.ts",
+        "vaka": "izinliTesisIdleri: kısıtlı kullanıcı yalnız kendi tesislerini görür"
       }
     },
     {
@@ -99,7 +106,8 @@
       "olcum": {
         "dosya": "tests/yonetim-konsolu-eylem.test.ts",
         "vaka": "A sınıfı ayar doğrudan yazılır, okuyucu görür, iz düşer"
-      }
+      },
+      "sonucSinifi": "S1"
     },
     {
       "kod": "POL-012",
@@ -109,16 +117,18 @@
       "olcum": {
         "dosya": "tests/yonetim-konsolu-eylem.test.ts",
         "vaka": "A sınıfı ayar doğrudan yazılır, okuyucu görür, iz düşer"
-      }
+      },
+      "sonucSinifi": "S1"
     },
     {
       "kod": "POL-013",
       "cumle": "Anlık almak ya da temeli taşımak ağa hiçbir paket göndermez.",
       "yer": "app/(kabuk)/(operasyonel)/topoloji/Karar.tsx",
       "sinif": "POLITIKA",
-      "olculmedi": {
-        "sahip": "KODLAYAN",
-        "kapanisAsamasi": "R0-17 · R-F ölçüm dalgası"
+      "sonucSinifi": "S1",
+      "olcum": {
+        "dosya": "tests/politika-pasif-once.test.ts",
+        "vaka": "anlık görüntü motoru ağa HİÇ paket göndermez"
       }
     },
     {
@@ -129,16 +139,18 @@
       "olcum": {
         "dosya": "tests/yonetim-konsolu-eylem.test.ts",
         "vaka": "dört göz: öneren onaylayamaz"
-      }
+      },
+      "sonucSinifi": "S1"
     },
     {
       "kod": "POL-015",
       "cumle": "B sınıfı: kayıt doğrudan yazılmaz. Talep, sizden başka bir onay yetkilisi onaylayıp uyguladığında geçerli olur.",
       "yer": "app/(kabuk)/(operasyonel)/yonetim-tezgahi/KonsolFormlar.tsx",
       "sinif": "POLITIKA",
-      "olculmedi": {
-        "sahip": "KODLAYAN",
-        "kapanisAsamasi": "R0-17 · R-F ölçüm dalgası"
+      "sonucSinifi": "S1",
+      "olcum": {
+        "dosya": "tests/yonetim-konsolu-eylem.test.ts",
+        "vaka": "dört göz: öneren onaylayamaz"
       }
     },
     {
@@ -146,9 +158,10 @@
       "cumle": "bağlı olmayan (grup geneli) kayıtlar yalnız sınırsız kapsamda görünür.",
       "yer": "app/(kabuk)/(operasyonel)/yardim/page.tsx",
       "sinif": "POLITIKA",
-      "olculmedi": {
-        "sahip": "KODLAYAN",
-        "kapanisAsamasi": "R0-17 · R-F ölçüm dalgası"
+      "sonucSinifi": "S1",
+      "olcum": {
+        "dosya": "tests/disa-aktarim-paketi.test.ts",
+        "vaka": "KURUMSAL kayıt kurum geneli yetkiye GİRER, daraltılmışa GİRMEZ"
       }
     },
     {
@@ -166,7 +179,8 @@
       "olculmedi": {
         "sahip": "KODLAYAN",
         "kapanisAsamasi": "R0-17 · R-F ölçüm dalgası"
-      }
+      },
+      "sonucSinifi": "S3"
     },
     {
       "kod": "POL-073",
@@ -176,7 +190,8 @@
       "olcum": {
         "dosya": "tests/mevzuat-radari-eylem.test.ts",
         "vaka": "KARARA BAĞLANMIŞ aday ikinci kez karara bağlanmaz"
-      }
+      },
+      "sonucSinifi": "S3"
     },
     {
       "kod": "POL-019",
@@ -186,7 +201,8 @@
       "olculmedi": {
         "sahip": "KODLAYAN",
         "kapanisAsamasi": "R0-17 · R-F ölçüm dalgası"
-      }
+      },
+      "sonucSinifi": "S2"
     },
     {
       "kod": "POL-020",
@@ -196,7 +212,8 @@
       "olculmedi": {
         "sahip": "KODLAYAN",
         "kapanisAsamasi": "R0-17 · R-F ölçüm dalgası"
-      }
+      },
+      "sonucSinifi": "S3"
     },
     {
       "kod": "POL-021",
@@ -206,7 +223,8 @@
       "olculmedi": {
         "sahip": "KODLAYAN",
         "kapanisAsamasi": "R0-17 · R-F ölçüm dalgası"
-      }
+      },
+      "sonucSinifi": "S3"
     },
     {
       "kod": "POL-022",
@@ -216,16 +234,18 @@
       "olcum": {
         "dosya": "tests/kimlik-giris-mfa.test.ts",
         "vaka": "politika ZORUNLU ise parola doğru olsa da GİREMEZ"
-      }
+      },
+      "sonucSinifi": "S1"
     },
     {
       "kod": "POL-023",
       "cumle": "Bu kutu yalnız SİZE yazılan bildirimleri gösterir.",
       "yer": "app/(kabuk)/(operasyonel)/bildirimler/BildirimlerIstemci.tsx",
       "sinif": "POLITIKA",
-      "olculmedi": {
-        "sahip": "KODLAYAN",
-        "kapanisAsamasi": "R0-17 · R-F ölçüm dalgası"
+      "sonucSinifi": "S1",
+      "olcum": {
+        "dosya": "tests/bildirim-kutusu.test.ts",
+        "vaka": "BAŞKASININ bildirimini okundu işaretleme denemesi REDDEDİLİR"
       }
     },
     {
@@ -236,16 +256,18 @@
       "olculmedi": {
         "sahip": "KODLAYAN",
         "kapanisAsamasi": "R0-17 · R-F ölçüm dalgası"
-      }
+      },
+      "sonucSinifi": "S3"
     },
     {
       "kod": "POL-025",
       "cumle": "Değilse kapsam dışı; alanı bilinmeyen ${terim(sozluk, 'tesis', 'bulunma')} karar üretilmez.",
       "yer": "app/(kabuk)/(operasyonel)/uyum/veri.ts",
       "sinif": "POLITIKA",
-      "olculmedi": {
-        "sahip": "KODLAYAN",
-        "kapanisAsamasi": "R0-17 · R-F ölçüm dalgası"
+      "sonucSinifi": "S1",
+      "olcum": {
+        "dosya": "tests/uygulanabilirlik.test.ts",
+        "vaka": "profil eksikse karar VERİLMEZ (bilinmiyor ≠ hayır)"
       }
     },
     {
@@ -256,7 +278,8 @@
       "olcum": {
         "dosya": "tests/politika-demo-salt-okunur.test.ts",
         "vaka": "GERÇEK eylem (riskKaydet) REDDEDER"
-      }
+      },
+      "sonucSinifi": "S1"
     },
     {
       "kod": "POL-027",
@@ -266,7 +289,8 @@
       "olcum": {
         "dosya": "tests/faz-d-eylem.test.ts",
         "vaka": "sürüm geçmişi DEĞİŞTİRİLEMEZ ve SİLİNEMEZ"
-      }
+      },
+      "sonucSinifi": "S2"
     },
     {
       "kod": "POL-028",
@@ -276,7 +300,8 @@
       "olculmedi": {
         "sahip": "KODLAYAN",
         "kapanisAsamasi": "R0-17 · R-F ölçüm dalgası"
-      }
+      },
+      "sonucSinifi": "S2"
     },
     {
       "kod": "POL-029",
@@ -286,7 +311,8 @@
       "olculmedi": {
         "sahip": "KODLAYAN",
         "kapanisAsamasi": "R0-17 · R-F ölçüm dalgası"
-      }
+      },
+      "sonucSinifi": "S2"
     },
     {
       "kod": "POL-030",
@@ -296,7 +322,8 @@
       "olculmedi": {
         "sahip": "KODLAYAN",
         "kapanisAsamasi": "R0-17 · R-F ölçüm dalgası"
-      }
+      },
+      "sonucSinifi": "S2"
     },
     {
       "kod": "POL-031",
@@ -306,7 +333,8 @@
       "olculmedi": {
         "sahip": "KODLAYAN",
         "kapanisAsamasi": "R0-17 · R-F ölçüm dalgası"
-      }
+      },
+      "sonucSinifi": "S3"
     },
     {
       "kod": "POL-032",
@@ -316,7 +344,8 @@
       "olculmedi": {
         "sahip": "KODLAYAN",
         "kapanisAsamasi": "R0-17 · R-F ölçüm dalgası"
-      }
+      },
+      "sonucSinifi": "S3"
     },
     {
       "kod": "POL-033",
@@ -326,7 +355,8 @@
       "olculmedi": {
         "sahip": "KODLAYAN",
         "kapanisAsamasi": "R0-17 · R-F ölçüm dalgası"
-      }
+      },
+      "sonucSinifi": "S2"
     },
     {
       "kod": "POL-074",
@@ -336,7 +366,8 @@
       "olcum": {
         "dosya": "tests/mevzuat-radari-eylem.test.ts",
         "vaka": "ENGELLİ kaynakta tarama AÇILAMAZ"
-      }
+      },
+      "sonucSinifi": "S3"
     },
     {
       "kod": "POL-034",
@@ -346,7 +377,8 @@
       "olculmedi": {
         "sahip": "KODLAYAN",
         "kapanisAsamasi": "R0-17 · R-F ölçüm dalgası"
-      }
+      },
+      "sonucSinifi": "S2"
     },
     {
       "kod": "POL-035",
@@ -360,9 +392,10 @@
       "cumle": "geneli kapsam gerektirir. Dönem okunabilir, kapatılamaz.",
       "yer": "app/(kabuk)/(operasyonel)/raporlar/takvim/TakvimIstemci.tsx",
       "sinif": "POLITIKA",
-      "olculmedi": {
-        "sahip": "KODLAYAN",
-        "kapanisAsamasi": "R0-17 · R-F ölçüm dalgası"
+      "sonucSinifi": "S1",
+      "olcum": {
+        "dosya": "tests/politika-yetki-kapilari.test.ts",
+        "vaka": "TESİSE KISITLI rol dönemi kapatamaz"
       }
     },
     {
@@ -373,7 +406,8 @@
       "olculmedi": {
         "sahip": "KODLAYAN",
         "kapanisAsamasi": "R0-17 · R-F ölçüm dalgası"
-      }
+      },
+      "sonucSinifi": "S3"
     },
     {
       "kod": "POL-038",
@@ -383,7 +417,8 @@
       "olculmedi": {
         "sahip": "KODLAYAN",
         "kapanisAsamasi": "R0-17 · R-F ölçüm dalgası"
-      }
+      },
+      "sonucSinifi": "S2"
     },
     {
       "kod": "POL-039",
@@ -393,7 +428,8 @@
       "olculmedi": {
         "sahip": "KODLAYAN",
         "kapanisAsamasi": "R0-17 · R-F ölçüm dalgası"
-      }
+      },
+      "sonucSinifi": "S2"
     },
     {
       "kod": "POL-040",
@@ -403,7 +439,8 @@
       "olculmedi": {
         "sahip": "KODLAYAN",
         "kapanisAsamasi": "R0-17 · R-F ölçüm dalgası"
-      }
+      },
+      "sonucSinifi": "S2"
     },
     {
       "kod": "POL-041",
@@ -413,16 +450,18 @@
       "olculmedi": {
         "sahip": "KODLAYAN",
         "kapanisAsamasi": "R0-17 · R-F ölçüm dalgası"
-      }
+      },
+      "sonucSinifi": "S2"
     },
     {
       "kod": "POL-042",
       "cumle": "Hesabınızda tanımlı yetki yok: giriş yaparsınız, hiçbir ekran açılmaz.",
       "yer": "app/(kabuk)/(operasyonel)/ayarlar/AyarlarIstemci.tsx",
       "sinif": "POLITIKA",
-      "olculmedi": {
-        "sahip": "KODLAYAN",
-        "kapanisAsamasi": "R0-17 · R-F ölçüm dalgası"
+      "sonucSinifi": "S1",
+      "olcum": {
+        "dosya": "tests/politika-yetki-kapilari.test.ts",
+        "vaka": "HER modülde okuma kapısı KAPALI — liste türetilir"
       }
     },
     {
@@ -430,9 +469,10 @@
       "cumle": "Hesap açık ama hiçbir yetkisi yok: giriş yapar, hiçbir ekranı açamaz.",
       "yer": "app/(kabuk)/(operasyonel)/yetkiler/mantik.ts",
       "sinif": "POLITIKA",
-      "olculmedi": {
-        "sahip": "KODLAYAN",
-        "kapanisAsamasi": "R0-17 · R-F ölçüm dalgası"
+      "sonucSinifi": "S1",
+      "olcum": {
+        "dosya": "tests/politika-yetki-kapilari.test.ts",
+        "vaka": "yetkisiz hesap GERÇEK bir eylemi de çalıştıramaz"
       }
     },
     {
@@ -443,7 +483,8 @@
       "olculmedi": {
         "sahip": "KODLAYAN",
         "kapanisAsamasi": "R0-17 · R-F ölçüm dalgası"
-      }
+      },
+      "sonucSinifi": "S2"
     },
     {
       "kod": "POL-045",
@@ -453,7 +494,8 @@
       "olculmedi": {
         "sahip": "KODLAYAN",
         "kapanisAsamasi": "R0-17 · R-F ölçüm dalgası"
-      }
+      },
+      "sonucSinifi": "S3"
     },
     {
       "kod": "POL-046",
@@ -463,7 +505,8 @@
       "olculmedi": {
         "sahip": "KODLAYAN",
         "kapanisAsamasi": "R0-17 · R-F ölçüm dalgası"
-      }
+      },
+      "sonucSinifi": "S3"
     },
     {
       "kod": "POL-047",
@@ -473,7 +516,8 @@
       "olculmedi": {
         "sahip": "KODLAYAN",
         "kapanisAsamasi": "R0-17 · R-F ölçüm dalgası"
-      }
+      },
+      "sonucSinifi": "S3"
     },
     {
       "kod": "POL-048",
@@ -483,7 +527,8 @@
       "olculmedi": {
         "sahip": "KODLAYAN",
         "kapanisAsamasi": "R0-17 · R-F ölçüm dalgası"
-      }
+      },
+      "sonucSinifi": "S3"
     },
     {
       "kod": "POL-049",
@@ -493,7 +538,8 @@
       "olcum": {
         "dosya": "arac/kimlik-kanit.mjs",
         "vaka": "SIR DEĞERİ sayfada YOK"
-      }
+      },
+      "sonucSinifi": "S3"
     },
     {
       "kod": "POL-050",
@@ -503,7 +549,8 @@
       "olcum": {
         "dosya": "tests/faz-d-eylem.test.ts",
         "vaka": "sürüm geçmişi DEĞİŞTİRİLEMEZ ve SİLİNEMEZ"
-      }
+      },
+      "sonucSinifi": "S2"
     },
     {
       "kod": "POL-075",
@@ -513,7 +560,8 @@
       "olcum": {
         "dosya": "tests/mevzuat-radari-eylem.test.ts",
         "vaka": "tesise KISITLI rol karar veremez"
-      }
+      },
+      "sonucSinifi": "S1"
     },
     {
       "kod": "POL-051",
@@ -523,7 +571,8 @@
       "olcum": {
         "dosya": "tests/topoloji-sapma.test.ts",
         "vaka": "temel yokken sapma HESAPLANMAZ"
-      }
+      },
+      "sonucSinifi": "S1"
     },
     {
       "kod": "POL-052",
@@ -540,7 +589,8 @@
       "olculmedi": {
         "sahip": "KODLAYAN",
         "kapanisAsamasi": "R0-17 · R-F ölçüm dalgası"
-      }
+      },
+      "sonucSinifi": "S2"
     },
     {
       "kod": "POL-054",
@@ -550,7 +600,8 @@
       "olculmedi": {
         "sahip": "KODLAYAN",
         "kapanisAsamasi": "R0-17 · R-F ölçüm dalgası"
-      }
+      },
+      "sonucSinifi": "S2"
     },
     {
       "kod": "POL-055",
@@ -560,7 +611,8 @@
       "olculmedi": {
         "sahip": "KODLAYAN",
         "kapanisAsamasi": "R0-17 · R-F ölçüm dalgası"
-      }
+      },
+      "sonucSinifi": "S3"
     },
     {
       "kod": "POL-056",
@@ -570,7 +622,8 @@
       "olculmedi": {
         "sahip": "KODLAYAN",
         "kapanisAsamasi": "R0-17 · R-F ölçüm dalgası"
-      }
+      },
+      "sonucSinifi": "S3"
     },
     {
       "kod": "POL-057",
@@ -580,7 +633,8 @@
       "olculmedi": {
         "sahip": "KODLAYAN",
         "kapanisAsamasi": "R0-17 · R-F ölçüm dalgası"
-      }
+      },
+      "sonucSinifi": "S3"
     },
     {
       "kod": "POL-058",
@@ -590,7 +644,8 @@
       "olculmedi": {
         "sahip": "KODLAYAN",
         "kapanisAsamasi": "R0-17 · R-F ölçüm dalgası"
-      }
+      },
+      "sonucSinifi": "S2"
     },
     {
       "kod": "POL-059",
@@ -600,7 +655,8 @@
       "olculmedi": {
         "sahip": "KODLAYAN",
         "kapanisAsamasi": "R0-17 · R-F ölçüm dalgası"
-      }
+      },
+      "sonucSinifi": "S2"
     },
     {
       "kod": "POL-060",
@@ -610,7 +666,8 @@
       "olcum": {
         "dosya": "tests/senaryo-platform.test.ts",
         "vaka": "denetim izini koruyan tetikleyiciler göçlerde tanımlıdır"
-      }
+      },
+      "sonucSinifi": "S2"
     },
     {
       "kod": "POL-076",
@@ -620,7 +677,8 @@
       "olcum": {
         "dosya": "tests/mevzuat-radari.test.ts",
         "vaka": "MOTOR `etkin` alanına DOKUNMAZ"
-      }
+      },
+      "sonucSinifi": "S2"
     },
     {
       "kod": "POL-061",
@@ -630,7 +688,8 @@
       "olculmedi": {
         "sahip": "KODLAYAN",
         "kapanisAsamasi": "R0-17 · R-F ölçüm dalgası"
-      }
+      },
+      "sonucSinifi": "S2"
     },
     {
       "kod": "POL-062",
@@ -644,9 +703,10 @@
       "cumle": "Reddedilen kaydı kapatmak yönetim yazma yetkisi ister.",
       "yer": "app/(kabuk)/(operasyonel)/saglik/reddedilenler/ReddedilenlerIstemci.tsx",
       "sinif": "POLITIKA",
-      "olculmedi": {
-        "sahip": "KODLAYAN",
-        "kapanisAsamasi": "R0-17 · R-F ölçüm dalgası"
+      "sonucSinifi": "S1",
+      "olcum": {
+        "dosya": "tests/politika-yetki-kapilari.test.ts",
+        "vaka": "yönetim yazması OLMAYAN rol REDDEDİLİR ve kayıt DEĞİŞMEZ"
       }
     },
     {
@@ -664,7 +724,8 @@
       "olculmedi": {
         "sahip": "KODLAYAN",
         "kapanisAsamasi": "R0-17 · R-F ölçüm dalgası"
-      }
+      },
+      "sonucSinifi": "S3"
     },
     {
       "kod": "POL-066",
@@ -674,7 +735,8 @@
       "olculmedi": {
         "sahip": "KODLAYAN",
         "kapanisAsamasi": "R0-17 · R-F ölçüm dalgası"
-      }
+      },
+      "sonucSinifi": "S2"
     },
     {
       "kod": "POL-067",
@@ -684,7 +746,8 @@
       "olculmedi": {
         "sahip": "KODLAYAN",
         "kapanisAsamasi": "R0-17 · R-F ölçüm dalgası"
-      }
+      },
+      "sonucSinifi": "S2"
     },
     {
       "kod": "POL-068",
@@ -694,7 +757,8 @@
       "olculmedi": {
         "sahip": "KODLAYAN",
         "kapanisAsamasi": "R0-17 · R-F ölçüm dalgası"
-      }
+      },
+      "sonucSinifi": "S2"
     },
     {
       "kod": "POL-069",
@@ -704,16 +768,18 @@
       "olcum": {
         "dosya": "tests/paket-kur.test.ts",
         "vaka": "aynı sürüm numarasıyla İÇERİĞİ DEĞİŞMİŞ paket reddedilir"
-      }
+      },
+      "sonucSinifi": "S2"
     },
     {
       "kod": "POL-070",
       "cumle": "varlık aktarımı (CMDB kaydı) ile gelir; bu ekran ağı taramaz.",
       "yer": "app/(kabuk)/(operasyonel)/topoloji/TopolojiIstemci.tsx",
       "sinif": "POLITIKA",
-      "olculmedi": {
-        "sahip": "KODLAYAN",
-        "kapanisAsamasi": "R0-17 · R-F ölçüm dalgası"
+      "sonucSinifi": "S1",
+      "olcum": {
+        "dosya": "tests/politika-pasif-once.test.ts",
+        "vaka": "KAYITTAN anlık alma eylemi ağa çıkmaz"
       }
     },
     {
@@ -724,21 +790,28 @@
       "olcum": {
         "dosya": "tests/yonetim-konsolu-eylem.test.ts",
         "vaka": "katalogKaydet reddedilir ve hiçbir satır yazılmaz"
-      }
+      },
+      "sonucSinifi": "S1"
     },
     {
       "kod": "POL-072",
       "cumle": "Yürürlüğe alma uyum onay yetkisi ister; her geçiş ve gözden geçirme denetim izine yazılır. Belgenin dosyası bu platformda saklanmaz.",
       "yer": "app/(kabuk)/(operasyonel)/dokumanlar/DokumanlarIstemci.tsx",
       "sinif": "POLITIKA",
-      "olculmedi": {
-        "sahip": "KODLAYAN",
-        "kapanisAsamasi": "R0-17 · R-F ölçüm dalgası"
+      "sonucSinifi": "S1",
+      "olcum": {
+        "dosya": "tests/politika-yetki-kapilari.test.ts",
+        "vaka": "uyum ONAYI olmayan rol belgeyi yürürlüğe ALAMAZ"
       }
     }
   ],
   "tavanlar": {
-    "olculmeyen": 51
+    "olculmeyen": 39,
+    "sinif": {
+      "S1": 0,
+      "S2": 23,
+      "S3": 16
+    }
   },
   "not": "R-F · politika cümlesi kütüğü. Satırlar arac/politika-kutugu.mjs ile TÜRETİLİR, elle yazılmaz."
 }

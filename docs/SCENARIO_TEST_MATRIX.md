@@ -4,12 +4,12 @@
 
 | Ölçü | Değer |
 | --- | --- |
-| Senaryo | 348 |
-| Testi olan senaryo | 348 |
+| Senaryo | 350 |
+| Testi olan senaryo | 350 |
 | **GAP** | **0** |
 | Hayalet işaret (kütükte olmayan kimlik) | 0 |
 | Kütüksüz test dosyası | 0 |
-| Taranan test dosyası | 223 |
+| Taranan test dosyası | 225 |
 
 ## Katman başına kapsam
 
@@ -19,13 +19,13 @@
 | API | 12 | 12 | 0 |
 | CONCURRENCY | 7 | 7 | 0 |
 | DOMAIN | 203 | 203 | 0 |
-| ENGINE | 33 | 33 | 0 |
-| INTEGRATION | 40 | 40 | 0 |
+| ENGINE | 34 | 34 | 0 |
+| INTEGRATION | 41 | 41 | 0 |
 | MIGRATION | 5 | 5 | 0 |
-| RBAC | 37 | 37 | 0 |
+| RBAC | 38 | 38 | 0 |
 | RESPONSIVE | 8 | 8 | 0 |
-| SCOPE | 30 | 30 | 0 |
-| SERVER | 143 | 143 | 0 |
+| SCOPE | 31 | 31 | 0 |
+| SERVER | 145 | 145 | 0 |
 | UI | 100 | 100 | 0 |
 | VISUAL | 4 | 4 | 0 |
 | WORKFLOW | 37 | 37 | 0 |
@@ -178,6 +178,8 @@
 | `OLY-BIL-009` | Olay | SERVER · DOMAIN · WORKFLOW | `bildirim-tetikleyici-ayrimi.test.ts` | açık olaya YALNIZ olay tetikli kural için kayıt açılır | evet | geçti |
 | `OLY-BIL-009` | Olay | SERVER · DOMAIN · WORKFLOW | `bildirim-tetikleyici-ayrimi.test.ts` | TAKVİM yükümlülüğünün HİÇBİR olay kaydı yok | evet | geçti |
 | `OLY-BIL-009` | Olay | SERVER · DOMAIN · WORKFLOW | `bildirim-tetikleyici-ayrimi.test.ts` | ikinci koşu da açmıyor — tekrar da sızdırmaz | evet | geçti |
+| `MEV-RAD-001` | Uyum | SERVER · DOMAIN · WORKFLOW · UI | `mevzuat-radari.test.ts` | etkin kaynak yoksa `mevzuatRadariniIsle` ağa HİÇ çıkmaz | evet | geçti |
+| `MEV-RAD-001` | Uyum | SERVER · DOMAIN · WORKFLOW · UI | `mevzuat-radari.test.ts` | `getirmeyiYap` FIRLATMAZ — hatayı DÖNDÜRÜR | evet | geçti |
 | `MEV-RAD-001` | Uyum | SERVER · DOMAIN · WORKFLOW · UI | `mevzuat-radari.test.ts` | kapalı yol REDDEDİLİR, açık yol geçer | evet | geçti |
 | `MEV-RAD-001` | Uyum | SERVER · DOMAIN · WORKFLOW · UI | `mevzuat-radari.test.ts` | EN UZUN kural kazanır — Allow, kapsayan Disallow\'u yener | evet | geçti |
 | `MEV-RAD-001` | Uyum | SERVER · DOMAIN · WORKFLOW · UI | `mevzuat-radari.test.ts` | BİZE ÖZEL grup varsa yıldız grubu uygulanmaz | evet | geçti |
@@ -475,6 +477,18 @@
 | `SIS-BSL-002` | Sistem | UI | `ekran-basligi.test.ts` | künyede ister kodu geçmiyor | evet | geçti |
 | `SIS-ERS-002` | Sistem | ACCESSIBILITY · UI | `senaryo-platform.test.ts` | seçilemeyen tablo grid demez, işaretçi imleci taşımaz | evet | geçti |
 | `SIS-ERS-003` | Sistem | ACCESSIBILITY | `senaryo-platform.test.ts` | sekme rolü yalnız gerçek sekmelerde kullanılır | evet | geçti |
+| `SIS-PAS-001` | Sistem | ENGINE · SERVER · INTEGRATION | `politika-pasif-once.test.ts` | sahte ağ GERÇEKTEN kapalı — ölçüm boşa koşmuyor | evet | geçti |
+| `SIS-PAS-001` | Sistem | ENGINE · SERVER · INTEGRATION | `politika-pasif-once.test.ts` | anlık görüntü motoru ağa HİÇ paket göndermez | evet | geçti |
+| `SIS-PAS-001` | Sistem | ENGINE · SERVER · INTEGRATION | `politika-pasif-once.test.ts` | topoloji sapma motoru da ağa çıkmaz | evet | geçti |
+| `SIS-PAS-001` | Sistem | ENGINE · SERVER · INTEGRATION | `politika-pasif-once.test.ts` | KAYITTAN anlık alma eylemi ağa çıkmaz — kayıt CMDB\'den gelir | evet | geçti |
+| `SIS-PAS-001` | Sistem | ENGINE · SERVER · INTEGRATION | `politika-pasif-once.test.ts` | TEMEL onaylama eylemi de ağa çıkmaz | evet | geçti |
+| `SIS-YTK-010` | Sistem | RBAC · SCOPE · SERVER | `politika-yetki-kapilari.test.ts` | fikstür GERÇEKTEN yetkisiz — ölçüm boşa koşmuyor | evet | geçti |
+| `SIS-YTK-010` | Sistem | RBAC · SCOPE · SERVER | `politika-yetki-kapilari.test.ts` | HER modülde okuma kapısı KAPALI — liste türetilir | evet | geçti |
+| `SIS-YTK-010` | Sistem | RBAC · SCOPE · SERVER | `politika-yetki-kapilari.test.ts` | yetkisiz hesap GERÇEK bir eylemi de çalıştıramaz | evet | geçti |
+| `SIS-YTK-010` | Sistem | RBAC · SCOPE · SERVER | `politika-yetki-kapilari.test.ts` | yönetim yazması OLMAYAN rol REDDEDİLİR ve kayıt DEĞİŞMEZ | evet | geçti |
+| `SIS-YTK-010` | Sistem | RBAC · SCOPE · SERVER | `politika-yetki-kapilari.test.ts` | yönetim yazması OLAN rol geçer | evet | geçti |
+| `SIS-YTK-010` | Sistem | RBAC · SCOPE · SERVER | `politika-yetki-kapilari.test.ts` | uyum ONAYI olmayan rol belgeyi yürürlüğe ALAMAZ | evet | geçti |
+| `SIS-YTK-010` | Sistem | RBAC · SCOPE · SERVER | `politika-yetki-kapilari.test.ts` | TESİSE KISITLI rol dönemi kapatamaz | evet | geçti |
 | `SIS-SNG-001` | Sistem | DOMAIN | `giris-zaman.test.ts` | ileri ve geri aynı kaydırma noktasında aynı pozu verir | evet | geçti |
 | `SIS-SNG-001` | Sistem | DOMAIN | `giris-zaman.test.ts` | dört kareyi tek dünya koordinatına diker: ortak hedef komşu karelerde aynı noktadadır | evet | geçti |
 | `SIS-SNG-001` | Sistem | DOMAIN | `giris-zaman.test.ts` | her bantta en fazla iki komşu kare görünür, toplam opaklık 1 ve görünen her kare görüntü alanını kaplar | evet | geçti |
@@ -849,6 +863,11 @@
 | `URN-POL-001` | Ürünleştirme | DOMAIN | `bekci/politika-olcumu.test.ts` | ÖLÇÜLMEDİ satırı SAHİBİNİ ve KAPANIŞ AŞAMASINI taşır | evet | geçti |
 | `URN-POL-001` | Ürünleştirme | DOMAIN | `bekci/politika-olcumu.test.ts` | ÖLÇÜLMEYEN SAYISI TAVANI AŞMAZ — cırcır yalnız küçülür | evet | geçti |
 | `URN-POL-001` | Ürünleştirme | DOMAIN | `bekci/politika-olcumu.test.ts` | TAVAN ölçülenin ÜSTÜNDE tutulmaz — gevşeklik dişi | evet | geçti |
+| `URN-POL-001` | Ürünleştirme | DOMAIN | `bekci/politika-olcumu.test.ts` | HER politika satırı sonuç sınıfı TAŞIR | evet | geçti |
+| `URN-POL-001` | Ürünleştirme | DOMAIN | `bekci/politika-olcumu.test.ts` | SINIF ELLE VERİLMEZ — kütüktekiyle TÜRETİLEN aynı | evet | geçti |
+| `URN-POL-001` | Ürünleştirme | DOMAIN | `bekci/politika-olcumu.test.ts` | S1 · YETKİ VE GÜVENLİK: ÖLÇÜLMEYEN SIFIRDIR — istisna YOK | evet | geçti |
+| `URN-POL-001` | Ürünleştirme | DOMAIN | `bekci/politika-olcumu.test.ts` | SINIF TAVANLARI ölçülenle BİREBİR — gevşeklik dişi | evet | geçti |
+| `URN-POL-001` | Ürünleştirme | DOMAIN | `bekci/politika-olcumu.test.ts` | TABAN DAL CIRCIRI: liste tabana göre BÜYÜYEMEZ | evet | geçti |
 | `URN-POL-001` | Ürünleştirme | DOMAIN | `bekci/politika-olcumu.test.ts` | ÖZNE koşulu alan doğrulamasını dışarıda tutar | evet | geçti |
 | `URN-POL-001` | Ürünleştirme | DOMAIN | `bekci/politika-olcumu.test.ts` | SİSTEM iddiası yakalanır | evet | geçti |
 | `URN-POL-001` | Ürünleştirme | DOMAIN | `bekci/politika-olcumu.test.ts` | YORUMDAKİ cümle kütüğe girmez | evet | geçti |

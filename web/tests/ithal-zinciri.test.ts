@@ -152,3 +152,59 @@ describe('kapı · gerçek araçlar ve SABOTAJ', () => {
     expect(zinciriOlc([kaynak]).kusurlar).toEqual([]);
   });
 });
+
+/* ── BAĞIMSIZ İNCELEME BULGULARI (PR #46) ─────────────────────────────
+   Üçü de "kapı geçerli kodu kırmızı yakıyor ya da kırık kodu kaçırıyor"
+   sınıfındandı ve hiçbiri bugünkü depoda ateşlenmiyordu — ama ilk kullanan
+   anlaşılması zor bir yanlış alarm alacaktı. */
+
+describe('yanlış alarm ve yanlış negatif — inceleme bulguları', () => {
+  it('çok satırlı içe aktarımda SATIR-İÇİ YORUM ada karışmaz', () => {
+    /* `a, // yorum` satırı virgülle bölününce yorum metni bir sonraki
+       ADIN içine giriyordu ve kapı, hiçbir modülün ihraç edemeyeceği
+       `"// yorum b"` adını arayıp GEÇERLİ kodu kırmızı yakıyordu. */
+    const [i] = ithalatlar("import {\n  a, // neden burada\n  b,\n} from './mod.mjs';\n");
+    expect(i.adlar).toEqual(['a', 'b']);
+  });
+
+  it('blok yorumu da ada karışmaz', () => {
+    const [i] = ithalatlar("import { a, /* not */ b } from './mod.mjs';\n");
+    expect(i.adlar).toEqual(['a', 'b']);
+  });
+
+  it('`import type { X }` varsayılan ihraç ARAMAZ', () => {
+    /* `type` sözcüğü çıplak ad sanılıp hedefte `default` aranıyordu. */
+    const [i] = ithalatlar("import type { Foo } from './t';\n");
+    expect(i.adlar).toEqual(['Foo']);
+  });
+
+  it('`import { type Foo, bar }` ada `type` yapıştırmaz', () => {
+    const [i] = ithalatlar("import { type Foo, bar } from './t';\n");
+    expect(i.adlar).toEqual(['Foo', 'bar']);
+  });
+
+  it('SABİT şablon dizesiyle dinamik içe aktarım GÖRÜLÜR', () => {
+    const i = ithalatlar('const m = await import(`./mod-x.mjs`);\n');
+    expect(i.map((x) => x.belirtec)).toEqual(['./mod-x.mjs']);
+  });
+
+  it('DEĞİŞKENLİ şablon dizesi hâlâ atlanır — çözülemeyeni kırmızı yakmak yanlış', () => {
+    expect(ithalatlar('const m = await import(`./${ad}.mjs`);\n')).toEqual([]);
+  });
+});
+
+describe('`export type { X }` bir İHRAÇTIR', () => {
+  it('kaynaksız tip ihracı görünür', () => {
+    const yol = path.join(mkdtempSync(path.join(tmpdir(), 'ithal-tip-')), 'tipler.ts');
+    writeFileSync(yol, 'type Foo = string;\nexport type { Foo };\n');
+    expect(ihraclar(yol).has('Foo')).toBe(true);
+  });
+
+  it('`export { type Foo }` biçiminde de görünür', () => {
+    const yol = path.join(mkdtempSync(path.join(tmpdir(), 'ithal-tip2-')), 'tipler.ts');
+    writeFileSync(yol, 'type Foo = string;\nconst bar = 1;\nexport { type Foo, bar };\n');
+    const c = ihraclar(yol);
+    expect(c.has('Foo')).toBe(true);
+    expect(c.has('bar')).toBe(true);
+  });
+});

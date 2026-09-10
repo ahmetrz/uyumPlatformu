@@ -363,4 +363,52 @@ describe('form dışa aktarımı · sır süzgeci', () => {
        formu hiç üretmezdi. */
     expect(() => formCsv(kunye, [bolum('Bilgi Güvenliği Sorumlusu')])).not.toThrow();
   });
+
+  /* ── ÜÇÜNCÜ DİŞ: BİLİNEN SIRLAR (bağımsız inceleme bulgusu, PR #46) ──
+     Süzgecin üç dişi var: alan ADI · değer KALIBI · BİLİNEN SIRLAR.
+     Form yolu ilk turda üçüncüsünü hiç geçirmiyordu (`bilinenSirlar`
+     varsayılan `[]`) ve gövdeyi yalnız DEĞER dizisi olarak
+     serileştirdiği için birinci diş de hiçbir zaman gerçek bir alan adı
+     görmüyordu. İkisi de bir kapı değil, metni okuyan bir inceleme
+     tarafından yakalandı. */
+
+  it('KURULUMDAKİ ham sır referansı hücrede geçerse dosya ÜRETİLMEZ', () => {
+    /* Somut senaryo: bir sorumlu kapsam gerekçesine entegrasyonun vault
+       yolunu yapıştırır. Ne ad kara listesi ne kalıp listesi bunu görür —
+       yalnız "kurulumda bu değer sır olarak duruyor mu" karşılaştırması
+       görür. */
+    const sir = 'vault:kv/uretim/scada-toplayici#anahtar';
+    const b = bolum(`Kapsam dışı — toplayıcı ${sir} ile otomatik izleniyor.`);
+    expect(() => formCsv(kunye, [b], [sir])).toThrow(/sır sızıntısı/);
+    expect(() => formXlsx(kunye, [b], [sir])).toThrow(/sır sızıntısı/);
+  });
+
+  it('aynı metin, bilinen sır LİSTESİ verilmezse geçer — dişin çalıştığının kanıtı', () => {
+    /* Bu vaka kapının kendi yürüyüşünü ölçer: yukarıdaki kırmızı
+       gerçekten ÜÇÜNCÜ dişten mi geliyor, yoksa metin başka bir sebeple
+       mi reddediliyor. */
+    const sir = 'vault:kv/uretim/scada-toplayici#anahtar';
+    const b = bolum(`Kapsam dışı — toplayıcı ${sir} ile otomatik izleniyor.`);
+    expect(() => formCsv(kunye, [b], [])).not.toThrow();
+  });
+
+  it('ALAN ADI süzgece ULAŞIYOR — gövde anahtarıyla serileştiriliyor', () => {
+    /* İlk diş alan adına bakar; gövde yalnız değer dizisi olsaydı bu diş
+       hiçbir zaman ısırmazdı. Hücrenin anahtarı `parola` olduğunda
+       süzgeç DEĞERİNE bakmadan reddetmelidir. */
+    const b = {
+      ad: 'Bölüm',
+      sutunlar: FORM_SUTUNLARI,
+      satirlar: [{
+        hucreler: [{ anahtar: 'parola', deger: 'Ayşe Yılmaz', isaret: null }] as FormHucresi[],
+      }],
+    };
+    expect(() => formCsv(kunye, [b])).toThrow(/sır sızıntısı/);
+  });
+
+  it('kısa değer bilinen sır sayılmaz — yanlış alarm üretmez', () => {
+    /* `sirSizintisiVarMi` altı karakterden kısa değerleri eler; form yolu
+       o kuralın ikinci bir kopyasını taşımaz. */
+    expect(() => formCsv(kunye, [bolum('Ali Veli')], ['env'])).not.toThrow();
+  });
 });

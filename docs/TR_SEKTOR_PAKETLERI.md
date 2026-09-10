@@ -201,8 +201,22 @@ Uyum" · "Uyumsuz" · "Kapsam dışı" madde sayıları · danışmanlık
 alınmadığına dair ibare · denetçi firmanın belge saklamayacağına dair
 beyan · örnekleme yapıldıysa yöntemi ve gerekçesi · iki taraf için imza
 alanları) ve `paketler/TR-ENERJI/form/EPDK-DENETIM-MUTABAKAT.json`
-bu yapıyı taşır. Rehberin METNİ pakete girmedi; alan etiketleri ürünün
-kendi cümleleridir. Belge şu anda EPDK'nın hangi sayfasında listelendiği
+bu yapıyı taşır.
+
+**Alan etiketleri kaynağın söz dizilişini KORUR — ve bu bilinçlidir.**
+İlk turda pakette "alan etiketleri ürünün kendi cümleleridir" yazıyordu;
+bağımsız inceleme bunun DOĞRU OLMADIĞINI gösterdi (yedi kalemin yedisi de
+rehberin sözcüklerini taşıyor) ve iddia düzeltildi. Doğru olan davranış da
+budur: asgari muhteva bir LİSTEDİR ve denetçinin tanıyacağı sözcüklerle
+yazılmazsa belge o listeyi karşıladığını gösteremez; "danışmanlık
+alınmadığına dair ibare" yerine ürünün kendi cümlesini yazmak, formu daha
+özgün değil daha KULLANIŞSIZ yapardı. Yönetmelik ve rehber metni FSEK
+md. 31 kapsamında serbesttir ve paketin lisans beyanı bunu söyler
+(`kamuya_acik` · `metinDahil: true`). Pakete girmeyen şey rehberin GÖVDE
+METNİDİR: açıklama paragrafları, denetim süreleri ve örnekleme kuralları
+şablona kopyalanmadı.
+
+Belge şu anda EPDK'nın hangi sayfasında listelendiği
 **bulunamadı** (Yetkinlik Modeli sayfasında bağı yok, arama motoru da
 göstermedi); doğrudan adresi çalışıyor ve iki ayrı indirmede aynı
 sha256'yı verdi — kaynak satırı bu yüzden adresle ve özetle yazıldı.

@@ -22,7 +22,24 @@
    `Authorization` başlığı yapıştırırsa, o metin denetçiye giden dosyada
    çıkar. İkinci bir süzgeç yazmak, birinde düzeltilen kuralı öbüründe
    bayatlatırdı; ölçüldü ve kanıt paketinde tek nüsha olması iki hattı
-   birden kapatmayı sağladı. */
+   birden kapatmayı sağladı.
+
+   ── SÜZGECİN ÜÇ DİŞİ VE FORM YOLUNUN İKİ EKSİĞİ (bağımsız inceleme) ───
+   Süzgeç üç şeye bakar: alan ADI (parola · token · secret…), değerin
+   KALIBI (PEM · Bearer · Basic) ve BİLİNEN SIRLAR (connector'ların ham
+   `sirReferansi` değerleri). Form yolu ilk turda üçünden İKİSİNİ
+   kaybediyordu ve kusuru kapı değil, metni okuyan bir inceleme yakaladı:
+
+     · gövde `hucreler.map((h) => h.deger)` ile serileştiriliyordu —
+       yalnız DEĞER; `anahtar` düşüyordu ve ad-bazlı kara liste hiçbir
+       zaman gerçek bir alan adı görmüyordu,
+     · `bilinenSirlar` HİÇ geçirilmiyordu (varsayılan `[]`), yani
+       "kurulumdaki ham sır referansı bu metinde aynen geçiyor mu"
+       sorusu hiç sorulmuyordu.
+
+   Bugün gövde `{ anahtar: deger }` nesnesi olarak verilir ve bilinen
+   sırlar ÇAĞIRANDAN gelir (`formCsv`/`formXlsx` üçüncü parametre).
+   Çağıran onları veritabanından okur; bu dosya veritabanı bilmez. */
 
 import { csvMetni, type Hucre } from '@/lib/disaAktarim/csv';
 import { paketiDenetle } from '@/lib/disaAktarim/paket';
@@ -63,16 +80,28 @@ function bolumSatirlari(b: FormBolumu): Hucre[][] {
   ];
 }
 
+/**
+ * Çağıranın bildiği HAM sır değerleri — pakete aynen girmemesi gerekenler.
+ * Kanıt paketinde bu, connector'ların `sirReferansi` alanlarıdır.
+ */
+export type BilinenSirlar = readonly (string | null | undefined)[];
+
 /** İKİ KAPI: boş hücre ve sır süzgeci. Sırayla, serileştirmeden ÖNCE. */
-function kapilar(bolumler: readonly FormBolumu[]): void {
+function kapilar(bolumler: readonly FormBolumu[], bilinenSirlar: BilinenSirlar): void {
   bosHucreKapisi(formlarinOlcumu(bolumler));
   /* Süzgeç JSON üstünde çalışır; form satırlarının gövdesi ona verilir.
      Sızıntı varsa FIRLATIR — maskeleyip geçmek, bir dahaki sütun
-     eklendiğinde sessiz sızıntı demektir. */
+     eklendiğinde sessiz sızıntı demektir.
+
+     Gövde ALAN ADIYLA verilir: süzgecin ilk dişi (parola · token · secret
+     gibi adlar) ancak anahtarı görürse çalışır. Yalnız değer dizisi
+     verildiğinde o diş kâğıt üstünde vardı, pratikte hiç ısırmıyordu. */
   paketiDenetle(JSON.stringify(bolumler.map((b) => ({
     ad: b.ad,
-    satirlar: b.satirlar.map((s) => s.hucreler.map((h) => h.deger)),
-  }))));
+    satirlar: b.satirlar.map((s) => Object.fromEntries(
+      s.hucreler.map((h) => [h.anahtar, h.deger]),
+    )),
+  }))), bilinenSirlar);
 }
 
 /** Bütün bölümlerin toplam ölçümü — kapı ve rapor için. */
@@ -88,8 +117,12 @@ export function formlarinOlcumu(bolumler: readonly FormBolumu[]): FormOlcumu {
  * CSV'nin sayfası yoktur; bölümü bir başlık satırıyla ayırmak, denetçinin
  * dosyayı Excel'de açıp süzmesini bozmadan yapılabilecek en dürüst şey.
  */
-export function formCsv(kunye: Kunye, bolumler: readonly FormBolumu[]): string {
-  kapilar(bolumler);
+export function formCsv(
+  kunye: Kunye,
+  bolumler: readonly FormBolumu[],
+  bilinenSirlar: BilinenSirlar = [],
+): string {
+  kapilar(bolumler, bilinenSirlar);
   const satirlar: Hucre[][] = [...kunyeSatirlari(kunye)];
   for (const b of bolumler) {
     satirlar.push([b.ad]);
@@ -105,8 +138,12 @@ export function formCsv(kunye: Kunye, bolumler: readonly FormBolumu[]): string {
  * Bölümleri tek sayfaya yığmak, 3 800 maddelik bir çerçevede formu
  * okunamaz yapardı; denetçinin çalışma kitabı istemesinin sebebi de bu.
  */
-export function formXlsx(kunye: Kunye, bolumler: readonly FormBolumu[]): Buffer {
-  kapilar(bolumler);
+export function formXlsx(
+  kunye: Kunye,
+  bolumler: readonly FormBolumu[],
+  bilinenSirlar: BilinenSirlar = [],
+): Buffer {
+  kapilar(bolumler, bilinenSirlar);
   const sayfalar: XlsxSayfasi[] = [
     { ad: 'Künye', satirlar: kunyeSatirlari(kunye) },
     ...bolumler.map((b) => ({ ad: b.ad, satirlar: bolumSatirlari(b) })),

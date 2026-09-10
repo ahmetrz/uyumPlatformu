@@ -1,7 +1,7 @@
 {
-  "imza": "0d9f312a043f10a7fcedd3851f958bb2",
+  "imza": "477e064eda171df4dd80d0364c96cabf",
   "dosya": 202,
-  "vaka": 3651,
+  "vaka": 3675,
   "atlanan": 1,
   "dosyalar": {
     "tests/adaptor-yetenekleri.test.ts": {
@@ -129,11 +129,11 @@
       "atlanan": 0
     },
     "tests/denetim-formu-eylem.test.ts": {
-      "vaka": 4,
+      "vaka": 10,
       "atlanan": 0
     },
     "tests/denetim-formu.test.ts": {
-      "vaka": 38,
+      "vaka": 42,
       "atlanan": 0
     },
     "tests/denetim-kapsam.test.ts": {
@@ -145,7 +145,7 @@
       "atlanan": 0
     },
     "tests/derleme-artefakti.test.ts": {
-      "vaka": 13,
+      "vaka": 16,
       "atlanan": 0
     },
     "tests/disa-aktarim-csv.test.ts": {
@@ -333,7 +333,7 @@
       "atlanan": 0
     },
     "tests/ithal-zinciri.test.ts": {
-      "vaka": 15,
+      "vaka": 23,
       "atlanan": 0
     },
     "tests/kabuk-gezinme.test.ts": {
@@ -377,7 +377,7 @@
       "atlanan": 0
     },
     "tests/kapi-is-kapsami.test.ts": {
-      "vaka": 10,
+      "vaka": 13,
       "atlanan": 0
     },
     "tests/kapsam-ekranlari.test.ts": {

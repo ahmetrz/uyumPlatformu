@@ -381,7 +381,17 @@ if (kirmizi.length || olculmeyen.length || durdurmaKirmizi) {
   }
   process.exit(1);
 }
-if (secilen.length === 2) {
+/* KAPANIŞ, YALNIZ TAM KÜMEDE KAPANIŞTIR. `--is=` ile daraltılmış bir koşum
+   yeşil bitse de parti kapatmaz: koşulmayan kapı "geçti" diye yazılmaz.
+
+   Bu satır bir tur boyunca `secilen` diye TANIMSIZ bir değişkene bakıyordu
+   (küme seçimi `secilenIsler` kümesine geçirilirken kalmış) ve tam da
+   "hepsi yeşil" anında `ReferenceError` ile çöküyordu — yani aracın en
+   önemli anı, ölçüm ortamının kendi kusuruyla kırmızı oluyordu. Kusuru
+   bir kapı değil, bağımsız inceleme yakaladı: `kapi:parti` kendi kendini
+   ölçemediği için (`kapi-farki` beyanında `kapi: false`) CI'da hiç
+   koşmuyor ve ESLint bu dosyada `no-undef` taşımıyor. */
+if (secilenIsler.size === 0) {
   console.log('\nParti kapanış kümesi PR kapı kümesiyle AYNI ve tamamı yeşil.');
 } else {
   console.log(`\n${KUME_ADI} kümesi yeşil — ama bu KAPANIŞ DEĞİLDİR:`

@@ -9,7 +9,7 @@
 | **GAP** | **0** |
 | Hayalet işaret (kütükte olmayan kimlik) | 0 |
 | Kütüksüz test dosyası | 0 |
-| Taranan test dosyası | 200 |
+| Taranan test dosyası | 202 |
 
 ## Katman başına kapsam
 
@@ -667,7 +667,7 @@
 | `URN-PKT-022` | Ürünleştirme | DOMAIN | `paket-alan-eslemesi.test.ts` | bir ürün alanı iki kez beyan edilemez — hangi kaynağın yazıldığı belirsiz kalır | evet | geçti |
 | `URN-PKT-022` | Ürünleştirme | DOMAIN | `paket-alan-eslemesi.test.ts` | temsilî çerçeve beyan EDEMEZ (kaynak belgesi yok), beyansızlığı da kırmızı değildir | evet | geçti |
 | `URN-PKT-022` | Ürünleştirme | DOMAIN | `paket-alan-eslemesi.test.ts` | pakette olmayan çerçeveye beyan ölü atıftır | evet | geçti |
-| `URN-PKT-022` | Ürünleştirme | DOMAIN | `paket-alan-eslemesi.test.ts` | ürün alanı sütun listesinin dışına yazılamaz; gerekçe kısaltılamaz | evet | geçti |
+| `URN-PKT-022` | Ürünleştirme | DOMAIN | `paket-alan-eslemesi.test.ts` | ürün alanındaki yazım hatası yutulmaz; gerekçe kısaltılamaz | evet | geçti |
 | `URN-PKT-022` | Ürünleştirme | DOMAIN | `paket-alan-eslemesi.test.ts` | boş beyan listesi beyan değildir | evet | geçti |
 | `URN-PKT-022` | Ürünleştirme | DOMAIN | `paket-alan-eslemesi.test.ts` | paketler/ altındaki HER paket doğrulayıcıdan temiz geçer | evet | geçti |
 | `URN-PKT-022` | Ürünleştirme | DOMAIN | `paket-alan-eslemesi.test.ts` | EPDK "Seviye" kademesi gereksinim_tipi olarak beyanlıdır, seviye sütunu BOŞTUR | evet | geçti |
@@ -713,10 +713,12 @@
 | `kirpan-ata.test.ts` | Düzen kapısının kırpan-ata yürüyüşü — kaydırılabilen içerik kayıp sayılmaz |
 | `inceleme-30.test.ts` | Bir inceleme turunun beş bulgusunun düzeltme kanıtı — birlikte okunmaları gerekir |
 | `bekci/sunucu-eylem-ihraci.test.ts` | `'use server'` dosyasının ihraç kuralı — nesne ihracı çalışma zamanında 500 verir, tsc ve lint göremez |
+| `denetim-sablon.test.ts` | Paket form şablonunun doldurulması — çekirdek yalnız doldurur; bağlanmayan şablon alanı formu dolu göstermez |
 | `denetim-formu-eylem.test.ts` | Denetim formu eyleminin kapsam denetimi ve iz kaydı — kapsam dışı istek reddedilir, sessizce daraltılmaz |
 | `denetim-formu.test.ts` | Denetim formunun saf kuralları — hiçbir hücre boş kalmaz, gerekçe uydurulmaz, hedef ile mevcut olgunluk karışmaz |
 | `derleme-artefakti.test.ts` | Paylaşılan derleme artefaktının ortam beyanı — beyansız tüketim ve gizli yol tuzağı |
 | `disa-aktarim-xlsx.test.ts` | XLSX üretiminin saf kuralları — formül hücresi üretilmez, kalkan CSV ile aynı |
+| `ithal-zinciri.test.ts` | Araç zincirinin YAPISAL ölçüsü — bir aracın ihracı silinince ya da dosyası üzerine yazılınca kırmızı; modül ÇALIŞTIRILMADAN ölçülür |
 | `kapi-is-kapsami.test.ts` | Kapı kümesinin İŞ katmanı — iş adları türetilir, bölünmeyle hiçbir kapı düşmez |
 | `sunucu-durdurma.test.ts` | Başarısız OLAMAYAN temizlik adımı sınıfı — süreç adıyla öldürme, sonucu yutan `|| true` ve son koşulunu doğrulamayan adım |
 

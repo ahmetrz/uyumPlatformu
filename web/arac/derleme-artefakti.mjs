@@ -80,11 +80,21 @@ export function karsilastir({ beyan, damga, cevre }) {
       + ' ortamında üretilmiş. Beyanı farklı olan iş artefaktı tüketemez;'
       + ' kendi derlemesini yapar.');
   }
+  /* KARŞILAŞTIRMA İKİ YÖNLÜDÜR — ve bir tur tek yönlüydü.
+     Ölçüldü (bağımsız inceleme, PR #46): döngü yalnız TÜKETİCİNİN
+     ortamındaki anahtarları geziyordu; damgada olup tüketicide HİÇ
+     bahsi geçmeyen bir gömülü değer hiç ziyaret edilmiyordu ve kapı
+     sessizce yeşil geçiyordu. Oysa asıl tehlikeli hâl budur: tüketici
+     bir değişkenin varlığından HABERSİZDİR, "yok" sanır ve ekranı
+     derleyenin değeriyle ölçer. Bugün iki tarafın anahtar BİRLEŞİMİ
+     gezilir; eksik taraf `(yok)` diye adıyla yazılır. */
   const simdi = gomulenler(cevre);
-  for (const [k, v] of Object.entries(simdi)) {
-    if ((damga.gomulenler ?? {})[k] !== v) {
-      kusurlar.push(`GÖMÜLÜ DEĞER FARKLI: ${k} — bu işte "${v}",`
-        + ` derlemede "${(damga.gomulenler ?? {})[k] ?? '(yok)'}".`
+  const damgadakiler = damga.gomulenler ?? {};
+  const anahtarlar = [...new Set([...Object.keys(simdi), ...Object.keys(damgadakiler)])].sort();
+  for (const k of anahtarlar) {
+    if (damgadakiler[k] !== simdi[k]) {
+      kusurlar.push(`GÖMÜLÜ DEĞER FARKLI: ${k} — bu işte "${simdi[k] ?? '(yok)'}",`
+        + ` derlemede "${damgadakiler[k] ?? '(yok)'}".`
         + ' `NEXT_PUBLIC_*` derleme anında gömülür; buradaki değer HİÇBİR'
         + ' ŞEY yapmaz ve ekran derleyenin değerini gösterir.');
     }

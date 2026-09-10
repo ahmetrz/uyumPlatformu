@@ -2,53 +2,135 @@
   "kod": "EPDK-DENETIM-MUTABAKAT",
   "ad": "EPDK Denetim Mutabakat Belgesi (asgari muhteva)",
   "tur": "denetim",
-  "aciklama": "Yapı, EPDK Denetim Rehberi'nin Mutabakat Belgesi için saydığı ASGARİ muhtevadan alındı (erişim 2026-09-09). Rehber metni pakete girmez; alan ETİKETLERİ ürünün kendi cümleleridir. EPDK bir ÖZ DEĞERLENDİRME formu yayımlamamıştır — bu şablon onun yerine geçmez.",
+  "aciklama": "Yapı ve alan adları, EPDK Denetim Rehberi'nin Mutabakat Belgesi için saydığı ASGARİ MUHTEVADAN alındı (erişim 2026-09-09) ve kaynağın söz dizilişini KORUR: asgari muhteva listesi denetçinin tanıyacağı sözcüklerle yazılmazsa belge o listeyi karşıladığını gösteremez. Yönetmelik metni FSEK md. 31 kapsamında serbesttir. EPDK bir ÖZ DEĞERLENDİRME formu yayımlamamıştır; bu şablon onun yerine geçmez.",
   "bolumler": [
     {
       "kod": "denetim_kimligi",
       "baslik": "Denetim kimliği",
       "alanlar": [
-        { "anahtar": "denetimTarihi", "etiket": "Denetimin gerçekleştirildiği tarih", "tip": "tarih", "zorunlu": true },
-        { "anahtar": "basdenetciBilgisi", "etiket": "Başdenetçi bilgileri", "tip": "metin", "zorunlu": true },
-        { "anahtar": "denetciBilgileri", "etiket": "Denetime katılan denetçilerin bilgileri", "tip": "metin", "zorunlu": true },
-        { "anahtar": "kurulusTemsilcileri", "etiket": "Kuruluş temsilcilerinin bilgileri", "tip": "metin", "zorunlu": true }
+        {
+          "anahtar": "denetimTarihi",
+          "etiket": "Denetimin gerçekleştirildiği tarih",
+          "tip": "tarih",
+          "zorunlu": true
+        },
+        {
+          "anahtar": "basdenetciBilgisi",
+          "etiket": "Başdenetçi bilgileri",
+          "tip": "metin",
+          "zorunlu": true
+        },
+        {
+          "anahtar": "denetciBilgileri",
+          "etiket": "Denetime katılan denetçilerin bilgileri",
+          "tip": "metin",
+          "zorunlu": true
+        },
+        {
+          "anahtar": "kurulusTemsilcileri",
+          "etiket": "Kuruluş temsilcilerinin bilgileri",
+          "tip": "metin",
+          "zorunlu": true
+        }
       ]
     },
     {
       "kod": "degerlendirme_sayilari",
       "baslik": "Değerlendirme sayıları",
       "alanlar": [
-        { "anahtar": "tamUyumSayisi", "etiket": "Tam Uyum olarak değerlendirilen madde sayısı", "tip": "sayi", "sayimDurumu": "uyumlu" },
-        { "anahtar": "kismenUyumSayisi", "etiket": "Kısmen Uyum olarak değerlendirilen madde sayısı", "tip": "sayi", "sayimDurumu": "kismi" },
-        { "anahtar": "uyumsuzSayisi", "etiket": "Uyumsuz olarak değerlendirilen madde sayısı", "tip": "sayi", "sayimDurumu": "uyumsuz" },
-        { "anahtar": "kapsamDisiSayisi", "etiket": "Kapsam dışı olarak değerlendirilen madde sayısı", "tip": "sayi", "sayimDurumu": "kapsamdisi" },
-        { "anahtar": "incelemedeSayisi", "etiket": "Henüz karara bağlanmamış (incelemede) madde sayısı", "tip": "sayi", "sayimDurumu": "incelemede" },
-        { "anahtar": "degerlendirilmedigiSayisi", "etiket": "Hiç değerlendirilmemiş madde sayısı", "tip": "sayi", "sayimDurumu": "degerlendirilmedi" }
+        {
+          "anahtar": "tamUyumSayisi",
+          "etiket": "Tam Uyum olarak değerlendirilen madde sayısı",
+          "tip": "sayi",
+          "sayimDurumu": "uyumlu"
+        },
+        {
+          "anahtar": "kismenUyumSayisi",
+          "etiket": "Kısmen Uyum olarak değerlendirilen madde sayısı",
+          "tip": "sayi",
+          "sayimDurumu": "kismi"
+        },
+        {
+          "anahtar": "uyumsuzSayisi",
+          "etiket": "Uyumsuz olarak değerlendirilen madde sayısı",
+          "tip": "sayi",
+          "sayimDurumu": "uyumsuz"
+        },
+        {
+          "anahtar": "kapsamDisiSayisi",
+          "etiket": "Kapsam dışı olarak değerlendirilen madde sayısı",
+          "tip": "sayi",
+          "sayimDurumu": "kapsamdisi"
+        },
+        {
+          "anahtar": "incelemedeSayisi",
+          "etiket": "Henüz karara bağlanmamış (incelemede) madde sayısı",
+          "tip": "sayi",
+          "sayimDurumu": "incelemede"
+        },
+        {
+          "anahtar": "degerlendirilmedigiSayisi",
+          "etiket": "Hiç değerlendirilmemiş madde sayısı",
+          "tip": "sayi",
+          "sayimDurumu": "degerlendirilmedi"
+        }
       ]
     },
     {
       "kod": "ornekleme",
       "baslik": "Örnekleme",
       "alanlar": [
-        { "anahtar": "orneklemeYapildi", "etiket": "Denetim sırasında örnekleme yapıldı mı", "tip": "mantik" },
-        { "anahtar": "orneklemeYontemi", "etiket": "Örneklemenin nasıl yapıldığı", "tip": "metin" },
-        { "anahtar": "orneklemeGerekcesi", "etiket": "Örneklemenin gerekçesi", "tip": "metin" }
+        {
+          "anahtar": "orneklemeYapildi",
+          "etiket": "Denetim sırasında örnekleme yapıldı mı",
+          "tip": "mantik"
+        },
+        {
+          "anahtar": "orneklemeYontemi",
+          "etiket": "Örneklemenin nasıl yapıldığı",
+          "tip": "metin"
+        },
+        {
+          "anahtar": "orneklemeGerekcesi",
+          "etiket": "Örneklemenin gerekçesi",
+          "tip": "metin"
+        }
       ]
     },
     {
       "kod": "taraf_beyanlari",
       "baslik": "Taraf beyanları",
       "alanlar": [
-        { "anahtar": "danismanlikAlinmadi", "etiket": "Kuruluş, denetçiden ve denetçi firmadan danışmanlık almamıştır", "tip": "mantik", "zorunlu": true },
-        { "anahtar": "belgeSaklanmayacak", "etiket": "Denetçi firma kuruluşa ait bilgi ve varlıkları saklamayacaktır", "tip": "mantik", "zorunlu": true }
+        {
+          "anahtar": "danismanlikAlinmadi",
+          "etiket": "Kuruluş, denetçiden ve denetçi firmadan danışmanlık almamıştır",
+          "tip": "mantik",
+          "zorunlu": true
+        },
+        {
+          "anahtar": "belgeSaklanmayacak",
+          "etiket": "Denetçi firma kuruluşa ait bilgi ve varlıkları saklamayacaktır",
+          "tip": "mantik",
+          "zorunlu": true
+        }
       ]
     },
     {
       "kod": "imza",
       "baslik": "İmza alanları",
       "alanlar": [
-        { "anahtar": "denetciImzasi", "etiket": "Denetçi yetkilisi imza alanı", "tip": "metin", "zorunlu": true },
-        { "anahtar": "kurulusImzasi", "etiket": "Kuruluş yetkilisi imza alanı", "tip": "metin", "zorunlu": true }
+        {
+          "anahtar": "denetciImzasi",
+          "etiket": "Denetçi yetkilisi imza alanı",
+          "tip": "metin",
+          "zorunlu": true
+        },
+        {
+          "anahtar": "kurulusImzasi",
+          "etiket": "Kuruluş yetkilisi imza alanı",
+          "tip": "metin",
+          "zorunlu": true
+        }
       ]
     }
   ]

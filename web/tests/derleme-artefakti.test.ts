@@ -121,3 +121,36 @@ describe('iş akışı kapısı', () => {
     expect(artefaktKapisi(bozuk).kusurlar.join(' ')).toContain('boş artefakt');
   });
 });
+
+describe('gömülü değer karşılaştırması İKİ YÖNLÜ [bağımsız inceleme · PR #46]', () => {
+  it('DAMGADA olup tüketicide HİÇ bahsi geçmeyen değer KIRMIZI', () => {
+    /* Asıl tehlikeli hâl: tüketici değişkenin varlığından habersizdir,
+       "yok" sanır ve ekranı derleyenin değeriyle ölçer. Döngü bir tur
+       yalnız tüketicinin anahtarlarını geziyordu ve bu hâl hiç ziyaret
+       edilmiyordu. */
+    const k = karsilastir({
+      beyan: 'uretim',
+      damga: { ortam: 'uretim', gomulenler: { NEXT_PUBLIC_DEMO: '1' } },
+      cevre: {},
+    });
+    expect(k).toHaveLength(1);
+    expect(k[0]).toMatch(/NEXT_PUBLIC_DEMO/);
+    expect(k[0]).toMatch(/bu işte "\(yok\)"/);
+  });
+
+  it('TÜKETİCİDE olup damgada olmayan değer de KIRMIZI (eski yön korunuyor)', () => {
+    const k = karsilastir({
+      beyan: 'uretim',
+      damga: { ortam: 'uretim', gomulenler: {} },
+      cevre: { NEXT_PUBLIC_DEMO: '1' },
+    });
+    expect(k).toHaveLength(1);
+    expect(k[0]).toMatch(/derlemede "\(yok\)"/);
+  });
+
+  it('iki taraf da boşsa kusur yok — yanlış alarm üretmez', () => {
+    expect(karsilastir({
+      beyan: 'uretim', damga: { ortam: 'uretim', gomulenler: {} }, cevre: {},
+    })).toEqual([]);
+  });
+});

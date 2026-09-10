@@ -214,9 +214,20 @@ export async function denetimFormuUretEylem(girdi: {
       ],
     };
 
+    /* SIR SÜZGECİNİN ÜÇÜNCÜ DİŞİ (bağımsız inceleme bulgusu, PR #46):
+       kurulumdaki HAM `sirReferansi` değerleri süzgece VERİLİR. Bir
+       operatör kapsam gerekçesine `vault:kv/uretim/...#anahtar` gibi bir
+       referansı yapıştırırsa, ad kara listesi ve kalıp listesi onu
+       görmez — yalnız bu karşılaştırma görür. Kanıt paketi bunu ilk
+       günden yapıyordu; form yolu yapmıyordu ve fark okunan bir yorumla
+       "aynı süzgeç" diye örtülüydü. */
+    const hamSirlar = (await db.connector.findMany({
+      select: { sirReferansi: true },
+    })).map((c) => c.sirReferansi);
+
     const olcum = formlarinOlcumu(bolumler);
-    const csv = formCsv(kunye, bolumler);
-    const xlsx = formXlsx(kunye, bolumler);
+    const csv = formCsv(kunye, bolumler, hamSirlar);
+    const xlsx = formXlsx(kunye, bolumler, hamSirlar);
 
     await iz({
       aktorId: k.id,

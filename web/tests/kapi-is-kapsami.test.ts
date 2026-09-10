@@ -166,3 +166,28 @@ describe('kapı kümesi bölünmeyle değişmez', () => {
     expect(kapiAdimlari(sahte)).toHaveLength(2);
   });
 });
+
+describe('iş adı satırında SATIR-İÇİ YORUM [bağımsız inceleme · PR #46]', () => {
+  it('`  kapi-yavas:  # toplayıcı` işi DÜŞMEZ', () => {
+    /* Kalıp satırın tamamen boşlukla bitmesini şart koşuyordu; yorumlu
+       bir iş adı satırı hiç eşleşmiyor ve o iş türetilen listeden
+       SESSİZCE düşüyordu. İki sonuç birden: parti kapsamı eksilir ve
+       adımlar bir önceki işe yazılır — kapanış yine "tamamı koştu" der. */
+    const y = 'jobs:\n  kapi:\n    runs-on: ubuntu-latest\n'
+      + '  kapi-yavas:  # toplayıcı\n    runs-on: ubuntu-latest\n';
+    expect(isler(y)).toEqual(['kapi', 'kapi-yavas']);
+  });
+
+  it('adımlar da doğru işe yazılır — yorumlu iş adı kapsamı kaydırmaz', () => {
+    const y = 'jobs:\n  kapi:\n    steps:\n      - name: Bir\n        run: npm run bir\n'
+      + '  kapi-demo:  # kendi derlemesi\n    steps:\n'
+      + '      - name: İki\n        run: npm run iki\n';
+    const demo = kapiAdimlari(y, new Set(['kapi-demo']));
+    expect(demo.map((a) => a.komut)).toEqual(['npm run iki']);
+  });
+
+  it('TAM SATIR yorumu hâlâ iş sayılmaz', () => {
+    const y = 'jobs:\n  kapi:\n    runs-on: x\n#  kapi-hayalet:\n    runs-on: x\n';
+    expect(isler(y)).toEqual(['kapi']);
+  });
+});

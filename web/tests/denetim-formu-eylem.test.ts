@@ -135,3 +135,101 @@ describe('denetim formu eylemi', () => {
     expect(s.ok).toBe(false);
   });
 });
+
+/* ── ŞABLON YOLU AYNI KAPILARDAN GEÇER (bağımsız inceleme, PR #46) ─────
+   Kapsam testleri çekirdek form türleriyle koşuyordu; şablon testleri saf
+   katmandaydı ve yetkiyi hiç bilmiyordu. İkisinin KESİŞİMİ — kısıtlı bir
+   aktör, ŞABLON seçerek, kapsam dışı bir tesis ister — hiçbir dosyada
+   yoktu. Bugünkü kod doğru (şablon dalı kapsamlanmış satırları yeniden
+   kullanıyor); bu vakalar o doğruluğu KİLİTLER: şablon dalına kapsamsız
+   ikinci bir sorgu eklendiği gün kırmızı yanar. */
+
+describe('şablon yolu · kapsam ve kapılar [DNT-FRM-003]', () => {
+  /** Kurulu ve AKTİF ilk şablonun seçim değeri; şablon yoksa null. */
+  const sablonSecimi = async () => {
+    const s = await db.formSablonu.findFirst({
+      where: { aktif: true }, select: { kod: true }, orderBy: { kod: 'asc' },
+    });
+    return s ? `sablon:${s.kod}` : null;
+  };
+
+  it('fikstürde en az bir kurulu şablon var — ölçüm boş bakmıyor', async () => {
+    /* Şablon yoksa aşağıdaki vakalar sessizce atlanır ve "kapsam
+       denetlendi" diye yazılırdı; hiçbir şeye bakmadan temiz raporlamak
+       tam olarak budur. */
+    expect(await sablonSecimi()).not.toBeNull();
+  });
+
+  it('KAPSAM DIŞI istek ŞABLONLA da REDDEDİLİR', async () => {
+    await aktoruKur();
+    const { regulasyonId } = await kapsam();
+    const tur = await sablonSecimi();
+    if (!tur) return;
+    aktor.yetkiler = [{ rol: 'dis_denetci', tesisId: 'baska-tesis-id', modul: 'denetim' }];
+    const s = await denetimFormuUretEylem({
+      regulasyonId, tesisIdleri: ['istenen-tesis-id'], tur,
+    });
+    expect(s.ok).toBe(false);
+    if (s.ok) return;
+    expect(s.hata).toMatch(/kapsam|yetki/i);
+    expect(s.hata).not.toContain('istenen-tesis-id');
+  });
+
+  it('denetim modülünde yetkisi olmayan ŞABLONLA da üretemez', async () => {
+    await aktoruKur();
+    const { tesisId, regulasyonId } = await kapsam();
+    const tur = await sablonSecimi();
+    if (!tur) return;
+    aktor.yetkiler = [{ rol: 'risk_sahibi', tesisId: null, modul: 'risk' }];
+    expect((await denetimFormuUretEylem({
+      regulasyonId, tesisIdleri: [tesisId], tur,
+    })).ok).toBe(false);
+  });
+
+  it('yetkili aktör şablonu üretir ve BOŞ HÜCRE SIFIR kalır', async () => {
+    await aktoruKur();
+    aktor.yetkiler = [{ rol: 'yonetici', tesisId: null, modul: null }];
+    const { tesisId, regulasyonId } = await kapsam();
+    const tur = await sablonSecimi();
+    if (!tur) return;
+    const s = await denetimFormuUretEylem({ regulasyonId, tesisIdleri: [tesisId], tur });
+    expect(s.ok, s.ok ? '' : s.hata).toBe(true);
+    if (!s.ok) return;
+    expect(s.olcum.bosHucre).toBe(0);
+    expect(s.olcum.satir).toBeGreaterThan(0);
+    /* Dosya adı ŞABLONUN kodunu taşır: iki farklı şablonun çıktısı
+       birbirinden ayırt edilebilmelidir. */
+    expect(s.csvAdi).toContain(tur.slice('sablon:'.length));
+  });
+
+  it('KURULU OLMAYAN şablon kodu REDDEDİLİR — sessizce çekirdek forma düşmez', async () => {
+    /* Sessiz düşüş, kullanıcının istediği belgeden BAŞKA bir belgeyi
+       denetçiye vermek olurdu. */
+    await aktoruKur();
+    aktor.yetkiler = [{ rol: 'yonetici', tesisId: null, modul: null }];
+    const { tesisId, regulasyonId } = await kapsam();
+    const s = await denetimFormuUretEylem({
+      regulasyonId, tesisIdleri: [tesisId], tur: 'sablon:YOK-BOYLE-BIR-SABLON',
+    });
+    expect(s.ok).toBe(false);
+    if (s.ok) return;
+    expect(s.hata).toMatch(/kurulu değil|pasif/i);
+  });
+
+  it('PASİF şablon doldurulmaz', async () => {
+    await aktoruKur();
+    aktor.yetkiler = [{ rol: 'yonetici', tesisId: null, modul: null }];
+    const { tesisId, regulasyonId } = await kapsam();
+    const sablon = await db.formSablonu.findFirst({ where: { aktif: true } });
+    if (!sablon) return;
+    await db.formSablonu.update({ where: { id: sablon.id }, data: { aktif: false } });
+    try {
+      const s = await denetimFormuUretEylem({
+        regulasyonId, tesisIdleri: [tesisId], tur: `sablon:${sablon.kod}`,
+      });
+      expect(s.ok).toBe(false);
+    } finally {
+      await db.formSablonu.update({ where: { id: sablon.id }, data: { aktif: true } });
+    }
+  });
+});

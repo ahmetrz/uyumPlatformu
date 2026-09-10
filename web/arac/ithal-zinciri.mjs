@@ -87,27 +87,55 @@ export function ithalatlar(kaynak) {
   for (const m of metin.matchAll(/^import\s*['"]([^'"]+)['"]/gm)) {
     cikti.push({ belirtec: m[1], adlar: [], satir: satirNo(m.index) });
   }
-  /* Dinamik: `import('<spec>')` — yalnız DÜZ dize; değişkenli olan
-     statik olarak çözülemez ve çözülemeyeni kırmızı yakmak yanlış olur. */
+  /* Dinamik: `import('<spec>')` — SABİT dize; değişkenli olan statik
+     olarak çözülemez ve çözülemeyeni kırmızı yakmak yanlış olur.
+     Ters tırnak da sayılır AMA yalnız içinde `${` yoksa: `import(`./x.mjs`)`
+     sabittir ve çözülebilir, `import(`./${ad}.mjs`) değildir. Bağımsız
+     inceleme bulgusu (PR #46): ters tırnak hiç eşleşmiyordu ve kırık bir
+     hedefe giden böyle bir içe aktarım sessizce kaçıyordu. */
   for (const m of metin.matchAll(/\bimport\s*\(\s*['"]([^'"]+)['"]\s*\)/g)) {
+    cikti.push({ belirtec: m[1], adlar: [], satir: satirNo(m.index) });
+  }
+  for (const m of metin.matchAll(/\bimport\s*\(\s*`([^`]+)`\s*\)/g)) {
+    if (m[1].includes('${')) continue;
     cikti.push({ belirtec: m[1], adlar: [], satir: satirNo(m.index) });
   }
   return cikti;
 }
 
-/** `{ a, b as c }` · `X` · `* as ns` · `X, { a }` → doğrulanacak ADLAR. */
+/**
+ * `{ a, b as c }` · `X` · `* as ns` · `X, { a }` → doğrulanacak ADLAR.
+ *
+ * İKİ TUZAK, ikisi de bağımsız incelemede yakalandı (PR #46):
+ *
+ *  1. SATIR-İÇİ YORUM. `yorumsuz()` yalnız TAM SATIR yorumlarını düşürür
+ *     (kod-sonrası yorumu korumak bilinçli); ama çok satırlı bir içe
+ *     aktarımda `a, // not` satırı virgülle bölününce yorum metni bir
+ *     sonraki ADIN içine karışıyordu ve kapı, hiçbir modülün ihraç
+ *     edemeyeceği `"// not\n  b"` adını arayıp GEÇERLİ kodu kırmızı
+ *     yakıyordu. Ad adayı burada yorumundan arındırılır.
+ *  2. TİP ÖNEKİ. `import { type Foo, bar }` ve `import type { Foo }`
+ *     TypeScript söz dizimidir; `type` sözcüğü ada yapışırsa yine
+ *     olmayan bir ad aranır. Önek düşürülür.
+ */
 function adlariCoz(clause) {
-  const c = clause.trim();
+  /* Satır-içi ve blok yorumları AD ADAYINDAN düşür — yalnız burada;
+     `yorumsuz()` dosya düzeyinde bilerek daha ihtiyatlı. */
+  const temiz = clause.replace(/\/\*[\s\S]*?\*\//g, ' ').replace(/\/\/[^\n]*/g, ' ');
+  const c = temiz.replace(/^\s*type\s+/, '').trim();
   if (c === '' || c.startsWith('*')) return [];
   const adlar = [];
   const suslu = c.match(/\{([^}]*)\}/);
   if (suslu) {
     for (const parca of (suslu[1] ?? '').split(',')) {
-      const ad = parca.trim().split(/\s+as\s+/)[0]?.trim();
+      const ham = parca.trim().replace(/^type\s+/, '');
+      const ad = ham.split(/\s+as\s+/)[0]?.trim();
       if (ad && ad !== 'default') adlar.push(ad);
     }
   }
-  /* Varsayılan içe aktarım: süslüden önceki çıplak ad. */
+  /* Varsayılan içe aktarım: süslüden önceki çıplak ad. `import type {...}`
+     biçiminde `type` zaten düşürüldüğü için yanlışlıkla `default`
+     aranmaz. */
   const varsayilan = (c.split('{')[0] ?? '').split(',')[0]?.trim() ?? '';
   if (varsayilan && !varsayilan.startsWith('*')) adlar.push('default');
   return adlar;
@@ -122,9 +150,13 @@ export function ihraclar(dosya, gorulen = new Set()) {
   for (const m of metin.matchAll(
     /\bexport\s+(?:declare\s+)?(?:async\s+)?(?:function|const|let|var|class|type|interface|enum)\s+([A-Za-z0-9_$]+)/g,
   )) adlar.add(m[1]);
-  for (const m of metin.matchAll(/\bexport\s*\{([^}]*)\}/g)) {
+  /* `export type { X }` ve `export { type X }` de bir İHRAÇTIR: bir .mjs
+     aracı böyle bir .ts hedeften adı içe aktarabilir ve kapı onu
+     "ihraç etmiyor" diye kırmızı yakardı (bağımsız inceleme, PR #46). */
+  for (const m of metin.matchAll(/\bexport\s+(?:type\s+)?\{([^}]*)\}/g)) {
     for (const parca of (m[1] ?? '').split(',')) {
-      const ad = parca.trim().split(/\s+as\s+/).pop()?.trim();
+      const ham = parca.trim().replace(/^type\s+/, '');
+      const ad = ham.split(/\s+as\s+/).pop()?.trim();
       if (ad) adlar.add(ad);
     }
   }

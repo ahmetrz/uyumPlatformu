@@ -175,7 +175,7 @@ export function adimlar(isAkisiMetni) {
       cevre = null;
     }
     /* `jobs:` altındaki iki boşluklu anahtar = bir İŞ adı. */
-    const isAdi = ham.match(/^ {2}([a-z][\w-]*):\s*$/);
+    const isAdi = ham.match(IS_ADI_KALIBI);
     /* Yeni iş: adım bağlamı da sıfırlanır. Sıfırlanmasaydı önceki işin son
        adımının girintisi taşınır ve İŞ DÜZEYİ `env:` hiç okunmazdı (ölçüldü). */
     if (isAdi) { is = isAdi[1]; isCevresi = {}; isCevreGirinti = null; adimGirinti = null; }
@@ -251,6 +251,10 @@ const KURULUM_KALIBI = /(npm ci|prisma |playwright-core\/cli|git fetch|fuser -k|
     aynı komut iki işte duruyorsa (üretim derlemesi böyleydi), önce
     tekilleştirip sonra süzmek o komutu seçilen işten DÜŞÜRÜRDÜ — kapı
     koşulmamış olurdu ve kimse görmezdi. */
+/**
+ * @param {string} isAkisiMetni
+ * @param {Set<string>|null} [isSuzgeci]
+ */
 export function kapiAdimlari(isAkisiMetni, isSuzgeci = null) {
   /* Yorum satırları BURADA atılır. Çağıranın atmasına bırakılsaydı,
      atmayı unutan çağıran yoruma alınmış bir kapıyı "koşuyor" sayardı —
@@ -324,6 +328,17 @@ export function kapiliIsler(isAkisiMetni) {
     `jobs:` bloğunun İÇİNDE olmak şart: `on:` altındaki `pull_request:` ·
     `schedule:` · `workflow_dispatch:` de iki boşluklu, değersiz
     anahtarlardır ve blok takibi olmadan iş sanılırlar (ölçüldü). */
+/* İŞ ADI KALIBI — TEK NÜSHA ve satır-içi yorum TOLERANSLI.
+
+   Ölçüldü (bağımsız inceleme, PR #46): kalıp satırın tamamen boşlukla
+   bitmesini şart koşuyordu; `  kapi-yavas:  # toplayıcı` gibi bir satır
+   HİÇ eşleşmiyor ve o iş türetilen listeden SESSİZCE düşüyordu. İki
+   sonucu birden vardı: `isler()` işi görmez (parti kapsamı eksilir) ve
+   `adimlar()` o işin adımlarını bir öncekine yazar — kapanış yine
+   "tamamı koştu" derdi. Kalıp iki yerde ayrı ayrı yazılıydı; bugün tek
+   nüshadır ki biri düzeltilip öbürü bayatlamasın. */
+export const IS_ADI_KALIBI = /^ {2}([a-z][\w-]*):\s*(?:#.*)?$/;
+
 export function isler(isAkisiMetni) {
   const satirlar = isAkisiMetni.split('\n')
     .filter((s) => !s.trimStart().startsWith('#'));
@@ -334,7 +349,7 @@ export function isler(isAkisiMetni) {
     /* Girintisiz bir anahtar `jobs:` bloğunu kapatır. */
     if (icinde && /^[a-zA-Z]/.test(ham)) { icinde = false; continue; }
     if (!icinde) continue;
-    const m = ham.match(/^ {2}([a-z][\w-]*):\s*$/);
+    const m = ham.match(IS_ADI_KALIBI);
     if (m) cikti.push(m[1]);
   }
   return cikti;

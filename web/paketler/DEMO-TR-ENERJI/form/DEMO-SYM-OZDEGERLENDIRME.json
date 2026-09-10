@@ -1,0 +1,33 @@
+{
+  "kod": "DEMO-SYM-OZDEGERLENDIRME",
+  "ad": "Demo öz-değerlendirme iskeleti (temsilî)",
+  "tur": "oz_degerlendirme",
+  "aciklama": "KURGUSAL. Demo kiracısının ekranlarını beslemek için yazıldı; hiçbir düzenleyicinin yayımladığı forma karşılık gelmez. Üç alan sınıfını da taşır: kontrole bağlı alan, durum sayımı, kurumun dolduracağı serbest alan.",
+  "bolumler": [
+    {
+      "kod": "genel_bilgi",
+      "baslik": "Genel bilgi",
+      "alanlar": [
+        { "anahtar": "degerlendirmeDonemi", "etiket": "Değerlendirme dönemi", "tip": "metin", "zorunlu": true },
+        { "anahtar": "degerlendirmeTarihi", "etiket": "Değerlendirme tarihi", "tip": "tarih", "zorunlu": true }
+      ]
+    },
+    {
+      "kod": "varlik_yonetimi",
+      "baslik": "Varlık yönetimi",
+      "alanlar": [
+        { "anahtar": "envanterGuncelMi", "etiket": "Varlık envanteri güncel mi", "tip": "mantik", "maddeKod": "EPDK-SYM-4.1" },
+        { "anahtar": "envanterKapsami", "etiket": "Envanter hangi varlıkları kapsıyor", "tip": "metin", "maddeKod": "EPDK-SYM-4.1.1" }
+      ]
+    },
+    {
+      "kod": "ozet",
+      "baslik": "Kapsam özeti",
+      "alanlar": [
+        { "anahtar": "uyumluSayisi", "etiket": "Uyumlu kontrol sayısı", "tip": "sayi", "sayimDurumu": "uyumlu" },
+        { "anahtar": "uyumsuzSayisi", "etiket": "Uyumsuz kontrol sayısı", "tip": "sayi", "sayimDurumu": "uyumsuz" },
+        { "anahtar": "degerlendirilmeyenSayisi", "etiket": "Değerlendirilmemiş kontrol sayısı", "tip": "sayi", "sayimDurumu": "degerlendirilmedi" }
+      ]
+    }
+  ]
+}

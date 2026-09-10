@@ -8,7 +8,7 @@
     "ad": "Elektrik Üretimi"
   },
   "dil": "tr",
-  "surum": "0.3.0",
+  "surum": "0.4.0",
   "yayinci": "Uyum ve Yönetişim Platformu",
   "lisans": {
     "tur": "kamuya_acik",
@@ -34,6 +34,7 @@
     "cerceve/EPDK-SGYM-EK7.json": "c3f0859cbcd3dd5ade1c74b4ca0e8b8ec22deb518f07c9ffad7ce8b6b3e9c12f",
     "cerceve/EPDK-SGYM.csv": "99b9c7cc9588fb768ae5a9ce83c249c93665b3f4a9315798a1db6b6b33f9de8e",
     "cerceve/EPDK-SGYM.json": "545b5c4ba033bb4da0758b84df81212ffe06b2dfadc8e5a820fcd072942e76ab",
+    "form/EPDK-DENETIM-MUTABAKAT.json": "c8982b49701854d90e4f1af86962e047267a0564927e1d9a85c9fb920b45bf1e",
     "kapsam-turleri.json": "006a98d3444770115fb9303d51211e643ca853d44234596db8c3ead98e4e8e63",
     "oznitelikler.json": "6a261eda13deb28c8c2522039b40bb2101588128b41c535cbfaa05708ff2e063",
     "rapor/EPDK-SGYM-KARNE.json": "cd968751845193cc7f121175021ae11e32d8a40372a9822a34910a2598e49fa7",
@@ -493,6 +494,93 @@
         "kaynakAlan": "Seviye (Seviye 1 · Seviye 2 · Seviye 3 · Ek Kontrol)",
         "urunAlani": "gereksinim_tipi",
         "gerekce": "Kaynağın \"Seviye\" sütunu KONTROLÜN KENDİ kademesidir: EPDK modelinin hangi yetkinlik kademesinde o kontrolün ARANDIĞINI söyler — kuruluşun bugünkü ya da hedeflenen olgunluğunu değil. Ürünün `gereksinim_tipi` alanı tam olarak budur: çerçevenin kendi gereksinim sınıfı; kurulumda `Madde.gereksinimTipi` alanında durur ve hiçbir hesaba girmez. Ekran rozeti HENÜZ YOK — alan kuruluyor, gösterilmiyor. Ürünün `seviye` alanı ise BAŞKA bir şeydir — kuruluş için HEDEFLENEN olgunluktur (0–5 merdiveni, `lib/uyum/olgunluk.ts`) ve ekran onu ölçülen olgunlukla karşılaştırıp \"hedefte / hedefin altında\" der. İkisi de geçerli veridir, biçimleri uyumludur, hiçbir kapı ayırt edemez: \"Seviye\" `seviye` alanına yazılınca 508 zorunlu kontrolün hedefi ürünün en alt üç kademesine çekilmiş, kişiye bağlı ad-hoc uygulama \"hedefte\" (yeşil) görünmüştü (ölçüldü: bağımsız inceleme, PR #43 tur 2). Bu satır o kusurun beyanla kapatılmış hâlidir."
+      }
+    ],
+    "EPDK-DENETIM-MUTABAKAT": [
+      {
+        "kaynakAlan": "EPDK Denetim Rehberi · Mutabakat Belgesi asgari muhtevası: “denetimin gerçekleştirildiği tarih”",
+        "urunAlani": "denetimTarihi",
+        "gerekce": "Ürün alanı, denetimin SAHADA YAPILDIĞI gündür; belgenin imzalandığı ya da raporun yazıldığı tarih değildir. Kanıtın tazeliği ve bir sonraki denetime kadar saklama süresi bu güne göre okunur, bu yüzden iki tarihi tek alana sıkıştırmak saklama süresini yanlış başlatırdı."
+      },
+      {
+        "kaynakAlan": "EPDK Denetim Rehberi · Mutabakat Belgesi asgari muhtevası: “denetime katılan denetçi bilgileri” (başdenetçi)",
+        "urunAlani": "basdenetciBilgisi",
+        "gerekce": "Ürün alanı, denetim ekibinin BAŞDENETÇİSİNİ ayrı taşır: rehber en az iki denetçi ister ve bunlardan birinin başdenetçi olmasını şart koşar, yani başdenetçi ekip üyelerinden biri değil, ekibin sorumlusudur. Diğer denetçilerle aynı alana yazılsaydı bu sorumluluk kaybolurdu."
+      },
+      {
+        "kaynakAlan": "EPDK Denetim Rehberi · Mutabakat Belgesi asgari muhtevası: “denetime katılan denetçi bilgileri”",
+        "urunAlani": "denetciBilgileri",
+        "gerekce": "Ürün alanı, başdenetçi DIŞINDA denetime katılan denetçilerin kimliğidir. Kimin hangi kontrolü gördüğü sorusu bu listeye dayanır; boş bırakılırsa denetimin tek kişiyle yürütüldüğü izlenimi doğar ve rehberin asgari iki denetçi şartı denetlenemez hâle gelir."
+      },
+      {
+        "kaynakAlan": "EPDK Denetim Rehberi · Mutabakat Belgesi asgari muhtevası: “kuruluş temsilcilerinin bilgileri”",
+        "urunAlani": "kurulusTemsilcileri",
+        "gerekce": "Ürün alanı, denetim sırasında kuruluşu TEMSİL EDEN kişilerdir — kontrolleri fiilen işleten personel değil, mutabakata taraf olan yetkililer. Rehber teknik işlemleri kuruluş personelinin yürütmesini ister; temsilci ise belgenin altına imza atan taraftır ve ikisi aynı kişi olmayabilir."
+      },
+      {
+        "kaynakAlan": "EPDK Denetim Rehberi · Mutabakat Belgesi asgari muhtevası: ana başlıklar için “Tam Uyum” değerlendirilen madde sayısı",
+        "urunAlani": "tamUyumSayisi",
+        "gerekce": "Ürün alanı, formun üretildiği KAPSAMDA `uyumlu` durum kodundaki kontrol sayısıdır. Kaynak bu sayıyı ana başlık başına ister; ürün bugün tek kapsam-çerçeve toplamı yazar, ana başlık kırılımı öz denetim formunun kendi satırlarında durur. Sayı bir orandan değil, sayımdan gelir."
+      },
+      {
+        "kaynakAlan": "EPDK Denetim Rehberi · Mutabakat Belgesi asgari muhtevası: ana başlıklar için “Kısmen Uyum” değerlendirilen madde sayısı",
+        "urunAlani": "kismenUyumSayisi",
+        "gerekce": "Ürün alanı, kapsamda `kismi` durum kodundaki kontrol sayısıdır: kontrolün uygulandığı ama tam karşılanmadığı hâl. Uyumsuzla toplanmaz — kısmi bir kontrol kapatılacak bir eksiktir, uygulanmamış bir kontrol ise açılacak bir iştir ve ikisi ayrı aksiyon üretir."
+      },
+      {
+        "kaynakAlan": "EPDK Denetim Rehberi · Mutabakat Belgesi asgari muhtevası: ana başlıklar için “Uyumsuz” değerlendirilen madde sayısı",
+        "urunAlani": "uyumsuzSayisi",
+        "gerekce": "Ürün alanı, kapsamda `uyumsuz` durum kodundaki kontrol sayısıdır. Rehber, denetçinin fiilen doğrulayamadığı ya da yeterli kanıt bulamadığı maddeyi de uyumsuz saymasını ister; bu yüzden alan yalnız “kontrol yok” demez, “kanıtlanamadı” hâlini de taşır."
+      },
+      {
+        "kaynakAlan": "EPDK Denetim Rehberi · Mutabakat Belgesi asgari muhtevası: ana başlıklar için “Kapsam dışı” değerlendirilen madde sayısı",
+        "urunAlani": "kapsamDisiSayisi",
+        "gerekce": "Ürün alanı, kapsamda `kapsamdisi` durum kodundaki kontrol sayısıdır: kuruluşa uygulanmadığına KARAR VERİLMİŞ kontroller. Değerlendirilmemiş kontrolle karıştırılamaz — biri verilmiş bir karardır ve gerekçe ister, öbürü hiç bakılmamış olmaktır."
+      },
+      {
+        "kaynakAlan": null,
+        "urunAlani": "incelemedeSayisi",
+        "gerekce": "Ürün alanı, kapsamda `incelemede` durum kodundaki kontrol sayısıdır — karara bağlanmamış, hâlâ açık olanlar. Kaynak belge bu kovayı saymaz; ürün onu ayrı yazar çünkü dört resmî kovanın toplamı kapsamı KAPATIYOR gibi okunursa açık maddeler sessizce kaybolur."
+      },
+      {
+        "kaynakAlan": null,
+        "urunAlani": "degerlendirilmedigiSayisi",
+        "gerekce": "Ürün alanı, kapsamda `degerlendirilmedi` durum kodundaki kontrol sayısıdır. Kaynakta karşılığı yoktur ve olmaması bu sayının sıfır olduğu anlamına gelmez: bilinmeyen sıfır sayılmaz. Bu alan yazılmasa, hiç bakılmamış kontroller dört resmî kovanın dışında kalıp görünmez olurdu."
+      },
+      {
+        "kaynakAlan": "EPDK Denetim Rehberi · Mutabakat Belgesi asgari muhtevası: “denetim sırasında örnekleme yapıldıysa” koşulu",
+        "urunAlani": "orneklemeYapildi",
+        "gerekce": "Ürün alanı, örneklemenin yapılıp yapılmadığı KARARIDIR (evet/hayır) — örneklemenin genişliği ya da doğruluğu değil. Kaynak, sonraki iki alanı yalnız bu karar evetse ister; karar ayrı bir alanda durmazsa “örnekleme yapılmadı” ile “yazılmadı” birbirine karışır."
+      },
+      {
+        "kaynakAlan": "EPDK Denetim Rehberi · Mutabakat Belgesi asgari muhtevası: “örneklemenin nasıl yapıldığı”",
+        "urunAlani": "orneklemeYontemi",
+        "gerekce": "Ürün alanı, örneklemenin YÖNTEMİDİR: hangi varlık kümesinden kaç bileşenin nasıl seçildiği. Rehber kararın tamamen denetçinin takdirinde olduğunu söyler, bu yüzden alan kuruluşun değil denetçinin cümlesini taşır ve ürün buraya bir değer HESAPLAMAZ."
+      },
+      {
+        "kaynakAlan": "EPDK Denetim Rehberi · Mutabakat Belgesi asgari muhtevası: “örneklemenin gerekçesi”",
+        "urunAlani": "orneklemeGerekcesi",
+        "gerekce": "Ürün alanı, örneklemeye NEDEN gidildiğini anlatır — yöntemin kendisini değil. Rehber örneklemenin kapsamı daraltmak için kullanılamayacağını söyler; gerekçe tam olarak bu sınırın tutulduğunu gösteren cümledir: hangi varlık kümesinin aynı nitelikte olduğu ve neden tek tek bakmanın denetim değeri katmadığı yazılır."
+      },
+      {
+        "kaynakAlan": "EPDK Denetim Rehberi · Mutabakat Belgesi: “danışmanlık alınmadığına dair ibare”",
+        "urunAlani": "danismanlikAlinmadi",
+        "gerekce": "Ürün alanı, kuruluşun BEYANIDIR: denetimi yapan denetçiden ve firmasından danışmanlık alınmamıştır. Bağımsızlık şartının tutulduğunu söyleyen taraf beyanıdır; ürünün ölçtüğü bir değer değildir ve ürün bu kutuyu kendiliğinden işaretlemez."
+      },
+      {
+        "kaynakAlan": "EPDK Denetim Rehberi · Mutabakat Belgesi: “belge/konfigürasyon saklanmayacağına dair beyan”",
+        "urunAlani": "belgeSaklanmayacak",
+        "gerekce": "Ürün alanı, denetçi firmanın BEYANIDIR: kuruluşa ait belge, konfigürasyon, lojik ya da sistem çıktısı denetim sonrası kendi bünyesinde saklanmayacaktır. Kanıtların kuruluşta saklanması yükümlülüğünden ayrıdır; bu alan karşı tarafın taahhüdünü taşır."
+      },
+      {
+        "kaynakAlan": "EPDK Denetim Rehberi · Mutabakat Belgesi asgari muhtevası: “denetçi yetkililerine ait imza alanı”",
+        "urunAlani": "denetciImzasi",
+        "gerekce": "Ürün alanı, denetçi tarafının imza YERİDİR — imzanın kendisi değil. Ürün elektronik imza üretmez ve atılmış bir imzayı doğrulamaz; belge çıktı alınıp ıslak ya da kurum dışı bir e-imza akışıyla imzalanır, alan o akışa yer açar."
+      },
+      {
+        "kaynakAlan": "EPDK Denetim Rehberi · Mutabakat Belgesi asgari muhtevası: “kuruluş yetkililerine ait imza alanı”",
+        "urunAlani": "kurulusImzasi",
+        "gerekce": "Ürün alanı, kuruluş tarafının imza YERİDİR. Mutabakat iki taraflıdır: tek imzayla belge mutabakat belgesi olmaz, bu yüzden iki imza alanı ayrı tutulur ve biri öbürünün yerine geçmez."
       }
     ]
   }

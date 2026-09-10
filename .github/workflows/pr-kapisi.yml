@@ -156,68 +156,53 @@ jobs:
         working-directory: web
         run: npm run kapi:farki
 
-      - name: Üretim derlemesi
+      # Paylaşılan derleme artefaktına dokunan HER iş, hangi derleme
+      # ortamını istediğini `DERLEME_ORTAMI` ile beyan etmiş olmalı.
+      # Beyansız tüketim kırmızıdır ve bu kapı onu İŞ AKIŞINDAN ölçer —
+      # koşum anını beklemez.
+      - name: Derleme ortamı beyanı kapısı
         working-directory: web
-        run: npm run build
+        run: npm run kapi:derleme-artefakti
 
-  # ── YAVAŞ KÜME · taslak olmayan PR + gecelik ─────────────────────────
-  # Tarayıcı isteyen ve kendi derlemesini yapan kapılar. Ölçüldü: duman
-  # 32sn · gezinme 45sn · taşma 180sn · axe 190sn · demo:build 150sn ·
-  # marka 12sn — kurulumla birlikte tek başına yedi dakikanın üstünde ve
-  # her push'ta ödeniyordu.
+      # HIZLI KÜMENİN KÖR NOKTASI. `tsc --noEmit` proje TypeScript'ini
+      # denetler; `arac/*.mjs` içe aktarım grafiği onun kapsamında
+      # DEĞİLDİR. Ölçüldü (9 Eyl 2026): `derleme-ortami.mjs` tamamen
+      # değiştirildi, üç aracın (`kolon-hizasi` · `statik-kontrol` ·
+      # `marka-kapisi`) ondan aldığı ihraçlar yok oldu ve hızlı küme
+      # görmedi — kusur ancak YAVAŞ kümedeki `demo:build` koşunca, yani
+      # bir PR turu sonra görünürdü.
+      #
+      # Kapı YAPISALDIR ve hiçbir modülü YÜRÜTMEZ: bu araçların çoğu CLI
+      # ve içe aktarılınca koşar (`parti-kapanisi` bütün kümeyi başlatır,
+      # `compose-duman` docker yığını kaldırır). İçe aktarım deyimleri
+      # okunur, hedef çözülür, adlı bağların ihraç edildiği doğrulanır.
+      - name: İthal zinciri kapısı (arac/*.mjs)
+        working-directory: web
+        run: npm run kapi:ithal-zinciri
+
+  # ── TEK DERLEME · artefakt olarak paylaşılır ─────────────────────────
+  # Üretim derlemesi bir zamanlar İKİ işte birden koşuyordu (`kapi` ve
+  # `kapi-yavas`); tarayıcılı kapılar dört işe bölününce aynı derleme
+  # DÖRT kez koşacaktı. Bugün bir kez koşar ve `.next` artefakt olarak
+  # iner. Kazanç yalnız süre değil: dört kapı AYNI derlemeyi ölçer, dört
+  # farklı derlemeyi değil.
   #
-  # NE ZAMAN KOŞAR: PR taslak DEĞİLKEN (merge'e hazırlandığında), her
-  # gece main üstünde, ve elle. Taslak PR'da koşmaz — iterasyonun
-  # maliyeti oradadır. Gecelik koşum bir gevşetme değil sigortadır:
-  # taslakta bırakılan bir dal bile ertesi sabah bu kümeden geçer.
-  #
-  # Bu iş dal korumasında ZORUNLU DEĞİLDİR: zorunlu status check `kapi`
-  # adını taşır ve o hızlı iştir. Bu kümeyi de zorunlu tutmak bir DEPO
-  # AYARIDIR (ruleset → required checks → `kapi-yavas`), kodla
-  # kapatılamaz.
-  #
-  # `kapi:iki-sozluk` bilerek BURADA DEĞİL: bugün bağlanırsa kırmızı
-  # yanar (kardeşi `tasarim:dizustu`nun 1366×768 bandı borç listesinde
-  # yok — R0-12) ve beyanı `kapi-farki.mjs`te durur. Kapı, hayal edilen
-  # değil ÖLÇÜLMÜŞ bir kusur için bağlanır.
-  kapi-yavas:
-    if: github.event_name != 'pull_request' || github.event.pull_request.draft == false
+  # `if:` YOK — derleme her tetikleyicide koşar. Taslak PR'da tarayıcılı
+  # kapılar atlanır ama derleme hatası atlanmaz; gecelik koşumda da
+  # tarayıcılı işlerin `needs`i bu iştir ve atlanan bir `needs` bütün
+  # zinciri atlatırdı.
+  derleme:
     runs-on: ubuntu-latest
+    env:
+      # ORTAM BEYANI. Artefakta dokunan her iş bunu beyan eder; beyansız
+      # tüketim kırmızıdır (`kapi:derleme-artefakti`). `NEXT_PUBLIC_*`
+      # değerleri istemci paketine DERLEME ANINDA gömülür — indiren iş
+      # kendi değerini verirse o değer hiçbir şey yapmaz ve ekran
+      # derleyenin değerini gösterir. Ölçüldü: `NEXT_PUBLIC_DEMO`.
+      DERLEME_ORTAMI: uretim
     steps:
       - name: Depoyu al
         uses: actions/checkout@v7
-        with:
-          # Kalite borcu cırcırı dal listesini `origin/main` ile
-          # karşılaştırır (DİŞ 3). Sığ klonda taban dal okunamaz ve kapı
-          # bilerek KIRMIZI yanar (DİŞ 4) — o yüzden tam geçmiş gerekir.
-          fetch-depth: 0
-
-      # Cırcır, DALIN kendi listesini TABANLA karşılaştırır. Taban olarak
-      # `origin/main` HAREKETLİ ucu alınamaz: PR'ın merge ref'i oluştuktan
-      # sonra main ilerleyip bir borç satırını silerse, dalın DEĞİŞMEMİŞ
-      # listesi "eklenmiş" görünür ve CI yanlış yere kırmızı yanar. Taban,
-      # kontrol edilen merge'ün kurulduğu commit'tir: `base.sha`.
-      - name: Taban commit'i getir (kalite borcu cırcırı · DİŞ 3)
-        run: |
-          git fetch --no-tags origin +refs/heads/main:refs/remotes/origin/main
-          git fetch --no-tags origin '${{ github.event.pull_request.base.sha }}'
-
-      # Sektör terimi bekçisinin (`tests/bekci/sektor-terimi.test.ts`) dördüncü
-      # dişi izin listesini TABAN DALDAKİ hâliyle karşılaştırır: liste yalnız
-      # erimeli, bir dosyayı temizleyip yerine başkasını koyma takası da
-      # yakalanmalı. `checkout` PR'da yalnız birleşme commit'ini sığ alır,
-      # `origin/main` ref'i olmaz; bu adım onu getirir.
-      #
-      # `continue-on-error` adımı SESSİZ YAPMAZ: bu adım düşerse bekçi
-      # CI'da KIRMIZI yanar ("CI'da taban dal okunamadı"). Bayrağın tek
-      # işi, hatayı ham bir git çıktısı olarak işi durdurmak yerine öbür
-      # kapılar da koştuktan sonra bekçinin gerekçeli mesajıyla
-      # göstermek. Yerelde (CI değişkeni yokken) diş atlanır ve
-      # "ölçülmedi" denir — orada taban dalın yokluğunun meşru sebepleri
-      # var, CI'da yok.
-      - name: Taban dalı al (bekçi cırcırı)
-        continue-on-error: true
-        run: git fetch --depth=1 origin main:refs/remotes/origin/main
 
       - name: Node kur
         uses: actions/setup-node@v7
@@ -237,28 +222,94 @@ jobs:
           npx prisma generate
           npx tsx prisma/seed.ts
 
-
-      # Yavaş küme KENDİ derlemesini yapar: sunucu taze derlemeden
-      # kalkmalı (arac/BENIOKU.md → ORTAM TAZELİĞİ). Hızlı işin
-      # derlemesi başka bir runner'da kaldı ve buraya taşınmaz.
       - name: Üretim derlemesi
         working-directory: web
         run: npm run build
 
-      # ── Tarayıcılı kapılar ────────────────────────────────────────────
-      # Dördü de canlı sunucu ister ve uzun süre "elle koşulur" diye CI'nın
-      # dışında kaldı; dışarıda kalan kapı, kusuru kalıcılaştırır (ölçüldü:
-      # /omur taşması ve 49 rotadaki durum şeridi kırpılması aylarca
-      # kimsenin koşmadığı bir kapının arkasında durdu; rota duman ve
-      # gezinme kapıları ise KIRIK hâlde main'e girdi ve kimse görmedi).
+      # Damga artefaktın İÇİNE yazılır: hangi ortamda derlendiği,
+      # derlemeye hangi `NEXT_PUBLIC_*` değerlerinin gömüldüğü. İndiren
+      # iş bunu kendi beyanıyla karşılaştırır.
+      - name: Derleme ortamını DAMGALA
+        working-directory: web
+        run: node arac/derleme-artefakti.mjs --damgala
+
+      # `.next/cache` HARİÇ: 243 MB'ın 169 MB'ı derleme önbelleğidir ve
+      # `next start` onu okumaz. Ölçüldü — taşınan 74 MB.
       #
-      # Bugün BLOKLAYICIDIR. Taşma ve axe kapılarının açık bulguları
-      # `arac/kalite-borcu.json`
-      # izin listesindedir ve liste bir CIRCIRLA korunur: yalnız küçülebilir.
-      # Listede olmayan ya da tavanı aşan her bulgu kapıyı kırmızı yakar.
-      #
-      # Tarayıcı runner imajına bırakılmaz: Playwright'ın kendi chromium'u
-      # kurulur, böylece kapı imaj değişikliğiyle sessizce kaymaz.
+      # `include-hidden-files` ZORUNLU: `.next` NOKTAYLA başlar ve
+      # `upload-artifact@v4` nokta ile başlayan yolları varsayılan olarak
+      # DIŞLAR. Ölçüldü (CI, `eb2cdeb`): bayraksız koşuda adım
+      # "No files were found with the provided path: web/.next" diyerek
+      # düştü. Sessiz kalmadı çünkü `if-no-files-found: error` yazılıydı —
+      # varsayılan `warn` olsaydı iş YEŞİL biter, tüketiciler boş bir
+      # artefakt indirir ve kusur ancak sunucu açılmayınca görünürdü.
+      - name: Derlemeyi yükle
+        uses: actions/upload-artifact@v4
+        with:
+          name: derleme-uretim
+          path: |
+            web/.next
+            !web/.next/cache
+          include-hidden-files: true
+          retention-days: 1
+          if-no-files-found: error
+
+  # ── TARAYICILI KAPILAR · DÖRT PARALEL İŞ ─────────────────────────────
+  # Dördü de canlı sunucu ister ve uzun süre "elle koşulur" diye CI'nın
+  # dışında kaldı; dışarıda kalan kapı kusuru kalıcılaştırır (ölçüldü:
+  # /omur taşması ve 49 rotadaki durum şeridi kırpılması aylarca kimsenin
+  # koşmadığı bir kapının arkasında durdu; rota duman ve gezinme kapıları
+  # ise KIRIK hâlde main'e girdi ve kimse görmedi).
+  #
+  # BUGÜN BLOKLAYICI ve PARALEL. Ölçüldü (9 Eyl 2026, `80ce71c`): seri
+  # `kapi-yavas` 12 dk 54 sn sürüyordu ve bu sırada `main` iki kez
+  # ilerledi, dal iki kez yeniden ölçüldü. Kapıların kendi süreleri
+  # rota 36sn · gezinme 44sn · taşma 186sn · axe 190sn: toplam sürenin
+  # yarısı BEKLEMEYDİ, ölçüm değil.
+  #
+  # Taşma ve axe kapılarının açık bulguları `arac/kalite-borcu.json`
+  # izin listesindedir ve liste bir CIRCIRLA korunur: yalnız küçülebilir.
+  # Tarayıcı runner imajına bırakılmaz: Playwright'ın kendi chromium'u
+  # kurulur, böylece kapı imaj değişikliğiyle sessizce kaymaz.
+  kapi-rota:
+    needs: derleme
+    if: github.event_name != 'pull_request' || github.event.pull_request.draft == false
+    runs-on: ubuntu-latest
+    env:
+      DERLEME_ORTAMI: uretim
+      PORT: '3210'
+    steps:
+      - name: Depoyu al
+        uses: actions/checkout@v7
+
+      - name: Node kur
+        uses: actions/setup-node@v7
+        with:
+          node-version: 22
+          cache: npm
+          cache-dependency-path: web/package-lock.json
+
+      - name: Bağımlılıkları kur
+        working-directory: web
+        run: npm ci
+
+      - name: Veritabanını hazırla
+        working-directory: web
+        run: |
+          npx prisma migrate deploy
+          npx prisma generate
+          npx tsx prisma/seed.ts
+
+      - name: Derlemeyi indir
+        uses: actions/download-artifact@v4
+        with:
+          name: derleme-uretim
+          path: web/.next
+
+      - name: Derleme ortamını DOĞRULA
+        working-directory: web
+        run: node arac/derleme-artefakti.mjs --dogrula
+
       - name: Tarayıcıyı kur (kalite kapıları)
         working-directory: web
         run: node node_modules/playwright-core/cli.js install --with-deps --no-shell chromium
@@ -275,78 +326,39 @@ jobs:
           done
           echo "sunucu 120sn içinde açılmadı"; cat /tmp/kapi-sunucu.log; exit 1
 
-      # İşlevsel duman testleri ÖNCE koşar: bir rota 404 veriyorsa ya da
-      # gezinme kırıksa, aynı sayfadaki piksel ölçümleri gürültüdür.
-      # İkisi de aylarca CI dışında kaldı ve #28 ortak `girisYap`a bir adım
-      # ekleyince ikisi de sessizce kırıldı — koşmayan kapı, kırıldığını da
-      # söyleyemez. Fark `npm run kapi:farki` ile sayılır.
+      # İşlevsel duman testi: bir rota 404 veriyorsa aynı sayfadaki
+      # piksel ölçümleri gürültüdür. Bu yüzden en kısa iş olarak ayrı
+      # durur — kırmızısı en erken görünen odur.
       - name: Rota duman testi · 58 rota
         working-directory: web
-        env:
-          PORT: '3210'
         run: npm run rota:duman
 
-      - name: Gezinme kapısı · yedi bant
+      # R12 · denetim formları ekranının İKİ MERCEKTE kanıtı. Aynı sunucuyu
+      # kullanır, bu yüzden ayrı bir işe değmez. Ekran iddialarını ölçmenin
+      # yanında FORMU GERÇEKTEN ÜRETİR: düğmeye basar, "Boş hücre 0"
+      # cümlesinin ekranda çıktığını görür ve iki dosyanın (CSV + XLSX)
+      # indiğini doğrular. Ölçüldü — bu adım olmasaydı yakalanmayacak bir
+      # kusur vardı: `'use server'` dosyası nesne ihraç ediyordu, tsc ve
+      # lint temizdi, ekran derlendi ve düğme tarayıcıda 500 döndü.
+      - name: Denetim formları kanıtı · iki bant
         working-directory: web
-        env:
-          PORT: '3210'
-        run: npm run gezinme:test
+        run: npm run kanit:denetim-formu
 
-      - name: Yatay taşma ve kırpılan içerik kapısı
-        working-directory: web
-        env:
-          PORT: '3210'
-          KALITE_TABAN_DAL: ${{ github.event.pull_request.base.sha }}
-        run: node arac/yatay-tasma.mjs
-
-      - name: Erişilebilirlik kapısı · axe · üç bant
-        working-directory: web
-        env:
-          PORT: '3210'
-          KALITE_TABAN_DAL: ${{ github.event.pull_request.base.sha }}
-        run: node arac/erisim-axe.mjs
-
-      # NEDEN BURADA: bu bir TEMİZLİKTİR, demo derlemesinin ÖN KOŞULU
-      # değil. Bu yorum bir zamanlar "statik demo derlemesi `.next`'i
-      # devralır; sunucu önce durmalı" diyordu — ÖLÇÜLDÜ ve YANLIŞ çıktı
-      # (8 Eyl 2026). `demo:build` sunucu 3210'da AYAKTAYKEN geçti
-      # (çıkış 0), sunucu derlemeden sağ çıktı, 731 dosyalık çıktı
-      # eksiksizdi. Dört koşum karşılaştırıldı (biri sunucuyla, ÜÇÜ
-      # sunucusuz): her çiftte 592/731 dosya derleme kimliği yüzünden,
-      # 2-4 dosya da zamana bağlı içerik yüzünden (`new Date()` kullanan
-      # dört ekran) değişiyor — ve bu değişimin TAMAMI sunucusuz kontrol
-      # çiftlerinde de üretiliyor. Sunucuya ÖZGÜ tek bir fark yok.
-      # Linux'ta `next build` tutulan `.next` inode'unun üstüne yazar;
-      # ortada bir "devralma" çakışması yoktu.
-      #
-      # Adımın GERÇEK sebebi şudur: ayakta bırakılan sunucu bir sonraki
-      # ÖLÇÜMÜ kirletir — bayat `next start`, arac/BENIOKU.md → ORTAM
-      # TAZELİĞİ'nin 1. tuzağı. Aşağıdaki kusur tam olarak bunu yaşattı,
-      # yani sebep gerçek; yalnız gerekçesi yanlış yazılmıştı.
       # SÜREÇ ADIYLA ÖLDÜRME — ÖLÇÜLDÜ VE İŞLEMEDİ. Bu adım bir zamanlar
       # `pkill -f 'next start' || true` idi ve HİÇBİR ŞEYİ öldürmüyordu:
       # `next start` açılıştan sonra süreç adını `next-server (vX.Y.Z)`
-      # yapar, kalıp eşleşmez, `|| true` de bunu sessizleştirir. Ölçüldü
-      # (8 Eyl 2026): parti kapanışından sonra sunucu PID 5777 · PPID 1
-      # olarak 3210'da ayakta kaldı, `pgrep -af 'next start'` sıfır
-      # eşleşme döndü. CI'da maskeliydi (runner atılıyor); YERELDE
-      # `kapi:parti` aynı adımı iş akışından türettiği için her parti
-      # kapanışı bayat bir sunucu bırakıyordu — yani ölçüm aracı devir
-      # kaydının 1 numaralı yanlış alarm tuzağını kendisi üretiyordu.
+      # yapar, kalıp eşleşmez, `|| true` de bunu sessizleştirir. CI'da
+      # runner atıldığı için maskeliydi; YERELDE `kapi:parti` aynı adımı
+      # iş akışından türettiği için her parti kapanışı 3210'da bayat bir
+      # sunucu bırakıyordu — ölçüm aracı, "bayat `next start`" tuzağını
+      # kendi eliyle üretiyordu.
       #
       # Port BİZİM yazdığımız sabittir; süreç adı Next'in iç detayıdır ve
-      # sürümle kayar. Öldürme porttan yapılır.
-      #
-      # SON KOŞULUNU GARANTİ ETMEYEN ADIM, ADIM DEĞİLDİR: öldürmenin
-      # ardından portun KAPANDIĞI doğrulanır, kapanmadıysa kırmızı.
-      # Doğrulama öldürmeyle AYNI aracı kullanmaz (öldüren `fuser`,
-      # doğrulayan `curl`) — tek araca bakan bir kontrol, o araç ortamda
-      # yoksa "kapandı" der ve kandırılır.
-      #
-      # `fuser -k` portu tutan süreç YOKSA da sıfırdan farklı döner; bu
-      # iyi hâldir, hata değildir — bu yüzden onun çıkış kodu değil, son
-      # koşul ölçülür. (`if: always()` ile sunucu hiç açılmamışken de
-      # koşar.)
+      # sürümle kayar. Öldürme porttan yapılır, sonra portun KAPANDIĞI
+      # BAŞKA bir araçla doğrulanır (öldüren `fuser`, doğrulayan `curl` —
+      # tek araca bakan kontrol, o araç yoksa kandırılır) ve kapanmadıysa
+      # KIRMIZIDIR. Aynı adım dört tarayıcılı işin hepsinde durur; gerekçe
+      # burada bir kez yazılıdır.
       - name: Sunucuyu durdur
         if: always()
         run: |
@@ -359,10 +371,291 @@ jobs:
           done
           echo "3210 HÂLÂ AÇIK — sunucu durmadı"; exit 1
 
+  kapi-gezinme:
+    needs: derleme
+    if: github.event_name != 'pull_request' || github.event.pull_request.draft == false
+    runs-on: ubuntu-latest
+    env:
+      DERLEME_ORTAMI: uretim
+      PORT: '3210'
+    steps:
+      - name: Depoyu al
+        uses: actions/checkout@v7
+
+      - name: Node kur
+        uses: actions/setup-node@v7
+        with:
+          node-version: 22
+          cache: npm
+          cache-dependency-path: web/package-lock.json
+
+      - name: Bağımlılıkları kur
+        working-directory: web
+        run: npm ci
+
+      - name: Veritabanını hazırla
+        working-directory: web
+        run: |
+          npx prisma migrate deploy
+          npx prisma generate
+          npx tsx prisma/seed.ts
+
+      - name: Derlemeyi indir
+        uses: actions/download-artifact@v4
+        with:
+          name: derleme-uretim
+          path: web/.next
+
+      - name: Derleme ortamını DOĞRULA
+        working-directory: web
+        run: node arac/derleme-artefakti.mjs --dogrula
+
+      - name: Tarayıcıyı kur (kalite kapıları)
+        working-directory: web
+        run: node node_modules/playwright-core/cli.js install --with-deps --no-shell chromium
+
+      - name: Sunucuyu başlat (3210)
+        working-directory: web
+        run: |
+          nohup npx next start -p 3210 > /tmp/kapi-sunucu.log 2>&1 &
+          for i in $(seq 1 60); do
+            if curl -sf -o /dev/null http://localhost:3210/giris; then
+              echo "sunucu hazır ($((i * 2))sn)"; exit 0
+            fi
+            sleep 2
+          done
+          echo "sunucu 120sn içinde açılmadı"; cat /tmp/kapi-sunucu.log; exit 1
+
+      - name: Gezinme kapısı · yedi bant
+        working-directory: web
+        run: npm run gezinme:test
+
+      # Gerekçe `kapi-rota` işinde yazılıdır.
+      - name: Sunucuyu durdur
+        if: always()
+        run: |
+          fuser -k -n tcp 3210 || echo "3210'u tutan süreç yok"
+          for i in $(seq 1 10); do
+            if ! curl -s -o /dev/null --max-time 2 http://localhost:3210/; then
+              echo "3210 kapandı (${i}sn)"; exit 0
+            fi
+            sleep 1
+          done
+          echo "3210 HÂLÂ AÇIK — sunucu durmadı"; exit 1
+
+  kapi-tasma:
+    needs: derleme
+    if: github.event_name != 'pull_request' || github.event.pull_request.draft == false
+    runs-on: ubuntu-latest
+    env:
+      DERLEME_ORTAMI: uretim
+      PORT: '3210'
+      KALITE_TABAN_DAL: ${{ github.event.pull_request.base.sha }}
+    steps:
+      - name: Depoyu al
+        uses: actions/checkout@v7
+        with:
+          # Kalite borcu cırcırı dal listesini taban commit'le
+          # karşılaştırır (DİŞ 3). Sığ klonda taban okunamaz ve kapı
+          # bilerek KIRMIZI yanar (DİŞ 4) — o yüzden tam geçmiş gerekir.
+          fetch-depth: 0
+
+      # Taban olarak `origin/main` HAREKETLİ ucu alınamaz: merge ref'i
+      # kurulduktan sonra main ilerleyip bir borç satırını silerse, dalın
+      # DEĞİŞMEMİŞ listesi "eklenmiş" görünür ve CI yanlış yere kırmızı
+      # yanar. Taban, kontrol edilen merge'ün kurulduğu commit'tir.
+      - name: Taban commit'i getir (kalite borcu cırcırı · DİŞ 3)
+        run: |
+          git fetch --no-tags origin +refs/heads/main:refs/remotes/origin/main
+          git fetch --no-tags origin '${{ github.event.pull_request.base.sha }}'
+
+      - name: Node kur
+        uses: actions/setup-node@v7
+        with:
+          node-version: 22
+          cache: npm
+          cache-dependency-path: web/package-lock.json
+
+      - name: Bağımlılıkları kur
+        working-directory: web
+        run: npm ci
+
+      - name: Veritabanını hazırla
+        working-directory: web
+        run: |
+          npx prisma migrate deploy
+          npx prisma generate
+          npx tsx prisma/seed.ts
+
+      - name: Derlemeyi indir
+        uses: actions/download-artifact@v4
+        with:
+          name: derleme-uretim
+          path: web/.next
+
+      - name: Derleme ortamını DOĞRULA
+        working-directory: web
+        run: node arac/derleme-artefakti.mjs --dogrula
+
+      - name: Tarayıcıyı kur (kalite kapıları)
+        working-directory: web
+        run: node node_modules/playwright-core/cli.js install --with-deps --no-shell chromium
+
+      - name: Sunucuyu başlat (3210)
+        working-directory: web
+        run: |
+          nohup npx next start -p 3210 > /tmp/kapi-sunucu.log 2>&1 &
+          for i in $(seq 1 60); do
+            if curl -sf -o /dev/null http://localhost:3210/giris; then
+              echo "sunucu hazır ($((i * 2))sn)"; exit 0
+            fi
+            sleep 2
+          done
+          echo "sunucu 120sn içinde açılmadı"; cat /tmp/kapi-sunucu.log; exit 1
+
+      - name: Yatay taşma ve kırpılan içerik kapısı
+        working-directory: web
+        run: node arac/yatay-tasma.mjs
+
+      # Gerekçe `kapi-rota` işinde yazılıdır.
+      - name: Sunucuyu durdur
+        if: always()
+        run: |
+          fuser -k -n tcp 3210 || echo "3210'u tutan süreç yok"
+          for i in $(seq 1 10); do
+            if ! curl -s -o /dev/null --max-time 2 http://localhost:3210/; then
+              echo "3210 kapandı (${i}sn)"; exit 0
+            fi
+            sleep 1
+          done
+          echo "3210 HÂLÂ AÇIK — sunucu durmadı"; exit 1
+
+  kapi-axe:
+    needs: derleme
+    if: github.event_name != 'pull_request' || github.event.pull_request.draft == false
+    runs-on: ubuntu-latest
+    env:
+      DERLEME_ORTAMI: uretim
+      PORT: '3210'
+      KALITE_TABAN_DAL: ${{ github.event.pull_request.base.sha }}
+    steps:
+      - name: Depoyu al
+        uses: actions/checkout@v7
+        with:
+          fetch-depth: 0
+
+      - name: Taban commit'i getir (kalite borcu cırcırı · DİŞ 3)
+        run: |
+          git fetch --no-tags origin +refs/heads/main:refs/remotes/origin/main
+          git fetch --no-tags origin '${{ github.event.pull_request.base.sha }}'
+
+      - name: Node kur
+        uses: actions/setup-node@v7
+        with:
+          node-version: 22
+          cache: npm
+          cache-dependency-path: web/package-lock.json
+
+      - name: Bağımlılıkları kur
+        working-directory: web
+        run: npm ci
+
+      - name: Veritabanını hazırla
+        working-directory: web
+        run: |
+          npx prisma migrate deploy
+          npx prisma generate
+          npx tsx prisma/seed.ts
+
+      - name: Derlemeyi indir
+        uses: actions/download-artifact@v4
+        with:
+          name: derleme-uretim
+          path: web/.next
+
+      - name: Derleme ortamını DOĞRULA
+        working-directory: web
+        run: node arac/derleme-artefakti.mjs --dogrula
+
+      - name: Tarayıcıyı kur (kalite kapıları)
+        working-directory: web
+        run: node node_modules/playwright-core/cli.js install --with-deps --no-shell chromium
+
+      - name: Sunucuyu başlat (3210)
+        working-directory: web
+        run: |
+          nohup npx next start -p 3210 > /tmp/kapi-sunucu.log 2>&1 &
+          for i in $(seq 1 60); do
+            if curl -sf -o /dev/null http://localhost:3210/giris; then
+              echo "sunucu hazır ($((i * 2))sn)"; exit 0
+            fi
+            sleep 2
+          done
+          echo "sunucu 120sn içinde açılmadı"; cat /tmp/kapi-sunucu.log; exit 1
+
+      - name: Erişilebilirlik kapısı · axe · üç bant
+        working-directory: web
+        run: node arac/erisim-axe.mjs
+
+      # Gerekçe `kapi-rota` işinde yazılıdır.
+      - name: Sunucuyu durdur
+        if: always()
+        run: |
+          fuser -k -n tcp 3210 || echo "3210'u tutan süreç yok"
+          for i in $(seq 1 10); do
+            if ! curl -s -o /dev/null --max-time 2 http://localhost:3210/; then
+              echo "3210 kapandı (${i}sn)"; exit 0
+            fi
+            sleep 1
+          done
+          echo "3210 HÂLÂ AÇIK — sunucu durmadı"; exit 1
+
+  # ── STATİK DEMO · ORTAMI FARKLI, KENDİ DERLEMESİNİ YAPAR ─────────────
+  # `NEXT_PUBLIC_DEMO=1` derlemeye GÖMÜLÜR: paylaşılan üretim artefaktını
+  # indirip burada bu değişkeni vermek HİÇBİR ŞEY yapmazdı — çıktı yine
+  # üretim derlemesi olurdu ve kapı yeşil yanardı. Ölçüldü: `demo:build`
+  # betiği bu değişkeni kendi ayarlamıyor, iş akışında duruyor; yerelde
+  # koşan şey statik dışa aktarım değil ikinci bir sunucu derlemesiydi ve
+  # "statik demo bozulmadı, ölçüldü" cümlesi yazıldığı anda yanlıştı.
+  #
+  # Bu yüzden bu iş artefakt İNDİRMEZ, kendi derlemesini yapar. Beyanı
+  # (`demo`) üreticininkinden farklıdır ve kural tam olarak budur.
+  #
+  # Marka kapısı burada durur çünkü kendi derlemesini yapar ve `out/` ile
+  # `.next` dizinlerini silerek biter; statik demonun ardından koşması
+  # aynı işin devamıdır.
+  kapi-demo:
+    if: github.event_name != 'pull_request' || github.event.pull_request.draft == false
+    runs-on: ubuntu-latest
+    env:
+      DERLEME_ORTAMI: demo
+    steps:
+      - name: Depoyu al
+        uses: actions/checkout@v7
+
+      - name: Node kur
+        uses: actions/setup-node@v7
+        with:
+          node-version: 22
+          cache: npm
+          cache-dependency-path: web/package-lock.json
+
+      - name: Bağımlılıkları kur
+        working-directory: web
+        run: npm ci
+
+      - name: Veritabanını hazırla
+        working-directory: web
+        run: |
+          npx prisma migrate deploy
+          npx prisma generate
+          npx tsx prisma/seed.ts
+
       # `npx next build` DEĞİL: o, zincirin yalnız ilk halkasıdır ve
-      # demo-yol · yayin-kontrol · statik-kontrol · kolon-hizasi kapılarını
-      # atlıyordu. Dördü de `publish.yml` içinde, yani main'e GİRDİKTEN
-      # sonra koşuyordu; bir PR'ı bloklamayan kapı kapı değildir.
+      # demo-yol · yayin-kontrol · statik-kontrol · kolon-hizasi
+      # kapılarını atlıyordu. Dördü de `publish.yml` içindeydi, yani
+      # main'e GİRDİKTEN sonra koşuyordu; bir PR'ı bloklamayan kapı kapı
+      # değildir.
       - name: Statik demo derlemesi ve doğrulaması
         working-directory: web
         env:
@@ -370,11 +663,77 @@ jobs:
         run: npm run demo:build
 
       # Ürün adının tek kaynaktan geldiğini DAVRANIŞLA ölçer: nöbetçi bir
-      # adla derler ve üretilen çıktıya bakar. Kendi derlemesini yaptığı
-      # için en sonda durur; `out/` ve `.next` dizinlerini silerek biter.
+      # adla derler ve üretilen çıktıya bakar.
       - name: Marka kapısı
         working-directory: web
         run: npm run marka:kapi
+
+  # ── TOPLAYICI · dal korumasındaki AD KORUNUR ─────────────────────────
+  # `kapi-yavas` artık kapı KOŞMAZ, kapıların sonucunu TOPLAR. Adı
+  # korunuyor çünkü bir depo ayarının (ruleset → required checks) içinde
+  # de duruyor ve o ayar koddan görünmez: işi silmek ya da yeniden
+  # adlandırmak merge'i sessizce kilitlerdi.
+  #
+  # `if: always()` ŞART. Bayraksız bir toplayıcı, `needs`inden biri
+  # düştüğünde ATLANIR — ve atlanan bir zorunlu check, korumada
+  # kırmızı değil NÖTR görünür. Yani tam da kapının kırmızı olduğu anda
+  # koruma açılırdı.
+  #
+  # `skipped` KABUL EDİLİR: taslak PR'da beş işin beşi de atlanır ve bu,
+  # bölünmeden önceki davranışın aynısıdır (`kapi-yavas` taslakta hiç
+  # koşmuyordu). Kabul edilen tek şey budur — `failure` ve `cancelled`
+  # kırmızıdır.
+  kapi-yavas:
+    needs: [derleme, kapi-rota, kapi-gezinme, kapi-tasma, kapi-axe, kapi-demo]
+    if: always()
+    runs-on: ubuntu-latest
+    steps:
+      - name: Tarayıcılı kümenin sonucunu TOPLA
+        env:
+          DERLEME: ${{ needs.derleme.result }}
+          SONUCLAR: >-
+            kapi-rota=${{ needs.kapi-rota.result }}
+            kapi-gezinme=${{ needs.kapi-gezinme.result }}
+            kapi-tasma=${{ needs.kapi-tasma.result }}
+            kapi-axe=${{ needs.kapi-axe.result }}
+            kapi-demo=${{ needs.kapi-demo.result }}
+        run: |
+          echo "  derleme=$DERLEME"
+          # `derleme` DE `needs`tedir. Olmasaydı: derleme düşer, dört
+          # tarayıcılı iş `skipped` olur, toplayıcı "atlandı" görüp YEŞİL
+          # yanardı — tam da hiçbir kapının ölçülmediği anda. Ölçüldü:
+          # `eb2cdeb` koşumunda derleme artefakt yüklemede düştü ve dördü
+          # de atlandı. Derlemenin `if:` koşulu yoktur, yani atlanamaz;
+          # `success` dışındaki her sonucu kırmızıdır.
+          if [ "$DERLEME" != "success" ]; then
+            echo "KIRMIZI: derleme=$DERLEME — tarayıcılı kapılar artefaktsız kaldı;"
+            echo "atlanmaları 'geçti' değildir."
+            exit 1
+          fi
+          gecen=0; atlanan=0; kirmizi=0
+          for s in $SONUCLAR; do
+            durum=${s#*=}
+            case "$durum" in
+              success) echo "  geçti      $s"; gecen=$((gecen + 1)) ;;
+              skipped) echo "  atlandı    $s"; atlanan=$((atlanan + 1)) ;;
+              *) echo "  KIRMIZI    $s"; kirmizi=1 ;;
+            esac
+          done
+          if [ "$kirmizi" != 0 ]; then
+            echo "tarayıcılı kümede kırmızı var — toplayıcı da kırmızıdır"; exit 1
+          fi
+          # KARIŞIK DURUM DA KIRMIZIDIR: taslak PR'da BEŞİ birden atlanır.
+          # Bir kısmı koşup bir kısmı atlandıysa atlanma sebebi taslak
+          # değildir ve o kapılar ÖLÇÜLMEMİŞTİR.
+          if [ "$gecen" != 0 ] && [ "$atlanan" != 0 ]; then
+            echo "KARIŞIK DURUM: $gecen geçti, $atlanan atlandı — atlanma sebebi taslak DEĞİL"
+            exit 1
+          fi
+          if [ "$atlanan" != 0 ]; then
+            echo "tarayıcılı küme: taslak PR — beşi de atlandı (ölçülmedi)"
+          else
+            echo "tarayıcılı küme: beşi de geçti"
+          fi
 
   # ── PostgreSQL koşusu (R5) ──────────────────────────────────────────────
   # SQLite geliştirme ve demo için KALIR; müşteri kurulumu PostgreSQL'dir ve

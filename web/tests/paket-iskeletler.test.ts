@@ -141,7 +141,7 @@ describe('iskeletler taze veritabanına kurulur — taslak çerçeve, madde = CS
     // paketin tohumda olmayan satırları eklendi
     expect(s.rapor.sayilar.sozluk).toBe(17 - tohumSozluk);
     expect(s.rapor.sayilar.oznitelikler).toBe(12 - tohumOznitelik);
-    expect(s.rapor.sayilar).toMatchObject({ kapsamTurleri: 1, cerceveler: 8, maddeler: 3803, formlar: 0, raporlar: 1, roller: 2 });
+    expect(s.rapor.sayilar).toMatchObject({ kapsamTurleri: 1, cerceveler: 8, maddeler: 3803, formlar: 1, raporlar: 1, roller: 2 });
     expect(await db.raporSablonu.findUniqueOrThrow({ where: { kod: 'EPDK-SGYM-KARNE' } })).toMatchObject({ koken: 'paket', aktif: true });
     for (const t of s.rapor.taslakSurumler) {
       expect((await db.frameworkSurumu.findUniqueOrThrow({ where: { id: t.surumId } })).durum).toBe('taslak');

@@ -185,8 +185,45 @@ metni ve Ek-3 teknik kontrol maddeleri EPDK'nın kendi sitesinden indirildi
 aktarıldı — her maddede kaynak adresi, belge içi konum ve erişim tarihi durur.
 İkincil kaynak (Lexpera) İÇERİĞE GİRMEDİ: metin birincil kaynaktan alındı.
 
+**10 Eylül 2026 · form şablonu araması (R12).** Aranan belge: **EPDK'nın
+yayımladığı bir ÖZ DEĞERLENDİRME FORMU şablonu** — yükümlü kuruluşun
+kendi öz denetimini işleyeceği, alanları düzenleyici tarafından
+belirlenmiş bir form. **BÖYLE BİR BELGE BULUNAMADI.** Yetkinlik Modeli
+sayfasında (yukarıdaki birincil kaynak) yalnız yönetmelik metni, yedi
+teknik kontrol eki ve referans topolojileri var; "öz denetim" ifadesi
+Denetim Rehberi'nde geçiyor (md. 10/6 bağlamı: öz denetim ve fark
+analizi danışmanlık sayılmaz) ama forma dair bir şablon yayımlanmamış.
+**Uydurulmadı.** Bunun yerine yapısı GERÇEKTEN yayımlanmış olan belge
+alındı: **Denetim Mutabakat Belgesi**. Denetim Rehberi bu belgenin
+ASGARİ MUHTEVASINI yedi kalem hâlinde sayar (denetim tarihi · denetçi ve
+kuruluş temsilcisi bilgileri · ana başlıklar için "Tam Uyum" · "Kısmen
+Uyum" · "Uyumsuz" · "Kapsam dışı" madde sayıları · danışmanlık
+alınmadığına dair ibare · denetçi firmanın belge saklamayacağına dair
+beyan · örnekleme yapıldıysa yöntemi ve gerekçesi · iki taraf için imza
+alanları) ve `paketler/TR-ENERJI/form/EPDK-DENETIM-MUTABAKAT.json`
+bu yapıyı taşır.
+
+**Alan etiketleri kaynağın söz dizilişini KORUR — ve bu bilinçlidir.**
+İlk turda pakette "alan etiketleri ürünün kendi cümleleridir" yazıyordu;
+bağımsız inceleme bunun DOĞRU OLMADIĞINI gösterdi (yedi kalemin yedisi de
+rehberin sözcüklerini taşıyor) ve iddia düzeltildi. Doğru olan davranış da
+budur: asgari muhteva bir LİSTEDİR ve denetçinin tanıyacağı sözcüklerle
+yazılmazsa belge o listeyi karşıladığını gösteremez; "danışmanlık
+alınmadığına dair ibare" yerine ürünün kendi cümlesini yazmak, formu daha
+özgün değil daha KULLANIŞSIZ yapardı. Yönetmelik ve rehber metni FSEK
+md. 31 kapsamında serbesttir ve paketin lisans beyanı bunu söyler
+(`kamuya_acik` · `metinDahil: true`). Pakete girmeyen şey rehberin GÖVDE
+METNİDİR: açıklama paragrafları, denetim süreleri ve örnekleme kuralları
+şablona kopyalanmadı.
+
+Belge şu anda EPDK'nın hangi sayfasında listelendiği
+**bulunamadı** (Yetkinlik Modeli sayfasında bağı yok, arama motoru da
+göstermedi); doğrudan adresi çalışıyor ve iki ayrı indirmede aynı
+sha256'yı verdi — kaynak satırı bu yüzden adresle ve özetle yazıldı.
+
 | Kaynak | Durum |
 | --- | --- |
+| [EPDK — Yetkinlik Modeli Yönetmeliği Denetim Rehberi](https://www.epdk.gov.tr/Detay/DownloadDocument?id=VBBCCR6Vj78=) (.docx · sha256 `89c7446d0f3a536f2425914520fd18a4cbcff6d1160e5dbd3a64ad1300c0f979` · erişim 09.09.2026, 10.09.2026'da yeniden doğrulandı) | **birincil, erişildi** — Mutabakat Belgesi asgari muhtevası (7 kalem), asgari saha denetim süreleri (A/B: 3 gün · C: 2 gün), en az iki denetçi, örnekleme karekök kuralı (tavan 5). **Listelendiği sayfa bulunamadı** — belge doğrudan adresle indirildi |
 | [EPDK — Yetkinlik Modeli Yönetmeliği sayfası](https://www.epdk.gov.tr/Detay/Icerik/3-33068/enerji-sektorunde-siber-guvenlik-yetkinlik-modeli-) | **birincil, erişildi** — yönetmelik PDF (son hâli RG 25.11.2025/33088) ve Ek-1…Ek-7 XLSX + Ek-1a/2a/3a topolojileri indirildi |
 | [Lexpera — EPDK yönetmeliği konsolide](https://www.lexpera.com.tr/mevzuat/yonetmelikler/enerji-sektorunde-siber-guvenlik-yetkinlik-modeli-yonetmeligi-1) | ikincil — 18 madde + geçici, ek listesi, md. 5/c–ç standart atıfları, md. 7–8 seviyeler, md. 10 denetim |
 | resmigazete.gov.tr/eskiler/2023/06/20230606-2.htm | **erişilemedi** — 503 |

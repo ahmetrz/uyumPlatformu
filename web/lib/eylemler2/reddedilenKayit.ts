@@ -25,7 +25,9 @@ import { yetkiZorunlu } from '../erisim';
 import { tamam, hata, iz, bosluksuz, type Sonuc } from './ortak';
 
 /** Şemadaki `ReddedilenKayit.durum` ile birebir. */
-export const RED_DURUMLARI = ['acik', 'incelendi', 'duzeltildi', 'yok_sayildi'] as const;
+/* İHRAÇ EDİLMEZ — URN-KUR-010: `'use server'` dosyası yalnız async
+   fonksiyon ihraç edebilir. */
+const RED_DURUMLARI = ['acik', 'incelendi', 'duzeltildi', 'yok_sayildi'] as const;
 
 /** Tek çağrıda kapatılabilecek en fazla kayıt — sınırsız toplu işlem,
     gözden geçirilemeyen bir denetim izi üretir. */

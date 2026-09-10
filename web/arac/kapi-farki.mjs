@@ -175,7 +175,7 @@ export function adimlar(isAkisiMetni) {
       cevre = null;
     }
     /* `jobs:` altındaki iki boşluklu anahtar = bir İŞ adı. */
-    const isAdi = ham.match(/^ {2}([a-z][\w-]*):\s*$/);
+    const isAdi = ham.match(IS_ADI_KALIBI);
     /* Yeni iş: adım bağlamı da sıfırlanır. Sıfırlanmasaydı önceki işin son
        adımının girintisi taşınır ve İŞ DÜZEYİ `env:` hiç okunmazdı (ölçüldü). */
     if (isAdi) { is = isAdi[1]; isCevresi = {}; isCevreGirinti = null; adimGirinti = null; }
@@ -233,6 +233,125 @@ export function adimlar(isAkisiMetni) {
     if (kos) { simdiki.komut = kos[1]; continue; }
   }
   if (simdiki?.komut) cikti.push(simdiki);
+  return cikti;
+}
+
+/* KAPI MI, KURULUM MU? Kapı, ölçen ve HÜKÜM VEREN adımdır. Kurulum
+   adımları (bağımlılık, veritabanı, tarayıcı indirme, artefakt indirme,
+   sunucu başlatma / durdurma) ölçmez; koşulmamaları bir kapının
+   eksikliği değildir. İki kalıp da `parti-kapanisi.mjs` içinde
+   duruyordu; testin aynı kararı ikinci kez yazması gerekiyordu ve iki
+   nüsha ayrı ayrı bayatlayabilirdi. */
+const KAPI_KALIBI = /(npm run [\w:-]+|npm test\b|npx tsc\b|node arac\/)/;
+const KURULUM_KALIBI = /(npm ci|prisma |playwright-core\/cli|git fetch|fuser -k|next start)/;
+
+/** KAPI ADIMLARI — iş akışından türetilmiş, tekilleştirilmiş kapı listesi.
+
+    `isSuzgeci` verilirse tekilleştirmeden ÖNCE uygulanır. Sıra önemli:
+    aynı komut iki işte duruyorsa (üretim derlemesi böyleydi), önce
+    tekilleştirip sonra süzmek o komutu seçilen işten DÜŞÜRÜRDÜ — kapı
+    koşulmamış olurdu ve kimse görmezdi. */
+/**
+ * @param {string} isAkisiMetni
+ * @param {Set<string>|null} [isSuzgeci]
+ */
+export function kapiAdimlari(isAkisiMetni, isSuzgeci = null) {
+  /* Yorum satırları BURADA atılır. Çağıranın atmasına bırakılsaydı,
+     atmayı unutan çağıran yoruma alınmış bir kapıyı "koşuyor" sayardı —
+     kapıyı yoruma alıp kaçmak tam olarak bu yolla mümkün olurdu. */
+  const temiz = isAkisiMetni.split('\n')
+    .filter((x) => !x.trimStart().startsWith('#')).join('\n');
+  const { adimlar: tum } = sunucuYasamDongusu(temiz);
+
+  /* YAŞAM DÖNGÜSÜ İŞ BAŞINA ÖLÇÜLÜR. Tarayıcılı kapılar tek işteyken
+     iş akışı genelindeki İLK `next start` ile İLK `fuser -k` yetiyordu.
+     Kapılar paralel işlere bölününce her işin KENDİ çifti oluyor ve
+     "genelde ilk" olan çift yalnız BİRİNCİ işi doğru sınıflar: kalan
+     işlerin kapıları "sunucu istemez" diye işaretlenir, yerel kapanış
+     onları sunucusuz koşar ve kırmızı yakar — kusur kodda değil ölçen
+     araçta olurdu. */
+  const dongu = new Map();
+  tum.forEach((a, i) => {
+    const d = dongu.get(a.is) ?? { baslar: -1, durur: -1 };
+    if (d.baslar < 0 && /next start/.test(a.komut)) d.baslar = i;
+    if (d.durur < 0 && /fuser\s+-k/.test(a.komut)) d.durur = i;
+    dongu.set(a.is, d);
+  });
+  for (const [is, d] of dongu) {
+    if (d.baslar >= 0 && d.durur < 0) {
+      throw new Error(`\`${is}\` işi sunucu BAŞLATIYOR ama durduran adım yok`
+        + ' — sunucu ayakta kalır ve sonraki ölçüm bayat olur.');
+    }
+  }
+  const yasam = new Set(
+    [...dongu.values()].flatMap((d) => [d.baslar, d.durur]).filter((i) => i >= 0),
+  );
+
+  const gorulen = new Set();
+  return tum
+    .map((a, i) => ({ ...a, sira: i }))
+    .filter((a) => !yasam.has(a.sira)
+      && KAPI_KALIBI.test(a.komut) && !KURULUM_KALIBI.test(a.komut))
+    .filter((a) => isSuzgeci === null || isSuzgeci.has(a.is))
+    .filter((a) => {
+      const anahtar = `${a.komut}\u0000${JSON.stringify(a.cevre)}`;
+      if (gorulen.has(anahtar)) return false;
+      gorulen.add(anahtar); return true;
+    })
+    .map((a) => {
+      /* Sunucu isteyen kapı SIRADAN anlaşılır: KENDİ İŞİNDEKİ başlatan
+         ile durduran adımın arasında duruyorsa canlı sunucu ister. Ad
+         listesi tutulmuyor — iş akışı yeniden sıralanırsa liste yalan
+         söylerdi. */
+      const d = dongu.get(a.is) ?? { baslar: -1, durur: -1 };
+      return {
+        ...a,
+        sunucuIster: d.baslar >= 0 && a.sira > d.baslar
+          && (d.durur < 0 || a.sira < d.durur),
+      };
+    });
+}
+
+/** KAPI TAŞIYAN İŞLER — hangi işte en az bir kapı var. */
+export function kapiliIsler(isAkisiMetni) {
+  return new Set(kapiAdimlari(isAkisiMetni).map((a) => a.is));
+}
+
+/** İŞ ADLARI — iş akışının `jobs:` bloğundan TÜRETİLİR.
+
+    NEDEN LİSTE DEĞİL: `parti-kapanisi.mjs` dört iş adını SABİT yazıyordu
+    (`kapi` · `kapi-yavas` · `kapi-postgres` · `kapi-compose`). Liste iş
+    akışından ayrı yaşar: CI'ya beşinci bir iş eklendiği gün yerel kapanış
+    onu HİÇ koşmaz ve yine de "tamamı koştu" der. Kapı kümesinin kendisi
+    zaten türetiliyordu; türetilmeyen tek şey İŞ katmanıydı.
+
+    `jobs:` bloğunun İÇİNDE olmak şart: `on:` altındaki `pull_request:` ·
+    `schedule:` · `workflow_dispatch:` de iki boşluklu, değersiz
+    anahtarlardır ve blok takibi olmadan iş sanılırlar (ölçüldü). */
+/* İŞ ADI KALIBI — TEK NÜSHA ve satır-içi yorum TOLERANSLI.
+
+   Ölçüldü (bağımsız inceleme, PR #46): kalıp satırın tamamen boşlukla
+   bitmesini şart koşuyordu; `  kapi-yavas:  # toplayıcı` gibi bir satır
+   HİÇ eşleşmiyor ve o iş türetilen listeden SESSİZCE düşüyordu. İki
+   sonucu birden vardı: `isler()` işi görmez (parti kapsamı eksilir) ve
+   `adimlar()` o işin adımlarını bir öncekine yazar — kapanış yine
+   "tamamı koştu" derdi. Kalıp iki yerde ayrı ayrı yazılıydı; bugün tek
+   nüshadır ki biri düzeltilip öbürü bayatlamasın. */
+export const IS_ADI_KALIBI = /^ {2}([a-z][\w-]*):\s*(?:#.*)?$/;
+
+export function isler(isAkisiMetni) {
+  const satirlar = isAkisiMetni.split('\n')
+    .filter((s) => !s.trimStart().startsWith('#'));
+  const cikti = [];
+  let icinde = false;
+  for (const ham of satirlar) {
+    if (/^jobs:\s*$/.test(ham)) { icinde = true; continue; }
+    /* Girintisiz bir anahtar `jobs:` bloğunu kapatır. */
+    if (icinde && /^[a-zA-Z]/.test(ham)) { icinde = false; continue; }
+    if (!icinde) continue;
+    const m = ham.match(IS_ADI_KALIBI);
+    if (m) cikti.push(m[1]);
+  }
   return cikti;
 }
 

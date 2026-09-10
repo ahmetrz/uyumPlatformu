@@ -8,7 +8,7 @@
     "ad": "Elektrik Üretimi"
   },
   "dil": "tr",
-  "surum": "0.1.0",
+  "surum": "0.2.0",
   "yayinci": "Uyum ve Yönetişim Platformu (demo tohumu)",
   "lisans": {
     "tur": "kamuya_acik",
@@ -27,9 +27,49 @@
     "esleme/EPDK-SYM-ISO-27001.json": "4e719e791bba99843eb6da7dad7c71483dda46133e4d16ff74b454cc31a5bfb7",
     "esleme/EPDK-SYM-SPK-BS.csv": "b753caa91821d9299d81b36d563f44909b4ba44ec266b4a4c8a63f494cd4c4e2",
     "esleme/EPDK-SYM-SPK-BS.json": "d415fa5d59f05a8971fd660b1928487584d69d10f6ce938bca27b736da105270",
+    "form/DEMO-SYM-OZDEGERLENDIRME.json": "6ceaac108b132f845417abb553b59bdd7802e09c288d2711d8e796bd6e168229",
     "oznitelikler.json": "94481c769214894c69706c0032e69363e63bb5d0a448cfbde52fff31b9886f00",
     "sozluk.json": "7fc219741fb5e9b0a59ee32511b52ac274cf88282011920b053479b65b02108c"
   },
   "imza": null,
-  "aciklama": "DEMO (P4 · 2.5): tohumun enerji sözlüğü (13), öznitelik şeması (9), EPDK-SYM demo çerçevesi (27 madde) ve EPDK → ortak çerçeve denklikleri (6). Tesisler, tipler, süreçler ve bulgular tohumda (P8)."
+  "aciklama": "DEMO (P4 · 2.5): tohumun enerji sözlüğü (13), öznitelik şeması (9), EPDK-SYM demo çerçevesi (27 madde) ve EPDK → ortak çerçeve denklikleri (6). Tesisler, tipler, süreçler ve bulgular tohumda (P8).",
+  "alanEslemesi": {
+    "DEMO-SYM-OZDEGERLENDIRME": [
+      {
+        "kaynakAlan": null,
+        "urunAlani": "degerlendirmeDonemi",
+        "gerekce": "Ürün alanı, öz-değerlendirmenin HANGİ DÖNEMİ anlattığıdır; aynı kontrol kümesi iki dönemde iki farklı cevap verir. Kurgusal iskelette de serbesttir: kurum doldurur, ürün ölçmez."
+      },
+      {
+        "kaynakAlan": null,
+        "urunAlani": "degerlendirmeTarihi",
+        "gerekce": "Ürün alanı, değerlendirmenin YAPILDIĞI gündür — kapsadığı dönemden ayrıdır ve kanıtın tazeliği buna göre okunur. Kurgusal iskelette serbest alandır."
+      },
+      {
+        "kaynakAlan": "EPDK-SYM 4.1 · Varlık Envanteri (temsilî madde)",
+        "urunAlani": "envanterGuncelMi",
+        "gerekce": "Ürün alanı, varlık envanterinin GÜNCEL olup olmadığını taşır; envanterin var olması ile güncel olması ayrı şeylerdir ve bayat bir envanter yokluğundan daha yanıltıcıdır."
+      },
+      {
+        "kaynakAlan": "EPDK-SYM 4.1.1 · envanter kapsamı (temsilî madde)",
+        "urunAlani": "envanterKapsami",
+        "gerekce": "Ürün alanı, envanterin HANGİ varlık sınıflarını kapsadığını anlatır — kaç varlık olduğunu değil. Kapsamın genişliği, güncelliğinden ayrı bir sorudur."
+      },
+      {
+        "kaynakAlan": null,
+        "urunAlani": "uyumluSayisi",
+        "gerekce": "Ürün alanı, kapsamda `uyumlu` durum kodundaki kontrol sayısıdır — bir orandan değil sayımdan gelir. Kurgusal iskelette de gerçek kapsam sayılır, uydurulmaz."
+      },
+      {
+        "kaynakAlan": null,
+        "urunAlani": "uyumsuzSayisi",
+        "gerekce": "Ürün alanı, kapsamda `uyumsuz` durum kodundaki kontrol sayısıdır. Kısmi uyumla toplanmaz: kısmi bir kontrol kapatılacak eksiktir, uyumsuz olan açılacak iştir."
+      },
+      {
+        "kaynakAlan": null,
+        "urunAlani": "degerlendirilmeyenSayisi",
+        "gerekce": "Ürün alanı, kapsamda `degerlendirilmedi` durum kodundaki kontrol sayısıdır. Yazılmasa, hiç bakılmamış kontroller öbür kovaların dışında kalıp görünmez olurdu: bilinmeyen sıfır sayılmaz."
+      }
+    ]
+  }
 }

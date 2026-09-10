@@ -1,7 +1,7 @@
 {
-  "imza": "c6833d0f46739941f9c09036aad13797",
-  "dosya": 216,
-  "vaka": 3952,
+  "imza": "aa8b29e7241a8e2ee4be66265467dbf4",
+  "dosya": 217,
+  "vaka": 3972,
   "atlanan": 1,
   "dosyalar": {
     "tests/adaptor-yetenekleri.test.ts": {
@@ -53,7 +53,7 @@
       "atlanan": 0
     },
     "tests/bekci/disa-aktarim-kapsami.test.ts": {
-      "vaka": 8,
+      "vaka": 10,
       "atlanan": 0
     },
     "tests/bekci/ek-eklemesi.test.ts": {
@@ -73,7 +73,7 @@
       "atlanan": 0
     },
     "tests/bekci/kimlik-sir.test.ts": {
-      "vaka": 12,
+      "vaka": 15,
       "atlanan": 0
     },
     "tests/bekci/kurgusal-adlar.test.ts": {
@@ -129,7 +129,7 @@
       "atlanan": 0
     },
     "tests/bildirim-donemi.test.ts": {
-      "vaka": 21,
+      "vaka": 24,
       "atlanan": 0
     },
     "tests/bildirim-kaydi-eylem.test.ts": {
@@ -445,7 +445,7 @@
       "atlanan": 0
     },
     "tests/kimlik-akis.test.ts": {
-      "vaka": 10,
+      "vaka": 13,
       "atlanan": 0
     },
     "tests/kimlik-envanteri.test.ts": {
@@ -454,6 +454,10 @@
     },
     "tests/kimlik-eylem.test.ts": {
       "vaka": 14,
+      "atlanan": 0
+    },
+    "tests/kimlik-giris-mfa.test.ts": {
+      "vaka": 9,
       "atlanan": 0
     },
     "tests/kimlik-mfa-zincir.test.ts": {

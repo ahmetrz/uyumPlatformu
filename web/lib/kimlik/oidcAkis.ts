@@ -262,23 +262,50 @@ export async function kullaniciyaEsle(o: {
   }
   const ad = typeof o.govde.name === 'string' && o.govde.name.trim() ? o.govde.name.trim() : eposta;
 
+  /* ── E-POSTA ÇAKIŞMASINDA BAĞLANMAZ, REDDEDİLİR ─────────────────────
+     Burada "aynı e-posta varsa mevcut hesaba BAĞLA" yazılıydı ve
+     gerekçesi "aynı insanı iki aktör olarak izlemeyelim"di. Bağımsız
+     inceleme (#49) bunun bir YETKİ DELME yolu olduğunu gösterdi ve
+     şemanın kendi yorumu zaten uyarıyordu: "e-postayla eşleştirmek,
+     e-postası devralınan bir hesabın başkasının kimliğine düşmesi
+     demektir".
+
+     Somut hâli: JIT açık bir sağlayıcıda, üründe zaten kayıtlı (ve
+     muhtemelen YETKİLİ) bir e-postayla ama BAŞKA bir `sub` ile gelen
+     geçerli imzalı bir jeton, o hesabın bütün yetkilerini devralırdı.
+     `email_verified` bile sorulmuyordu. "JIT'te açılan hesap YETKİSİZ
+     doğar" güvencesi yalnız YENİ hesap için geçerliydi.
+
+     Bugün: e-posta zaten varsa hesap AÇILMAZ ve BAĞLANMAZ — ret. Bağı
+     kurmak bir YÖNETİM kararıdır ve `/ayarlar/kimlik`ten yapılır.
+     "İki aktör" endişesi de böylece kalkıyor: ikinci kayıt açılmıyor. */
+  const mevcut = await db.kullanici.findUnique({
+    where: { eposta }, select: { id: true },
+  });
+  if (mevcut) {
+    return {
+      ok: false,
+      ret: {
+        tur: 'taninmayan_kullanici',
+        konuOzeti: konuOzeti(konu),
+        mesaj: 'Bu e-postayla bu kurulumda zaten bir hesap var ama kurum hesabınız'
+          + ' ona BAĞLI DEĞİL. Otomatik bağlama yapılmaz: hangi kurum kimliğinin'
+          + ' hangi hesaba ait olduğu bir yönetim kararıdır. Yöneticinizden bağı'
+          + ' kurmasını isteyin.',
+      },
+    };
+  }
+
   const kullanici = await db.$transaction(async (tx) => {
-    /* Aynı e-posta zaten varsa YENİ HESAP AÇILMAZ, mevcut hesaba BAĞLANIR:
-       ikinci bir kayıt açmak, aynı insanı iki aktör olarak izlemek olurdu. */
-    const mevcut = await tx.kullanici.findUnique({ where: { eposta }, select: { id: true, aktif: true } });
-    const kid = mevcut?.id ?? (await tx.kullanici.create({
+    const yeni = await tx.kullanici.create({
       data: { eposta, adSoyad: ad, aktif: true, parolaHash: null },
       select: { id: true },
-    })).id;
-    await tx.kimlikBagi.create({
-      data: { saglayiciId: o.saglayici.id, kullaniciId: kid, konu },
     });
-    return { id: kid, aktif: mevcut ? mevcut.aktif : true };
+    await tx.kimlikBagi.create({
+      data: { saglayiciId: o.saglayici.id, kullaniciId: yeni.id, konu },
+    });
+    return yeni;
   });
 
-  if (!kullanici.aktif) {
-    return { ok: false, ret: { tur: 'pasif_kullanici',
-      mesaj: 'Bu kurum hesabına bağlı kullanıcı pasif' } };
-  }
   return { ok: true, kullaniciId: kullanici.id, konu, rolOnerileri: roller, eslenmeyen };
 }

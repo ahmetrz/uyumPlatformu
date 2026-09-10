@@ -39,7 +39,10 @@ vi.mock('@/lib/auth', async (asil) => {
 });
 
 const { db } = await import('@/lib/db');
-const { mfaKur, mfaDogrula, mfaKaldir, mfaGirisDogrula } = await import('@/lib/eylemler2/mfa');
+const { mfaKur, mfaDogrula, mfaKaldir } = await import('@/lib/eylemler2/mfa');
+/* Giriş doğrulaması `'use server'` dosyasında DEĞİL: oturumsuz çağrılabilen
+   bir uç nokta olurdu (bağımsız inceleme bulgusu, #49). */
+const { mfaGirisDogrula } = await import('@/lib/kimlik/mfaGiris');
 const { totp, adimNo, ADIM_SANIYE } = await import('@/lib/kimlik/totp');
 
 const damga = Date.now();

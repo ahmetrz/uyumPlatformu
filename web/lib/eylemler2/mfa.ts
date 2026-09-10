@@ -25,7 +25,7 @@
 import { revalidatePath } from 'next/cache';
 import { z } from 'zod';
 import { db } from '../db';
-import { aktifKullanici, parolaOzetle, parolaDogru } from '../auth';
+import { aktifKullanici, parolaOzetle } from '../auth';
 import { DEMO } from '../demo';
 import { MARKA_AD } from '../marka';
 import { coz, sifrele } from '../kimlik/sifreleme';
@@ -201,63 +201,10 @@ export async function mfaKaldir(): Promise<Sonuc> {
   }
 }
 
-/* ── Giriş anında doğrulama ───────────────────────────────────────────── */
-
-export type GirisDogrulamasi =
-  | { ok: true; kurtarmaIle: boolean }
-  | { ok: false; hata: string };
-
-/**
- * Giriş akışında TOTP ya da KURTARMA kodu doğrular.
- *
- * Kurtarma kodu BİR KEZ kullanılır ve kullanıldığı ANDA işaretlenir;
- * işaretlemeden önce dönmek, aynı kodun iki kez geçmesine izin verirdi.
- */
-export async function mfaGirisDogrula(o: {
-  kullaniciId: string; kod: string; simdiMs?: number;
-}): Promise<GirisDogrulamasi> {
-  const kayit = await db.mfaKaydi.findUnique({
-    where: { kullaniciId: o.kullaniciId },
-    include: { kurtarmaKodlari: { where: { kullanildi: null } } },
-  });
-  if (!kayit || !kayit.dogrulandi) {
-    return { ok: false, hata: 'Bu hesapta doğrulanmış bir MFA kaydı yok.' };
-  }
-  const simdiMs = o.simdiMs ?? Date.now();
-
-  const sir = await coz(kayit.sirZarfi);
-  if (sir.ok) {
-    const sonuc = totpDogrula({
-      sirBase32: sir.deger, kod: o.kod, simdiMs, sonKullanilanAdim: kayit.sonAdim,
-    });
-    if (sonuc.ok) {
-      await db.mfaKaydi.update({
-        where: { id: kayit.id },
-        data: { sonAdim: sonuc.adim, sonKullanim: new Date(simdiMs) },
-      });
-      return { ok: true, kurtarmaIle: false };
-    }
-    /* Tekrar kullanılmış kod KURTARMA olarak denenmez: kullanıcıya
-       durumu adıyla söylenir. */
-    if (sonuc.sebep === 'tekrar') return { ok: false, hata: TOTP_RET_SOZU.tekrar };
-  }
-
-  const aday = kurtarmaNormalize(o.kod);
-  for (const kod of kayit.kurtarmaKodlari) {
-    if (!parolaDogru(aday, kod.kodHash)) continue;
-    /* KOŞULLU YAZMA: iki eşzamanlı deneme aynı kodu kullanamasın. */
-    const { count } = await db.mfaKurtarmaKodu.updateMany({
-      where: { id: kod.id, kullanildi: null }, data: { kullanildi: new Date(simdiMs) },
-    });
-    if (count === 0) break;
-    await iz({
-      aktorId: o.kullaniciId, varlikTipi: 'MfaKaydi', varlikId: o.kullaniciId,
-      eylem: 'guncelleme', alan: 'kurtarma',
-      sonra: 'kurtarma kodu kullanıldı',
-      gerekce: `Kalan kurtarma kodu: ${kayit.kurtarmaKodlari.length - 1}`,
-    });
-    return { ok: true, kurtarmaIle: true };
-  }
-
-  return { ok: false, hata: sir.ok ? TOTP_RET_SOZU.kod_yanlis : sir.hata };
-}
+/* ── Giriş anında doğrulama BU DOSYADA DEĞİL ─────────────────────────
+   `mfaGirisDogrula` `lib/kimlik/mfaGiris.ts`e TAŞINDI ve gerekçe orada
+   yazılı: bu dosya `'use server'`dır, ihraç ettiği her fonksiyon bir uç
+   noktadır ve o fonksiyon `kullaniciId`yi OTURUMDAN alamaz (çağrıldığı
+   anda oturum yoktur). Burada kalsaydı oturumsuz bir çağıran istediği
+   kullanıcı için kod deneyebilir ve kurtarma kodlarını tüketebilirdi
+   (bağımsız inceleme bulgusu, #49). */

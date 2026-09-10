@@ -24,7 +24,7 @@
    Kapı okumayı işlem DIŞINDA yapar; yazma `updateMany` ile BEKLENEN
    duruma koşullanır. İki onaycı aynı dönemde biri "verildi" öbürü
    "uygulanmaz" derse kaybeden sessizce ezilmez, "yeniden bakın" der
-   (#47 turu 2 bulgusu; `tests/bildirim-donemi-zincir.test.ts`).
+   (#47 turu 2 bulgusu; `tests/bildirim-donemi-eylem.test.ts`).
 
    Kalıp: yetki → dönem oku → kapı → koşullu yaz + iz (TEK işlem). */
 

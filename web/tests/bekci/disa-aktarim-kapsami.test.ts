@@ -23,6 +23,7 @@ import path from 'node:path';
    ═══════════════════════════════════════════════════════════════════════ */
 
 const EYLEM = path.join(process.cwd(), 'lib', 'eylemler2');
+const KOK = ['app', 'lib'];
 
 const yorumsuz = (m: string) => m
   .replace(/\/\*[\s\S]*?\*\//g, '')
@@ -128,5 +129,40 @@ describe('dışa aktarım kapsamı EKRAN kapsamından geniş olamaz [URN-ERI-002
        Sayının kendisi bir hedef değil, bir DURDURMA noktasıdır. */
     expect(yuzeyler.map((y) => y.ad).sort())
       .toEqual(['denetimFormu.ts', 'disaAktarim.ts']);
+  });
+});
+
+describe('kapsamı SORGUYA çeviren ad TEK yerde tanımlı [URN-ERI-002]', () => {
+  /* ── ÖLÇÜLEN KUSUR ───────────────────────────────────────────────────
+     Bağımsız inceleme (#49): `lib/erisim.ts` ölü bir `kapsamKosulu`
+     taşıyordu ve `app/kapsam.ts` AYNI ADLA başka bir fonksiyon tanımlıyor.
+     İkisi aynı işi yapmıyor — biri kurumsal kaydı `OR: [{ tesisId: null }]`
+     ile İÇERİR, öbürü yalnız `{ tesisId: { in: [...] } }` üretir ve üç
+     değerli mantıkta NULL satırı ASLA eşlemez. Yanlış olanı içe aktaran
+     bir yüzey ne derleme hatası verir ne test kırar: kapsam sessizce
+     kayar. Ölü kod silindi; bu vaka onun GERİ GELMESİNİ ölçer.
+
+     Kural ada bağlıdır, dosyaya değil: ad tek modülde yaşadığı sürece
+     "hangi `kapsamKosulu`" sorusu hiç doğmaz. */
+  const tanimlar = KOK.flatMap((kok) => readdirSync(path.join(process.cwd(), kok), { recursive: true })
+    .map(String)
+    .filter((f) => f.endsWith('.ts') && !f.endsWith('.d.ts'))
+    .filter((f) => /export\s+(function|const)\s+kapsamKosulu\b/
+      .test(yorumsuz(readFileSync(path.join(process.cwd(), kok, f), 'utf8'))))
+    .map((f) => `${kok}/${f}`));
+
+  it('TEK tanım var ve yeri BELLİ', () => {
+    expect(tanimlar, `kapsamKosulu ${tanimlar.length} yerde tanımlı:\n${tanimlar.join('\n')}`)
+      .toEqual(['app/kapsam.ts']);
+  });
+
+  it('SABOTAJ: kalıp gerçekten İHRACI arıyor', () => {
+    /* Bekçinin kendi yürüyüşü: yorumdaki ya da çağrıdaki geçiş tanım
+       sayılmamalı, yoksa kural her dosyada kırmızı yanar ve susturulur. */
+    const kalip = /export\s+(function|const)\s+kapsamKosulu\b/;
+    expect(kalip.test(yorumsuz('export function kapsamKosulu(k) {}'))).toBe(true);
+    expect(kalip.test(yorumsuz('export const kapsamKosulu = (k) => ({});'))).toBe(true);
+    expect(kalip.test(yorumsuz('const w = kapsamKosulu(kapsam);'))).toBe(false);
+    expect(kalip.test(yorumsuz('/* export function kapsamKosulu */'))).toBe(false);
   });
 });

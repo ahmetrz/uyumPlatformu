@@ -29,6 +29,7 @@ process.env.TEST_OIDC_SIR = 'kurgusal-istemci-sirri';
 
 const { db } = await import('@/lib/db');
 const { kodukimligeCevir, konuOzeti } = await import('@/lib/kimlik/oidcAkis');
+const { kimlikGirisiYaz } = await import('@/lib/kimlik/girisIzi');
 
 const { privateKey, publicKey } = generateKeyPairSync('rsa', { modulusLength: 2048 });
 const KID = 'sahte-1';
@@ -182,6 +183,36 @@ describe('TANINMAYAN `sub` REDDEDİLİR ve kullanıcı AÇILMAZ [SIS-KML-003]', 
     expect(await db.yetki.count({ where: { kullaniciId: yeni.id } })).toBe(0);
   });
 
+  it('JIT açıkken VAR OLAN e-postaya BAĞLANMAZ, REDDEDİLİR [SIS-KML-003]', async () => {
+    /* Bağımsız inceleme bulgusu (#49) ve bu turun en sinsi kusuru:
+       "aynı e-posta varsa mevcut hesaba bağla" yazılıydı ve gerekçesi
+       "aynı insanı iki aktör olarak izlemeyelim"di. Sonucu bir YETKİ
+       DEVRALMAYDI: üründe kayıtlı (ve muhtemelen yetkili) bir e-postayla
+       ama BAŞKA bir `sub` ile gelen geçerli jeton, o hesabın bütün
+       yetkilerini alırdı. Şemanın kendi yorumu zaten uyarıyordu.
+
+       "JIT'te açılan hesap YETKİSİZ doğar" güvencesi yalnız YENİ hesap
+       için geçerliydi; bu yol onu atlıyordu. */
+    const mevcut = await db.kullanici.findUniqueOrThrow({
+      where: { id: bagliKullaniciId }, select: { eposta: true },
+    });
+    const oncekiSayi = await db.kullanici.count();
+    const oncekiBag = await db.kimlikBagi.count();
+
+    const { sonuc } = await cevir(
+      jeton({ sub: `${TANINMAYAN_KONU}-cakisma`, email: mevcut.eposta, name: 'Sahte' }),
+      { jitAcik: true },
+    );
+    expect(sonuc.ok).toBe(false);
+    if (!sonuc.ok) {
+      expect(sonuc.ret.tur).toBe('taninmayan_kullanici');
+      expect(sonuc.ret.mesaj).toContain('zaten bir hesap var');
+    }
+    /* NE HESAP AÇILDI NE BAĞ KURULDU. */
+    expect(await db.kullanici.count()).toBe(oncekiSayi);
+    expect(await db.kimlikBagi.count()).toBe(oncekiBag);
+  });
+
   it('JIT açık ama JETONDA E-POSTA YOKSA hesap açılmaz [SIS-KML-003]', async () => {
     const oncekiSayi = await db.kullanici.count();
     const { sonuc } = await cevir(
@@ -190,6 +221,34 @@ describe('TANINMAYAN `sub` REDDEDİLİR ve kullanıcı AÇILMAZ [SIS-KML-003]', 
     expect(sonuc.ok).toBe(false);
     /* E-POSTA UYDURULMAZ: kullanıcı kaydının kimliği odur. */
     expect(await db.kullanici.count()).toBe(oncekiSayi);
+  });
+});
+
+describe('BAŞARILI giriş izi YUTULMAZ [SIS-KML-003]', () => {
+  /* R-E BULGUSU: bu iddia için sabotaj koşuldu ve KIRMIZI YAKMADI —
+     düzeltme yapılmıştı ama hiçbir test onu ölçmüyordu. Ölçüm burada.
+
+     Kural (bağımsız inceleme, #49): reddedilen bir denemenin izi
+     yazılamazsa kullanıcıya dönen cevap değişmez; ama BAŞARILI bir
+     girişin izi sessizce düşerse "kim girdi" sorusunun tek cevabı
+     kaybolur. Yerel girişin eşdeğeri (`girisKorumasi.ts`) bu ayrımı
+     zaten yapıyor.
+
+     Yazma HATASI gerçek bir kısıttan üretilir: `aktorId` yabancı anahtarı
+     olmayan bir kullanıcıya işaret edemez. Sahtelenmiş bir istemci
+     yerine gerçek veritabanı kısıtı kullanılır — sahte bir hata, gerçek
+     yolun davranışını göstermez. */
+  const yok = { kullaniciId: 'yok-boyle-bir-kullanici', saglayiciAd: 'Kurgusal',
+    not: 'ölçüm', gerekce: 'ölçüm', adres: null };
+
+  it('KABUL dalı yazma hatasında FIRLATIR [SIS-KML-003]', async () => {
+    await expect(kimlikGirisiYaz({ ...yok, sonuc: 'kabul' })).rejects.toThrow();
+  });
+
+  it('RED dalı aynı hatada SESSİZ geçer [SIS-KML-003]', async () => {
+    /* Ayrım bilinçlidir: ret zaten reddedildi, iz yazılamaması
+       kullanıcıya dönen cevabı değiştirmez. */
+    await expect(kimlikGirisiYaz({ ...yok, sonuc: 'red' })).resolves.toBeUndefined();
   });
 });
 

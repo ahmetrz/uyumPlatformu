@@ -41,6 +41,11 @@ export const KIMLIK_RET_SOZU: Record<string, string> = {
   taninmayan: 'Kurum hesabınız doğrulandı ama bu kurulumda bir hesabınız yok.'
     + ' Yöneticinizden hesabınızı açmasını isteyin.',
   kimlik_reddedildi: 'Kurum hesabıyla giriş yapılamadı.',
+  /* İz yazılamadıysa oturum AÇILMADI — bu bir hata değil, ürünün "izi
+     olmayan oturum açılmaz" kuralının uygulanmasıdır ve kullanıcıya
+     böyle söylenir. */
+  iz_yazilamadi: 'Giriş kaydedilemedi, bu yüzden oturum açılmadı. Yeniden deneyin;'
+    + ' sürerse yöneticinize bildirin.',
 };
 
 /** Bilinmeyen kod SESSİZ GEÇMEZ: genel cümle döner, boş dönmez. */

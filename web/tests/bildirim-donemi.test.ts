@@ -139,6 +139,61 @@ describe('dönem penceresi doğru hesaplanır [OLY-BIL-006]', () => {
     expect(p.baslangic).toBeLessThanOrEqual(SIMDI);
     expect(p.bitis).toBeGreaterThan(SIMDI);
   });
+
+  /* ── ÇAPA GÜNÜ 01 DEĞİLKEN GERİ SARMA ────────────────────────────────
+     Bağımsız inceleme bulgusu (#49): çeyreklik dal geri sararken bir
+     ÇEYREK değil bir YIL geri gidiyordu ve pencere şimdiyi hiç
+     kapsamıyordu. Üç periyodun ÜÇÜ de aynı değişmezi taşımalı:
+
+       PENCERE ŞİMDİYİ KAPSAR — baslangic ≤ simdi < bitis.
+
+     Tek tek "şu tarihi verir" demek yetmez: yanlış ama sabit bir tarih de
+     o testi geçerdi. Değişmezin kendisi ölçülür. */
+  const KAPSAR = (donem: string, gun: string, simdi: number) => {
+    const p = donemPenceresi({
+      donem, donemBaslangici: gun, teslimGun: 30, simdi,
+    }).pencere!;
+    return p.baslangic <= simdi && simdi < p.bitis;
+  };
+
+  it('ÜÇ periyot da çapa günü 01 DEĞİLKEN şimdiyi kapsar [OLY-BIL-006]', () => {
+    /* Çapa gününden ÖNCEKİ gün en zor hâldir: geri sarma tam burada
+       tetiklenir. Ayın her günü için 12 ayın 12'si denenir. */
+    for (const donem of ['yillik', 'ceyreklik', 'aylik']) {
+      for (let ay = 0; ay < 12; ay += 1) {
+        for (const gun of ['02', '15', '28']) {
+          for (const kayAy of ['01', '04', '07', '11']) {
+            const simdi = Date.UTC(2026, ay, Number(gun) - 1, 12);
+            expect(KAPSAR(donem, `${kayAy}-${gun}`, simdi),
+              `${donem} · çapa ${kayAy}-${gun} · şimdi ${new Date(simdi).toISOString().slice(0, 10)}`)
+              .toBe(true);
+          }
+        }
+      }
+    }
+  });
+
+  it('SABOTAJ VAKASI: çeyreklikte bir YIL geri sarma pencereyi kaçırır [OLY-BIL-006]', () => {
+    /* Bulgunun tam vakası, sayısıyla dondurulur: 2026-01-05'te "01-15"
+       çapalı çeyreklik dönem 2025-10-15'te başlar. Eski kod 2025-01-15
+       veriyordu — dokuz ay sapma ve şimdiyi kapsamayan bir pencere. */
+    const p = donemPenceresi({
+      donem: 'ceyreklik', donemBaslangici: '01-15', teslimGun: 30,
+      simdi: Date.UTC(2026, 0, 5),
+    }).pencere!;
+    expect(new Date(p.baslangic).toISOString().slice(0, 10)).toBe('2025-10-15');
+    expect(new Date(p.bitis).toISOString().slice(0, 10)).toBe('2026-01-15');
+    expect(p.etiket).toBe('2025-Ç4');
+  });
+
+  it('aylık dal da aynı değişmezi tutar [OLY-BIL-006]', () => {
+    const p = donemPenceresi({
+      donem: 'aylik', donemBaslangici: '01-15', teslimGun: 30,
+      simdi: Date.UTC(2026, 0, 5),
+    }).pencere!;
+    expect(new Date(p.baslangic).toISOString().slice(0, 10)).toBe('2025-12-15');
+    expect(new Date(p.bitis).toISOString().slice(0, 10)).toBe('2026-01-15');
+  });
 });
 
 describe('geri sayım ve ekran durumu [OLY-BIL-006]', () => {

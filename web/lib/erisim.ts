@@ -193,7 +193,7 @@ export type DisaAktarimKapsami = {
  * Bir kullanıcının bir moduldeki kapsamı — ekran ve dışa aktarım için
  * TEK karar.
  *
- * Prisma koşuluna çevirmek çağıranın işidir (`kapsamKosulu`); bu
+ * Prisma koşuluna çevirmek ÇAĞIRANIN işidir; bu
  * fonksiyon KARARI verir, sorguyu değil.
  */
 export function disaAktarimKapsami(k: AktifKullanici, modul: Modul): DisaAktarimKapsami {
@@ -205,18 +205,4 @@ export function disaAktarimKapsami(k: AktifKullanici, modul: Modul): DisaAktarim
     kurumsalDahil: izinli === null,
     bos: izinli !== null && izinli.length === 0,
   };
-}
-
-/**
- * Kapsamı bir Prisma `where` parçasına çevirir.
- *
- * `alan` ilişki yolunu taşır: doğrudan `tesisId` için `'tesisId'`,
- * olaydan gelen kayıt için `'olay'` gibi. Kurumsal kayıt DÂHİLSE
- * `OR` dalı eklenir — `{ in: [...] }` üç değerli mantıkta NULL satırı
- * asla eşlemez ve bu sessiz bir düşürmedir (URN-VER-001 ile aynı sınıf).
- */
-export function kapsamKosulu(kapsam: DisaAktarimKapsami): Record<string, unknown> {
-  if (kapsam.tesisIdleri === null) return {};
-  const temel = { tesisId: { in: kapsam.tesisIdleri } };
-  return kapsam.kurumsalDahil ? { OR: [temel, { tesisId: null }] } : temel;
 }

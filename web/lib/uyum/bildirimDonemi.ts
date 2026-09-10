@@ -111,23 +111,40 @@ export function donemPenceresi(o: {
 
   const d = new Date(o.simdi);
   const yil = d.getUTCFullYear();
-  let bas: Date;
-  let bit: Date;
 
-  if (o.donem === 'yillik') {
-    bas = new Date(Date.UTC(yil, kayAy, kayGun));
-    if (bas.getTime() > o.simdi) bas = new Date(Date.UTC(yil - 1, kayAy, kayGun));
-    bit = new Date(Date.UTC(bas.getUTCFullYear() + 1, kayAy, kayGun));
-  } else if (o.donem === 'ceyreklik') {
-    const ceyrek = Math.floor((d.getUTCMonth() - kayAy + 12) % 12 / 3);
-    bas = new Date(Date.UTC(yil, kayAy + ceyrek * 3, kayGun));
-    if (bas.getTime() > o.simdi) bas = new Date(Date.UTC(yil - 1, kayAy + ceyrek * 3, kayGun));
-    bit = new Date(Date.UTC(bas.getUTCFullYear(), bas.getUTCMonth() + 3, kayGun));
-  } else {
-    bas = new Date(Date.UTC(yil, d.getUTCMonth(), kayGun));
-    if (bas.getTime() > o.simdi) bas = new Date(Date.UTC(yil, d.getUTCMonth() - 1, kayGun));
-    bit = new Date(Date.UTC(bas.getUTCFullYear(), bas.getUTCMonth() + 1, kayGun));
-  }
+  /* ── PENCERE ARİTMETİKLE DEĞİL NORMALLEŞTİRMEYLE BULUNUR ─────────────
+     Burada üç ayrı dal ve üç ayrı indeks hesabı vardı; ikisi kusurluydu
+     ve ikisini de bağımsız inceleme ile onun açtığı test buldu (#49):
+
+       · çeyreklik dal geri sararken bir ÇEYREK değil bir YIL geri
+         gidiyordu — ölçüldü: `simdi=2026-01-05` + çapa `01-15` →
+         2025-01-15…2025-04-15, şimdiyi HİÇ kapsamayan bir pencere;
+       · çeyrek indeksi yalnız AYDAN hesaplanıyordu, ÇAPA GÜNÜNÜ yok
+         sayıyordu — çapa ayının içindeyken ama çapa gününden önceyken
+         indeks bir kayıyor ve tek adım geri sarma yetmiyordu (ölçüldü:
+         çapa `04-02`, şimdi `2026-01-01`).
+
+     İndeks aritmetiği bu sınıfa açık: her periyot için ayrı bir formül,
+     her formülde ayrı bir sınır hâli. Bugün TEK bir değişmez var ve kod
+     onu doğrudan kuruyor:
+
+         PENCERE ŞİMDİYİ KAPSAR — baslangic ≤ simdi < bitis.
+
+     Çapadan başlanır, periyot adımıyla geriye/ileriye kaydırılır. Döngü
+     sınırlıdır: `bas` içinde bulunulan yıldan başlar, en fazla bir yıllık
+     adım sayısı kadar döner. `Date.UTC` taşan ve negatif ayı kendisi
+     normalleştirir, bu yüzden yıl ayrıca hesaplanmaz. */
+  const adimAy = o.donem === 'yillik' ? 12 : (o.donem === 'ceyreklik' ? 3 : 1);
+  let basAy = kayAy;
+  const capa = (ay: number) => new Date(Date.UTC(yil, ay, kayGun));
+
+  /* Geri: çapa şimdiden ileridedeyse bir periyot geri. */
+  while (capa(basAy).getTime() > o.simdi) basAy -= adimAy;
+  /* İleri: BİR SONRAKİ pencere de şimdiyi kapsıyorsa oraya geç. */
+  while (capa(basAy + adimAy).getTime() <= o.simdi) basAy += adimAy;
+
+  const bas = capa(basAy);
+  const bit = capa(basAy + adimAy);
 
   const etiket = o.donem === 'yillik'
     ? String(bas.getUTCFullYear())

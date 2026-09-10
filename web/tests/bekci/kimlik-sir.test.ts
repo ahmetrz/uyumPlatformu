@@ -140,6 +140,46 @@ describe('bekçi: ekran verisi sırrı ÇÖZMEZ [URN-KML-001]', () => {
   });
 });
 
+describe('bekçi: giriş doğrulaması SUNUCU EYLEMİ olamaz [URN-KML-001]', () => {
+  it('`mfaGirisDogrula` `use server` dosyasından ihraç EDİLMEZ [URN-KML-001]', () => {
+    /* Bu fonksiyon `kullaniciId`yi OTURUMDAN alamaz — çağrıldığı anda
+       oturum yoktur. Bir `'use server'` dosyasında dursaydı derlenmiş bir
+       uç nokta olur ve oturumsuz bir çağıran istediği kullanıcı için kod
+       deneyip kurtarma kodlarını tüketebilirdi (bağımsız inceleme
+       bulgusu, #49). Kardeş eylemler `kendiHesabi()` ile korunuyor; bu
+       korunamadığı için AYRI ve `server-only` bir modülde durur. */
+    const eylem = oku('lib/eylemler2/mfa.ts');
+    expect(eylem.startsWith("'use server'")).toBe(true);
+    expect(kodu(eylem)).not.toMatch(/export\s+(async\s+)?function\s+mfaGirisDogrula/);
+
+    const giris = oku('lib/kimlik/mfaGiris.ts');
+    const girisKodu = kodu(giris);
+    expect(girisKodu).toMatch(/import 'server-only'/);
+    /* KOD taranır, YORUM değil: dosyanın kendi gerekçesi `'use server'`
+       dizesini ANLATMAK için taşıyor. Ham metinde arayan bir bekçi,
+       kuralı açıklayan cümleyi kuralın ihlali sanardı — bu dosyanın
+       başındaki `kodu()` tam bu yüzden var. */
+    expect(girisKodu).not.toMatch(/'use server'/);
+    expect(girisKodu).toMatch(/export async function mfaGirisDogrula/);
+  });
+
+  it('giriş doğrulaması tekrar engelini KOŞULLU yazar [URN-KML-001]', () => {
+    /* Koşulsuz `update`, iki eşzamanlı çağrının aynı kodu geçirmesine
+       izin verirdi (aynı bulgu). Okunan adım yazma koşuludur. */
+    const giris = kodu(oku('lib/kimlik/mfaGiris.ts'));
+    expect(giris).toMatch(/updateMany\(\{\s*where:\s*\{\s*id:\s*kayit\.id,\s*sonAdim:\s*kayit\.sonAdim/);
+    expect(giris).not.toMatch(/mfaKaydi\.update\(/);
+  });
+
+  it('başarılı TOTP girişi İZ bırakır [URN-KML-001]', () => {
+    /* Kurtarma dalı izi yazıyordu, TOTP dalı yazmıyordu — komşu yolun
+       doğru yapması bunun atlanmış bir dal olduğunu gösterir. */
+    const giris = kodu(oku('lib/kimlik/mfaGiris.ts'));
+    const totpDali = giris.slice(giris.indexOf('if (sonuc.ok)'), giris.indexOf('const aday'));
+    expect(totpDali).toMatch(/await iz\(/);
+  });
+});
+
 describe('bekçi: TOTP sırrı ZARFSIZ yazılmaz [URN-KML-001]', () => {
   it('`sirZarfi` alanına yazan her yol `sifrele()`den geçer [URN-KML-001]', () => {
     /* `lib/` altında `sirZarfi:` yazan her dosya, aynı dosyada

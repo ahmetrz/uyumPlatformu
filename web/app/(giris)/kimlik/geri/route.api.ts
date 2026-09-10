@@ -108,21 +108,32 @@ export async function GET(istek: Request): Promise<NextResponse> {
     return ret(r.tur === 'taninmayan_kullanici' ? 'taninmayan' : GENEL_RET);
   }
 
+  /* SIRA BİLİNÇLİ: İZ ÖNCE, OTURUM SONRA. Bağımsız inceleme bulgusu
+     (#49): iz `oturumAc`tan sonra ve yutulan bir try/catch içinde
+     yazılıyordu; geçici bir veritabanı hatası, açılmış bir oturumu
+     KAYITSIZ bırakabilirdi. Bugün iz yazılamazsa fırlatır ve oturum HİÇ
+     açılmaz — kullanıcı girişe geri döner. Kaydı olmayan bir oturumdan,
+     açılmamış bir oturum iyidir. */
+  try {
+    await kimlikGirisiYaz({
+      kullaniciId: sonuc.kullaniciId, saglayiciAd: ad, sonuc: 'kabul',
+      not: `sub özeti ${konuOzeti(sonuc.konu)}`,
+      gerekce: sonuc.rolOnerileri.length > 0
+        ? `IdP rol önerisi: ${sonuc.rolOnerileri.join(', ')}`
+          + (sonuc.eslenmeyen.length > 0 ? ` · eşlenmeyen grup: ${sonuc.eslenmeyen.join(', ')}` : '')
+        /* ROL ÖNERİSİ YETKİ DEĞİLDİR: bu akış hiçbir `Yetki` satırı
+           yazmaz. Öneri ize yazılır ve yönetici ekranında görünür. */
+        : 'IdP rol önerisi yok',
+      adres,
+    });
+  } catch {
+    return ret('iz_yazilamadi');
+  }
+
   await oturumAc(sonuc.kullaniciId);
   await db.kimlikBagi.updateMany({
     where: { saglayiciId: saglayici.id, konu: sonuc.konu },
     data: { sonGiris: new Date() },
-  });
-  await kimlikGirisiYaz({
-    kullaniciId: sonuc.kullaniciId, saglayiciAd: ad, sonuc: 'kabul',
-    not: `sub özeti ${konuOzeti(sonuc.konu)}`,
-    gerekce: sonuc.rolOnerileri.length > 0
-      ? `IdP rol önerisi: ${sonuc.rolOnerileri.join(', ')}`
-        + (sonuc.eslenmeyen.length > 0 ? ` · eşlenmeyen grup: ${sonuc.eslenmeyen.join(', ')}` : '')
-      /* ROL ÖNERİSİ YETKİ DEĞİLDİR: bu akış hiçbir `Yetki` satırı
-         yazmaz. Öneri ize yazılır ve yönetici ekranında görünür. */
-      : 'IdP rol önerisi yok',
-    adres,
   });
 
   return NextResponse.redirect(new URL(guvenliHedef(akis.h), istek.url));

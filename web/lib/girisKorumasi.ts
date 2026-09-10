@@ -82,13 +82,21 @@ export type GirisRedSebebi =
   | 'kullanici_yok'
   | 'kullanici_pasif'
   | 'parola_hatali'
-  | 'oran_asildi';
+  | 'oran_asildi'
+  /* P6 · parola DOĞRU ama ikinci faktör geçilemedi. Ayrı sebepler:
+     biri kurulum eksiği (politika zorunlu, kayıt yok), öbürü yanlış kod.
+     Tek sebebe indirseydik denetim izi "parola mı kod mu" sorusunu
+     cevaplayamazdı. */
+  | 'mfa_kurulu_degil'
+  | 'mfa_kod_hatali';
 
 const SEBEP_SOZU: Record<GirisRedSebebi, string> = {
   kullanici_yok: 'tanımsız e-posta',
   kullanici_pasif: 'kullanıcı pasif',
   parola_hatali: 'parola hatalı',
   oran_asildi: 'deneme sınırı aşıldı',
+  mfa_kurulu_degil: 'MFA zorunlu ama hesapta kayıtlı ikinci faktör yok',
+  mfa_kod_hatali: 'ikinci faktör kodu doğrulanmadı',
 };
 
 export const epostaNormalize = (ham: string): string => ham.trim().toLowerCase();

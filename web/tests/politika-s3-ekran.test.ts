@@ -342,11 +342,22 @@ describe('POL-084 · "bildirimi yalnız kaydın SORUMLUSUNA yazar" [SIS-EKR-001]
 
     /* SORUMLUSUZ kaynak: denetim kaydının sorumlusu YOKTUR (motor
        `sorumluId: null` geçer) ve plan başlangıcı ufkun içindedir. */
+    /* ── SAYIM KAYDA GÖRE DARALTILIR (CI kırmızısı · bf0b58c) ─────────
+       İlk yazımda `db.bildirim.count()` TABLONUN TAMAMINI sayıyordu ve
+       motor aynı koşuda BAŞKA kaynaklar için de (sorumlusu olan bulgu,
+       aksiyon, sertifika) bildirim yazıyor. Yerelde vaka yeşildi çünkü
+       o görevler dosyanın önceki vakalarında zaten açılmıştı ve
+       `gorevGuvenceyeAl` ikinci kez yazmıyordu; CI'da sıra farklıydı ve
+       sayaç 0 yerine 11 geldi. Ölçüm SIRAYA bağlıydı — cümlenin iddiası
+       ise tek bir kayıt hakkında. Sayım artık O KAYDA bağlanıyor. */
     const d = await db.denetim.create({ data: {
       kod: `DEN-S3E-${damga}`, ad: 'Kurgusal yaklaşan denetim', tip: 'ic_denetim',
       durum: 'plan', planBaslangic: new Date(Date.now() + 7 * 86_400_000),
     } });
-    const bildirimOnce = await db.bildirim.count();
+    const bildirimi = () => db.bildirim.count({
+      where: { kaynakTipi: 'Denetim', kaynakId: d.id },
+    });
+    expect(await bildirimi(), 'fikstür kirli doğdu').toBe(0);
 
     await sonTarihleriIsle();
 
@@ -355,12 +366,14 @@ describe('POL-084 · "bildirimi yalnız kaydın SORUMLUSUNA yazar" [SIS-EKR-001]
     });
     expect(gorev, 'sorumlusuz kayıt için GÖREV de açılmadı — sessiz kalındı')
       .not.toBeNull();
-    expect(await db.bildirim.count(),
+    expect(gorev?.sorumluId, 'sorumlusuz kayda sorumlu UYDURULDU').toBeNull();
+    expect(await bildirimi(),
       'sorumlusuz kayıt için BİLDİRİM üretildi — kime yazıldığı belirsiz')
-      .toBe(bildirimOnce);
+      .toBe(0);
 
     /* KARŞI TANIK · SORUMLUSU OLAN kayıt için bildirim ÜRETİLİR. Olmazsa
-       üstteki sıfır, "motor hiç bildirim yazmıyor" demek olurdu. */
+       üstteki sıfır, "motor hiç bildirim yazmıyor" demek olurdu. Bu sayım
+       da KENDİ kaydına bağlanır. */
     const varlik = await db.varlik.findFirst({
       where: { silindi: null }, select: { id: true },
     });
@@ -368,15 +381,15 @@ describe('POL-084 · "bildirimi yalnız kaydın SORUMLUSUNA yazar" [SIS-EKR-001]
     await db.varlik.update({
       where: { id: varlik!.id }, data: { sahipId: oturum.id },
     });
-    await db.sertifika.create({ data: {
+    const sertifika = await db.sertifika.create({ data: {
       ad: `Kurgusal sertifika ${damga}`, varlikId: varlik!.id,
       bitis: new Date(Date.now() + 5 * 86_400_000),
     } });
-    const ikinciOnce = await db.bildirim.count();
     await sonTarihleriIsle();
-    expect(await db.bildirim.count(),
-      'sorumlusu OLAN kayıt için de bildirim yazılmadı — motor hiç yazmıyor')
-      .toBeGreaterThan(ikinciOnce);
+    expect(await db.bildirim.count({
+      where: { kaynakTipi: 'Sertifika', kaynakId: sertifika.id },
+    }), 'sorumlusu OLAN kayıt için de bildirim yazılmadı — motor hiç yazmıyor')
+      .toBeGreaterThan(0);
   });
 });
 

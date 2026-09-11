@@ -3,7 +3,7 @@ import { execFileSync } from 'node:child_process';
 import { existsSync, readFileSync } from 'node:fs';
 import path from 'node:path';
 import {
-  ASGARI_SOZCUK, aciklar, sirayla, sozcukler, tamAyrisma,
+  ASGARI_SOZCUK, aciklar, ayrisma, sirayla, sozcukler, tamAyrisma,
 } from '../../arac/tanik-karsilastirma.mjs';
 import { tabanDalKarari } from '../../arac/taban-dal.mjs';
 
@@ -92,6 +92,37 @@ describe('DOM tanığı · POPÜLASYON AYRIŞMASI [URN-TNK-001]', () => {
        göremediği yerdir. */
     expect(tanik.atlanan.map((a) => `${a.rota} — ${a.sebep}`), 'tanık rota atladı')
       .toEqual([]);
+  });
+
+  it('TANIĞIN ERİŞİM SINIRI ÖLÇÜLÜR ve BEYANLIDIR — "ayrışma 0" yetmez [URN-TNK-001]', () => {
+    if (!tanik) return;
+    /* ── EN ÖNEMLİ SINIR, EN KOLAY GİZLENEN SINIR ─────────────────────
+       Tanık yalnız sayfanın AÇILIŞ hâlini gezer: çekmece açmaz, form
+       doldurmaz, sekme değiştirmez. Yani kütüğün BÜYÜK BİR KISMINI
+       hiç göremez ve "ayrışma 0" çıktısı bunu SÖYLEMEZ.
+
+       Bu sayı beyansız kalsaydı tanığın erişimi bir gün sessizce
+       daralır ve kapı yine "ayrışma 0" derdi — düzeltmek istediğimiz
+       körlüğün ta kendisi. Bugün sayı ölçülür ve bir TABAN taşır:
+       tanığın gördüğü kütük satırı sayısı yalnız ARTABİLİR. */
+    const { domdaGorulmeyen } = ayrisma(
+      tanik.politikaAdaylari.map((a) => a.cumle),
+      politika.satirlar.map((s) => s.cumle),
+    );
+    const gorulen = politika.satirlar.length - domdaGorulmeyen.length;
+    /* ÖLÇÜLDÜ (11 Eyl 2026): 216 satırın 32'si tanığın erişiminde.
+       Taban bu ölçümün ALTINDADIR ve yalnız yükselir; kalan 184 satır
+       BEYANLI SINIRDIR, ölçülmemişlik değil — hepsinin kendi gerçek
+       yol ölçümü vardır (`olculmedi` 0). */
+    expect(gorulen,
+      `tanık kütüğün ${gorulen}/${politika.satirlar.length} satırını görüyor; `
+      + 'taban 30 — erişim daraldıysa "ayrışma 0" bir şey söylemiyor demektir')
+      .toBeGreaterThanOrEqual(30);
+    /* Ve sınır GERÇEKTEN bir sınır: tanık her şeyi görüyorsa bu vakanın
+       adı yalan olurdu. */
+    expect(domdaGorulmeyen.length,
+      'tanık kütüğün TAMAMINI görüyor — sınır beyanı artık yanlış')
+      .toBeGreaterThan(0);
   });
 
   it('EKRANDA GÖRÜLEN her cümle bir kütükte AÇIKLANIYOR [URN-TNK-001]', () => {

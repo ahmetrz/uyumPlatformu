@@ -291,6 +291,13 @@ jobs:
     steps:
       - name: Depoyu al
         uses: actions/checkout@v7
+        with:
+          # TAM GEÇMİŞ: `tests/bekci/dom-tanik.test.ts`in cırcır dişi taban
+          # dalı (`origin/main`) okur. Sığ çekimde o ref ÇÖZÜLMEZ ve diş
+          # "CI'da taban dal okunamadı" diye KIRMIZI yanar — ölçüldü, PR
+          # #52'nin ilk koşusunda tam olarak bu oldu. `kapi` işi zaten
+          # `fetch-depth: 0` kullanıyor; bu iş de aynı ihtiyacı taşıyor.
+          fetch-depth: 0
 
       - name: Node kur
         uses: actions/setup-node@v7

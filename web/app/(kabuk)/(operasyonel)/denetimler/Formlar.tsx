@@ -1,5 +1,6 @@
 'use client';
 import { useTerim } from '@/lib/dil/SozlukSaglayici';
+import Link from 'next/link';
 import { useState } from 'react';
 import { Alan, Dugme } from '@/components/kabuk/temel';
 import { useEylem } from '@/components/useEylem';
@@ -301,8 +302,12 @@ export function KapsamPaneli({
     <div style={{ display: 'grid', gap: 'var(--s16)' }}>
       <div>
         {kapsamlar.length === 0 ? (
-          <p className="ab-panel-dip" style={{ margin: 0 }}>
-            Kapsam girilmedi — denetim portföyün tamamı sayılır.
+          /* NE YAPMALIYIM: çözüm AYNI EKRANDA — kapsam ekleme formu bu
+             bloğun hemen altında; eylem YERİNDEDİR. */
+          <p className="ab-panel-dip bos" style={{ margin: 0 }}>
+            Kapsam girilmedi — denetim portföyün TAMAMI sayılır; daraltmak
+            bilinçli bir karardır ve kapsam dışı bırakılan hiçbir şey yoktur.{' '}
+            <Link href="/denetimler">Kapsam ekle</Link>
           </p>
         ) : kapsamlar.map((k) => (
           <div key={k.id} className="ab-panel-alan">

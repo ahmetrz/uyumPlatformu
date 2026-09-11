@@ -1,4 +1,5 @@
 'use client';
+import Link from 'next/link';
 import { useState } from 'react';
 import { Alan, Dugme } from '@/components/kabuk/temel';
 import { useEylem } from '@/components/useEylem';
@@ -81,11 +82,18 @@ function Blok({ ad, rozet, children }: {
   );
 }
 
-/** "kayıt yok" cümlesi — "sorun yok" DEĞİLDİR ve öyle yazılmaz. */
+/** "kayıt yok" cümlesi — "sorun yok" DEĞİLDİR ve öyle yazılmaz.
+ *
+ * ── ÇIKIŞ DA GÖSTERİLİR (R-G · R0-21) ───────────────────────────────────
+ * Dört yerde kullanılır (firmware · yama · korelasyon · SBOM) ve dördünde
+ * de boşluğun sebebi AYNI: bu duruşu besleyen bir kaynak sistem hiçbir
+ * kayıt getirmemiş. Çıkış o yüzden tek ve ARKETİPİK — kaynağın bağlandığı
+ * yer. Dört yere dört ayrı cümle yazmak, aynı kararı dört kez aldırırdı. */
 function KayitYok({ ne }: { ne: string }) {
   return (
     <p className="bos">
       {ne} kaydı yok — ölçülmedi; bilinmeyen sıfır sayılmaz.
+      <Link href="/saglik" className="ab-dugme satir">Kaynak bağla</Link>
     </p>
   );
 }
@@ -244,6 +252,7 @@ function CanliBlogu({ v, simdi, ayar }: {
       {kaynaklar.length === 0 ? (
         <p className="bos">
           Bu varlığı besleyen kaynak sistem yok — duruş ölçülmedi.
+          <Link href="/saglik" className="ab-dugme satir">Kaynak bağla</Link>
         </p>
       ) : (
         <>
@@ -767,7 +776,20 @@ function SegmentBlogu({ v, segmentler, yazilabilir }: {
   return (
     <Blok ad="Ağ segmenti">
       {!s ? (
-        <p className="bos">Segment atanmadı — adres tutarlılığı denetlenemez.</p>
+        <p className="bos">
+          Segment atanmadı — adres tutarlılığı denetlenemez.
+          {/* Çözüm ZATEN bu bloğun içinde: aşağıdaki "Segment ata" formu.
+              Boşluğun eylemi onu AÇAR — kullanıcıyı başka ekrana yollamak
+              ya da aynı kontrolü ikinci kez çizmek gereksiz olurdu. */}
+          {yazilabilir ? (
+            <button type="button" className="ab-dugme satir"
+              onClick={() => setAcik(true)}>Segment ata</button>
+          ) : (
+            <Link href="/yonetim-tezgahi" className="ab-dugme satir">
+              Segment kataloğunu gör
+            </Link>
+          )}
+        </p>
       ) : (
         <dl className="ciftler">
           <div><dt>Segment</dt><dd className="mono">{s.kod} · {s.ad}</dd></div>

@@ -244,8 +244,17 @@ describe('taban yazan her kapı gerekçeyi GEÇİRİYOR', () => {
 
   it('taban yazan kapı bulundu (tarama boş değil)', () => {
     expect(kapilar.map((k) => k.ad).sort()).toEqual(
-      ['bos-durum-kutugu.mjs', 'erisim-axe.mjs', 'gezinme-testi.mjs',
-        'rota-duman.mjs', 'yatay-tasma.mjs']);
+      /* `politika-kutugu.mjs` düzeltme turunda eklendi ve gerekçesi
+         ÖLÇÜLDÜ (P1-4): `politika.cumle` tabanı 131'de kalmıştı, ölçülen
+         216'ydı — 85 satırlık sessiz daralma penceresi. Kendi kütüğünü
+         yazan araç tabanını da yazmalı; elle güncellenen bir taban
+         güncellenmez. */
+      /* `dom-tanik.mjs` de düzeltme turunda eklendi (P2-3): tabanı
+         aracın İÇİNE sabit yazılmıştı (`ROTALAR.length < 30`) ve tanık
+         65 rota geziyordu — otuz beş rotalık sessiz daralma penceresi,
+         üstelik ölçtüğü iddia tam da "tanığın erişimi daralmadı"ydı. */
+      ['bos-durum-kutugu.mjs', 'dom-tanik.mjs', 'erisim-axe.mjs', 'gezinme-testi.mjs',
+        'politika-kutugu.mjs', 'rota-duman.mjs', 'yatay-tasma.mjs']);
   });
 
   it('her biri `sebep` geçiriyor', () => {

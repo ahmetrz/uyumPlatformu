@@ -87,8 +87,10 @@ export function EtkiDogrulama({
       {acikAlan === null && geriAlinan === null && (
         <div style={{ display: 'grid', gap: 'var(--s10)' }}>
           {acilabilir.length === 0 ? (
-            <p className="ab-panel-dip" style={{ margin: 0 }}>
-              Dört etki alanı da doğrulanmış.
+            /* İYİ HABER boşluğu: işaret edilecek bir çözüm yok. Muafiyet
+               KODDAN okunur (`bos iyi`), kütükten değil. */
+            <p className="ab-panel-dip bos iyi" style={{ margin: 0 }}>
+              Dört etki alanı da doğrulanmış — açılabilecek alan kalmadı.
             </p>
           ) : (
             <div style={{ display: 'flex', flexWrap: 'wrap', gap: 'var(--s8)' }}>

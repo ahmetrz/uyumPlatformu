@@ -2370,7 +2370,7 @@
 .ab-vt .alt { display: block; margin-top: 3px; font-family: var(--veri); font-size: 11px; color: var(--i3); }
 .ab-vt .vurgu { color: var(--bd); }
 .ab-vt .uyari { color: var(--md); }
-.ab-vt-bos { margin: 24px 0; font-size: 13px; color: var(--i3); }
+.ab-vt-cagiran { margin: 24px 0; font-size: 13px; color: var(--i3); }
 /* Kimlik hücresi: durum glifi + konu + olgu alt satırı (Tablo → çekirdek). */
 .ab-vt .kimlik { display: flex; align-items: flex-start; gap: 10px; min-width: 0; }
 .ab-vt .kimlik > .ab-glif { flex: none; margin-top: 5px; }

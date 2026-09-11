@@ -1433,6 +1433,22 @@ export const PLATFORM_SENARYOLARI_6: Senaryo[] = [
     katmanlar: ['DOMAIN', 'MIGRATION'],
   },
   {
+    id: 'SIS-KAP-004', alan: 'Sistem', rota: '—', eksen: 'arayuz',
+    amac: 'Tarayıcılı kanıt kapılarında SABİT iddia bulunmaması',
+    rol: 'kapı bakımcısı', kapsam: 'kurum geneli',
+    onkosul: '`kaydet(...)` çağıran bir kanıt aracı var',
+    veriHali: 'yok',
+    eylem: 'Araçların kaynağı taranır',
+    beklenenSonuc: 'Hiçbir `kaydet` çağrısı sabit `true` geçmez; rapora '
+      + '"geçti" yazan her satır bir GÖZLEME dayanır. Sabit `false` '
+      + 'yasak değildir: bulunamama dalında ölçülen olumsuz sonucu yazar '
+      + 've olsa olsa yanlış alarm üretir.',
+    beklenenEkran: 'yok — kapı raporunda ölçülmüş iddia ile ölçülmemiş cümle ayrışır',
+    beklenenIz: 'yazma yok — ölçüm kaynağı okur',
+    beklenenBildirim: 'yok',
+    katmanlar: ['DOMAIN'],
+  },
+  {
     id: 'SIS-BSD-001', alan: 'Sistem', rota: '—', eksen: 'arayuz',
     amac: 'Boş durumun SEBEBİNİ söylemesi ve ÇÖZÜM EYLEMİNE işaret etmesi',
     rol: 'ilk kurulumdaki kullanıcı', kapsam: 'kurum geneli',
@@ -1587,6 +1603,55 @@ export const PLATFORM_SENARYOLARI_6: Senaryo[] = [
     katmanlar: ['SERVER', 'DOMAIN'],
   },
   {
+    id: 'SIS-DEM-003', alan: 'Sistem', rota: '—', eksen: 'yetki',
+    amac: 'Demo ORTAM VAADİNİN tamamının ölçülmesi: eşleme kapsamı, ihraç '
+      + 'paritesi, sessiz başarı yokluğu ve yapısal yazamazlık',
+    rol: 'demo ziyaretçisi', kapsam: 'demo kurulumu',
+    onkosul: 'Yazan her sunucu eylemi modülünün bir demo ikizi var',
+    veriHali: 'normal',
+    eylem: 'İkizlerin TAMAMI glob ile yüklenir ve HER ihracı gerçekten çağrılır',
+    beklenenSonuc: 'Hiçbiri sessizce başarı dönmez; ikiz kümesi eşlenen modül '
+      + 'kümesiyle birebirdir; hiçbir ikiz veritabanına dokunmaz',
+    beklenenEkran: 'Demo ekranı "bu ortamda çalışmaz" der ve ÇÖKMEZ',
+    beklenenIz: 'yazma yok', beklenenBildirim: 'yok',
+    /* Takma ad eşlemesi DERLEME ANI bir bağlantıdır; katman kataloğunda
+       ayrı bir `BUILD` yok ve yenisini açmak kataloğu bu tek vaka için
+       genişletmek olurdu — `INTEGRATION` derleme/ortam bağlantısını
+       zaten taşıyor. */
+    katmanlar: ['SERVER', 'DOMAIN', 'INTEGRATION'],
+  },
+  {
+    id: 'SIS-EKR-001', alan: 'Sistem', rota: '—', eksen: 'arayuz',
+    amac: 'Ekranda okunan ama iddiası EKRANIN DIŞINDA yaşayan cümlelerin '
+      + '(S3) gerçek yolla ölçülmesi',
+    rol: 'uyum sorumlusu', kapsam: 'kurum geneli',
+    onkosul: 'Kayıt evreni bilinmeyen tip, boş kapsam seçimi, reddedilmiş '
+      + 'aktarım, çerçeve dışı koordinat ve engelli mevzuat kaynağı kurulu',
+    veriHali: 'bilinmeyen',
+    eylem: 'Cümleyi üreten saf fonksiyon, onu uygulayan sunucu eylemi ve '
+      + 'onu boyayan bileşen+CSS sözleşmesi ayrı ayrı sürülür',
+    beklenenSonuc: 'Bilinmeyen evren SIFIR yazılmaz ve "ok" görünmez; '
+      + '"silinmez" diyen ekranın eyleminde kayıt silme yoktur; köken '
+      + 'işareti hap değildir; ipucu odakla da açılır',
+    beklenenEkran: 'Ekranın cümlesi, onu uygulayan kodun davranışıyla aynıdır',
+    beklenenIz: 'okuma yolları iz bırakmaz', beklenenBildirim: 'yok',
+    katmanlar: ['DOMAIN', 'SERVER', 'UI', 'ACCESSIBILITY'],
+  },
+  {
+    id: 'SIS-DGM-002', alan: 'Sistem', rota: '—', eksen: 'veri',
+    amac: 'Sunucu eyleminin RET GEREKÇESİ cümlelerinin (S3) gerçek yolla ölçülmesi',
+    rol: 'uyum sorumlusu', kapsam: 'kurum geneli',
+    onkosul: 'Pasif eğitim, engelli mevzuat kaynağı, değişmez saklama ailesi, '
+      + 'uygulanmış aktarım, tamamlanmış gözden geçirme ve pasif kullanıcı kurulu',
+    veriHali: 'normal',
+    eylem: 'Her durumda GERÇEK sunucu eylemi çağrılır',
+    beklenenSonuc: 'Eylem REDDEDER ve gerekçe EKRANDAKİ cümledir; kayıt DEĞİŞMEZ',
+    beklenenEkran: 'Ekranın yazdığı ret gerekçesi sunucunun verdiğiyle aynıdır',
+    beklenenIz: 'reddedilen denemede iz satırı YOK — delta ile ölçülür',
+    beklenenBildirim: 'yok',
+    katmanlar: ['SERVER', 'DOMAIN', 'RBAC'],
+  },
+  {
     id: 'SIS-PAS-001', alan: 'Sistem', rota: '/topoloji', eksen: 'entegrasyon',
     amac: 'Ekranın "ağa paket göndermez" sözünün ÇALIŞMA ANINDA tutulması',
     rol: 'OT güvenlik sorumlusu', kapsam: 'kurum geneli',
@@ -1608,6 +1673,91 @@ export const PLATFORM_SENARYOLARI_6: Senaryo[] = [
     beklenenEkran: 'Yetkisiz hesap hiçbir modülü açamaz',
     beklenenIz: 'reddedilen denemede yazma yok', beklenenBildirim: 'yok',
     katmanlar: ['RBAC', 'SCOPE', 'SERVER'],
+  },
+  {
+    id: 'SIS-YTK-012', alan: 'Sistem', rota: '—', eksen: 'yetki',
+    amac: 'Düz JSX metninde duran YETKİ ve SIR iddialarının (S1) gerçek '
+      + 'yolla ölçülmesi',
+    rol: 'güvenlik denetçisi', kapsam: 'kurum geneli',
+    onkosul: 'Okuyucu, katkıcı ve yönetici roller kurulu; API anahtarı, '
+      + 'köken kuyruğu, görev ve dış denetçi erişimi fikstürleri hazır',
+    veriHali: 'normal',
+    eylem: 'Her yetki iddiası GERÇEK sunucu eylemiyle sürülür; sır '
+      + 'iddiaları yapısal olarak (şemada alan YOK) ölçülür',
+    beklenenSonuc: 'Yetkisiz rol REDDEDİLİR, kayıt DEĞİŞMEZ ve iz DÜŞMEZ; '
+      + 'sır DEĞERİ için hiçbir kolon yoktur; iptal edilmiş anahtar 401 '
+      + 'döner; kapsam değişimi token\'ı değiştirmez',
+    beklenenEkran: 'Ekranın yetki ve sır cümlesi, onu uygulayan kodun '
+      + 'davranışıyla aynıdır',
+    beklenenIz: 'reddedilen denemede yazma yok — delta ile ölçülür',
+    beklenenBildirim: 'yok',
+    katmanlar: ['RBAC', 'SCOPE', 'SERVER', 'DOMAIN'],
+  },
+  {
+    id: 'SIS-DGM-003', alan: 'Sistem', rota: '—', eksen: 'veri',
+    amac: 'Ürün DEĞİŞMEZLERİNİN (S2) gerçek yolla ölçülmesi: kuru koşu '
+      + 'yazmaz · kayıt silinmez · motor önerir, insan karar verir',
+    rol: 'uyum sorumlusu', kapsam: 'kurum geneli',
+    onkosul: 'Madde durumu, hukuki muhafaza, imha politikası, kurulu paket, '
+      + 'topoloji sapması, tedarikçi oturumu ve konfig yedeği fikstürleri kurulu',
+    veriHali: 'normal',
+    eylem: 'Her değişmez, onu uygulayan GERÇEK eylemle ya da motorla sürülür; '
+      + 'çoğu vaka bir KARŞI TANIK taşır',
+    beklenenSonuc: 'Kuru koşu hiçbir değerlendirmeye dokunmaz · kaldırılan '
+      + 'hold ve arşivlenen paket SİLİNMEZ · onaydan sonra konan hold imhayı '
+      + 'durdurur · motor kuyruk boşaltmaz, bulgu susturmaz, skor uydurmaz',
+    beklenenEkran: 'Ekranın değişmez cümlesi, onu uygulayan kodun '
+      + 'davranışıyla aynıdır',
+    beklenenIz: 'her kayıt KENDİ iz satırını bırakır; reddedilen denemede yok',
+    beklenenBildirim: 'sorumlusu olmayan kayıt için bildirim ÜRETİLMEZ',
+    katmanlar: ['SERVER', 'DOMAIN', 'ENGINE'],
+  },
+  {
+    id: 'SIS-BAG-001', alan: 'Sistem', rota: '—', eksen: 'arayuz',
+    amac: 'Ekranın gösterdiği ÇIKIŞIN gerçek bir rotaya çözülmesi',
+    rol: 'herhangi bir kullanıcı', kapsam: 'kurum geneli',
+    onkosul: '`app/` rota ağacı okunabiliyor', veriHali: 'normal',
+    eylem: 'Rota desenleri `app/` AĞACINDAN türetilir; kaynaktaki her iç bağ '
+      + '(href düz/ifade · router.push · redirect · revalidatePath) o desenlere '
+      + 'karşı segment segment çözümlenir; çözümleyici ayrıca sentetik '
+      + 'desenlerle sınanır',
+    beklenenSonuc: 'Olmayan rotaya giden bağ YOKTUR; üst yola yaslanan gevşek '
+      + 'eşleşme KABUL EDİLMEZ',
+    beklenenEkran: 'Boş durumun önerdiği çıkış 404 vermez',
+    beklenenIz: 'yazma yok', beklenenBildirim: 'yok',
+    katmanlar: ['UI', 'DOMAIN'],
+  },
+  {
+    id: 'URN-TNK-001', alan: 'Sistem', rota: '—', eksen: 'arayuz',
+    amac: 'Kütük popülasyonunun İKİNCİ BİR MEKANİZMAYLA doğrulanması',
+    rol: 'kalite kapısı', kapsam: 'kurum geneli',
+    onkosul: 'Ürün canlı sunucuda ayakta; DOM tanığı koştu',
+    veriHali: 'tohumlanmış kurulum',
+    eylem: 'Tanık kaynağı HİÇ OKUMADAN ürünü gerçek tarayıcıda gezer ve '
+      + 'kullanıcıya görünen politika cümlelerini ve boş durumları toplar; '
+      + 'kütükle karşılaştırılır',
+    beklenenSonuc: 'Ekranda okunan her cümle bir kütükte AÇIKLANIR; ölü tanık '
+      + 'satırı yoktur; tanığın erişimi (rota ve cümle sayısı) tabanın altına '
+      + 'düşmez',
+    beklenenEkran: 'Render edilmiş ekranda eylemsiz boş durum yoktur',
+    beklenenIz: 'yazma yok', beklenenBildirim: 'yok',
+    katmanlar: ['UI', 'DOMAIN'],
+  },
+  {
+    id: 'SIS-POL-002', alan: 'Sistem', rota: '—', eksen: 'arayuz',
+    amac: 'Türetici genişleyince AÇILAN politika cümlelerinin gerçek yolla '
+      + 'ölçülmesi',
+    rol: 'kalite kapısı', kapsam: 'kurum geneli',
+    onkosul: 'Politika kütüğü türetildi', veriHali: 'tohumlanmış kurulum',
+    eylem: 'Her cümle, iddiayı UYGULAYAN kodun gerçek yolunu süren bir vaka '
+      + 'ile ölçülür; vakaların çoğu KARŞI TANIK taşır',
+    beklenenSonuc: 'Kapsamsız davet reddedilir · çok bağlı kanıt her kapsamda '
+      + 'yetki ister · kararsız gözden geçirme "yapıldı" olmaz · uygulanmış '
+      + 'talep ikinci kez uygulanmaz · aday yalnız kritik sapmadan doğar',
+    beklenenEkran: 'Ekranın cümlesi ile sunucunun davranışı AYNI',
+    beklenenIz: 'reddedilen denemede iz YOK; geçen işlemde iz VAR',
+    beklenenBildirim: 'yok',
+    katmanlar: ['UI', 'SERVER', 'DOMAIN'],
   },
   {
     id: 'SIS-SNG-001', alan: 'Sistem', rota: '/giris', eksen: 'arayuz',

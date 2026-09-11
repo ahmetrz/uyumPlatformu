@@ -3,7 +3,8 @@ import { execFileSync } from 'node:child_process';
 import { existsSync, readFileSync } from 'node:fs';
 import path from 'node:path';
 import {
-  GEREKCE_ASGARI, politikaMi, sonucSinifi, turet, yeniSatirKusurlari, yorumsuz,
+  GEREKCE_ASGARI, kacisKapisiKusurlari, kaynakDizeleri, politikaMi, sonucSinifi,
+  turet, yeniSatirKusurlari, yorumsuz,
 } from '../../arac/politika-kutugu.mjs';
 import { tabanKarari, tabanOku } from '../../arac/olcum-tabani.mjs';
 import { tabanDalKarari } from '../../arac/taban-dal.mjs';
@@ -97,6 +98,69 @@ describe('her POLİTİKA satırı BEYANLI [URN-POL-001]', () => {
     expect(kusur, kusur.join('\n')).toEqual([]);
   });
 
+  it('IDDIA_DEGIL kaçış kapısı CIRCIRDADIR — sessiz indirme yok, yeni muafiyet gerekçeli [URN-POL-001]', () => {
+    /* ── BULGU (bağımsız inceleme · düzeltme turu · P1-5) ──────────────
+       Yedinci diş de, altıncı diş de, S1 tavanı da, sınıf cırcırı da aynı
+       süzgeçle başlıyor: `s.sinif === 'POLITIKA'`. Ama `sinif` ELLE
+       yazılıyor ve onu doğrulayan tek diş gerekçenin 15 karakterden uzun
+       olmasıydı.
+
+       Yani kilit MUTLAK DEĞİLDİ: yeni bir politika cümlesine
+       `"sinif": "IDDIA_DEGIL"` + yirmi dört karakterlik bir gerekçe
+       yazmak yedi dişin yedisini birden atlatıyordu. CLAUDE.md'nin
+       "kilidi gevşetmek o dişi SİLMEYİ gerektirir" cümlesi bu yüzden
+       doğru değildi: bir sayı değil, bir ETİKET değiştirmek yetiyordu.
+
+       Bugün kaçış kapısının kendisi cırcırdadır: `IDDIA_DEGIL` sayısı
+       taban dala (`origin/main`) göre BÜYÜYEMEZ. Bir cümleyi iddia
+       saymamak hâlâ mümkündür — ama ancak başka birini iddia sayarak. */
+    const git = (a: string[]) => execFileSync('git', a,
+      { cwd: process.cwd(), encoding: 'utf8', stdio: ['ignore', 'pipe', 'ignore'] });
+    let tabanDalVar = true;
+    try { git(['rev-parse', '--verify', 'origin/main']); } catch { tabanDalVar = false; }
+    if (!tabanDalVar) {
+      expect(process.env.CI ?? '', "CI'da taban dal okunamadı").toBe('');
+      return;
+    }
+    const YOL = 'origin/main:web/arac/politika-cumleleri.json';
+    let tabandaVar = true;
+    try { git(['cat-file', '-e', YOL]); } catch { tabandaVar = false; }
+    let ham: string | null = null;
+    if (tabandaVar) { try { ham = git(['show', YOL]); } catch { ham = null; } }
+    const karar = tabanDalKarari(tabandaVar, ham);
+    if (karar.hal === 'olculemedi') {
+      expect(process.env.CI ?? '', `TABAN DAL ÖLÇÜLEMEDİ (${karar.sebep})`).toBe('');
+      return;
+    }
+    /* SESSİZ `return` KALDIRILDI (düzeltme turu · P2-4): bu bir KÜME
+       cırcırıdır ve tabanın yokluğu eksiklik değil, EN SIKI hâldir —
+       taban BOŞ KÜMEdir, yani satırların hepsi yenidir ve hepsi yeni
+       satır kuralından geçer. Eski satır sessizce dönüyordu, yani kütük
+       taban dalda yoksa (adı değişti, yeni doğdu) diş hiç koşmuyordu. */
+    const taban = karar.hal === 'taban_yok'
+      ? { satirlar: [] as { cumle: string; sinif: string }[] }
+      : karar.belge as { satirlar: { cumle: string; sinif: string }[] };
+    /* ── ÜÇ KUSUR, TEK SAF KARAR (düzeltme turu · tur 2 · P2-8) ───────
+       Kural `kacisKapisiKusurlari` içine TAŞINDI. Sebebi bu dosyanın
+       kendi kuralı: "kural saf bir fonksiyondadır ve sentetik kütüklerle
+       sınanır — sabotaj kuralı sabote eder, ölçüm ortamını değil."
+       Karar test gövdesinin içinde yazılıyken onu sınamanın tek yolu
+       GERÇEK depoyu ve GERÇEK taban dalı kurcalamaktı.
+
+       Üçüncü kusur BU TURDA eklendi ve kütükte GERÇEK bir satır yaktı:
+       POL-193 (giriş ekranının tanıtım satırı) `IDDIA_DEGIL` etiketiyle
+       girmişti, gerekçesi 209 karakterdi — yani (a) ve (b) dişlerinin
+       ikisinden de temiz geçiyordu. Ama cümlesi S1 TÜRETİYORDU
+       ("tesis kapsamı… değişmez denetim izi"). Altıncı dişin "S1'de
+       gerekçeli istisna kabul edilmez" kuralı `sinif === 'POLITIKA'`
+       süzgecinin ARKASINDA durduğu için etiketi değiştiren satır dişin
+       ÖNÜNE hiç gelmiyordu. Satır POLITIKA'ya çevrildi ve gerçek yol
+       ölçümüne bağlandı — sayı düşürülmedi, YÜKSELTİLDİ. */
+    const tabanSinif = new Map(taban.satirlar.map((s) => [s.cumle, s.sinif]));
+    const kusur = kacisKapisiKusurlari(kutuk.satirlar, tabanSinif);
+    expect(kusur, kusur.join('\n')).toEqual([]);
+  });
+
   it('IDDIA_DEGIL satırı NEDEN iddia olmadığını söyler [URN-POL-001]', () => {
     /* Kaçış kapısı gerekçesiz olamaz: "bu bir etiket" demek kolaydır,
        yazmak zordur. */
@@ -186,6 +250,34 @@ describe('SONUÇ SINIFI ve CIRCIR [URN-POL-001]', () => {
       .map((s) => `${s.kod} :: ${s.cumle.slice(0, 70)}`);
     expect(acik, `ÖLÇÜLMEYEN S1 politikası:\n${acik.join('\n')}`).toEqual([]);
     expect(kutuk.tavanlar.sinif.S1, 'S1 tavanı sıfır olmalı').toBe(0);
+  });
+
+  it('YEDİNCİ DİŞ · BORÇ SIFIRDA KİLİTLİ — hiçbir sınıf yeniden açılamaz [URN-POL-001]', () => {
+    /* ── R0-17 KAPANDI (Brief L) ──────────────────────────────────────
+       S1 · S2 · S3'ün üçü de sıfırlandı: 123 politika cümlesinin 123'ü
+       gerçek yolla ölçülüyor. Bu dişten ÖNCE cırcır yalnız "büyümesin"
+       diyordu; sıfıra inen bir borç için bu yetmez — yarın eklenen
+       ölçüsüz bir cümle tavanı 0'dan 1'e çıkarır ve öbür dişler bunu
+       "tavan ölçülene eşit" diye GEÇİRİRDİ.
+
+       Bugün kilit mutlaktır: ÖLÇÜLMEYEN POLİTİKA CÜMLESİ SIFIRDIR.
+       Yeni bir cümle ölçümüyle birlikte gelir (altıncı diş zaten bunu
+       istiyor); ölçümsüz geliyorsa kapı kırmızıdır ve gerekçe onu
+       açmaz. Kilidi gevşetmek, bu dişi SİLMEYİ gerektirir — sessizce
+       bir sayı büyütmeyi değil. */
+    const acik = politikalar
+      .filter((s) => s.olculmedi)
+      .map((s) => `${s.kod} (${s.sonucSinifi}) :: ${s.cumle.slice(0, 70)}`);
+    expect(acik, `ÖLÇÜLMEYEN politika cümlesi — borç SIFIRDA kilitli:\n${acik.join('\n')}`)
+      .toEqual([]);
+    expect(kutuk.tavanlar.olculmeyen, 'toplam tavan sıfır olmalı').toBe(0);
+    for (const sinif of ['S1', 'S2', 'S3'] as const) {
+      expect(kutuk.tavanlar.sinif[sinif], `${sinif} tavanı sıfır olmalı`).toBe(0);
+    }
+    /* Popülasyon dişi: kütük boşalırsa yukarıdaki her şey sıfır turda
+       yeşil biterdi — "hiç cümle yok" ile "hepsi ölçülü" aynı görünür. */
+    expect(politikalar.length, 'politika kütüğü BOŞ — vaka hiçbir şey ölçmedi')
+      .toBeGreaterThan(100);
   });
 
   it('SINIF TAVANLARI ölçülenle BİREBİR — gevşeklik dişi [URN-POL-001]', () => {
@@ -429,6 +521,65 @@ describe('ALTINCI DİŞ · YENİ CÜMLENİN VARSAYILANI ÖLÇÜLÜ [URN-POL-001]
     expect(k[0]).toMatch(/^P4:/);
   });
 
+  /* ─────────────────────────────────────────────────────────────────
+     KAÇIŞ KAPISININ KENDİSİ · SAF VAKALAR (düzeltme turu · P2-8)
+     Üç kusurun üçü de sentetik kütükle sınanır; kural depodan ve git
+     durumundan bağımsızdır. */
+
+  it('KAÇIŞ · sessiz indirme yakalanır — tabanda POLITIKA, dalda IDDIA_DEGIL [URN-POL-001]', () => {
+    const c = 'Bu ekran hiçbir kaydı silmez';
+    const k = kacisKapisiKusurlari(
+      [{ kod: 'P1', sinif: 'IDDIA_DEGIL', cumle: c, gerekce: 'x'.repeat(GEREKCE_ASGARI + 10) }],
+      new Map([[c, 'POLITIKA']]));
+    expect(k.length, k.join('\n')).toBe(1);
+    expect(k[0]).toMatch(/tabanda POLITIKA/);
+  });
+
+  it('KAÇIŞ · YENİ S1 cümlesi IDDIA_DEGIL olamaz — gerekçe ne kadar uzun olursa olsun [URN-POL-001]', () => {
+    /* Dişin var oluş sebebi: POL-193 tam böyle girmişti — 209 karakterlik
+       gerekçe, temiz (a) ve (b), ve S1 türeten bir cümle. */
+    const c = 'Regülasyon maddeleri, tesis kapsamı, bulgu ve kanıt zinciri '
+      + 'ile değişmez denetim izi.';
+    expect(sonucSinifi(c), 'vaka gerçekten S1 sürmeli').toBe('S1');
+    const k = kacisKapisiKusurlari(
+      [{ kod: 'P1', sinif: 'IDDIA_DEGIL', cumle: c, gerekce: 'x'.repeat(220) }],
+      new Map());
+    expect(k.length, k.join('\n')).toBe(1);
+    expect(k[0]).toMatch(/S1 TÜRETİYOR/);
+  });
+
+  it('KAÇIŞ · zayıf gerekçeli YENİ satır yakalanır; güçlü gerekçeli S3 geçer [URN-POL-001]', () => {
+    const c = 'Bekleyen reddedilen kayıt yok — kuyruk boş';
+    expect(sonucSinifi(c), 'vaka S1 olmamalı, yoksa öbür dişi ölçerdik').not.toBe('S1');
+    const zayif = kacisKapisiKusurlari(
+      [{ kod: 'P1', sinif: 'IDDIA_DEGIL', cumle: c, gerekce: 'durum etiketi' }], new Map());
+    expect(zayif.length, zayif.join('\n')).toBe(1);
+    expect(zayif[0]).toMatch(/karakterden kısa/);
+    const guclu = kacisKapisiKusurlari(
+      [{ kod: 'P1', sinif: 'IDDIA_DEGIL', cumle: c, gerekce: 'x'.repeat(GEREKCE_ASGARI) }],
+      new Map());
+    expect(guclu).toEqual([]);
+  });
+
+  it('KAÇIŞ · TABANDA ZATEN IDDIA_DEGIL olan satır yeniden yargılanmaz [URN-POL-001]', () => {
+    /* Aksi hâlde diş, S1 kalıbı genişlediği gün eski satırları toptan
+       kırmızı yakar ve kalıbı genişletmeyi — yani körlüğü düzeltmeyi —
+       cezalandırırdı. Eski satırların yolu cırcırın öbür dişleridir. */
+    const c = 'Kapsamınızdaki tesisler için yetki gerekir';
+    expect(sonucSinifi(c)).toBe('S1');
+    const k = kacisKapisiKusurlari(
+      [{ kod: 'P1', sinif: 'IDDIA_DEGIL', cumle: c, gerekce: 'kısa' }],
+      new Map([[c, 'IDDIA_DEGIL']]));
+    expect(k).toEqual([]);
+  });
+
+  it('KAÇIŞ · POLITIKA satırı bu dişin konusu değil [URN-POL-001]', () => {
+    const k = kacisKapisiKusurlari(
+      [{ kod: 'P1', sinif: 'POLITIKA', cumle: 'Bu ekran yetki ister', olcum: { dosya: 'x', vaka: 'y' } }],
+      new Map());
+    expect(k).toEqual([]);
+  });
+
   it('GERÇEK KÜTÜK: taban dala göre yeni satırların hepsi kuralı geçer [URN-POL-001]', () => {
     /* Saf vakalar kuralı ölçer; bu vaka DEPOYU ölçer. Üç hâl dördüncü
        dişteki gibi ayrı okunur. */
@@ -449,13 +600,16 @@ describe('ALTINCI DİŞ · YENİ CÜMLENİN VARSAYILANI ÖLÇÜLÜ [URN-POL-001]
     /* ÜÇ HÂL TEK KARARDA (`arac/taban-dal.mjs`); sentetik vakaları
        `tests/bekci/bos-durum.test.ts` içinde. */
     const karar = tabanDalKarari(tabandaVar, ham);
-    if (karar.hal === 'taban_yok') return;
     if (karar.hal === 'olculemedi') {
       expect(process.env.CI ?? '',
         `TABAN DAL ÖLÇÜLEMEDİ (${karar.sebep}) — altıncı diş koşmadı`).toBe('');
       return;
     }
-    const taban = karar.belge as { satirlar?: { cumle: string }[] };
+    /* SESSİZ `return` KALDIRILDI (düzeltme turu · P2-4): küme cırcırı,
+       taban yoksa BOŞ KÜME ile koşar — her satır yenidir. */
+    const taban = karar.hal === 'taban_yok'
+      ? { satirlar: [] as { cumle: string }[] }
+      : karar.belge as { satirlar?: { cumle: string }[] };
     const tabanCumleleri = new Set((taban.satirlar ?? []).map((s) => s.cumle));
     /* KAÇ SATIR YARGILANDI. Bağımsız inceleme (PR #51, tur 1) ölçtü: bu
        dalın altı yeni satırının altısı da `olcum` taşıdığı için kural
@@ -539,5 +693,53 @@ describe('KALIBIN KENDİ YÜRÜYÜŞÜ [URN-POL-001]', () => {
   it('JSX parçası cümle sayılmaz [URN-POL-001]', () => {
     expect(politikaMi('<Im durum={durum} ad="MFA durumu" /> kayıt yalnız okunur'))
       .toBe(false);
+  });
+});
+
+
+/* ═══ DİZE TARAYICISININ KENDİSİ · SENTETİK VAKALAR ═══════════════════
+   Tarayıcı geçen tur regex yerine yazıldı ve HİÇBİR VAKAYA bağlanmadı —
+   yani popülasyonu üreten kod, deponun "ölçülmemiş kural" tarifine tam
+   olarak uyuyordu. Vakalar burada. */
+describe('KAYNAK DİZE TARAYICISI [URN-POL-001]', () => {
+  it('AÇGÖZLÜ ALTERNATİF kusuru geri gelmez — uzun eşleşme kısa dizeyi YUTAMAZ [URN-POL-001]', () => {
+    /* Tarayıcının var oluş sebebi: eski regex alternatifleri açgözlüydü
+       ve tavan 300→400 çıkarılınca POL-062 kütükten SESSİZCE düştü —
+       tavanı YÜKSELTMEK popülasyonu KÜÇÜLTÜYORDU. */
+    const kod = `const a = "${'u'.repeat(350)}"; const b = 'Bu ekran hiçbir kaydı silmez';`;
+    const dar = kaynakDizeleri(kod, 25, 300);
+    const genis = kaynakDizeleri(kod, 25, 400);
+    expect(dar).toContain('Bu ekran hiçbir kaydı silmez');
+    expect(genis, 'tavan yükselince kısa dize kayboldu — açgözlü yutma geri geldi')
+      .toContain('Bu ekran hiçbir kaydı silmez');
+    expect(genis.length, 'tavan yükselince popülasyon KÜÇÜLDÜ').toBeGreaterThan(dar.length);
+  });
+
+  it('TÜRKÇE KESME İŞARETİ tırnak değildir — arasındaki dize YUTULMAZ [URN-POL-001]', () => {
+    /* Ölçülen kusur (düzeltme turu · P2-6): `EPDK'nın … TEİAŞ'ın` —
+       tarayıcı ilk kesme işaretini açılış sayıp aradaki bölgeyi "dize"
+       okuyor ve ATLIYORDU; arada başlayan GERÇEK dize sessizce
+       kayboluyordu. Taranan köklerde kesme işareti 224 dosyada geçiyor. */
+    const cumle = 'Bu ekran hiçbir kaydı silmez ve kimseye göstermez';
+    const kod = `<p>EPDK'nın kuralı: {t('${cumle}')} ve TEİAŞ'ın eki</p>`;
+    expect(kaynakDizeleri(kod), 'kesme işareti gerçek dizeyi yuttu').toContain(cumle);
+  });
+
+  it('KAÇIŞ karakteri dizeyi erken KAPATMAZ [URN-POL-001]', () => {
+    const kod = "const a = 'Bu ekran \\'alıntılı\\' kaydı silmez ve dokunmaz';";
+    expect(kaynakDizeleri(kod)).toContain("Bu ekran \\'alıntılı\\' kaydı silmez ve dokunmaz");
+  });
+
+  it('KAPANMAYAN tırnak dosyanın geri kalanını YUTMAZ [URN-POL-001]', () => {
+    const kod = "const a = 'kapanmadan satır bitti\nconst b = 'Bu ekran hiçbir kaydı silmez';";
+    expect(kaynakDizeleri(kod), 'kapanmayan tırnak sonraki dizeyi yuttu')
+      .toContain('Bu ekran hiçbir kaydı silmez');
+  });
+
+  it('TABAN ve TAVAN dışındaki dizeler elenir — sınırlar dâhildir [URN-POL-001]', () => {
+    const tam = 'x'.repeat(25);
+    expect(kaynakDizeleri(`'${tam}'`, 25, 400), 'taban DÂHİL değil').toContain(tam);
+    expect(kaynakDizeleri(`'${'x'.repeat(24)}'`, 25, 400)).toEqual([]);
+    expect(kaynakDizeleri(`'${'x'.repeat(401)}'`, 25, 400)).toEqual([]);
   });
 });

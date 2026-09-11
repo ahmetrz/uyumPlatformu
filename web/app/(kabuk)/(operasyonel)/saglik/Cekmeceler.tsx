@@ -68,8 +68,18 @@ function KosuListesi({ kosular }: { kosular: Kosu[] }) {
     <div className="ab-panel-blok" style={{ marginTop: 'var(--s24)' }}>
       <p className="etiket" style={{ margin: '0 0 var(--s10)' }}>Son koşular</p>
       {kosular.length === 0 ? (
-        <p className="ab-panel-dip" style={{ margin: 0 }}>
-          Bu motor hiç koşmadı — sağlıklı olduğu anlamına gelmez.
+        /* NE YAPMALIYIM: "neden hiç koşmadı" sorusunun cevabı motorun
+           ETKİN olup olmadığıdır ve o ayar yönetim tezgâhındadır.
+
+           ── ÖLÜ BAĞ DÜZELTİLDİ ─────────────────────────────────────────
+           Burada `/isler` yazıyordu ve BÖYLE BİR ROTA YOK: kullanıcı
+           404 görüyordu. R-G'nin kendi kendini yiyen hâli — "eylemsiz
+           boş durum yasak" kuralı, olmayan bir eylem uydurma baskısı
+           yaratıyor. Kuralı `tests/bekci/olu-bag.test.ts` yakaladı. */
+        <p className="ab-panel-dip bos" style={{ margin: 0 }}>
+          Bu motor hiç koşmadı — sağlıklı olduğu anlamına GELMEZ; koşmamış
+          bir motorun bulgusu da yoktur.{' '}
+          <Link href="/yonetim-tezgahi">Motor ayarlarını aç</Link>
         </p>
       ) : (
         <div style={{ display: 'grid', gap: 'var(--s10)' }}>
@@ -455,8 +465,12 @@ function ConnectorGecmisi({ gecmis }: { gecmis: KosuSatiri[] }) {
     <div className="ab-panel-blok" style={{ marginTop: 'var(--s24)' }}>
       <p className="etiket" style={{ margin: '0 0 var(--s10)' }}>Son koşular</p>
       {gecmis.length === 0 ? (
-        <p className="ab-panel-dip" style={{ margin: 0 }}>
-          Bu connector hiç koşmadı — sağlıklı olduğu anlamına gelmez.
+        /* NE YAPMALIYIM: connector hiç koşmadıysa çıkış YAPILANDIRMADIR —
+           kuru koşu "etkinleştirsem ne olurdu" sorusunu yazmadan yanıtlar. */
+        <p className="ab-panel-dip bos" style={{ margin: 0 }}>
+          Bu connector hiç koşmadı — sağlıklı olduğu anlamına GELMEZ; verisi
+          de &quot;tazeliği bilinmiyor&quot; sayılır.{' '}
+          <Link href="/saglik?bolum=yapilandirma">Yapılandırmayı aç</Link>
         </p>
       ) : (
         <div style={{ display: 'grid', gap: 'var(--s10)' }}>

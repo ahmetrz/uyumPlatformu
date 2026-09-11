@@ -263,6 +263,7 @@ export default function RisklerIstemci({
               1366×768'de 557px'te başlıyordu. */}
           <div className="ab-r-yanyana">
           <IsiHaritasiPaneli
+            temizle={() => { setFiltre('aktif'); setTesisF(null); setSahipF(null); setHucre(null); }}
             harita={harita}
             secili={hucre}
             sec={(h) => {
@@ -378,11 +379,13 @@ const ESIK_SOZU: Record<'ilk' | 'orta' | 'son', string> = {
   ilk: 'düşük', orta: 'orta', son: 'kritik',
 };
 
-function IsiHaritasiPaneli({ harita, secili, sec, kesildi }: {
+function IsiHaritasiPaneli({ harita, secili, sec, kesildi, temizle }: {
   harita: ReturnType<typeof isiHaritasi>;
   secili: IsiHucresi | null;
   sec: (h: IsiHucresi | null) => void;
   kesildi: boolean;
+  /** Boşluğun ÇIKIŞI: süzgeç kullanıcının kendi kararıdır, yerinde geri alınır. */
+  temizle: () => void;
 }) {
   const hicYok = harita.yerlesen === 0;
   return (
@@ -404,6 +407,10 @@ function IsiHaritasiPaneli({ harita, secili, sec, kesildi }: {
       {hicYok ? (
         <p className="cumle bos">
           Bu süzgeçte olasılığı ve etkisi bilinen risk yok — harita çizilmedi.
+          {/* Süzgeç KULLANICININ kendi kararıdır; çıkış yerinde geri alınır. */}
+          <button type="button" className="ab-dugme satir" onClick={temizle}>
+            Süzgeci temizle
+          </button>
         </p>
       ) : (
         <div className="izgara" role="group" aria-label="Hücreler; tıklayınca liste o hücreye daralır">
@@ -664,8 +671,10 @@ function BosDurum({ hicKayitYok, kapsamli, aktifFiltre, kapaliyaGec, temizle, ye
     return (
       <div style={{ marginTop: 'var(--s26)' }}>
         <BosIlk cumle={kapsamli
-          ? 'Kapsamınızda risk kaydı yok.'
-          : 'Risk kütüğünde kayıt yok.'}
+          ? 'Kapsamınızda risk kaydı yok: yetkiniz olan kapsamda hiç risk '
+            + 'açılmamış — başka kapsamlarda kayıt olabilir.'
+          : 'Risk kütüğünde kayıt yok: hiçbir bulgu, zafiyet ya da denetim '
+            + 'sonucu risk kaydına dönüştürülmemiş.'}
           eylem={<Dugme tur="birincil" onClick={yeni}>Risk oluştur</Dugme>} />
       </div>
     );

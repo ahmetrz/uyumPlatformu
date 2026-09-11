@@ -1,5 +1,6 @@
 'use client';
 import { useSozluk, useTerim } from '@/lib/dil/SozlukSaglayici';
+import Link from 'next/link';
 import type { Sozluk } from '@/lib/dil/terimler';
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { useUrlDurumu, useUrlDurumuBos } from '@/components/kabuk/urlDurumu';
@@ -507,9 +508,12 @@ function Ozet({ proje, simdi, yazabilir, duzenle, durumKip, bagla }: {
       <div className="ab-panel-blok" style={{ marginTop: 'var(--s24)' }}>
         <p className="etiket" style={{ margin: '0 0 var(--s10)' }}>Bağımlılık</p>
         {proje.onkosullar.length === 0 && proje.bagimlilar.length === 0 ? (
-          <p className="ab-panel-dip" style={{ margin: 0 }}>
+          /* NE YAPMALIYIM: "bağımsız" ile "bağı kaydedilmemiş" AYNI ŞEY
+             DEĞİLDİR; çözüm proje listesinde, bağlam projeyle taşınır. */
+          <p className="ab-panel-dip bos" style={{ margin: 0 }}>
             Kayıtlı proje bağımlılığı yok — bu proje tek başına ilerleyebilir
-            sayılıyor.
+            SAYILIYOR; bağ kaydedilmemiş de olabilir, ikisi aynı şey değildir.{' '}
+            <Link href="/projeler">Bağımlılık kur</Link>
           </p>
         ) : (
           <>

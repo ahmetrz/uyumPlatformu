@@ -177,6 +177,56 @@ export function cumleMetni(ifade) {
   return (parcalar.length > 0 ? parcalar.join(' ') : ifade).replace(/\s+/g, ' ').trim();
 }
 
+
+/* ── ALTINCI KÖRLÜK · KOŞULLU `cumle` (DOM tanığı bulgusu) ────────────
+   `cumleMetni` bir ifadedeki BÜTÜN dize sabitlerini boşlukla birleştirir.
+   Üçlü ifadede bu, İKİ AYRI boş durumu TEK metne indirir ve sebebini
+   söyleyen dal, söylemeyen dalı ÖRTER:
+
+     cumle={x ? 'Cevap bekleyen zimmetiniz yok. Size bir varlık
+                 atandığında burada görünür.'
+              : 'Bu bölümde kayıt yok.'}
+
+   Birleşik metin iki yan tümce taşıdığı için "neden var" sayılıyordu;
+   kullanıcı ise ekranda yalnız "Bu bölümde kayıt yok." okuyordu.
+   Kaynak türeticisi `eylemsiz 0 · nedensiz 1` diyordu; kusuru RENDER
+   EDİLMİŞ tarafı gezen ikinci tanık buldu (`/zimmetlerim`).
+
+   Bugün her dal AYRI değerlendirilir: bir dal bile sebebini
+   söylemiyorsa satır nedensizdir. */
+export function cumleDallari(ifade) {
+  if (ifade === null) return [];
+  const parcalar = [...String(ifade).matchAll(/'([^'\\]*)'|"([^"\\]*)"|`([^`\\]*)`/g)]
+    .map((m) => m[1] ?? m[2] ?? m[3]);
+  if (parcalar.length === 0) return [cumleMetni(ifade)];
+  /* Üçlü ifade YOKSA tek daldır: bitişik dizeler (`'a' + 'b'`) bir
+     cümlenin parçalarıdır ve ayrılırsa her parça "nedensiz" görünürdü. */
+  if (!/\?/.test(String(ifade)) || !/:/.test(String(ifade))) {
+    return [parcalar.join(' ').replace(/\s+/g, ' ').trim()];
+  }
+  /* Dal sınırı: `?` ve `:` işleçleri. Dize İÇİNDEKİ `?`/`:` sayılmaz —
+     bu yüzden bölme, dizeler çıkarıldıktan SONRAKİ iskelet üzerinde
+     yapılır. */
+  const iskelet = String(ifade)
+    .replace(/'([^'\\]*)'|"([^"\\]*)"|`([^`\\]*)`/g, (m, a, b, c) => `\u0000${parcalar.indexOf(a ?? b ?? c)}\u0000`);
+  /* KOŞUL BİR DAL DEĞİLDİR. `sekme === 'bekleyen' ? … : …` ifadesinde
+     koşulun kendi dizesi (`'bekleyen'`) bir boş durum cümlesi değildir;
+     ilk yazım onu dal sayıyor ve her koşullu cümleyi "nedensiz" diye
+     kırmızı yakıyordu (ölçüldü: 1 → 16 satır, çoğu yanlış pozitif).
+     Ayrım işlecin YÖNÜNDEDİR: ardından `?` GELEN parça koşuldur. */
+  const parcalarVeIsler = iskelet.split(/([?:])/);
+  const dallar = [];
+  for (let i = 0; i < parcalarVeIsler.length; i += 2) {
+    const kisim = parcalarVeIsler[i];
+    if (parcalarVeIsler[i + 1] === '?') continue;          /* koşul */
+    const indisler = [...kisim.matchAll(/\u0000(\d+)\u0000/g)].map((m) => Number(m[1]));
+    if (indisler.length === 0) continue;
+    const metin = indisler.map((x) => parcalar[x]).join(' ').replace(/\s+/g, ' ').trim();
+    if (metin) dallar.push(metin);
+  }
+  return dallar.length > 0 ? dallar : [cumleMetni(ifade)];
+}
+
 /**
  * a · NEDEN ölçütü: cümle en az İKİ yan tümce taşıyor mu?
  *
@@ -238,11 +288,32 @@ export function dosyalar() {
     düşmez (körlük sıfır kusur diye raporlanmaz). */
 export function satirIciBul(kod) {
   const cikan = [];
-  const kalip = /<(p|span)\b[^>]*?\bclassName="bos([^"]*)"[^>]*?>/g;
+  /* ── ÜÇÜNCÜ KÖRLÜK KAPANDI (bağımsız inceleme · Brief L tur 1) ──────
+     Kalıp iki yerden dardı ve ikisi de sessizce satır DÜŞÜRÜYORDU:
+
+       · ETİKET: yalnız `<p>` ve `<span>`. `<div className="bos">` ya da
+         `<li className="bos">` kütüğe hiç girmiyordu.
+       · SINIF KONUMU: sınıf dizesinin `bos` ile BAŞLAMASI şart koşuluyordu.
+         `className="cumle bos"` hiç eşleşmiyordu — depoda ÜÇ canlı örnek
+         vardı (`riskler` · `uyum` ×2) ve üçü de gerçek boş durumdu.
+
+     Körlük düzeltilirken açılan ikinci körlük, ilkinden sessizdir: kapı
+     GÖRDÜĞÜ kadarını "sıfır kusur" diye raporlar. Bugün etiket ve konum
+     serbest, `bos` ise SÖZCÜK olarak aranır (`bosluk` eşleşmez). */
+  const kalip = /<([a-zA-Z][\w.]*)\b[^>]*?\bclassName="([^"]*\bbos\b[^"]*)"[^>]*?>/g;
+  /* SVG İLKELLERİ BOŞ DURUM DEĞİLDİR ve bu BEYANLI bir sınırdır: bir
+     `<line className="tik bos">` değeri olmayan bir eksen tikidir,
+     ekranın yerine geçen bir cümle değil. Çizim ilkelinin `<title>`ı
+     erişilebilirlik metnidir; ona "ne yapmalıyım" eylemi koymak bir
+     eksen çizgisine düğme takmak olurdu. */
+  const SVG_ILKELLERI = new Set([
+    'line', 'rect', 'circle', 'path', 'polyline', 'polygon', 'ellipse', 'g',
+  ]);
   let m;
   while ((m = kalip.exec(kod)) !== null) {
     if (m[0].endsWith('/>')) continue;            /* kendi kendini kapatan açılış */
     const etiket = m[1];
+    if (SVG_ILKELLERI.has(etiket)) continue;      /* çizim ilkeli — cümle değil */
     /* Kendi kendini kapatan aynı etiket DERİNLİK SAYMAZ. */
     const ac = new RegExp(`<${etiket}\\b[^>]*?>`, 'g');
     const kapa = new RegExp(`</${etiket}>`, 'g');
@@ -262,10 +333,62 @@ export function satirIciBul(kod) {
     }
     cikan.push({
       konum: m.index,
-      sinif: `bos${m[2]}`,
+      sinif: m[2],
       kapanissiz,
       govde: kapanissiz ? '' : kod.slice(m.index + m[0].length, i),
     });
+  }
+  return cikan;
+}
+
+/* ── DÖRDÜNCÜ YÜZEY · BOŞLUK KOŞULU (düzeltme turu · bulgu P1-3) ──────
+   Üç körlük kapandı ve üçünün de ortak VARSAYIMI yerinde kaldı:
+
+     "boş durum, `className` içinde `bos` sözcüğü geçen bir öğedir."
+
+   Boş durum bir CSS SINIFI DEĞİL, bir OLGUDUR: `X.length === 0` dalında
+   ekranın yerine geçen cümle. Sınıf adını yazmayan her boş durum kütüğe
+   hiç girmiyordu — ne `nedensiz` sayılıyordu ne `eylemsiz`, ne tabana
+   dokunuyordu. "EYLEMSİZ SIFIRDA KİLİTLİ" dişi, kilidi SINIF ADINI
+   YAZMAMAKLA açan bir kapıydı.
+
+   Ölçüldü (bağımsız inceleme · düzeltme turu): kaynakta tek tek
+   doğrulanmış altı canlı örnek — `kimlik/KimlikIstemci.tsx` ·
+   `envanter/Formlar.tsx` · `saglik/Yapilandirma.tsx` ·
+   `uyum/UyumIstemci.tsx` · `yonetim-tezgahi/KonsolFormlar.tsx` ×2 —
+   hepsi tek yan tümce, sebepsiz ve çıkışsız.
+
+   Bugün dördüncü yüzey de taranır: bir BOŞLUK KOŞULUNUN (`.length === 0`,
+   `.length < 1`, `!x.length`, `x.size === 0`) hemen ardından gelen metin
+   taşıyıcısı, sınıfı ne olursa olsun boş durumdur. */
+const BOSLUK_KOSULU_G = /(?:\.\s*length\s*===?\s*0|\.\s*length\s*<\s*1|!\s*[\w.]+\.length\b|\.\s*size\s*===?\s*0)/g;
+
+/** Boşluk koşuluna bağlı, `bos` sınıfı TAŞIMAYAN metin taşıyıcıları.
+
+    ── ÜÇ DARALTMA, HER BİRİ ÖLÇÜLDÜ ─────────────────────────────────
+    İlk yazım 240 karakterlik bir geriye bakışla koşul arıyordu ve
+    58 yanlış pozitif üretti: bir üçlünün DOLU dalı (`{kayitlar.map(…)`)
+    komşu boşluk koşulunun penceresine düşüyordu. Kör bir türetici kadar
+    zararlıdır — gürültü, cırcırı anlamsız kılar ve gerçek borcu gizler.
+
+    (a) Gövde STATİK olmalı: `{` taşıyan bir gövde cümle değil ifadedir.
+    (b) Koşul ile taşıyıcı arası KISA (120 karakter) olmalı.
+    (c) Arada `:` ya da `.map(` varsa DOLU dala geçilmiştir — elenir. */
+export function kosulluBoslar(kod) {
+  const cikan = [];
+  const kalip = /<(p|span|div|li|td|small)\b([^>]*)>([^<{}]{3,400})</g;
+  let m;
+  while ((m = kalip.exec(kod)) !== null) {
+    const oznitelik = m[2] ?? '';
+    if (/\bclassName="[^"]*\bbos\b/.test(oznitelik)) continue;   /* üçüncü yüzeyin işi */
+    const pencere = kod.slice(Math.max(0, m.index - 120), m.index);
+    const k = [...pencere.matchAll(BOSLUK_KOSULU_G)].pop();
+    if (!k) continue;
+    const ara = pencere.slice(k.index + k[0].length);
+    if (/:|\.map\(/.test(ara)) continue;                          /* DOLU dala geçildi */
+    const metin = m[3].replace(/\s+/g, ' ').trim();
+    if (!cumleMi(metin)) continue;
+    cikan.push({ konum: m.index, sinif: '(koşullu)', kapanissiz: false, govde: metin });
   }
   return cikan;
 }
@@ -314,8 +437,43 @@ export function satirIciMetin(govde) {
 
 /** Satır içi yüzeyde EYLEM: gövdede gerçek bir bağ ya da düğme var mı.
     Öznitelik yok, bu yüzden kod okunur — kütükten işaretlenemez. */
-export function satirIciEylem(govde) {
-  return /<Link\b|<Dugme\b|\bhref=|\bonClick=/.test(govde);
+/* ── YUVA, DOLDURULDUĞU SÜRECE EYLEMDİR ───────────────────────────────
+   Eski yazım `{bosEylem}` yuvasını KOŞULSUZ eylem sayıyordu ve gerekçesi
+   tutarlıydı: paylaşılan bir bileşen (`VeriTablosu`) boşluğun çıkışını
+   kendi bilemez, çağıran doldurur.
+
+   Gerekçe tutarlıydı ama ÖLÇÜLMEMİŞTİ. Bağımsız inceleme (düzeltme turu ·
+   P1-2) tek bir çağıranın bile yuvayı doldurmadığını ölçtü: yani kütük
+   "bu boşluğun çıkışı var" diyordu, ekranda çıkış YOKTU ve satır
+   `eylemsiz 0` sayımının içinde duruyordu. Bir söz veren ama kimsenin
+   tutmadığı yuva, eylemsiz bir boş durumun üstüne örtülmüş bir yorumdur.
+
+   Bugün yuva ŞARTLI sayılır: en az bir çağıran onu GERÇEKTEN dolduruyorsa
+   eylemdir, doldurmuyorsa hollow'dur ve satır eylemsizdir. Karar saf
+   tutulur — doluluk dışarıdan verilir ki sentetik vakalarla sınanabilsin. */
+export const YUVA_ADI = 'bosEylem';
+
+/** Herhangi bir çağıran yuvayı dolduruyor mu? (`bosEylem={…}`) */
+export function yuvaDolduruldu(hepsi) {
+  const kalip = new RegExp(`\\b${YUVA_ADI}=\\s*\\{`);
+  return hepsi.some((d) => !/components\/kabuk\/tablo\.tsx$/.test(d.yer)
+    && kalip.test(d.kod));
+}
+
+export function satirIciEylem(govde, yuvaDolu = false) {
+  if (/<Link\b|<Dugme\b|\bhref=|\bonClick=/.test(govde)) return true;
+  return yuvaDolu && new RegExp(`\\{${YUVA_ADI}\\}`).test(govde);
+}
+
+/** Bayrak ÇIPLAK mı yoksa KOŞULLU mu? Yalnız çıplak/`{true}` iyi haberdir.
+
+    Koşullu bayrak (`iyiHaber={x}`) çalışma anında `false` olabilir ve o
+    hâlde satır sıradan bir boş durumdur — kendi eylemini vermek zorunda. */
+export function iyiHaberMi(govde) {
+  const m = /\biyiHaber\s*(=\s*(\{[^}]*\}|"[^"]*"|'[^']*'))?/.exec(String(govde));
+  if (!m) return false;
+  if (!m[2]) return true;                       /* çıplak öznitelik */
+  return /^\{\s*true\s*\}$/.test(m[2]);        /* yalnız sabit true */
 }
 
 /** `BosFiltre` bileşeninin TANIMI: cümlesi, eylemi ve çağrı sayısı. */
@@ -345,7 +503,9 @@ export function bosFiltreSatiri(hepsi) {
     cumle: cumle.slice(0, 300),
     iyiHaber: false,
     neden: nedenSoyluyor(cumle),
-    eylem: satirIciEylem(govde),
+    /* `BosFiltre`nin eylemi KENDİ gövdesindedir (`temizle` düğmesi);
+       yuva sorusu buraya girmez. */
+    eylem: satirIciEylem(govde, false),
   };
 }
 
@@ -355,9 +515,31 @@ export function bosFiltreSatiri(hepsi) {
     bir örneği yok (`ifadeSecim` düzeltildikten sonra her gövde okunuyor),
     yani sabotaj kırmızı yakamıyordu. Güvence GELECEK bir hâle karşıdır
     ve ancak sentetik bir vakayla ölçülebilir. */
-export function satirIciKaydi(yer, satir, c) {
+/** Boş durum bir CÜMLEDİR — rozet etiketi değil.
+ *
+ * ── SINIR BEYANLI VE ÖLÇÜLÜ (bağımsız inceleme · Brief L tur 1) ────────
+ * Kalıp etiket ve konum bağımsız yapılınca `bos` sınıfının İKİNCİ bir
+ * kullanımı ortaya çıktı: GÖRSEL DEĞİŞTİRİCİ.
+ * `<span className="ab-b-yigin bos">değerlendirilmemiş</span>` bir yığın
+ * çubuğunun boş hâli, `<line className="tik bos">` ise değeri olmayan bir
+ * eksen tikidir. İkisi de "ekranın yerine geçen boşluk" DEĞİLDİR; birine
+ * eylem koymak bir çubuğa düğme takmak olurdu.
+ *
+ * Ayrım SÖZCÜK SAYISIYLA yapılır ve bu bir KARARDIR: üç sözcükten kısa
+ * bir metin cümle değil ETİKETTİR. Sınır dar tutuldu — "Aktif risk yok"
+ * (3) ve "Bu süzgeçte kayıt yok." (4) İÇERİDE kalır, tek sözcüklük
+ * rozetler dışarıda. Daha akıllı bir ayrım (rol/bileşen tabanlı) ancak
+ * gerçek bir ayrıştırıcıyla gelir; o gelene kadar sınır YAZILI ve
+ * sentetik vakayla ölçülü. */
+export function cumleMi(metin) {
+  return String(metin ?? '').trim().split(/\s+/).filter(Boolean).length >= 3;
+}
+
+export function satirIciKaydi(yer, satir, c, yuvaDolu = false) {
   const metin = satirIciMetin(c.govde);
   const okunamadi = !metin || metin === '…';
+  /* Satır içi yüzeyde bayrak SINIF ADINDADIR (`bos iyi`) ve koşullu
+     yazılamaz — bu yüzden burada varlık okuması doğrudur. */
   const iyiHaber = /\biyi\b/.test(c.sinif);
   return {
     yer,
@@ -368,13 +550,15 @@ export function satirIciKaydi(yer, satir, c) {
       : metin.slice(0, 300),
     iyiHaber,
     neden: okunamadi ? false : nedenSoyluyor(metin),
-    eylem: iyiHaber || satirIciEylem(c.govde),
+    eylem: iyiHaber || satirIciEylem(c.govde, yuvaDolu),
   };
 }
 
 export function turet() {
   const cikan = [];
   const hepsi = dosyalar();
+  /* Yuvanın DOLULUĞU bir kez ölçülür ve bütün satırlara aynı cevap gider. */
+  const YUVA_DOLU = yuvaDolduruldu(hepsi);
   const filtre = bosFiltreSatiri(hepsi);
   if (filtre) cikan.push(filtre);
   for (const { yer: rel, kod } of hepsi) {
@@ -385,13 +569,37 @@ export function turet() {
        çıkarsa körlük SIFIR KUSUR diye raporlanır — tur 2'nin bulduğu
        kusur tam olarak buydu. Karar `satirIciKaydi`de ve saf. */
     for (const c of satirIciBul(kod)) {
-      cikan.push(satirIciKaydi(rel, kod.slice(0, c.konum).split('\n').length, c));
+      const kayit = satirIciKaydi(rel, kod.slice(0, c.konum).split('\n').length, c, YUVA_DOLU);
+      /* Rozet/tik gibi GÖRSEL değiştiriciler kütüğe girmez — sınır
+         `cumleMi` ile beyanlı ve sentetik vakayla ölçülü. Okunamayan
+         gövde YİNE girer: körlüğü sıfır kusura çeviren şey düşürmedir. */
+      if (kayit.cumle.startsWith('«okunamadı»') || cumleMi(kayit.cumle)) cikan.push(kayit);
+    }
+    /* DÖRDÜNCÜ YÜZEY · sınıf adı yazmayan boşluk dalları. Ayrı bir tür
+       (`kosullu`) olarak girer: sınıf adına yaslanmadığı için `BosIlk`
+       ile `satirIci` arasındaki ayrımı da taşımaz, ama İKİ ÖLÇÜTE aynen
+       vurulur ve eylemsiz sayısına DÂHİLDİR. */
+    for (const c of kosulluBoslar(kod)) {
+      cikan.push({
+        yer: rel,
+        satir: kod.slice(0, c.konum).split('\n').length,
+        tur: 'kosullu',
+        cumle: c.govde.slice(0, 300),
+        iyiHaber: false,
+        neden: nedenSoyluyor(c.govde),
+        eylem: satirIciEylem(kod.slice(c.konum, c.konum + 600), YUVA_DOLU),
+      });
     }
     if (!kod.includes('<BosIlk')) continue;
     {
       for (const c of cagrilariBul(kod)) {
-        const metin = cumleMetni(ozellik(c.govde, 'cumle'));
+        const ifade = ozellik(c.govde, 'cumle');
+        const metin = cumleMetni(ifade);
         if (!metin) continue;
+        /* HER DAL ayrı ölçülür: sebebini söyleyen dal, söylemeyeni
+           örtemez (altıncı körlük — DOM tanığı bulgusu). */
+        const dallar = cumleDallari(ifade);
+        const nedenli = dallar.length > 0 && dallar.every((d) => nedenSoyluyor(d));
         /* İYİ HABER boş durumu EYLEM İSTEMEZ ve bu bir kaçış kapısı
            değil, ölçütün kendisidir: "Elenen satır yok — tüm satırlar
            doğrulamayı geçti" cümlesinin işaret edeceği bir çözüm yoktur.
@@ -399,14 +607,29 @@ export function turet() {
            sokmaktır. Bayrak bileşenin kendi API'sinden gelir
            (`BosIlk iyiHaber`), bu kütükten değil — yani elle
            işaretlenemez. */
-        const iyiHaber = /\biyiHaber\b/.test(c.govde);
+        /* ── BAYRAĞIN VARLIĞI DEĞİL DEĞERİ (inceleme tur 2 · P1-2) ────
+           Eski yazım `/\biyiHaber\b/` ile bayrağın VARLIĞINI okuyordu.
+           Ama bayrak KOŞULLU yazılabilir — `iyiHaber={mercek === 'acik'}`
+           — ve çalışma anında `false` olabilir. Türetici yine de satırı
+           "iyi haber" sayıp `eylem`i otomatik `true` yapıyordu.
+
+           Ölçüldü: İKİ CANLI İHLAL bu yüzden görünmüyordu
+           (`yonetim-tezgahi/KonsolIstemci.tsx` · `saglik/reddedilenler`);
+           ikisinde de `eylem` özniteliği HİÇ YOK ve kullanıcı koşul
+           yanlışken eylemsiz bir boş durum görüyor. "EYLEMSİZ SIFIRDA
+           KİLİTLİ" dişi, bayrağı koşullu yazmakla açılıyordu.
+
+           Bugün yalnız ÇIPLAK öznitelik (`iyiHaber`) ya da `{true}`
+           iyi haberdir. Koşullu bayrak, satırı iyi haber YAPMAZ: o
+           satır kendi eylemini vermek zorundadır. */
+        const iyiHaber = iyiHaberMi(c.govde);
         cikan.push({
           yer: rel,
           satir: kod.slice(0, c.konum).split('\n').length,
           tur: 'BosIlk',
           cumle: metin.slice(0, 300),
           iyiHaber,
-          neden: nedenSoyluyor(metin),
+          neden: nedenli,
           eylem: iyiHaber || ozellik(c.govde, 'eylem') !== null,
         });
       }
@@ -423,7 +646,11 @@ export function kutuguOku() { return JSON.parse(readFileSync(KUTUK, 'utf8')); }
     karışmasına izin verir: `BosIlk`e eylemsiz bir satır eklenir,
     `satirIci`den biri düzelir ve toplam DEĞİŞMEZ. Tavan sınıf başına
     tutulunca bu takas imkânsızdır. */
-export const SINIFLAR = ['BosIlk', 'BosFiltre', 'satirIci'];
+/* DÖRDÜNCÜ SINIF `kosullu`: boşluk koşuluna bağlı ama `bos` sınıfı
+   TAŞIMAYAN metin taşıyıcıları. Sınıf listesine girmesi bilinçlidir —
+   tavanı da sıfırda kilitlidir; aksi hâlde kilidi açmanın yolu "sınıf
+   adını yazmamak" olurdu (bulgu P1-3'ün ta kendisi). */
+export const SINIFLAR = ['BosIlk', 'BosFiltre', 'satirIci', 'kosullu'];
 
 export function sinifTavanlari(bulunan) {
   const t = {};

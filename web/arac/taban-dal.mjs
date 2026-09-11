@@ -54,3 +54,52 @@ export function tabanDalKarari(tabandaVar, ham) {
   }
   return { hal: 'okundu', belge };
 }
+
+/* ═══════════════════════════════════════════════════════════════════════
+   TABAN DAL YOKKEN CIRCIR NE YAPAR? [SIS-TAB-002]
+
+   ── ÖLÇÜLEN KUSUR (düzeltme turu · tur 2 · P2-4) ──────────────────────
+   `tabanDalKarari` üç hâli AYIRDI, ama çağıranların dördü de ikinci hâli
+   aynı satırla karşılıyordu:
+
+     if (karar.hal === 'taban_yok') return;      // sessizce GEÇTİ
+
+   Yorumu "ilk tur: kütük yeni" diyordu ve bu doğruydu — ama sessiz bir
+   `return`, cırcırın HİÇ KOŞMAMASIDIR ve kapı yine yeşil yanar. Deponun
+   kendi kuralı bunun tersini söyler: "Koşulmayan kapı 'geçti' yazılmaz —
+   'ölçülmedi' yazılır."
+
+   Hâl VARSAYIMSAL DEĞİLDİ: `arac/dom-tanik-kutugu.json` bu dalda DOĞDU,
+   yani taban dalda yok. Tanık kütüğünün cırcırı ("kütük BÜYÜYEMEZ") tam
+   da onu getiren turda hiçbir şey ölçmüyordu — ölçüm aracının kendisi,
+   bu deponun adı konmuş kusurunu taşıyordu.
+
+   ── İKİ SINIF, İKİ CEVAP ──────────────────────────────────────────────
+   KÜME cırcırları (hangi satır taban dalda VARDI) için tabanın yokluğu
+   bir eksiklik değil, en sıkı hâldir: taban BOŞ KÜMEdir, yani satırların
+   HEPSİ yenidir ve hepsi yeni satır kuralından geçer. Beyana gerek yok.
+
+   SAYI cırcırları (kaç satır vardı) için böyle bir hâl yoktur: sayının
+   karşılaştırılacağı bir şey lazımdır. Kütüğün KENDİ `tavanlar` alanına
+   bakmak ÇÖZÜM DEĞİLDİR — o alanı türetici yazar, yani kütük kendini
+   kendisiyle karşılaştırır ve her zaman geçer. Bu yüzden ilk tur tavanı
+   AYRI ve ELLE beyan edilir (`ilkTurTavani`); beyansızsa KIRMIZIDIR.
+   ═══════════════════════════════════════════════════════════════════════ */
+
+/**
+ * SAF KARAR: taban dal yokken sayı cırcırının kullanacağı tavan.
+ *
+ * @param {unknown} beyan kütüğün ELLE yazdığı ilk tur tavanı
+ * @param {string} alan hangi sayı (hata mesajı için)
+ * @returns {{tavan: number}|{hata: string}}
+ */
+export function ilkTurTavani(beyan, alan) {
+  if (!Number.isInteger(beyan) || beyan < 0) {
+    return { hata: `TABAN DAL YOK ve kütük İLK TUR TAVANINI beyan etmemiş (${alan}). `
+      + 'Sessizce geçmek cırcırın hiç koşmamasıdır: kütüğe `ilkTurTavani` '
+      + `alanı ekleyin ve ${alan} için ÖLÇÜLEN sayıyı yazın. Türeticinin `
+      + 'yazdığı `tavanlar` alanı bu işi göremez — kütük kendini kendisiyle '
+      + 'karşılaştırır ve her zaman geçer.' };
+  }
+  return { tavan: beyan };
+}

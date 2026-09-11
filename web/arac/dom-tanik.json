@@ -1,0 +1,493 @@
+{
+  "uretilme": "2026-09-11T15:59:38.281Z",
+  "rota": [
+    "/",
+    "/aktivite",
+    "/api-sozlesmesi",
+    "/ayarlar",
+    "/ayarlar/kimlik",
+    "/bakim",
+    "/bildirimler",
+    "/bulgular",
+    "/bulgular/cmtw74cma021qu37daplgqao2",
+    "/degerlendirme-aktarim",
+    "/denetci-erisimi",
+    "/denetimler",
+    "/denetimler/cmtw749j600cwu37dg814fskw",
+    "/dokumanlar",
+    "/egitimler",
+    "/envanter",
+    "/esleme",
+    "/eslestirme",
+    "/giris",
+    "/gozden-gecirme",
+    "/harita",
+    "/ice-aktarim",
+    "/kanitlar",
+    "/kesif",
+    "/kimlik",
+    "/kisisel-veri",
+    "/mevzuat-radari",
+    "/olaylar",
+    "/omur",
+    "/operasyon",
+    "/paketler",
+    "/portfoy",
+    "/projeler",
+    "/prosesler",
+    "/raporlar",
+    "/raporlar/denetim-formlari",
+    "/raporlar/kanit-paketi",
+    "/raporlar/karne",
+    "/raporlar/takvim",
+    "/regulasyonlar",
+    "/riskler",
+    "/riskler/cmtw74byr01pru37dovmzikv3",
+    "/saglik",
+    "/saglik/reddedilenler",
+    "/saklama",
+    "/sayim",
+    "/sistem",
+    "/sistem/bilesenler",
+    "/surecler",
+    "/surecler/cmtw7496k005ju37d48dgopla",
+    "/tabanlar",
+    "/tasinabilir-medya",
+    "/tedarikciler",
+    "/tesisler",
+    "/tesisler/cmtw748is0007u37dfc00mdvk",
+    "/topoloji",
+    "/uyum",
+    "/uyum/CBDDO",
+    "/varlik-aktarim",
+    "/yardim",
+    "/yedek-parca",
+    "/yedekleme",
+    "/yetkiler",
+    "/yonetim-tezgahi",
+    "/zimmetlerim"
+  ],
+  "atlanan": [],
+  "politikaAdaylari": [
+    {
+      "cumle": "12 kayıt açık · en çok düşülen aşama: Eşleme profili (alan çevirisi) (3) · 1 kayıt yok sayıldı — kaynaktaki sorun çözüldü anlamına gelmez",
+      "rotalar": [
+        "/saglik/reddedilenler"
+      ]
+    },
+    {
+      "cumle": "3 kaydın kimliği birden çok varlığa uyuyor; çakışma çözülmeden diğer kararlar güvenilir değil. 6 kayıt henüz eşleştirilmedi — eşleştirme öneri üretir, CMDB’ye yazmaz.",
+      "rotalar": [
+        "/kesif"
+      ]
+    },
+    {
+      "cumle": "8 satır görünüyor · kütük değişmez: kayıt güncellenmez, silinmez · 9 kaydın aktörü bilinmiyor",
+      "rotalar": [
+        "/aktivite"
+      ]
+    },
+    {
+      "cumle": "8/8 kayıt ailesinin saklama politikası YOK: ne kadar tutulduğu yazılı değil. Ürün hiçbir kaydı KENDİLİĞİNDEN silmez: politika bir öneri üretir, imha kararını insan verir ve öneren ile onaylayan aynı kişi olamaz.",
+      "rotalar": [
+        "/saklama"
+      ]
+    },
+    {
+      "cumle": "Aktifleştirme insan kararıdır. Paket çerçeveyi TASLAK getirir; bu ekran hiçbir çerçeveyi aktifleştirmez. Aktifleştirme Regülasyonlar ekranında, sürümün farkı görülerek verilir. Kaldırma arşivdir: hiçbir satır silinmez.",
+      "rotalar": [
+        "/paketler"
+      ]
+    },
+    {
+      "cumle": "Bir aktarım seçin. Kuru koşu kayıtları hiçbir değerlendirmeye dokunmaz; uygulama kaydı kendi kuru koşusuna kökenle bağlıdır.",
+      "rotalar": [
+        "/degerlendirme-aktarim"
+      ]
+    },
+    {
+      "cumle": "Bu bir durum rozeti değildir: kaydın DOĞRULUĞUNU değil KÖKENİNİ söyler. Zemin, kenarlık, yarıçap yok. Kökeni olmayan kayıt sessizce kaybolmaz, 'Elle girildi' der; güven ölçülmemişse '%0' değil 'ölçülmedi' yazar.",
+      "rotalar": [
+        "/sistem/bilesenler"
+      ]
+    },
+    {
+      "cumle": "Bu çerçeve için uygulanabilirlik kuralı tanımlı değil; kapsam yalnız uyum sürecinin tesis listesinden geliyor.",
+      "rotalar": [
+        "/uyum/CBDDO"
+      ]
+    },
+    {
+      "cumle": "Bu ekran cihazın ÜRETİMDE nerede durduğunu söyler; Topoloji ağda nerede durduğunu. İkisi aynı cihazın iki ayrı yeridir ve biri diğerinden türetilemez. Tek nokta, yedeklilik ve RTO/RPO insan değerlendirmesidir — ürün bunları hesaplamaz. Varlık bazında aynı bağlar Envanter çekmecesinin Yönetişim sekmesindedir.",
+      "rotalar": [
+        "/prosesler"
+      ]
+    },
+    {
+      "cumle": "Bu kurulumda çok adımlı doğrulama bağlı değil: MFA anahtarı tanımlı değil. MFA_ANAHTAR_REFERANSI ortam değişkenine bir sır REFERANSI verin (env:… · dosya:… · vault:…). Anahtarın kendisi veritabanında saklanmaz.",
+      "rotalar": [
+        "/ayarlar"
+      ]
+    },
+    {
+      "cumle": "Bu sayfa hiçbir kayıt okumaz; ekran görüntüsü paylaşırken kapsam bilgisi içermez.",
+      "rotalar": [
+        "/yardim"
+      ]
+    },
+    {
+      "cumle": "Bu ürün ağa paket ATMAZ. Bütün keşif, kurumun zaten çalışan gözlem kaynaklarının çıktısını OKUMAYA dayanır; gerekçe teknik değil emniyettir.",
+      "rotalar": [
+        "/kesif"
+      ]
+    },
+    {
+      "cumle": "Bu ürün ICS-CERT, üretici PSIRT ya da NVD akışına BAĞLANMAZ. Duyurular elle indirilip buradan yüklenir; korelasyonu zafiyet korelasyon motoru hesaplar.",
+      "rotalar": [
+        "/tabanlar"
+      ]
+    },
+    {
+      "cumle": "CSV/Excel kolonları varlık alanlarına eşlenir, önizleme doğrulanır, onay tek transaction içinde CMDB'ye yazar · Reddedilen kayıtlar →",
+      "rotalar": [
+        "/varlik-aktarim"
+      ]
+    },
+    {
+      "cumle": "Demo oturumu salt okunurdur: demo hesabı hiçbir koşulda yazma yetkisi taşımaz, kayıt oluşturan/değiştiren eylemler kapalıdır. Gerçek bir hesapla girdiğinizde eylemler yetkinize göre açılır.",
+      "rotalar": [
+        "/yardim"
+      ]
+    },
+    {
+      "cumle": "Denetim izi saklama politikası YOK · DEĞİŞMEZ aile, imha edilemez",
+      "rotalar": [
+        "/saklama"
+      ]
+    },
+    {
+      "cumle": "E-posta / webhook bildirim kanalı bağlayıcısı bu ortamda tanımlı değil; kanal tercihleri bu yüzden gösterilmez. Değer yok demek sıfır demek değildir.",
+      "rotalar": [
+        "/ayarlar"
+      ]
+    },
+    {
+      "cumle": "Eksikler ayrı sayılır — tek bir hazırlık puanı üretilmez: 2 değerlendirilmedi · 1 kanıtsız · 0 kanıtı bayat · 6 doğrulanmadı. Kapsam dışı kontrol paydaya girmez ama AYRI raporlanır: paydayı küçülterek oranı yükseltmek, kapsamı daraltarak \"iyileşmenin\" en kolay yoludur.",
+      "rotalar": [
+        "/surecler/cmtw7496k005ju37d48dgopla"
+      ]
+    },
+    {
+      "cumle": "Excel/CSV satırları doğrulanır, onaydan sonra maddeler regülasyon kütüğüne yazılır · Reddedilen kayıtlar →",
+      "rotalar": [
+        "/ice-aktarim"
+      ]
+    },
+    {
+      "cumle": "Gerekçesiz kapsam dışı, denetçinin ilk sorusudur: kontrol kapsam dışı bırakılmış ama sebebi yazılmamış. Form o hücreyi boş bırakmaz, KUSUR olarak yazar.",
+      "rotalar": [
+        "/raporlar/denetim-formlari"
+      ]
+    },
+    {
+      "cumle": "Hayır. Platform bilinmeyeni sıfırdan ayırır: ölçülmemiş, bağlanmamış ya da kaydedilmemiş bir değer boş çizilir, 0 yazılmaz. Örneğin hiçbir bağlayıcı koşmadıysa veri kesiti damgası \"—\"dır; sistem saati damga diye gösterilmez.",
+      "rotalar": [
+        "/yardim"
+      ]
+    },
+    {
+      "cumle": "Her kullanıcının modül başına (uyum, envanter, risk, denetim) izinli tesis kümesi vardır. Sınırsız yetki tüm tesisler, kısıtlı yetki yalnız o kümeyi gösterir; sayılar ve listeler bu kümeye göre daraltılır — kabuktaki \"N tesis\" sayısı da dâhil. tesise bağlı olmayan (grup geneli) kayıtlar yalnız sınırsız kapsamda görünür. Göremediğiniz kayıt yok değildir; kapsam dışıdır.",
+      "rotalar": [
+        "/yardim"
+      ]
+    },
+    {
+      "cumle": "Hesap, yetki ve tesis kapsamı için kurumunuzun BT destek kanalına başvurun; bu platform kendi başına hesap açmaz ve yetki genişletmez. Yetkinizi ve kapsamınızı Ayarlar ekranından görebilirsiniz. Bağlayıcı sağlığı ve son veri kesiti her ekranın alt çubuğunda ve Sağlık ekranındadır.",
+      "rotalar": [
+        "/yardim"
+      ]
+    },
+    {
+      "cumle": "Hiç firmware tabanı tanımlanmamış. Taban olmadan hiçbir cihazın firmware kararı verilemez; ekran bunu \"uyumlu\" değil \"karar verilemedi\" sayar.",
+      "rotalar": [
+        "/tabanlar"
+      ]
+    },
+    {
+      "cumle": "Hiç imha kararı açılmadı. İmha bir insan kararıdır ve ürün onu kendiliğinden vermez; süresi dolan kayıt karar açılana kadar durur.",
+      "rotalar": [
+        "/saklama"
+      ]
+    },
+    {
+      "cumle": "Hiç yönetim gözden geçirmesi kaydı yok. Çoğu çerçevede bu zorunlu bir kayıttır ve denetimde istenir. Bir gözden geçirmenin denetimdeki değeri ürettiği KARARLARDIR; özet metni değil. Kararsız bir kayıt \"yapıldı\" işaretlenemez.",
+      "rotalar": [
+        "/gozden-gecirme"
+      ]
+    },
+    {
+      "cumle": "Hiç yönetim gözden geçirmesi kaydı yok. Gözden geçirme, alınan kararların ve kapanan kalemlerin tek kütüğüdür; kayıt olmadan “yönetim gördü” denemez.",
+      "rotalar": [
+        "/gozden-gecirme"
+      ]
+    },
+    {
+      "cumle": "Hover ve odakla açılır. Sözleşme: kritik hiçbir bilgi yalnız burada yaşayamaz.",
+      "rotalar": [
+        "/sistem/bilesenler"
+      ]
+    },
+    {
+      "cumle": "İstemci sırrının DEĞERİ hiçbir ekranda görünmez — yalnız sırra giden adres.",
+      "rotalar": [
+        "/ayarlar/kimlik"
+      ]
+    },
+    {
+      "cumle": "Kapanış bir DOĞRULAMA kapısıdır: bulguyu yalnız uyum onay yetkisi olan kişi (denetim sorumlusu ya da yönetici) kapatabilir ve bulguya bağlı açık aksiyon (planlandı / devam ediyor) kalmamış olmalıdır. Kapanışta doğrulayan kişi ve zaman kayda yazılır; aksiyonlar bitmeden kapatma denemesi kaç aksiyonun açık olduğunu söyleyerek reddedilir.",
+      "rotalar": [
+        "/yardim"
+      ]
+    },
+    {
+      "cumle": "Kayıt CMDB'ye kendiliğinden yazılmaz; eşleştirme öneri üretir, kararı insan verir · Reddedilen kayıtlar →",
+      "rotalar": [
+        "/kesif"
+      ]
+    },
+    {
+      "cumle": "Kayıtlı taşınabilir medya yok. Kayıtsız medya, envanterin göremediği tek taşıyıcıdır. Ürün medyayı ENGELLEMEZ — engelleme uç nokta koruma ürününün işidir. Burada tutulan şey kayıttır: kayıtsız medya, envanterin göremediği tek taşıyıcıdır.",
+      "rotalar": [
+        "/tasinabilir-medya"
+      ]
+    },
+    {
+      "cumle": "Keşif yalnız AĞDA GÖRÜNEN cihazı bulur; kapalı panodaki yedek bir kart hiçbir taramada çıkmaz. Sayım birinin gidip bakmasıdır. Sayım hiçbir varlığı silmez: \"bulunamadı\" bir ölçüm sonucudur, envanterden düşürme ayrı bir karardır.",
+      "rotalar": [
+        "/sayim"
+      ]
+    },
+    {
+      "cumle": "Kurum hesabıyla girenlerde ikinci faktör kimlik sağlayıcıda uygulanır; ürün bilmediği bir kararı tekrar etmez. Kullanıcılar kendi kayıtlarını Ayarlar ekranından kurar. TOTP sırrı veritabanında ŞİFRELİ durur ve şifreleme anahtarı veritabanında YOKTUR.",
+      "rotalar": [
+        "/ayarlar/kimlik"
+      ]
+    },
+    {
+      "cumle": "Motor süreyi izler ve GÖREV açar; başvuruya CEVAP YAZMAZ. Aydınlatma metni de üretilmez — metin kurumun beyanıdır.",
+      "rotalar": [
+        "/kisisel-veri"
+      ]
+    },
+    {
+      "cumle": "Motor yalnız ADAY açar: çerçeve sürümünü, regülasyonu ve taramanın açık olmasını DEĞİŞTİRMEZ.",
+      "rotalar": [
+        "/mevzuat-radari"
+      ]
+    },
+    {
+      "cumle": "Onay tek transaction içinde yürür: bir satır patlarsa hiçbir satır yazılmaz ve dosya “geri alındı” durumuna düşer. Yarım aktarım oluşmaz.",
+      "rotalar": [
+        "/varlik-aktarim"
+      ]
+    },
+    {
+      "cumle": "Önce kapsam: bu anahtar bu uca bakabilir mi? Sonra rol: anahtar sahibi bu veriyi görebilir mi? Kapsam bir yetki kaynağı DEĞİLDİR — sahibinde olmayan bir yetkiyi açmaz, yalnız erişilebilir uçları kısar. Salt okunur işareti kapsam listesinden bağımsız ikinci bir katmandır: listeye yanlışlıkla bir yazma ucu girse bile işaret kapalıysa yazma geçmez.",
+      "rotalar": [
+        "/api-sozlesmesi"
+      ]
+    },
+    {
+      "cumle": "SCADA tarihçe bağlayıcısı bu ortamda tanımlı değil; OT olay akışı bu yüzden gösterilmez. Değer yok demek sıfır demek değildir.",
+      "rotalar": [
+        "/sistem/bilesenler"
+      ]
+    },
+    {
+      "cumle": "Şiddet kademesi A→D · A en yüksek · elmas işaretli değerler motor ÖNERİSİdir, doğrulanana kadar etki sayılmaz",
+      "rotalar": [
+        "/olaylar"
+      ]
+    },
+    {
+      "cumle": "Tanımlı dış denetçi erişimi yok. Dış denetçi erişimi süreli ve kapsamlıdır; tanımlanmadan hiçbir dış hesap kayıt göremez.",
+      "rotalar": [
+        "/denetci-erisimi"
+      ]
+    },
+    {
+      "cumle": "Ürün hiçbir siteye kendiliğinden bağlanmaz ve \"değişiklik yok\" DEMEZ: Kaynaklar kütüğe ELLE kaydedilir ve \"en son ne zaman bakıldı\" bilgisi elle güncellenir. Ürün hiçbir siteye kendiliğinden bağlanmaz ve \"değişiklik yok\" DEMEZ — yalnız en son bakılan tarihi ve o bakışta düşülen notu gösterir.",
+      "rotalar": [
+        "/regulasyonlar"
+      ]
+    },
+    {
+      "cumle": "Yetki buradan değişmez; yönetim yetkisi olan biri Yetki ekranından verir ya da kaldırır, her değişiklik denetim izine yazılır. YETKİ EKRANI →",
+      "rotalar": [
+        "/ayarlar"
+      ]
+    }
+  ],
+  "bosDurumlar": [
+    {
+      "metin": "Bir varlık seçin; dört halka o varlıktan geçen yolu gösterir.İLK VARLIĞI AÇ",
+      "rotalar": [
+        "/envanter"
+      ],
+      "tur": "satirIci",
+      "sinif": "bos",
+      "iyiHaber": false,
+      "eylem": true
+    },
+    {
+      "metin": "BOŞ · İLK KURULUM Bu bulgu için aksiyon planlanmadı. Aksiyonsuz bir bulgu kapanamaz: kapanış yapılan işin kaydına dayanır, beyana değil. AKSİYON PLANLA",
+      "rotalar": [
+        "/bulgular/cmtw74cma021qu37daplgqao2"
+      ],
+      "tur": "BosIlk",
+      "sinif": "ab-blok",
+      "iyiHaber": false,
+      "eylem": true
+    },
+    {
+      "metin": "BOŞ · İLK KURULUM Bu çerçeve için henüz değerlendirme başlatılmadı. Değerlendirme açılmadan maddelerin durumu “bilinmiyor”dur — “uyumlu” değil. KAPSAMI ÇALIŞTIR",
+      "rotalar": [
+        "/sistem/bilesenler"
+      ],
+      "tur": "BosIlk",
+      "sinif": "ab-blok",
+      "iyiHaber": false,
+      "eylem": true
+    },
+    {
+      "metin": "BOŞ · İLK KURULUM Bu sekmede (Kabul edilen) kayıt yok: size bu durumda bir varlık zimmetlenmemiş. Zimmet, envanterdeki bir varlığın sahibi değiştirildiğinde doğar. Envantere git",
+      "rotalar": [
+        "/zimmetlerim"
+      ],
+      "tur": "BosIlk",
+      "sinif": "ab-blok",
+      "iyiHaber": false,
+      "eylem": true
+    },
+    {
+      "metin": "BOŞ · İLK KURULUM Değerlendirme aktarımı kaydı yok. Bir kuru koşu, hiçbir değerlendirmeye dokunmadan ne olacağını hesaplar. UYUM MATRİSİNİ AÇ",
+      "rotalar": [
+        "/degerlendirme-aktarim"
+      ],
+      "tur": "BosIlk",
+      "sinif": "ab-blok",
+      "iyiHaber": false,
+      "eylem": true
+    },
+    {
+      "metin": "BOŞ · İLK KURULUM Hiç envanter sayımı açılmadı. Sayım, envanterin sahadaki gerçekle karşılaştırıldığı tek yerdir; sayımsız bir envanter yalnız kayıttır. SAYIM AÇ",
+      "rotalar": [
+        "/sayim"
+      ],
+      "tur": "BosIlk",
+      "sinif": "ab-blok",
+      "iyiHaber": false,
+      "eylem": true
+    },
+    {
+      "metin": "BOŞ · İLK KURULUM Hiç firmware tabanı tanımlanmamış. Taban olmadan hiçbir cihazın firmware kararı verilemez; ekran bunu \"uyumlu\" değil \"karar verilemedi\" sayar. TABAN TANIMLA",
+      "rotalar": [
+        "/tabanlar"
+      ],
+      "tur": "BosIlk",
+      "sinif": "ab-blok",
+      "iyiHaber": false,
+      "eylem": true
+    },
+    {
+      "metin": "BOŞ · İLK KURULUM Hiç imha kararı açılmadı. İmha bir insan kararıdır ve ürün onu kendiliğinden vermez; süresi dolan kayıt karar açılana kadar durur. İMHA KARARI AÇ",
+      "rotalar": [
+        "/saklama"
+      ],
+      "tur": "BosIlk",
+      "sinif": "ab-blok",
+      "iyiHaber": false,
+      "eylem": true
+    },
+    {
+      "metin": "BOŞ · İLK KURULUM Hiç yönetim gözden geçirmesi kaydı yok. Gözden geçirme, alınan kararların ve kapanan kalemlerin tek kütüğüdür; kayıt olmadan “yönetim gördü” denemez. TOPLANTI PLANLA",
+      "rotalar": [
+        "/gozden-gecirme"
+      ],
+      "tur": "BosIlk",
+      "sinif": "ab-blok",
+      "iyiHaber": false,
+      "eylem": true
+    },
+    {
+      "metin": "BOŞ · İLK KURULUM Kayıtlı taşınabilir medya yok. Bu, “sahada taşınabilir medya kullanılmıyor” demek DEĞİLDİR: yalnız kayda geçmiş olanlar izlenebilir. MEDYA KAYDET",
+      "rotalar": [
+        "/tasinabilir-medya"
+      ],
+      "tur": "BosIlk",
+      "sinif": "ab-blok",
+      "iyiHaber": false,
+      "eylem": true
+    },
+    {
+      "metin": "BOŞ · İLK KURULUM Kayıtlı yedek parça yok. Yedek parça kaydı, ömrü dolan varlığın değişim süresini gösteren tek veridir; kayıtsız kalan varlık için süre bilinmez. PARÇA EKLE",
+      "rotalar": [
+        "/yedek-parca"
+      ],
+      "tur": "BosIlk",
+      "sinif": "ab-blok",
+      "iyiHaber": false,
+      "eylem": true
+    },
+    {
+      "metin": "BOŞ · İLK KURULUM Tanımlı dış denetçi erişimi yok. Dış denetçi erişimi süreli ve kapsamlıdır; tanımlanmadan hiçbir dış hesap kayıt göremez. DENETÇİ DAVET ET",
+      "rotalar": [
+        "/denetci-erisimi"
+      ],
+      "tur": "BosIlk",
+      "sinif": "ab-blok",
+      "iyiHaber": false,
+      "eylem": true
+    },
+    {
+      "metin": "BOŞ · İLK KURULUM Tanımlı eğitim yok. Eğitim tanımlanmadan katılım ve tazelik izlenemez; farkındalık kontrolleri kanıtsız kalır. EĞİTİM TANIMLA",
+      "rotalar": [
+        "/egitimler"
+      ],
+      "tur": "BosIlk",
+      "sinif": "ab-blok",
+      "iyiHaber": false,
+      "eylem": true
+    },
+    {
+      "metin": "BOŞ · İLK KURULUM Tanımlı hukuki muhafaza yok. Muhafaza, saklama süresi dolan kaydın imhasını DURDURAN tek şeydir; tanımlanmadan imha kararları süreye göre işler. MUHAFAZA AÇ",
+      "rotalar": [
+        "/saklama"
+      ],
+      "tur": "BosIlk",
+      "sinif": "ab-blok",
+      "iyiHaber": false,
+      "eylem": true
+    },
+    {
+      "metin": "Kayıtlı üretim ünitesi yok — bu santral için hiç üretim ünitesi tanımlanmamış.ÜRETİM ÜNİTESİ TANIMLA",
+      "rotalar": [
+        "/tesisler/cmtw748is0007u37dfc00mdvk"
+      ],
+      "tur": "satirIci",
+      "sinif": "bos",
+      "iyiHaber": false,
+      "eylem": true
+    },
+    {
+      "metin": "SÜZGEÇ Bu süzgeçle kayıt yok; süzgeci temizleyince kapsamdaki tüm kayıtlar yeniden listelenir. SÜZGECİ TEMİZLE",
+      "rotalar": [
+        "/sistem/bilesenler"
+      ],
+      "tur": "BosFiltre",
+      "sinif": "ab-blok",
+      "iyiHaber": false,
+      "eylem": true
+    }
+  ]
+}

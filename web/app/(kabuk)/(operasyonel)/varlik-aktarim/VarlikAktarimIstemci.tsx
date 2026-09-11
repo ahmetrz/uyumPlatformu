@@ -433,7 +433,8 @@ function HataListesi({ a }: { a: Aktarim }) {
 function YinelenenListesi({ a, kapsamli }: { a: Aktarim; kapsamli: boolean }) {
   if (a.yinelenen === 0) {
     return <BosIlk iyiHaber cumle={kapsamli
-      ? 'Kapsamınızdaki varlıklarla eşleşen satır yok.'
+      ? 'Kapsamınızdaki varlıklarla eşleşen satır yok: dosyadaki hiçbir '
+        + 'etiket kapsamınızdaki bir varlığa denk düşmedi.'
       : 'Mevcut envanterle eşleşen satır yok — hepsi yeni kayıt.'} />;
   }
   return (

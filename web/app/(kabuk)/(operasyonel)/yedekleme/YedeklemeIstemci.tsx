@@ -442,8 +442,9 @@ function TesisCekmecesi({ tesis, kapat }: { tesis: Tesis; kapat: () => void }) {
           Kanıtlı yedek açığı · {vk.yedeksiz.length}
         </p>
         {vk.yedeksiz.length === 0 ? (
-          <p style={{ margin: '0 0 var(--s16)', fontSize: 'var(--t-field)', color: 'var(--i2)' }}>
-            Kanıtlı yedek açığı yok.
+          /* İYİ HABER boşluğu — çözüm gerektirmez. */
+          <p className="bos iyi" style={{ margin: '0 0 var(--s16)', fontSize: 'var(--t-field)', color: 'var(--i2)' }}>
+            Kanıtlı yedek açığı yok — kritik varlıkların hepsinin yedeği ölçüldü.
           </p>
         ) : (
           <div style={{ display: 'grid', gap: 'var(--s12)', marginBottom: 'var(--s16)' }}>
@@ -463,8 +464,9 @@ function TesisCekmecesi({ tesis, kapat }: { tesis: Tesis; kapat: () => void }) {
           Ölçülmemiş · {vk.bilinmeyen.length}
         </p>
         {vk.bilinmeyen.length === 0 ? (
-          <p style={{ margin: 0, fontSize: 'var(--t-field)', color: 'var(--i2)' }}>
-            Ölçülmemiş kritik varlık yok.
+          /* İYİ HABER boşluğu — çözüm gerektirmez. */
+          <p className="bos iyi" style={{ margin: 0, fontSize: 'var(--t-field)', color: 'var(--i2)' }}>
+            Ölçülmemiş kritik varlık yok — her birinin yedek durumu biliniyor.
           </p>
         ) : (
           <div style={{ display: 'grid', gap: 'var(--s12)' }}>

@@ -237,7 +237,20 @@ function EtkiBlogu({ v }: { v: V }) {
       )}
     >
       {!e ? (
-        <p className="bos">Etki değerlendirmesi yok — üretim kaybı hesaplanmadı.</p>
+        <p className="bos">
+          Etki değerlendirmesi yok — üretim kaybı hesaplanmadı.
+          {/* Çözüm bu bloğun kendi formudur; boşluğun eylemi onu AÇAR.
+              Ayrı bir ekrana yollamak, kullanıcıyı değerlendirdiği
+              varlıktan koparırdı. */}
+          {v.yazilabilir ? (
+            <button type="button" className="ab-dugme satir"
+              onClick={() => setAcik(true)}>Etki değerlendir</button>
+          ) : (
+            <Link href="/yonetim-tezgahi" className="ab-dugme satir">
+              Değerlendirme yetkisini gör
+            </Link>
+          )}
+        </p>
       ) : (
         <>
           <dl className="ciftler">
@@ -406,6 +419,14 @@ function AdimBlogu({ v }: { v: V }) {
         <p className="bos">
           Bu varlık hiçbir proses adımına bağlanmadı — durduğunda hangi işin
           etkileneceği bilinmiyor.
+          {/* Proses adımı kataloğu `/prosesler` ekranındadır ve bağ oradan
+              kurulur. İlk yazımda tezgâha `?katalog=proses&varlik=` ile
+              gidiliyordu; ne böyle bir katalog ne de okunan bir parametre
+              vardı (bağımsız inceleme). */}
+          <Link href="/prosesler"
+            className="ab-dugme satir">
+            Proses adımına bağla
+          </Link>
         </p>
       ) : (
         <>

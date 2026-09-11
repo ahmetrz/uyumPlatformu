@@ -206,7 +206,9 @@ export default function EslestirmeIstemci({
               <BosIlk
                 cumle={sol.length === 0 || sag.length === 0
                   ? `${sol.length === 0 ? solKod : sagKod} çerçevesinde yaprak madde yok — eşleme kurulamıyor.`
-                  : `${solKod} ile ${sagKod} arasında denklik kaydı yok.`}
+                  : `${solKod} ile ${sagKod} arasında denklik kaydı yok: iki `
+                    + 'çerçevenin maddeleri henüz eşlenmedi, ortak kanıt da bu '
+                    + 'yüzden iki kez toplanır.'}
                 eylem={yazabilir && sol.length > 0 && sag.length > 0
                   ? <Dugme tur="birincil"
                     onClick={() => setSecim({ tip: 'yeni', kaynakId: null, hedefId: null })}>

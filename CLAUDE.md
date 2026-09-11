@@ -250,15 +250,62 @@ depoya ölçülmemiş yeni bir iddia girdi. Bugün yeni satır AYRI
 yargılanır: taban dalda (`origin/main`) olmayan her `POLITIKA` satırı
 ölçümünü taşımak zorundadır.
 
-Gerekçeli istisna mümkündür, iki koşulla: gerekçe KUSURU anlatır
+Gerekçeli istisna mümkündü, iki koşulla: gerekçe KUSURU anlatır
 (maliyeti değil) ve HANGİ AŞAMADA kapanacağını yazar. **Aşamasız
-gerekçe kabul edilmez** — "süresiz beyan yoktur" kuralının bu kütükteki
-karşılığıdır. **S1'de istisna HİÇ yoktur**: ihlali veri sızdıran bir
-cümle, gerekçesi ne olursa olsun ölçülmeden depoya giremez (R-C ile
-aynı sertlik). Sınıf kütükten değil CÜMLEDEN türetilir; elle "S3"
-yazarak en sıkı daldan kaçılamaz. Kural saf bir fonksiyondadır
-(`yeniSatirKusurlari`) ve sentetik kütüklerle sınanır — sabotaj kuralı
-sabote eder, ölçüm ortamını değil.
+gerekçe kabul edilmezdi** — "süresiz beyan yoktur" kuralının bu
+kütükteki karşılığıdır. **S1'de istisna HİÇ yoktu**: ihlali veri
+sızdıran bir cümle, gerekçesi ne olursa olsun ölçülmeden depoya
+giremezdi (R-C ile aynı sertlik). Sınıf kütükten değil CÜMLEDEN
+türetilir; elle "S3" yazarak en sıkı daldan kaçılamaz. Kural saf bir
+fonksiyondadır (`yeniSatirKusurlari`) ve sentetik kütüklerle sınanır —
+sabotaj kuralı sabote eder, ölçüm ortamını değil.
+
+**BUGÜN İSTİSNA YOLU KAPALIDIR — borç SIFIRDA KİLİTLİ (R-F eki 2).**
+11 Eylül 2026'da borcun üçü de sıfırlandı: ölçüldü **220 kütük satırı ·
+213'ü POLITIKA (S1 82 · S2 63 · S3 68) · ölçülmeyen 0 ·
+SINIFLANDIRILMADI 0**; yedi satır `IDDIA_DEGIL` olarak gerekçesiyle
+beyanlı ve o kaçış kapısı da cırcırdadır — üç dişle: tabanda POLITIKA
+olan satır bu dalda IDDIA_DEGIL'e çekilemez, yeni bir IDDIA_DEGIL
+gerekçesini kusur asgarisi kadar uzun yazar ve **cümlesi S1 TÜRETEN
+yeni bir satır IDDIA_DEGIL OLAMAZ**. Üçüncü diş düzeltme turunda
+eklendi ve kütükte gerçek bir satır yaktı: giriş ekranının tanıtım
+satırı 209 karakterlik bir gerekçeyle `IDDIA_DEGIL` girmişti, cümlesi
+S1 türetiyordu ve altıncı dişin "S1'de gerekçeli istisna kabul edilmez"
+kuralı `sinif === 'POLITIKA'` süzgecinin ARKASINDA durduğu için satır
+dişin önüne hiç gelmiyordu. Yani kilit bir SAYI değil bir ETİKET
+değiştirilerek geçilebiliyordu. Sıfıra inen bir
+borç için "yalnız küçülür" YETMEZ — yarın eklenen ölçüsüz bir cümle
+tavanı 0'dan 1'e çıkarır ve öbür dişler bunu "tavan ölçülene eşit" diye
+GEÇİRİR. Yedinci diş bu yüzden mutlaktır: `olculmedi` taşıyan tek bir
+`POLITIKA` satırı bile, sınıfı ne olursa olsun ve gerekçesi ne kadar
+iyi yazılmış olursa olsun, kapıyı KIRMIZI yakar
+(`web/tests/bekci/politika-olcumu.test.ts` · YEDİNCİ DİŞ). Yukarıdaki
+iki koşullu istisna yolu TARİHTİR; kilidi gevşetmek o dişi SİLMEYİ
+gerektirir — bir sayıyı sessizce büyütmeyi değil.
+
+Gerekçe DÖRT KEZ ölçüldü ve her seferinde PAYDA kör çıktı:
+
+| Tur | Bulan | Körlük | Payda |
+| --- | --- | --- | --- |
+| 1 | bağımsız inceleme | tırnaksız JSX metni hiç görülmüyordu | 131 → 184 |
+| 2 | inceleme (P1-1) | metin düğümünde tek bir `{…}` varsa TÜM düğüm düşüyordu | 184 → 213 |
+| 3 | DOM tanığı | dize kalıbı açgözlüydü, eşleşme sonraki tırnakları YUTUYORDU | 213 → 215 |
+| 4 | kendi düzeltmesi | boş duruma sebep yazmak yeni politika cümlesi DOĞURDU | 215 → 216 |
+
+Üçüncü tur kuralın kendisini de gösterdi: tavan 300'den 400'e
+çıkarılınca POL-062 kütükten SESSİZCE DÜŞTÜ — tavanı YÜKSELTMEK
+popülasyonu KÜÇÜLTÜYORDU. Düzenli ifade, sözcük çözümleyicisi gibi
+çalışan bir tarayıcıyla değiştirildi.
+
+Payda kör olduğunda oran HER ZAMAN iyi görünür. Bu yüzden bugün payda
+tek bir türeticiden değil, İKİ BAĞIMSIZ MEKANİZMADAN gelir: kaynağı
+okuyan türetici ve kaynağı HİÇ OKUMAYAN **DOM tanığı** — ürünü gerçek
+tarayıcıda gezip kullanıcıya görüneni toplar (`web/arac/dom-tanik.mjs`).
+Ayrışma kırmızıdır (`web/tests/bekci/dom-tanik.test.ts`, URN-TNK-001).
+Tanığın ekranda görüp kütükte bulamadığı, çalışma anında birleşen
+cümleler ayrı bir kütükte ölçümleriyle durur
+(`web/arac/dom-tanik-kutugu.json`) ve o kütük taban dala göre
+BÜYÜYEMEZ: körlüğü kütüğe taşımak yerine türetici genişletilir.
 
 **Boş durum SEBEBİNİ söyler ve ÇÖZÜME işaret eder (R-G).** Ekranın boş
 hâli, sistemin elindeki bilgiyi kullanmak zorundadır. Ölçüldü (kurulum
@@ -299,10 +346,28 @@ Tek toplam tavan yetmez — sıkı bir sınıfın borcunu gevşek bir sınıfın
 düzelmesiyle takas ettirir. Bugün her sınıfın kendi tavanı vardır:
 **ilk kurulum boşluğunda (`BosIlk` · `BosFiltre`) eylemsiz tavanı
 SIFIRDIR ve gerekçeli istisna kabul edilmez**; dolu bir ekranın içindeki
-bölüm notu (`satirIci`) ayrı bir sınıftır, tavanı ölçülendir ve **sahibi
-ile kapanış aşaması yazılmadan duramaz**. Popülasyonun kendisi de bir
-ölçüm tabanı taşır (`bos.durum`); testin içine sabit yazılmış bir taban,
-arada sessiz bir daralma penceresi bırakır.
+bölüm notu (`satirIci`) ayrı bir sınıftır ve tavanı ölçülendir.
+Popülasyonun kendisi de bir ölçüm tabanı taşır (`bos.durum`); testin
+içine sabit yazılmış bir taban, arada sessiz bir daralma penceresi
+bırakır.
+
+**ÜÇ SINIFTA DA EYLEMSİZ SAYISI SIFIRDA KİLİTLİ (R-G eki).** 11 Eylül
+2026'da `satirIci` borcu da kapandı: ölçüldü **125 boş durum · 124'ü iki
+ölçütü de karşılıyor · eylemsiz 0 · nedensiz 1** (tek nedensiz satır
+hesaplanan bir cümledir ve ölçümünü adıyla beyan ederek istisna
+listesinde durur). Sınıf dağılımı: `BosIlk` 74 · `BosFiltre` 1 ·
+`satirIci` 48 · `kosullu` 2. Popülasyon 126'dan 125'e İNDİ ve sebebi
+`olcum-tabani.json`a işlendi: paylaşılan `VeriTablosu` artık KENDİ boş
+durumunu yazmıyor — sebebini bilmediği bir boşluğa cümle uyduruyor ve
+hiçbir çağıranın doldurmadığı bir `bosEylem` yuvası taşıyordu
+(düzeltme turu · P1-2). `satirIci` için yazılı olan "sahibi ile kapanış
+aşaması" yolu artık TARİHTİR: borç sıfırlandığı için kütükte sahipli
+bir erteleme satırı yoktur ve yenisi açılamaz — eylemsiz bir boş durum,
+sınıfı ne olursa olsun kapıyı KIRMIZI yakar
+(`web/tests/bekci/bos-durum.test.ts` · EYLEMSİZ SIFIRDA KİLİTLİ).
+İYİ HABER boş durumu (17 satır) bu dişin dışındadır ve muafiyeti
+KODDAN gelir (`BosIlk iyiHaber` · `className="bos iyi"`), kütükten
+değil: işaret edeceği bir çözüm yoktur.
 
 Nedensiz olanlar cırcırdadır ve liste yalnız küçülür; türeticinin
 okuyamadığı hesaplanan cümle (fonksiyondan dönen metin) ancak
@@ -508,8 +573,10 @@ kapı eklendi ve altısı da o testte adıyla beyanlı — bölünmenin kendisi
 üçünü getirdi (derleme ortamı damgası · doğrulaması · `kapi:derleme-artefakti`),
 kalan altısı sonraki işlerde eklendi (`kanit:denetim-formu` ·
 `kapi:ithal-zinciri` · `kanit:bildirim-kaydi` · `kanit:bildirim-donemi` ·
-`kanit:kimlik` · `kanit:mevzuat-radari`). Ölçüm (10 Eyl 2026): 23 + 9 =
-**32 benzersiz komut, 33 adım** (bir komut iki ayrı ortamda koşuyor ve bu iki ayrı kapıdır). Sayı
+`kanit:kimlik` · `kanit:mevzuat-radari`) ve düzeltme turunda İKİ tane
+daha eklendi (`tanik:dom` · `kapi:dom-tanik` — ikinci popülasyon tanığı).
+Ölçüm (11 Eyl 2026): **36 benzersiz komut, 37 adım** (bir komut iki ayrı
+ortamda koşuyor ve bu iki ayrı kapıdır). Sayı
 elle sayılmaz, testte iki yönlü eşitlikle tutulur: kapı düşerse de,
 BEYANSIZ kapı eklenirse de kırmızı.
 

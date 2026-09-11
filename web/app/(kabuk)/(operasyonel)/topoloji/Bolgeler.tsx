@@ -1,5 +1,6 @@
 'use client';
 import { Im } from '@/components/kabuk/temel';
+import Link from 'next/link';
 import { Tuval } from '@/components/kabuk/grafik';
 import {
   Cekmece, CekmeceAlanlar, CekmeceBagli, CekmeceKimlik,
@@ -112,9 +113,12 @@ export function BolgeCekmecesi({ bolge, gecitler, kapat }: {
 
       <p className="etiket ab-panel-blokbas">Geçitler</p>
       {gecitler.length === 0 ? (
-        <p className="ab-dip" style={{ margin: 0 }}>
+        /* NE YAPMALIYIM: "yalıtılmış mı, ölçülmemiş mi" sorusunun cevabı
+           topoloji anlıklarındadır; çıkış oraya, bölge bağlamıyla gider. */
+        <p className="ab-dip bos" style={{ margin: 0 }}>
           Bu bölge için geçit kaydı yok. Bu &quot;yalıtılmış&quot; demek DEĞİLDİR;
-          geçit tanımı henüz kayda girmemiş de olabilir.
+          geçit tanımı henüz kayda girmemiş de olabilir.{' '}
+          <Link href="/topoloji">Topolojide incele</Link>
         </p>
       ) : (
         <ul className="ab-graf-gecitler">

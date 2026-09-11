@@ -26,6 +26,7 @@
 
 import { readdirSync, readFileSync, writeFileSync } from 'node:fs';
 import path from 'node:path';
+import { sebepBayragi, tabanDogrula, tabanYaz } from './olcum-tabani.mjs';
 
 const KOK = process.cwd();
 /* ── NE TARANIR, NE TARANMAZ · BEYANLI SINIR ──────────────────────────
@@ -43,12 +44,122 @@ const KOK = process.cwd();
 
    Sınır BURADA yazılıdır ki bir gün genişletilmek istendiğinde
    tartışılacak şey açık olsun. Ölçüm (10 Eyl 2026): app 85 ·
-   app+lib/eylemler2 119 · app+lib 293. */
-const TARANAN = ['app', 'lib/eylemler2'];
+   app+lib/eylemler2 119 · app+lib 293.
+
+   ── `components/` EKLENDİ (düzeltme turu · inceleme bulgusu P1-1 eki) ──
+   Boş durum türeticisi `['app','components']` tarıyordu; yani depo kendi
+   ölçümüyle `components/`i EKRAN yüzeyi sayıyor, politika türeticisi ise
+   onu beyansız dışarıda bırakıyordu. İki kütüğün aynı ürünün aynı
+   yüzeyleri için farklı evrenler kullanması, hangisinin doğru olduğunu
+   sormayı imkânsız kılar. Ölçüldü: `components/kabuk/temel.tsx`te ekrana
+   çıkan "`…` bağlayıcısı bu ortamda tanımlı değil; … bu yüzden
+   gösterilmez" cümlesi ne taranıyor ne sayılıyordu. */
+/* Cümle uzunluk sınırları TEK YERDE. İki ayrı yerde iki ayrı sayı
+   tutmak, DOM tanığının yakaladığı dördüncü körlüğü üretmişti. */
+export const CUMLE_TABANI = 25;
+export const CUMLE_TAVANI = 400;
+/* ── DİZE SABİTLERİ REGEXLE DEĞİL, TARAYICIYLA OKUNUR ────────────────
+   Eski kalıp `'([^'\\\n]{25,300})'|"..."|\`...\`` idi ve ÖRTÜŞME
+   TEHLİKESİ taşıyordu: alternatifler açgözlüdür, bir eşleşme kendinden
+   sonraki tırnakları YUTAR ve yutulan bölgedeki dize hiç görünmez.
+   Tehlike ölçüldü — tavan 300'den 400'e çıkarılınca POL-062
+   (`eyebrow="Platform sağlığı · reddedilen kayıtlar"`) kütükten SESSİZCE
+   düştü: daha uzun bir eşleşme onun bölgesini kapsamıştı. Yani tavanı
+   YÜKSELTMEK, ölçülen popülasyonu KÜÇÜLTÜYORDU.
+
+   Bugün dizeler bir sözcük çözümleyicisinin yapacağı gibi okunur:
+   açılış tırnağından KAPANIŞ tırnağına kadar, kaçış karakterleri
+   atlanarak; tarama kapanıştan SONRA devam eder. Sınır değiştiğinde
+   hangi dizelerin görüldüğü DEĞİŞMEZ — yalnız hangilerinin elendiği
+   değişir. */
+/* Türkçe KESME İŞARETİ bir tırnak DEĞİLDİR (düzeltme turu · tur 2 · P2-6).
+   `EPDK'nın` · `2024'te` · `TEİAŞ'ın` — JSX metninde kesme işareti
+   harften ya da rakamdan SONRA gelir; bir dize açılışı ise gelmez
+   (`foo'bar'` JavaScript'te sözdizimi hatasıdır). Tarayıcı bu ayrımı
+   yapmadığı için kesme işaretini açılış sayıyor, bir sonrakine kadar
+   olan bölgeyi "dize" okuyor ve o bölgeyi ATLIYORDU — arada başlayan
+   gerçek bir dize sessizce yutulabilirdi. Aynı sınıf tavan 300→400
+   yükseltmesinde ÖLÇÜLMÜŞTÜ (POL-062 kütükten düşmüştü); bu sefer
+   tetikleyici tavan değil, taranan 224 dosyada geçen Türkçe ekti. */
+const HARF_VEYA_RAKAM = /[\p{L}\p{N}]/u;
+
+export function kaynakDizeleri(kod, taban = CUMLE_TABANI, tavan = CUMLE_TAVANI) {
+  const cikan = [];
+  for (let i = 0; i < kod.length; i += 1) {
+    const q = kod[i];
+    if (q !== "'" && q !== '"' && q !== '`') continue;
+    if (q === "'" && i > 0 && HARF_VEYA_RAKAM.test(kod[i - 1])) continue;
+    let j = i + 1;
+    let kapandi = false;
+    while (j < kod.length) {
+      const c = kod[j];
+      if (c === '\\') { j += 2; continue; }
+      if (c === q) { kapandi = true; break; }
+      if (c === '\n' && q !== '`') break;   // tek/çift tırnak satır aşmaz
+      j += 1;
+    }
+    if (!kapandi) continue;                 // kapanmayan tırnak: atla, yutma
+    const govde = kod.slice(i + 1, j);
+    if (govde.length >= taban && govde.length <= tavan) cikan.push(govde);
+    i = j;                                  // tarama KAPANIŞTAN sonra sürer
+  }
+  return cikan;
+}
+
+/* ── TARANAN KÖKLER · BEYANLI SINIR ───────────────────────────────────
+   Kök listesi bir sınırdır ve sınır olduğu BURADA yazılıdır: ekran
+   bileşenleri (`app`, `components`) ve kullanıcıya dönen sunucu ret
+   gerekçeleri (`lib/eylemler2`). `lib`in tamamını taramak denendi ve
+   GERİ ALINDI: popülasyon 213 → 418'e çıkıyordu ve gelen satırların
+   ezici çoğunluğunu tanık hiçbir ekranda GÖRMEMİŞTİ — yani ölçüt
+   "ekranın politika cümlesi" değil "kaynakta politika gibi duran her
+   dize" hâline geliyordu. Bir turda 205 satırı aceleyle ölçmek, bu
+   deponun kaçındığı şeyin ta kendisidir.
+
+   SINIRIN BEKÇİSİ TÜRETİCİ DEĞİL, TANIKTIR: `lib` içindeki bir cümle
+   gerçekten ekrana çıkıyorsa DOM tanığı onu görür ve kütükte
+   bulamayınca `tests/bekci/dom-tanik.test.ts` KIRMIZI yanar. Kapsamı
+   varsayımla değil ÖLÇÜMLE genişletmenin yolu budur. */
+const TARANAN = ['app', 'components', 'lib/eylemler2'];
 const KUTUK = path.join(KOK, 'arac', 'politika-cumleleri.json');
 
-/** İddiayı SİSTEME bağlayan sözcük. */
-export const OZNE = /\b(bu ekran|bu kutu|bu liste|bu kurulum\w*|bu ortam\w*|bu sayfa|bu aktarım|sunucu|motor|kütük|ürün|sistem|platform|kayıt|kayıtlar|kapsam|yetki\w*|hiçbir|otomatik|denetim izi|iz)\b/iu;
+const HARF = '\\p{L}';
+const SOZCUK_BASI = `(?<![${HARF}])`;
+const SOZCUK_SONU = `(?![${HARF}])`;
+
+/* ── ÖZNE DE ASCII `\b` KULLANIYORDU (bağımsız inceleme · tur 2 · P1-1) ─
+   `YUKLEM` ve sınıf kalıpları Türkçe harf sınırına çevrilmişti; ÖZNE
+   atlanmıştı ve kusur aynıydı: `\b` ASCII'dir, Türkçe harfle BAŞLAYAN ya
+   da BİTEN bir alternatifte sözcük sınırı hiç kurulmaz. Ölçüldü:
+
+     /\bürün\b/iu.test('Ürün bu engeli aşmaz')  → false
+
+   Sonuç: içlerinde CLAUDE.md'nin S1'i TANIMLARKEN kullandığı arketip de
+   vardı — "Bu ürün OT ağında aktif tarama YAPMAZ." Yani "S1 tavanı 0 ·
+   yedinci diş" kilitlerinin hepsi o cümlenin ÜSTÜNDEN atlıyordu.
+
+   ── BEYANLI SINIR: GÖVDE GENİŞLETMESİ YAPILMADI ──────────────────────
+   İncelemeci gövdeleri KÖK hâline getirmeyi de önerdi (`kütük|kütüğ`,
+   `kayıt|kayd`, ardından serbest ek). ÖLÇÜLDÜ ve BU TURDA YAPILMADI:
+
+     bugün (ASCII `\b`)                    216 satır
+     yalnız Türkçe sınır (bu düzeltme)     220 satır   (+4)
+     gövde + serbest ek                    325 satır   (+109)
+
+   Gövde genişletmesi 105 satırlık yeni bir popülasyon açar ve bu
+   kütüğün yedinci dişi SIFIRDA KİLİTLİ: her satır gerçek yol ölçümüyle
+   gelmek zorunda. Yüz satırı bir turda aceleyle ölçmek, bu deponun
+   kaçındığı şeyin ta kendisidir — aynı gerekçe `TARANAN` kökleri için de
+   yazılı. Sınırın BEKÇİSİ türetici değil TANIKTIR: çekimli bir özne
+   taşıyan cümle gerçekten ekrana çıkıyorsa DOM tanığı onu görür ve
+   kütükte bulamayınca `tests/bekci/dom-tanik.test.ts` KIRMIZI yanar.
+
+   R0 kütüğüne SAHİBİ ve KAPANIŞ AŞAMASIYLA yazıldı (R0-23). */
+export const OZNE = new RegExp(
+  `${SOZCUK_BASI}(bu ekran|bu kutu|bu liste|bu kurulum\\w*|bu ortam\\w*`
+  + `|bu sayfa|bu aktarım|sunucu|motor|kütük|ürün|sistem|platform`
+  + `|kayıt|kayıtlar|kapsam|yetki\\w*|hiçbir|otomatik|denetim izi|iz)${SOZCUK_SONU}`,
+  'iu');
 
 /** Sistemin ne yapacağı/yapmayacağı.
  *
@@ -63,9 +174,6 @@ export const OZNE = /\b(bu ekran|bu kutu|bu liste|bu kurulum\w*|bu ortam\w*|bu s
  *
  * Bugün harf sınıfı `\p{L}` ile kurulur ve sözcük sınırı `\b` yerine
  * harf-olmayan bakışlarla (`(?<![\p{L}])`) verilir: `\b` de ASCII'dir. */
-const HARF = '\\p{L}';
-const SOZCUK_BASI = `(?<![${HARF}])`;
-const SOZCUK_SONU = `(?![${HARF}])`;
 export const YUKLEM = new RegExp(
   `(${SOZCUK_BASI}[${HARF}]+m[ae]z${SOZCUK_SONU}`
   + `|${SOZCUK_BASI}[${HARF}]+[ae]m[ae]z(siniz)?${SOZCUK_SONU}`
@@ -129,13 +237,86 @@ export function politikaMi(s) {
 
    Sıra bağlayıcıdır: bir cümle hem yetki hem değişmez işareti
    taşıyorsa S1 kazanır — sınıflandırma GÜVENLİ TARAFA yanılır. */
-export const S1_KALIBI = /\byetki\w*|\bkapsam\w*|\byalnız SİZE\b|\bsır\b|\bMFA\b|dört göz|onaylayamaz|ağa .*paket|\btara(maz|nmaz|mıyor)\b|salt okunur|\bgöremez\b|\bgiremez\b|\bokuyucu\b|\bdemo hesab/iu;
-export const S2_KALIBI = /\bsilinmez\b|\bsilmez\b|\bdeğiştirilemez\b|\bdeğiştirmez\b|\bmotor\b|\bsunucu\b|aktifleştir\w*|uydur\w*|\barşiv\w*|\bdokunmaz\b|\byazmaz\b|\byazılmaz\b|\byazılamaz\b|\bkaydedilmez\b|\bgüncellenmez\b|\bkesmez\b|\büretmez\b|geri alınamaz|\bgizlenmez\b|\breddeder\b/iu;
+/* ── `\b` ASCII'DİR — SINIF KALIPLARINDA DA (bağımsız inceleme · tur 1) ──
+   Dosyanın üst kısmında YUKLEM için bir kez ölçülüp düzeltilen kusur,
+   SINIF kalıplarına uygulanmamıştı: `\bsır\b` "sırrının" içindeki `sır`ı
+   tutmaz (ardından `r` gelir, ASCII sözcük sınırı oluşmaz) ve
+   `\bgöremez\b` "görünmez"i hiç görmez. Ölçüldü: POL-118 — "İstemci
+   sırrının DEĞERİ hiçbir ekranda görünmez" — bir SIR SIZINTISI iddiası
+   olduğu hâlde S3 sayılıyordu; yani S1'in sıfır tavanı ve "S1'de istisna
+   yok" dişi onun üzerinden ATLIYORDU. Sınıflandırmanın GÜVENLİ TARAFA
+   yanıldığı iddiası bu hâliyle yanlıştı.
+
+   Sözcük sınırı bugün Unicode harf sınıfıyla kurulur; Türkçe ekler
+   (sır-rının · gör-ünmez) artık kalıbın dışında kalmaz. */
+const H = '(?<![\\p{L}])';   /* sol Unicode sözcük sınırı */
+const S = '(?![\\p{L}])';    /* sağ Unicode sözcük sınırı */
+export const S1_KALIBI = new RegExp(
+  `${H}yetki|${H}kapsam|${H}yalnız SİZE${S}|${H}sır|${H}MFA${S}|dört göz`
+  + `|onaylayama|ağa .*paket|${H}tara(maz|nmaz|mıyor)|salt okunur`
+  + `|${H}gör(emez|ünmez|ünemez)|${H}gir(emez|ilemez)|${H}okuyucu${S}`
+  + `|${H}demo hesab|${H}loglanmaz|${H}tutulmaz${S}`
+  /* SIR AİLESİ: token · parola · kimlik bilgisi de sır DEĞERİDİR ve
+     sızıntısı S1'dir. Kalıpta yoklardı — "Token hiçbir yanıtta geri
+     dönmez." S3 sayılıyordu (bağımsız inceleme · tur 1). */
+  + `|${H}token|${H}parola|${H}kimlik bilgisi`,
+  'iu',
+);
+export const S2_KALIBI = new RegExp(
+  `${H}silinmez${S}|${H}silmez${S}|${H}değiştirilemez${S}|${H}değiştirmez${S}`
+  + `|${H}motor|${H}sunucu|aktifleştir|uydur|${H}arşiv|${H}dokunmaz${S}`
+  + `|${H}yazmaz${S}|${H}yazılmaz${S}|${H}yazılamaz${S}|${H}kaydedilmez${S}`
+  + `|${H}güncellenmez${S}|${H}kesmez${S}|${H}üretmez${S}|geri alınamaz`
+  + `|${H}gizlenmez${S}|${H}reddeder${S}`,
+  'iu',
+);
 
 export function sonucSinifi(cumle) {
   if (S1_KALIBI.test(cumle)) return 'S1';
   if (S2_KALIBI.test(cumle)) return 'S2';
   return 'S3';
+}
+
+/* Satır içi (metni BÖLMEYEN) etiketler: bunlar bir cümlenin ortasında
+   durur ve cümleyi ikiye ayırmaz. Blok etiketleri (`p`, `div`, `li`…)
+   ayırır ve ayrı cümle sayılır. */
+const SATIR_ICI = /<\/?(?:b|strong|em|i|u|code|abbr|small|sup|sub|mark|span|a|Link|Im|Rozet)\b[^>]*>/g;
+
+/** Dengeli `{…}` ifadelerini boşluğa çevirir — iç içe süsleri de sayar. */
+export function suslulariAt(metin) {
+  let cikan = '';
+  let derinlik = 0;
+  for (const ch of metin) {
+    if (ch === '{') { derinlik += 1; continue; }
+    if (ch === '}') { derinlik = Math.max(0, derinlik - 1); cikan += ' '; continue; }
+    if (derinlik === 0) cikan += ch;
+  }
+  return cikan;
+}
+
+/**
+ * JSX gövdelerindeki STATİK metinler.
+ *
+ * Kalıp bir metin düğümü değil, BİR BLOK GÖVDESİ alır: açılış etiketinin
+ * `>`sinden bir sonraki blok sınırına kadar. Satır içi etiketler ve
+ * `{…}` ifadeleri boşluğa çevrilir; böylece `…erişim vermez{' '}` ile
+ * `…erişim <strong>vermez</strong>` aynı cümleyi verir.
+ */
+export function jsxMetinleri(kod) {
+  const cikan = [];
+  /* Blok sınırı: bir blok etiketinin açılışı ya da kapanışı. */
+  const blok = /<\/?(?:p|div|li|ul|ol|td|th|tr|table|section|article|aside|h[1-6]|summary|details|figcaption|label|button|form|option|BosIlk|BosFiltre|Alan|Dugme|VeriTablosu)\b/;
+  for (const m of kod.matchAll(/>([^<]*(?:<(?!\/?(?:p|div|li|ul|ol|td|th|tr|table|section|article|aside|h[1-6]|summary|details|figcaption|label|button|form|option|BosIlk|BosFiltre|Alan|Dugme|VeriTablosu)\b)[^<]*)*)/g)) {
+    const ham = m[1];
+    if (!ham || blok.test(ham)) continue;
+    const cumle = suslulariAt(ham.replace(SATIR_ICI, ' '))
+      .replace(/<[^>]*>/g, ' ')
+      .replace(/\s+/g, ' ')
+      .trim();
+    if (cumle.length < CUMLE_TABANI || cumle.length > CUMLE_TAVANI) continue;
+    cikan.push(cumle);
+  }
+  return cikan;
 }
 
 export function turet() {
@@ -150,8 +331,48 @@ export function turet() {
       if (!/\.(tsx|ts)$/.test(f) || /\.test\.tsx?$/.test(f)) continue;
       const rel = `${kok}/${f}`;
       const kod = bitisikleriBirlestir(yorumsuz(readFileSync(path.join(KOK, rel), 'utf8')));
-      for (const m of kod.matchAll(/'([^'\\\n]{25,300})'|"([^"\\\n]{25,300})"|`([^`\\]{25,300})`/g)) {
-        const cumle = (m[1] ?? m[2] ?? m[3]).trim();
+      /* ── DÖRDÜNCÜ KÖRLÜK (DOM tanığı bulgusu) ────────────────────────
+         Tavan 300 karakterdi ve bu bir ÖLÇÜ DEĞİL, bir varsayımdı:
+         "politika cümlesi uzun olmaz". `/yardim` ekranının 337
+         karakterlik "Kapanış bir DOĞRULAMA kapısıdır…" cevabı
+         `politikaMi`den GEÇİYOR ama tavana takılıp hiç türetilmiyordu —
+         ekranda duran, kullanıcının okuduğu bir yetki iddiası.
+         Tanık onu DOM'da gördü, kütükte bulamadı.
+
+         Tavan `CUMLE_TAVANI`ye bağlandı; `jsxMetinleri` zaten aynı
+         sayıyı kullanıyor ve iki yerde iki farklı sayı olması bu
+         körlüğü ilk etapta üreten şeydi. */
+      for (const ham of kaynakDizeleri(kod)) {
+        const cumle = ham.trim();
+        if (!politikaMi(cumle)) continue;
+        if (!cikan.some((c) => c.cumle === cumle)) cikan.push({ yer: rel, cumle });
+      }
+      /* ── DÜZ JSX METNİ DE TARANIR (bağımsız inceleme · Brief L tur 1) ──
+         Tırnaklı dize sabitleri evrenin TAMAMI değildi: ekranda duran
+         `<p>Kullanıcı oluşturmak erişim vermez: yetki ayrı verilir…</p>`
+         gibi TIRNAKSIZ metin düğümleri türeticinin görüş alanının
+         dışındaydı.
+
+         ── ÜÇÜNCÜ KÖRLÜK (düzeltme turu · inceleme bulgusu P1-1) ────────
+         İlk yazım `>([^<>{}]{25,300})<` kalıbını kullanıyordu ve karakter
+         sınıfı `{` ile `}`yi DIŞLADIĞI için, bir metin düğümünde TEK bir
+         `{…}` ifadesi ya da TEK bir satır içi etiket (`<b>`, `<strong>`)
+         varsa O DÜĞÜMDEKİ BÜTÜN METİN düşüyordu — ifadenin kendisi değil,
+         YANINDAKİ TAM STATİK CÜMLE. Beyan edilen sınır ("değerler çalışma
+         anında doğar") atılan şeyi yanlış anlatıyordu.
+
+         Ölçüldü: bu depoda `{t('tesis')}` · `{' '}` · `{sayi}` egemen
+         stil; 17 tam statik politika cümlesi (8'i S1) bu yüzden paydanın
+         dışında kalmıştı. "175/175 ölçüldü" oranı, kendi düzelttiğini
+         iddia ettiği kusurla kör kalmıştı.
+
+         Bugün metin düğümü DÜĞÜM OLARAK okunur: bir açılış etiketinin
+         `>`si ile bir sonraki KAPANIŞ/BLOK etiketi arasındaki gövde
+         alınır, içindeki `{…}` ifadeleri ve SATIR İÇİ etiketler
+         boşluğa çevrilir, kalan statik metin cümledir. Beyanlı sınır
+         daralır ve doğrulaşır: atılan şey yalnız ifadenin KENDİ
+         DEĞERİDİR, çevresindeki cümle değil. */
+      for (const cumle of jsxMetinleri(kod)) {
         if (!politikaMi(cumle)) continue;
         if (!cikan.some((c) => c.cumle === cumle)) cikan.push({ yer: rel, cumle });
       }
@@ -233,9 +454,82 @@ export function yeniSatirKusurlari(satirlar, tabanCumleleri) {
   return kusur;
 }
 
+/* ═══════════════════════════════════════════════════════════════════════
+   KAÇIŞ KAPISININ KENDİSİ · SAF KARAR
+
+   Yedi dişin yedisi de aynı süzgeçle başlar: `s.sinif === 'POLITIKA'`.
+   Ama `sinif` ELLE yazılır. Bu, kilidi bir SAYI değil bir ETİKET
+   değiştirerek gevşetmeye açıktı ve açık ölçüldü: `IDDIA_DEGIL` yazıp
+   yeterince uzun bir gerekçe eklemek yediyi birden atlatıyordu.
+
+   Üç kusur ayrı ayrı sayılır; sayıya bakan TEK bir cırcır yanlış olurdu:
+   türetici genişleyince kütüğe yeni İDDİA OLMAYAN satırlar da girer ve
+   salt sayıya bakan bir diş, KÖRLÜĞÜ DÜZELTMEYİ cezalandırırdı.
+
+   (a) SESSİZ İNDİRME — tabanda POLITIKA olan satır bu dalda IDDIA_DEGIL
+       olamaz. Kaçış kapısının gerçek kullanımı budur.
+   (b) ZAYIF YENİ — tabanda olmayan bir IDDIA_DEGIL satırı, neden iddia
+       OLMADIĞINI kusur asgarisi kadar uzun anlatmak zorundadır.
+   (c) YENİ S1 KAÇIŞI — cümlesi S1 TÜRETEN yeni bir satır IDDIA_DEGIL
+       olamaz. Altıncı dişle simetriktir: orada "S1'de gerekçeli istisna
+       kabul edilmez" yazılıydı, ama diş `sinif === 'POLITIKA'` süzgecinin
+       ARKASINDAYDI — yani etiketi değiştiren kişi dişin önüne hiç
+       gelmiyordu. Sınıf kütükten DEĞİL cümleden türetilir; elle verilen
+       etiket burada delil değil, iddianın kendisidir.
+
+   (c)'ye `kapanisAsamasi`/`sahip` zorunluluğu EKLENMEDİ ve sebebi şudur:
+   IDDIA_DEGIL bir ERTELEME değildir, bir SINIFLANDIRMADIR — ölçülecek
+   bir şey yoktur, dolayısıyla kapanacak bir aşama da yoktur. Oraya bir
+   aşama yazmak, hiçbir zaman gelmeyecek bir tarih yazmaktır; "süresiz
+   beyan yoktur" kuralını güçlendirmez, anlamsızlaştırır. Yeni S1
+   satırının kaçışı ERTELENMEZ, YASAKLANIR.
+
+   Fonksiyon SAF: taban sınıf eşlemesi dışarıdan verilir.
+ *
+ * @param {Array} satirlar bugünkü kütüğün satırları
+ * @param {Map<string,string>} tabanSinif taban daldaki cümle → sınıf
+ * @returns {string[]} kusur açıklamaları; boş dizi = temiz
+ */
+export function kacisKapisiKusurlari(satirlar, tabanSinif) {
+  const kusur = [];
+  for (const s of satirlar) {
+    if (s.sinif !== 'IDDIA_DEGIL') continue;
+    if (tabanSinif.get(s.cumle) === 'POLITIKA') {
+      kusur.push(`${s.kod}: tabanda POLITIKA idi, bu dalda IDDIA_DEGIL`);
+      continue; /* İndirmenin kendisi kusur: gerekçesine bakmaya gerek yok. */
+    }
+    if (tabanSinif.has(s.cumle)) continue; /* ESKİ ve zaten IDDIA_DEGIL */
+    if (sonucSinifi(s.cumle) === 'S1') {
+      kusur.push(`${s.kod}: YENİ satırın cümlesi S1 TÜRETİYOR — `
+        + 'IDDIA_DEGIL etiketi S1 kaçışı olamaz');
+      continue;
+    }
+    if ((s.gerekce ?? '').trim().length < GEREKCE_ASGARI) {
+      kusur.push(`${s.kod}: YENİ IDDIA_DEGIL, gerekçe ${GEREKCE_ASGARI} karakterden kısa`);
+    }
+  }
+  return kusur;
+}
+
 /* Doğrudan koşulduğunda: türet ve raporla. */
 if (import.meta.url === `file://${process.argv[1]}`) {
   const bulunan = turet();
+  /* ── ÖLÇÜM TABANI · P1-4 ──────────────────────────────────────────────
+     Taban 131'de KALMIŞTI; ölçülen 215'ti. Aradaki 84 satırlık pencere,
+     türeticinin sessizce daralması için açık bir kapıydı: kütük yarıya
+     inse bile taban "geçti" derdi. Kapının kendi kütüğünü yazan aracı,
+     tabanı da yazmalı — yoksa taban ancak elle güncellenir ve elle
+     güncellenen bir taban güncellenmez.
+
+     Taban bu araçtan İNDİRİLEMEZ de: `yazimKarari` düşüş için 40
+     karakterlik bir gerekçe ister ve gerekçe DOSYAYA yazılır. */
+  if (process.argv.includes('--taban-yaz')) {
+    const { onceki, yeni } = tabanYaz('politika.cumle', bulunan.length,
+      { sebep: sebepBayragi(process.argv) });
+    console.log(`taban yazıldı: politika.cumle ${onceki ?? '—'} → ${yeni}`);
+  } else {
+    tabanDogrula('politika.cumle', bulunan.length);
+  }
   const yaz = process.argv.includes('--yaz');
   if (yaz) {
     const eski = (() => { try { return kutuguOku(); } catch { return { satirlar: [] }; } })();

@@ -520,9 +520,11 @@ export default function TezgahIstemci({
               {filtreAktif ? <BosFiltre temizle={temizle} /> : (
                 <BosIlk
                   cumle={isKipi
-                    ? 'Kuyrukta bekleyen görev ya da onay talebi yok.'
+                    ? 'Kuyrukta bekleyen görev ya da onay talebi yok: '
+                      + 'motorlar bu kapsamda açılacak bir iş üretmedi.'
                     : tanimKipi
-                      ? 'Tanım kataloglarında kayıt yok.'
+                      ? 'Tanım kataloglarında kayıt yok: sektör paketi henüz '
+                        + 'kurulmamış ya da katalogları boş geldi.'
                       : 'Dış API için üretilmiş anahtar yok — anahtar seed edilmez, '
                         + 'bir kişinin bilerek ürettiği kayıttır.'}
                   eylem={isKipi && gorevAcabilir

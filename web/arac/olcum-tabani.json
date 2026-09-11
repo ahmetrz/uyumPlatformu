@@ -23,7 +23,18 @@
     "gezinme.bant": 7,
     "tasma.olcum": 144,
     "axe.tarama": 216,
-    "bos.durum": 95,
-    "politika.cumle": 131
+    "bos.durum": 125,
+    "politika.cumle": 220,
+    "tanik.rota": 65,
+    "tanik.cumle": 43,
+    "tanik.bosDurum": 16
+  },
+  "dususler": {
+    "bos.durum": {
+      "eski": 126,
+      "yeni": 125,
+      "sebep": "VeriTablosu artık KENDİ boş durumunu yazmıyor: sebebini bilmediği bir boşluğa cümle uyduruyordu (tablo süzgeçsiz de boş olabilir). Kap çağıranın cümlesini taşıyor ve sınıf adında bos sözcüğü yok; ölçüm ÇAĞIRANIN yerinde yapılır. Yüzey silindi, körlük değil.",
+      "tarih": "2026-09-11"
+    }
   }
 }

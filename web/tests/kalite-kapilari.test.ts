@@ -1,4 +1,6 @@
 import { describe, expect, it } from 'vitest';
+import { readFileSync, readdirSync } from 'node:fs';
+import path from 'node:path';
 import {
   KIRPILMA_TOLERANSI, altinDosyaAdi, axeCiddiMi, axeKimlikBicimi, axeOzeti, borcAnahtari,
   borcSuzgeci, ciMi, circirKarari, enDistakiKirpilmalar, esikAltindakiler, gorselFark,
@@ -620,5 +622,55 @@ describe('axe hedef kimliği · yapısal', () => {
 
   it('ayrıştırma yoksa rapor boştur', () => {
     expect(ayristirilanHedefler([{ yol: 'a', sira: 1 }])).toEqual([]);
+  });
+});
+
+/* ═══════════════════════════════════════════════════════════════════════
+   TARAYICILI KANIT KAPILARINDA SABİT İDDİA YASAKTIR [SIS-KAP-004]
+
+   ── ÖLÇÜLEN KUSUR (düzeltme turu · tur 2 · P2-5) ──────────────────────
+   `kaydet(bant, 'referans alanı açıldı', true)` — rapora "geçti" yazan,
+   hiçbir şey ölçmeyen bir satır. Üstündeki `waitFor` düşerse koşum zaten
+   patlar; düşmezse bu satır HER hâlde yeşil yanar. Rapora bakan insan
+   ölçülmüş bir iddia ile ölçülmemiş bir cümleyi ayırt edemez.
+
+   Üç dosyada BEŞ tane vardı ve hiçbiri elle yakalanmamıştı; bu yüzden
+   kural bir kapıya bağlandı.
+
+   ── SABİT `false` YASAK DEĞİLDİR — ÖLÇÜLDÜ ────────────────────────────
+   İlk yazım `false`u da yasaklıyordu ve kapı KIRMIZI yandı: altı satır
+   çıktı (`mevzuat-radari-kanit.mjs` ×3 · `veri-koruma-kanit.mjs` ×3).
+   Üçü de okundu ve hepsi AYNI biçimdeydi — bulunamama dalında duran
+   `else { kaydet(..., false, 'satır yok') }`. Ölçüm o satırda değil,
+   üstündeki sayımda yapılmıştır; satır yalnız ölçülen OLUMSUZ sonucu
+   rapora yazar. Asimetri de bunu söyler: sabit `true` bir kusuru
+   SAKLAR, sabit `false` olsa olsa yanlış alarm üretir ve yanlış alarmı
+   ilk koşumda gören olur. Kural bu yüzden yalnız `true`yu yasaklar.
+   ═══════════════════════════════════════════════════════════════════════ */
+describe('kanıt kapıları SABİT İDDİA taşımaz [SIS-KAP-004]', () => {
+  const ARAC = path.resolve(__dirname, '../arac');
+  const dosyalar = readdirSync(ARAC)
+    .filter((a) => a.endsWith('.mjs'))
+    .map((a) => ({ ad: a, kod: readFileSync(path.join(ARAC, a), 'utf8') }))
+    .filter((x) => /\bkaydet\(/.test(x.kod));
+
+  it('TARAMA BOŞ DEĞİL — `kaydet` çağıran kapı var [SIS-KAP-004]', () => {
+    /* Sıfır dosya tarayan bir kapı, sıfır kusur bulur ve yeşil yanar. */
+    expect(dosyalar.length, '`kaydet` çağıran hiçbir araç bulunamadı — '
+      + 'tarama bozuldu, bu kapı artık hiçbir şey ölçmüyor')
+      .toBeGreaterThanOrEqual(3);
+  });
+
+  it('hiçbir `kaydet` çağrısı SABİT `true` geçmiyor [SIS-KAP-004]', () => {
+    const kusur: string[] = [];
+    for (const d of dosyalar) {
+      d.kod.split('\n').forEach((satir, i) => {
+        if (/\bkaydet\([^)]*,\s*true\s*[,)]/.test(satir)) {
+          kusur.push(`${d.ad}:${i + 1} → ${satir.trim().slice(0, 90)}`);
+        }
+      });
+    }
+    expect(kusur, `SABİT iddia — rapora "geçti" yazar, hiçbir şey ölçmez:\n${kusur.join('\n')}`)
+      .toEqual([]);
   });
 });

@@ -1,5 +1,6 @@
 'use client';
 import { useCallback, useEffect, useState, useTransition } from 'react';
+import Link from 'next/link';
 import { Alan, Dugme, Im } from '@/components/kabuk/temel';
 import { CekmeceEylemler } from '@/components/kabuk/panel';
 import { useEylem } from '@/components/useEylem';
@@ -353,8 +354,12 @@ function KapsamAlani({ c }: { c: ConnectorSagligi }) {
 
       <div style={{ display: 'grid', gap: 'var(--s6)' }}>
         {gorunum.secenekler.length === 0 && (
-          <p style={{ margin: 0, fontSize: 'var(--t-field)', color: 'var(--md)' }}>
-            Tanımlı tesis yok.
+          /* NEDEN + NE YAPMALIYIM: kapsam seçilemiyorsa sebebi connector
+             değil, TANIM eksikliğidir; çözüm tanım ekranındadır. */
+          <p className="bos" style={{ margin: 0, fontSize: 'var(--t-field)', color: 'var(--md)' }}>
+            Tanımlı tesis yok — kapsam seçilemez ve connector kurum geneli
+            çalışır; önce kapsam öğesi tanımlanmalı.{' '}
+            <Link href="/yonetim-tezgahi?bolum=tanim">Tanımlara git</Link>
           </p>
         )}
         {gorunum.secenekler.map((t) => (

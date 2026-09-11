@@ -343,8 +343,15 @@ export default function UyumIstemci({
             </p>
           </div>
         ) : gorunur.length === 0 ? (
-          <p style={{ color: 'var(--i3)', fontSize: 13 }}>
-            Bu çerçevede uygulanabilir kontrol bulunmuyor.
+          /* NEDEN + NE YAPMALIYIM: "uygulanabilir kontrol yok" bir uyum
+             sonucu DEĞİLDİR — uygulanabilirlik kararı ya hiç verilmemiş ya
+             da hepsi kapsam dışı bırakılmıştır. İkisi de düzeltilebilir ve
+             kararın verildiği yer çerçeve ekranıdır. */
+          <p className="bos" style={{ color: 'var(--i3)', fontSize: 13 }}>
+            Bu çerçevede uygulanabilir kontrol bulunmuyor — ya uygulanabilirlik
+            kararı hiç verilmedi ya da maddelerin tamamı kapsam dışı bırakıldı;
+            ikisi de &quot;uyumlu&quot; demek değildir.{' '}
+            <Link href="/regulasyonlar">Çerçeveyi aç</Link>
           </p>
         ) : (
           <UyumMatrisi
@@ -411,9 +418,18 @@ function EgilimSeridi({ noktalar, surecVar, bugun }: {
       </div>
 
       {!surecVar ? (
-        <p className="cumle bos">Bu çerçevenin yürüyen uyum süreci yok — eğilim tutulmuyor.</p>
+        <p className="cumle bos">
+          Bu çerçevenin yürüyen uyum süreci yok — eğilim tutulmuyor.
+          {/* Eğilim SÜREÇTEN doğar; süreç `/surecler`de açılır. */}
+          <Link href="/surecler" className="ab-dugme satir">Uyum süreci aç</Link>
+        </p>
       ) : noktalar.length === 0 ? (
-        <p className="cumle bos">Henüz anlık görüntü yok — ilk anlık motor çalışınca düşer.</p>
+        <p className="cumle bos">
+          Henüz anlık görüntü yok — ilk anlık motor çalışınca düşer.
+          {/* Anlığı MOTOR üretir, bu ekran değil. Çıkış motor yüzeyine gider;
+              "motor önerir, insan karar verir" — burada tetikleme yok. */}
+          <Link href="/saglik" className="ab-dugme satir">Motor durumunu gör</Link>
+        </p>
       ) : (
         <figure className="cizim">
           <svg

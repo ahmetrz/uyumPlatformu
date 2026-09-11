@@ -1,7 +1,7 @@
 {
-  "imza": "88838e83fde1bc15848c26650c872450",
-  "dosya": 238,
-  "vaka": 4259,
+  "imza": "22617b527ce9123f60751674f00d9593",
+  "dosya": 246,
+  "vaka": 4424,
   "atlanan": 1,
   "dosyalar": {
     "tests/adaptor-yetenekleri.test.ts": {
@@ -45,7 +45,7 @@
       "atlanan": 0
     },
     "tests/bekci/bos-durum.test.ts": {
-      "vaka": 22,
+      "vaka": 24,
       "atlanan": 0
     },
     "tests/bekci/cekirdek-taban.test.ts": {
@@ -58,6 +58,10 @@
     },
     "tests/bekci/disa-aktarim-kapsami.test.ts": {
       "vaka": 10,
+      "atlanan": 0
+    },
+    "tests/bekci/dom-tanik.test.ts": {
+      "vaka": 15,
       "atlanan": 0
     },
     "tests/bekci/ek-eklemesi.test.ts": {
@@ -92,6 +96,10 @@
       "vaka": 19,
       "atlanan": 0
     },
+    "tests/bekci/olu-bag.test.ts": {
+      "vaka": 10,
+      "atlanan": 0
+    },
     "tests/bekci/ortam-semasi.test.ts": {
       "vaka": 8,
       "atlanan": 0
@@ -101,7 +109,7 @@
       "atlanan": 0
     },
     "tests/bekci/politika-olcumu.test.ts": {
-      "vaka": 33,
+      "vaka": 45,
       "atlanan": 0
     },
     "tests/bekci/radar-agsiz.test.ts": {
@@ -413,7 +421,7 @@
       "atlanan": 0
     },
     "tests/kalite-kapilari.test.ts": {
-      "vaka": 85,
+      "vaka": 87,
       "atlanan": 0
     },
     "tests/kanit-kapsam.test.ts": {
@@ -716,8 +724,32 @@
       "vaka": 5,
       "atlanan": 0
     },
+    "tests/politika-s1-ekran.test.ts": {
+      "vaka": 22,
+      "atlanan": 0
+    },
+    "tests/politika-s2-degismez.test.ts": {
+      "vaka": 21,
+      "atlanan": 0
+    },
     "tests/politika-s2-eylem.test.ts": {
       "vaka": 28,
+      "atlanan": 0
+    },
+    "tests/politika-s3-demo-ikizleri.test.ts": {
+      "vaka": 6,
+      "atlanan": 0
+    },
+    "tests/politika-s3-ekran.test.ts": {
+      "vaka": 30,
+      "atlanan": 0
+    },
+    "tests/politika-s3-eylem.test.ts": {
+      "vaka": 15,
+      "atlanan": 0
+    },
+    "tests/politika-tanik-acilan.test.ts": {
+      "vaka": 30,
       "atlanan": 0
     },
     "tests/politika-yetki-kapilari.test.ts": {

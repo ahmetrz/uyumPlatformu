@@ -336,7 +336,8 @@ export default function KonsolIstemci({ veri }: { veri: KonsolVerisi }) {
                     <BosIlk
                       iyiHaber={!arama}
                       cumle={arama
-                        ? 'Aramayla eşleşen kayıt yok.'
+                        ? 'Aramayla eşleşen kayıt yok: aramayı temizleyince '
+                          + 'katalogdaki tüm kayıtlar geri gelir.'
                         : 'Bu katalogda kayıt yok — motor koddaki varsayılanı okur.'}
                       eylem={arama
                         ? <Dugme onClick={() => setArama('')}>Aramayı temizle</Dugme>
@@ -362,8 +363,19 @@ export default function KonsolIstemci({ veri }: { veri: KonsolVerisi }) {
                       placeholder="Hedef, kişi ya da gerekçede ara" aria-label="Talep ara" />
                   </div>
                   {talepSatirlari.length === 0
+                    /* Bayrak KOŞULLU: "Tümü" merceğinde bu boşluk iyi
+                       haber DEĞİLDİR ve çıkışını vermek zorundadır
+                       (inceleme tur 2 · P1-2). */
                     ? <BosIlk iyiHaber={talepMercek === 'acik'}
-                      cumle={talepMercek === 'acik' ? 'Açık talep yok.' : 'Talep kaydı yok.'} />
+                      cumle={talepMercek === 'acik'
+                        ? 'Açık talep yok: bu hedefte incelemeyi bekleyen bir '
+                          + 'değişiklik talebi bulunmuyor.'
+                        : 'Talep kaydı yok: bu hedef için hiç değişiklik talebi '
+                          + 'açılmamış — ayarlar doğrudan yazılmış olabilir.'}
+                      eylem={talepMercek === 'acik' ? undefined
+                        : <Dugme onClick={() => setTalepMercek('acik')}>
+                          Açık taleplere dön
+                        </Dugme>} />
                     : <Tablo kolonlar={TALEP_KOLONLARI} satirlar={talepSatirlari} konuBasligi="Talep" sik
                       secili={secili} sec={(id) => setSecili((s) => (s === id ? null : id))} />}
                 </>
@@ -384,7 +396,11 @@ export default function KonsolIstemci({ veri }: { veri: KonsolVerisi }) {
                     ? (
                       <BosIlk
                         iyiHaber={!arama}
-                        cumle={arama ? 'Aramayla eşleşen iz yok.' : 'Bu katalogda iz kaydı yok.'}
+                        cumle={arama
+                          ? 'Aramayla eşleşen iz yok: aramayı temizleyince bu '
+                            + 'katalogdaki tüm iz satırları geri gelir.'
+                          : 'Bu katalogda iz kaydı yok: kayıtlar seed ile gelmiş '
+                            + 've henüz elle değiştirilmemiş olabilir.'}
                         eylem={arama
                           ? <Dugme onClick={() => setArama('')}>Aramayı temizle</Dugme>
                           : undefined} />

@@ -134,7 +134,8 @@ export default function RaporlarIstemci({
               <BosIlk
                 cumle={kisitliKapsam
                   ? `Yetkinizin kapsamındaki ${terim('tesis', 'cogul')} için tanımlı `
-                    + 'uyum süreci yok.'
+                    + 'uyum süreci yok: matris o kapsam için çizilemiyor, '
+                    + 'başka kapsamlarda süreç tanımlı olabilir.'
                   : 'Uyum süreçlerinin kapsamı boş — matris çizilemiyor.'}
                 eylem={<Link href="/surecler" className="ab-dugme">Uyum kampanyalarını aç</Link>} />
             </div>

@@ -1,5 +1,6 @@
 'use client';
 import { useState } from 'react';
+import Link from 'next/link';
 import { Alan, Dugme } from '@/components/kabuk/temel';
 import { useEylem } from '@/components/useEylem';
 import {
@@ -299,7 +300,14 @@ export function IliskiEditoru({
   return (
     <div style={{ display: 'grid', gap: 'var(--s16)' }}>
       {varlik.iliskiler.length === 0 ? (
-        <p className="ab-panel-dip" style={{ margin: 0 }}>Tanımlı ilişki yok.</p>
+        /* NEDEN + NE YAPMALIYIM: ilişki yokluğu bir ÖLÇÜM SONUCU değil,
+           bir kayıt boşluğudur — aşağıdaki form onu kapatır. Çözüm aynı
+           ekranda olduğu için eylem YERİNDEDİR, gezinme bağı değil. */
+        <p className="ab-panel-dip bos" style={{ margin: 0 }}>
+          Tanımlı ilişki yok — bu varlık hiçbir sisteme, üst ya da alt
+          bileşene bağlanmamış; etki analizi onu izole sayar.{' '}
+          <Link href="/prosesler">İlk bağı kur</Link>
+        </p>
       ) : (
         <div style={{ display: 'grid', gap: 'var(--s3)' }}>
           {varlik.iliskiler.map((i) => (

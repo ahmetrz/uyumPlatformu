@@ -291,6 +291,13 @@ jobs:
     steps:
       - name: Depoyu al
         uses: actions/checkout@v7
+        with:
+          # TAM GEÇMİŞ: `tests/bekci/dom-tanik.test.ts`in cırcır dişi taban
+          # dalı (`origin/main`) okur. Sığ çekimde o ref ÇÖZÜLMEZ ve diş
+          # "CI'da taban dal okunamadı" diye KIRMIZI yanar — ölçüldü, PR
+          # #52'nin ilk koşusunda tam olarak bu oldu. `kapi` işi zaten
+          # `fetch-depth: 0` kullanıyor; bu iş de aynı ihtiyacı taşıyor.
+          fetch-depth: 0
 
       - name: Node kur
         uses: actions/setup-node@v7
@@ -397,6 +404,27 @@ jobs:
       - name: Mevzuat radarı kanıtı · iki bant
         working-directory: web
         run: npm run kanit:mevzuat-radari
+
+      # İKİNCİ BAĞIMSIZ POPÜLASYON TANIĞI. Aynı sunucuyu kullanır ve
+      # KAYNAĞA HİÇ BAKMAZ: ürünü gerçek tarayıcıda gezip KULLANICIYA
+      # GÖRÜNEN metni toplar, sonra kütükle karşılaştırılır. Gerekçe:
+      # iki kütüğün de paydası TEK bir düzenli ifadeden türüyordu ve
+      # "tavan sıfır" dişi yalnız türeticinin GÖRDÜĞÜNÜ koruyor —
+      # politika evreni 131→184→213→215, boş durum 74→…→126 diye
+      # genişledi ve her genişleme, önceki "ölçülmeyen 0" oranının kör
+      # bir payda üzerinde hesaplandığını gösterdi.
+      #
+      # Çıktı (`arac/dom-tanik.json`) kütüğe YAZILMAZ, ARTEFAKT da
+      # değildir: aynı işte üretilir ve aynı işte tüketilir. Bekçi
+      # (`tests/bekci/dom-tanik.test.ts`) `kapi` işinde de koşar ama
+      # çıktı yoksa CI'da KIRMIZI yanar — bu adım onu üretir.
+      - name: DOM popülasyon tanığı
+        working-directory: web
+        run: npm run tanik:dom
+
+      - name: DOM tanığı · ayrışma bekçisi
+        working-directory: web
+        run: npm run kapi:dom-tanik
 
       # R15 · KİŞİSEL VERİ KORUMA KANITI — aynı sunucuyla, iki bant.
       # iddia: ÜÇ AYRI "bilinmiyor" hâli tek sayıya toplanmıyor —

@@ -228,45 +228,38 @@ describe('POL-098 · "Demo sürümü: değişiklikler bu ortamda kaydedilmez" [S
     }
   });
 
-  it('KAPSAM SAYISI YAZILIR: kaç demo ikizi ölçülüyor, kaçı ölçülmüyor', async () => {
-    /* ── BAĞIMSIZ İNCELEME ŞÜPHESİ (PR #51, tur 1) ────────────────────
-       Kütük CÜMLEYE göre anahtarlıdır: POL-098 tek bir satırdır ve tek
-       bir ikizi sürmek onu "ölçüldü" yapar. Depoda ise 56 `.demo.ts`
-       vardır — yani iddianın büyük kısmı ölçüsüzdür ve BU SAYI HİÇBİR
-       YERDE YAZMIYORDU. "Bilinmeyen ≠ sıfır": ölçülmeyen kapsam, sıfır
-       kusur diye görünemez.
+  it('KAPSAM TAM: ikizlerin TAMAMI süpürülüyor — kısmi ölçüm kalmadı', async () => {
+    /* ── ÖNCE: ŞÜPHE (PR #51 tur 1) ───────────────────────────────────
+       Kütük CÜMLEYE göre anahtarlıdır: POL-098 tek satırdır ve tek bir
+       ikizi sürmek onu "ölçüldü" yapıyordu. Burada bir SAYAÇ duruyordu
+       ("kaç test dosyası kaç ikizi içe aktarıyor") ve 5/56 diyordu.
 
-       Bu vaka kusur ARAMAZ, SAYIYI YAZAR ve bir TAVAN tutar: ölçülen
-       ikiz sayısı düşerse kırmızı yanar. Kapsamın tamamı R0 kütüğünde
-       sahibi ve kapanış aşamasıyla duruyor. */
+       ── SONRA: SAYAÇ YETERSİZ ÇIKTI (Brief L · faz 3) ─────────────────
+       Kapsam artık KISMİ DEĞİL: `tests/politika-s3-demo-ikizleri.test.ts`
+       ikizlerin TAMAMINI `import.meta.glob` ile yükleyip her ihracı
+       gerçekten ÇAĞIRIYOR. Eski sayaç o süpürmeyi göremiyordu (dinamik
+       yükleme literal bir içe aktarım değildir) ve "5/55" diye YANLIŞ
+       bir sayı basacaktı — depoda iki çelişen sayı bırakmak, ölçmemekten
+       kötüdür.
+
+       Bu vaka bugün kapsamın TAM olduğunu ölçer: süpürme dosyası var,
+       kendi popülasyon dişini taşıyor ve ikiz kümesi eşlenen modül
+       kümesiyle birebir. Sayıyı süpürmenin kendisi basar. */
     const { readdirSync, readFileSync } = await import('node:fs');
-    const hepsi = readdirSync('lib/eylemler2').filter((f) => f.endsWith('.demo.ts'));
-    /* ── SAYIM İÇE AKTARIMDAN TÜRETİLİR, AD GEÇİŞİNDEN DEĞİL ───────────
-       İlk yazım dosya metninde adın HERHANGİ BİR YERDE geçmesine
-       bakıyordu ve `olculen` dizisini elle bir adla başlatıyordu
-       (bağımsız inceleme, PR #51 tur 2): bir yorum satırına altı ad
-       yazmak tabanı 10'a çıkarıyor, üstteki vaka silinse bile taban 4'te
-       kalıyordu — yani "4/56 ölçülüyor" yalan olabilirdi.
+    const SUPURME = 'tests/politika-s3-demo-ikizleri.test.ts';
+    const kod = readFileSync(SUPURME, 'utf8');
+    expect(kod, 'süpürme ikizleri glob ile YÜKLEMİYOR — kapsam iddiası dayanaksız')
+      .toContain("import.meta.glob('../lib/eylemler2/*.demo.ts')");
+    expect(kod, 'süpürmede FAZLA İKİZ dişi yok').toContain('FAZLA İKİZ DE YOKTUR');
 
-       Bugün ölçülen şey GERÇEK BİR İÇE AKTARIMDIR: test dosyası ikizi
-       `import … '@/lib/eylemler2/X.demo'` ile alıyor mu. Yorumlar ve
-       dizeler ayıklanır; elle başlatılan liste yok. */
-    const ICE_AKTARIM = /@\/lib\/eylemler2\/([A-Za-z0-9_.-]+)\.demo/g;
-    const yorumsuz = (k: string) => k
-      .replace(/\/\*[\s\S]*?\*\//g, ' ')
-      .replace(/(^|[^:])\/\/.*$/gm, '$1');
-    const olculen = new Set<string>();
-    for (const dosya of readdirSync('tests').filter((f) => f.endsWith('.test.ts'))) {
-      const kod = yorumsuz(readFileSync(`tests/${dosya}`, 'utf8'));
-      for (const m of kod.matchAll(ICE_AKTARIM)) olculen.add(`${m[1]}.demo.ts`);
-    }
-    /* Ölçülen ikizler GERÇEKTEN var olmalı — ölü bir ad sayıyı şişirir. */
-    const gercek = [...olculen].filter((f) => hepsi.includes(f));
-    console.log(`POL-098 kapsamı: ${gercek.length}/${hepsi.length} demo ikizi `
-      + `gerçek yolla ölçülüyor · ölçülmeyen ${hepsi.length - gercek.length}`);
-    expect(hepsi.length, 'demo ikizi bulunamadı — vaka kalıbı bozuk').toBeGreaterThan(0);
-    expect(gercek.length, 'ölçülen demo ikizi sayısı DÜŞTÜ — kapsam daraldı')
-      .toBeGreaterThanOrEqual(4);
+    const ikizler = readdirSync('lib/eylemler2').filter((f) => f.endsWith('.demo.ts'));
+    const moduller = readdirSync('lib/eylemler2')
+      .filter((f) => f.endsWith('.ts') && !f.endsWith('.demo.ts'))
+      .filter((f) => /^\s*['"]use server['"]/m.test(
+        readFileSync(`lib/eylemler2/${f}`, 'utf8')));
+    expect(ikizler.length, 'ikiz bulunamadı — vaka kalıbı bozuk').toBeGreaterThan(0);
+    expect(ikizler.length, 'ikiz sayısı eşlenen modül sayısından FARKLI — kapsam tam değil')
+      .toBe(moduller.length);
   });
 });
 

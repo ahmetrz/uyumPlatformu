@@ -538,8 +538,9 @@ function FarkPaneli({ surum }: { surum: Surum }) {
       </div>
 
       {farklar.length === 0 ? (
-        <p className="ab-panel-dip" style={{ marginTop: 'var(--s18)' }}>
-          İçerik farkı üretilmedi — maddeler birebir aynı.
+        /* İYİ HABER boşluğu — çözüm gerektirmez. */
+        <p className="ab-panel-dip bos iyi" style={{ marginTop: 'var(--s18)' }}>
+          İçerik farkı üretilmedi — iki sürümün maddeleri birebir aynı.
         </p>
       ) : gruplar.map((tip) => {
         const liste = farklar.filter((f) => f.tip === tip);

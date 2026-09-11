@@ -488,9 +488,12 @@ export default function ProseslerIstemci({
               Adımlar · {surec.adimlar.length}
             </p>
             {surec.adimlar.length === 0 && (
-              <p style={{ margin: 0, fontSize: 'var(--t-field)', color: 'var(--unk)' }}>
+              /* NE YAPMALIYIM: adımsız süreç uyum zincirinin başlangıç
+                 noktasıdır; çözüm süreç tanımındadır. */
+              <p className="bos" style={{ margin: 0, fontSize: 'var(--t-field)', color: 'var(--unk)' }}>
                 Adım tanımlanmadı — bu süreç için hiçbir kırılım yok ve
-                zincir hiç kurulmadı.
+                zincir hiç kurulmadı; varlık da bağlanamaz.{' '}
+                <Link href="/surecler">Süreci tanımla</Link>
               </p>
             )}
             {surec.adimlar.map((a) => (
@@ -510,8 +513,12 @@ export default function ProseslerIstemci({
                 )}
 
                 {a.varliklar.length === 0 ? (
-                  <p style={{ margin: 0, fontSize: 'var(--t-field)', color: 'var(--md)' }}>
-                    Bu adıma hiç varlık bağlanmadı — zincirin kopuk halkası.
+                  /* NE YAPMALIYIM: kopuk halkanın çözümü envanterdedir ve
+                     bağ oradan kurulur. */
+                  <p className="bos" style={{ margin: 0, fontSize: 'var(--t-field)', color: 'var(--md)' }}>
+                    Bu adıma hiç varlık bağlanmadı — zincirin kopuk halkası;
+                    etki analizi bu adımı boş geçer.{' '}
+                    <Link href="/envanter">Varlık bağla</Link>
                   </p>
                 ) : (
                   <div style={{ display: 'grid', gap: 'var(--s10)' }}>

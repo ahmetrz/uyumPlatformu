@@ -403,8 +403,14 @@ function Ozet({
           Yetkiler {hesap.yetkiler.length > 0 && `· ${hesap.yetkiler.length}`}
         </p>
         {hesap.yetkiler.length === 0 ? (
-          <p className="ab-panel-dip" style={{ margin: 0 }}>
-            Tanımlı yetki yok — hesap giriş yapar, hiçbir ekranı açamaz.
+          /* NE YAPMALIYIM: çözüm AYNI EKRANDA — yetki verme formu bu
+             hesap seçiliyken altta duruyor; eylem YERİNDEDİR. */
+          <p className="ab-panel-dip bos" style={{ margin: 0 }}>
+            Tanımlı yetki yok — hesap giriş yapar, hiçbir ekranı açamaz;
+            hesap açmak erişim vermez.{' '}
+            {yazabilir && (
+              <Dugme tur="satir" onClick={yetkiEkle}>Yetki ver</Dugme>
+            )}
           </p>
         ) : (
           <div style={{ display: 'grid', gap: 'var(--s3)' }}>

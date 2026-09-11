@@ -1,4 +1,5 @@
 'use client';
+import Link from 'next/link';
 import { useMemo } from 'react';
 import { useSektorSecimi, useTerim } from '@/lib/dil/SozlukSaglayici';
 import { olculenYazi } from '@/lib/alan/oznitelik';
@@ -111,6 +112,11 @@ export default function Karne({ satirlar: ham, endeks: genel, endeksSektor = {},
           <p className="bos">
             Hiçbir {terim('tesis')} için uyum yüzdesi ölçülmedi; yüzde,
             değerlendirilmiş kontrollerden hesaplanır.
+            {/* Yüzde burada ÜRETİLMEZ, /uyum ekranında verilen kontrol
+                değerlendirmelerinden hesaplanır. Boşluğun çıkışı o yüzden
+                hesabın kaynağına gider — karneye veri eklenecek bir yer
+                yoktur ve öyle bir yer uydurmak yanlış olurdu. */}
+            <Link href="/uyum" className="ab-dugme satir">Kontrolleri değerlendir</Link>
           </p>
         ) : (
           /* Dar bantta tablo KENDİ kabında kaydırılır, sayfa kaymaz.

@@ -125,7 +125,15 @@ try {
     await yillikSatir.click();
     const cekmece = page.locator('.ab-panel, [role="dialog"], aside').first();
     await cekmece.waitFor({ timeout: 5000 });
-    kaydet(bant.ad, 'satır seçimi çekmece açıyor', true);
+    /* ── SABİT `true` BİR İDDİA DEĞİLDİR (düzeltme turu · tur 2 · P2-5) ─
+       Satır raporda "geçti" yazıyordu ve HİÇBİR ŞEY ölçmüyordu: üstündeki
+       `waitFor` düşerse koşum zaten patlar, düşmezse bu satır her hâlde
+       yeşil yanar. Yani rapora bakan insan, ölçülmüş bir iddia ile
+       ölçülmemiş bir cümleyi ayırt edemiyordu — deponun "hiçbir şey
+       ölçmeden yeşil yanan kapı" sınıfı. Bugün gözlem yazılır. */
+    kaydet(bant.ad, 'satır seçimi çekmece açıyor',
+      await cekmece.isVisible() && (await cekmece.innerText()).trim().length > 0,
+      `çekmece metni ${(await cekmece.innerText()).trim().length} karakter`);
     /* ÖLÇÜLEN ŞEY YOLDUR, TAM URL DEĞİL. İlk turda bu iddia TAM URL'i
        karşılaştırıyordu ve kırmızı yandı — kusur ekranda değil İDDİADAYDI:
        seçim `?sec=` ile URL'e yazılıyor ve bu bilerek yapılıyor (çekmece

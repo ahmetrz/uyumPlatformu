@@ -4,29 +4,29 @@
 
 | Ölçü | Değer |
 | --- | --- |
-| Senaryo | 369 |
-| Testi olan senaryo | 369 |
+| Senaryo | 378 |
+| Testi olan senaryo | 378 |
 | **GAP** | **0** |
 | Hayalet işaret (kütükte olmayan kimlik) | 0 |
 | Kütüksüz test dosyası | 0 |
-| Taranan test dosyası | 238 |
+| Taranan test dosyası | 246 |
 
 ## Katman başına kapsam
 
 | Katman | Senaryo | Testli | GAP |
 | --- | --- | --- | --- |
-| ACCESSIBILITY | 8 | 8 | 0 |
+| ACCESSIBILITY | 9 | 9 | 0 |
 | API | 12 | 12 | 0 |
 | CONCURRENCY | 8 | 8 | 0 |
-| DOMAIN | 220 | 220 | 0 |
-| ENGINE | 37 | 37 | 0 |
-| INTEGRATION | 42 | 42 | 0 |
+| DOMAIN | 229 | 229 | 0 |
+| ENGINE | 38 | 38 | 0 |
+| INTEGRATION | 43 | 43 | 0 |
 | MIGRATION | 10 | 10 | 0 |
-| RBAC | 41 | 41 | 0 |
+| RBAC | 43 | 43 | 0 |
 | RESPONSIVE | 9 | 9 | 0 |
-| SCOPE | 33 | 33 | 0 |
-| SERVER | 153 | 153 | 0 |
-| UI | 105 | 105 | 0 |
+| SCOPE | 34 | 34 | 0 |
+| SERVER | 159 | 159 | 0 |
+| UI | 109 | 109 | 0 |
 | VISUAL | 4 | 4 | 0 |
 | WORKFLOW | 39 | 39 | 0 |
 
@@ -547,12 +547,15 @@
 | `SIS-BSD-002` | Sistem | DOMAIN · MIGRATION | `politika-bos-durum-iddialari.test.ts` | YÖNETİM GÖZDEN GEÇİRMESİ motorla doğmaz — kayıt insan işidir | evet | geçti |
 | `SIS-BSD-002` | Sistem | DOMAIN · MIGRATION | `politika-bos-durum-iddialari.test.ts` | DIŞ DENETÇİ erişimi TANIMSIZ olamaz — süre ve davet eden ZORUNLU | evet | geçti |
 | `SIS-BSD-002` | Sistem | DOMAIN · MIGRATION | `politika-bos-durum-iddialari.test.ts` | DEĞİŞİKLİK ekranı YALNIZ kütüğü okur — başka kaynak karıştırmaz | evet | geçti |
+| `SIS-KAP-004` | Sistem | DOMAIN | `kalite-kapilari.test.ts` | TARAMA BOŞ DEĞİL — `kaydet` çağıran kapı var | evet | geçti |
+| `SIS-KAP-004` | Sistem | DOMAIN | `kalite-kapilari.test.ts` | hiçbir `kaydet` çağrısı SABİT `true` geçmiyor | evet | geçti |
 | `SIS-BSD-001` | Sistem | UI · DOMAIN | `bekci/bos-durum.test.ts` | POPÜLASYON TABANI kütükten değil ÖLÇÜM TABANINDAN gelir | evet | geçti |
 | `SIS-BSD-001` | Sistem | UI · DOMAIN | `bekci/bos-durum.test.ts` | HER SATIR bir SINIF taşır — sınıfsız satır tavana giremez | evet | geçti |
 | `SIS-BSD-001` | Sistem | UI · DOMAIN | `bekci/bos-durum.test.ts` | KODDAKİ her boş durum kütükte VAR | evet | geçti |
 | `SIS-BSD-001` | Sistem | UI · DOMAIN | `bekci/bos-durum.test.ts` | KÜTÜKTEKİ her satır kodda VAR — ölü satır kalmaz | evet | geçti |
 | `SIS-BSD-001` | Sistem | UI · DOMAIN | `bekci/bos-durum.test.ts` | KÜTÜK ÖLÇÜMÜ elle yazılmaz — türetilenle BİREBİR | evet | geçti |
 | `SIS-BSD-001` | Sistem | UI · DOMAIN | `bekci/bos-durum.test.ts` | İLK KURULUM boşluğunda EYLEMSİZ SIFIRDIR — istisnası yalnız iyi haber | evet | geçti |
+| `SIS-BSD-001` | Sistem | UI · DOMAIN | `bekci/bos-durum.test.ts` | EYLEMSİZ SIFIRDA KİLİTLİ — HİÇBİR sınıf yeniden açılamaz | evet | geçti |
 | `SIS-BSD-001` | Sistem | UI · DOMAIN | `bekci/bos-durum.test.ts` | SINIF TAVANLARI aşılmaz ve ölçülenin ÜSTÜNDE tutulmaz | evet | geçti |
 | `SIS-BSD-001` | Sistem | UI · DOMAIN | `bekci/bos-durum.test.ts` | SIFIR OLMAYAN her sınıf tavanı SAHİBİ ve KAPANIŞ AŞAMASIYLA beyanlı | evet | geçti |
 | `SIS-BSD-001` | Sistem | UI · DOMAIN | `bekci/bos-durum.test.ts` | TOPLAM TAVAN ölçülenle BİREBİR — özet sayı da elle yazılmaz | evet | geçti |
@@ -590,6 +593,7 @@
 | `SIS-SIL-001` | Sistem | DOMAIN · UI | `bekci/yumusak-silme-sayimi.test.ts` | İZİN LİSTESİ ÖLÜ SATIR taşımaz — yalnız küçülür | evet | geçti |
 | `SIS-SIL-001` | Sistem | DOMAIN · UI | `bekci/yumusak-silme-sayimi.test.ts` | KALIBIN KENDİ YÜRÜYÜŞÜ | evet | geçti |
 | `SIS-TAB-001` | Sistem | DOMAIN | `olcum-tabani.test.ts` | TABAN DALA GÖRE İNEN her taban `dususler` kaydı taşır | evet | geçti |
+| `SIS-TAB-002` | Sistem | DOMAIN | `bekci/bos-durum.test.ts` | TABAN YOKKEN SAYI CIRCIRI SESSİZCE GEÇMEZ — ilk tur tavanı ELLE beyanlıdır | evet | geçti |
 | `SIS-TAB-002` | Sistem | DOMAIN | `bekci/bos-durum.test.ts` | TABAN DAL ÜÇ HÂLİ: yok · okundu · ÖLÇÜLEMEDİ | evet | geçti |
 | `SIS-KUR-001` | Sistem | DOMAIN · SERVER · RBAC · MIGRATION | `kurucu-hesap.test.ts` | atlandıysa SEBEBİ gerçek bir PostgreSQL koşumudur | evet | geçti |
 | `SIS-KUR-001` | Sistem | DOMAIN · SERVER · RBAC · MIGRATION | `kurucu-hesap.test.ts` | PAROLA ALT SINIRI ürünün sınırıyla AYNI — bağ | evet | geçti |
@@ -625,6 +629,57 @@
 | `SIS-DEM-002` | Sistem | SERVER · DOMAIN | `politika-demo-salt-okunur.test.ts` | denetim formu üretilmez — sebep GEREKÇE ile söylenir | evet | geçti |
 | `SIS-DEM-002` | Sistem | SERVER · DOMAIN | `politika-demo-salt-okunur.test.ts` | kimlik sağlayıcı yapılandırılmaz — SIR REFERANSI gerekçesiyle | evet | geçti |
 | `SIS-DEM-002` | Sistem | SERVER · DOMAIN | `politika-demo-salt-okunur.test.ts` | mevzuat adayı karara BAĞLANMAZ ve tarama AÇILMAZ | evet | geçti |
+| `SIS-DEM-003` | Sistem | SERVER · DOMAIN · INTEGRATION | `politika-s3-demo-ikizleri.test.ts` | POPÜLASYON BOŞ DEĞİL — ölçüt bozulursa vaka hiçbir şey ölçmezdi | evet | geçti |
+| `SIS-DEM-003` | Sistem | SERVER · DOMAIN · INTEGRATION | `politika-s3-demo-ikizleri.test.ts` | YAZAN HER MODÜLÜN ikizi VAR — eksik ikiz demo derlemesini patlatır | evet | geçti |
+| `SIS-DEM-003` | Sistem | SERVER · DOMAIN · INTEGRATION | `politika-s3-demo-ikizleri.test.ts` | FAZLA İKİZ DE YOKTUR — yüklenemeyen ikiz ÖLÜ ATIFTIR | evet | geçti |
+| `SIS-DEM-003` | Sistem | SERVER · DOMAIN · INTEGRATION | `politika-s3-demo-ikizleri.test.ts` | İKİZ, gerçeğin HER çalışma-anı ihracını taşır — eksik ad ekranı ÇÖKERTİR | evet | geçti |
+| `SIS-DEM-003` | Sistem | SERVER · DOMAIN · INTEGRATION | `politika-s3-demo-ikizleri.test.ts` | HER ikizin HER ihracı çağrılır: `{ ok: true }` dönen YOKTUR | evet | geçti |
+| `SIS-DEM-003` | Sistem | SERVER · DOMAIN · INTEGRATION | `politika-s3-demo-ikizleri.test.ts` | HİÇBİR ikiz veritabanına dokunmaz — ret dönüp yolda satır yazan ikiz de olmaz | evet | geçti |
+| `SIS-EKR-001` | Sistem | DOMAIN · SERVER · UI · ACCESSIBILITY | `politika-s3-ekran.test.ts` | BİLİNMEYEN EVREN sıfır YAZILMAZ ve satır "ok" GÖRÜNMEZ | evet | geçti |
+| `SIS-EKR-001` | Sistem | DOMAIN · SERVER · UI · ACCESSIBILITY | `politika-s3-ekran.test.ts` | KÖKENİ OLMAYAN kayıt hiçbir sayımda "doğrulanmış" tarafa geçmez | evet | geçti |
+| `SIS-EKR-001` | Sistem | DOMAIN · SERVER · UI · ACCESSIBILITY | `politika-s3-ekran.test.ts` | BOŞ kapsam seçimi "sınır yok" diye uyarır — sessiz geçmez | evet | geçti |
+| `SIS-EKR-001` | Sistem | DOMAIN · SERVER · UI · ACCESSIBILITY | `politika-s3-ekran.test.ts` | REDDEDİLEN aktarımın cümlesi bu — ve onaylanan aktarımınki DEĞİL | evet | geçti |
+| `SIS-EKR-001` | Sistem | DOMAIN · SERVER · UI · ACCESSIBILITY | `politika-s3-ekran.test.ts` | ÇERÇEVE DIŞI koordinat UYARIR ama ENGELLEMEZ — iki ayrı fonksiyon | evet | geçti |
+| `SIS-EKR-001` | Sistem | DOMAIN · SERVER · UI · ACCESSIBILITY | `politika-s3-ekran.test.ts` | ÖLÇÜLMEMİŞ oturum kaynağı "erişim yok" diye OKUNMAZ | evet | geçti |
+| `SIS-EKR-001` | Sistem | DOMAIN · SERVER · UI · ACCESSIBILITY | `politika-s3-ekran.test.ts` | EKSİK KAPI sayısı gerçek kapı listesinden türer — uydurulmaz | evet | geçti |
+| `SIS-EKR-001` | Sistem | DOMAIN · SERVER · UI · ACCESSIBILITY | `politika-s3-ekran.test.ts` | TABANSIZ cihaz "uyumlu" SAYILMAZ — karar GERÇEK motordan okunur | evet | geçti |
+| `SIS-EKR-001` | Sistem | DOMAIN · SERVER · UI · ACCESSIBILITY | `politika-s3-ekran.test.ts` | KARARA BAĞLANAN veri koruma başvurusu SİLİNMEZ — satır durur | evet | geçti |
+| `SIS-EKR-001` | Sistem | DOMAIN · SERVER · UI · ACCESSIBILITY | `politika-s3-ekran.test.ts` | SUNUCU EYLEMİ KATMANINDA silme YOK — "silinmez" yapısal olarak tutuluyor | evet | geçti |
+| `SIS-EKR-001` | Sistem | DOMAIN · SERVER · UI · ACCESSIBILITY | `politika-s3-ekran.test.ts` | PASİF katalog tanımı yeni kayıtta SEÇİLEMEZ — okuyucu yalnız aktifi verir | evet | geçti |
+| `SIS-EKR-001` | Sistem | DOMAIN · SERVER · UI · ACCESSIBILITY | `politika-s3-ekran.test.ts` | SORUMLUSUZ kayıt için bildirim ÜRETİLMEZ — görev açılır | evet | geçti |
+| `SIS-EKR-001` | Sistem | DOMAIN · SERVER · UI · ACCESSIBILITY | `politika-s3-ekran.test.ts` | MOTOR ÖNERİSİ etki alanlarını KENDİLİĞİNDEN doldurmaz | evet | geçti |
+| `SIS-EKR-001` | Sistem | DOMAIN · SERVER · UI · ACCESSIBILITY | `politika-s3-ekran.test.ts` | BELGESİZ örtü "karşılamıyor" DEĞİL "bilinmiyor" okunur | evet | geçti |
+| `SIS-EKR-001` | Sistem | DOMAIN · SERVER · UI · ACCESSIBILITY | `politika-s3-ekran.test.ts` | ANLIK GÖRÜNTÜ YOKSA eğilim ÇİZİLMEZ — seri uydurulmaz | evet | geçti |
+| `SIS-EKR-001` | Sistem | DOMAIN · SERVER · UI · ACCESSIBILITY | `politika-s3-ekran.test.ts` | NORMALİZE EDİLMEMİŞ keşif kaydı için gerekçe AYRI cümledir | evet | geçti |
+| `SIS-EKR-001` | Sistem | DOMAIN · SERVER · UI · ACCESSIBILITY | `politika-s3-ekran.test.ts` | EKRANIN sözü SUNUCUNUN davranışıyla AYNI — ikisi ayrı yerde | evet | geçti |
+| `SIS-EKR-001` | Sistem | DOMAIN · SERVER · UI · ACCESSIBILITY | `politika-s3-ekran.test.ts` | KÖKEN İŞARETİ hap DEĞİL: ne satır içi ne CSS zemin/kenarlık/yarıçap verir | evet | geçti |
+| `SIS-EKR-001` | Sistem | DOMAIN · SERVER · UI · ACCESSIBILITY | `politika-s3-ekran.test.ts` | KÖKENİ OLMAYAN kayıt sessizce KAYBOLMAZ — "Elle girildi" der | evet | geçti |
+| `SIS-EKR-001` | Sistem | DOMAIN · SERVER · UI · ACCESSIBILITY | `politika-s3-ekran.test.ts` | ÖLÇÜLMEMİŞ güven "%0" DEĞİL "ölçülmedi" yazar | evet | geçti |
+| `SIS-EKR-001` | Sistem | DOMAIN · SERVER · UI · ACCESSIBILITY | `politika-s3-ekran.test.ts` | İPUCU ODAKLA DA açılır — yalnız hover, klavyeyi dışarıda bırakırdı | evet | geçti |
+| `SIS-EKR-001` | Sistem | DOMAIN · SERVER · UI · ACCESSIBILITY | `politika-s3-ekran.test.ts` | PAYLAŞILAN TABLO KENDİ boş durumunu YAZMAZ — ya arketip ya HİÇBİR ŞEY | evet | geçti |
+| `SIS-EKR-001` | Sistem | DOMAIN · SERVER · UI · ACCESSIBILITY | `politika-s3-ekran.test.ts` | YEDEKLEME POLİTİKASI hiçbir İŞ başlatmaz ve ağa çıkmaz | evet | geçti |
+| `SIS-EKR-001` | Sistem | DOMAIN · SERVER · UI · ACCESSIBILITY | `politika-s3-ekran.test.ts` | GERİ YÜKLEME TESTİ kaydı son koşuya asılır, izi düşer; platform geri yükleme BAŞLATMAZ | evet | geçti |
+| `SIS-EKR-001` | Sistem | DOMAIN · SERVER · UI · ACCESSIBILITY | `politika-s3-ekran.test.ts` | KÜNYE güncellemesi kanıt SÜRÜMÜNÜ artırmaz ve sürüm satırı doğmaz | evet | geçti |
+| `SIS-EKR-001` | Sistem | DOMAIN · SERVER · UI · ACCESSIBILITY | `politika-s3-ekran.test.ts` | JIT KAPALI · tanınmayan kurum hesabı REDDEDİLİR, hesap AÇILMAZ | evet | geçti |
+| `SIS-EKR-001` | Sistem | DOMAIN · SERVER · UI · ACCESSIBILITY | `politika-s3-ekran.test.ts` | JIT AÇIK · açılan hesap YETKİSİZ doğar — kimlik sağlayıcı yetki vermez | evet | geçti |
+| `SIS-EKR-001` | Sistem | DOMAIN · SERVER · UI · ACCESSIBILITY | `politika-s3-ekran.test.ts` | HAM KAYIT saklanmamışsa bile SEBEP daima okunur — kayıt boşluğu sessiz değil | evet | geçti |
+| `SIS-EKR-001` | Sistem | DOMAIN · SERVER · UI · ACCESSIBILITY | `politika-s3-ekran.test.ts` | SÖZLÜK OKUNAMAYINCA ekran "boş" demez, "okunamadı" der — demo ikizi gerçekten boş döner | evet | geçti |
+| `SIS-EKR-001` | Sistem | DOMAIN · SERVER · UI · ACCESSIBILITY | `politika-s3-ekran.test.ts` | TOPLU KEŞİF KARARI kayıt başına AYRI iz yazar; biri düşerse diğerleri DURUR | evet | geçti |
+| `SIS-DGM-002` | Sistem | SERVER · DOMAIN · RBAC | `politika-s3-eylem.test.ts` | PASİF eğitime kayıt REDDEDİLİR ve hiçbir kayıt satırı doğmaz | evet | geçti |
+| `SIS-DGM-002` | Sistem | SERVER · DOMAIN · RBAC | `politika-s3-eylem.test.ts` | AYNI eylem AKTİF eğitimde GEÇER — kapı her şeyi reddetmiyor | evet | geçti |
+| `SIS-DGM-002` | Sistem | SERVER · DOMAIN · RBAC | `politika-s3-eylem.test.ts` | ENGELLİ kaynağın taraması AÇILAMAZ — ürün engeli AŞMAZ | evet | geçti |
+| `SIS-DGM-002` | Sistem | SERVER · DOMAIN · RBAC | `politika-s3-eylem.test.ts` | DEĞİŞMEZ aileye "imha öner" YAZILAMAZ — politika satırı doğmaz | evet | geçti |
+| `SIS-DGM-002` | Sistem | SERVER · DOMAIN · RBAC | `politika-s3-eylem.test.ts` | KURU KOŞU OLMAYAN aktarım UYGULANAMAZ — durum değişmez | evet | geçti |
+| `SIS-DGM-002` | Sistem | SERVER · DOMAIN · RBAC | `politika-s3-eylem.test.ts` | ONAYLANMIŞ aktarımın EŞLEMESİ değiştirilemez | evet | geçti |
+| `SIS-DGM-002` | Sistem | SERVER · DOMAIN · RBAC | `politika-s3-eylem.test.ts` | PLANLI OLMAYAN gözden geçirme TAMAMLANAMAZ | evet | geçti |
+| `SIS-DGM-002` | Sistem | SERVER · DOMAIN · RBAC | `politika-s3-eylem.test.ts` | BOZUK rol eşlemesi REDDEDİLİR — sağlayıcı satırı yazılmaz | evet | geçti |
+| `SIS-DGM-002` | Sistem | SERVER · DOMAIN · RBAC | `politika-s3-eylem.test.ts` | PASİF kullanıcı köken DOĞRULAYAMAZ — kayıt doğrulanmış görünmez | evet | geçti |
+| `SIS-DGM-002` | Sistem | SERVER · DOMAIN · RBAC | `politika-s3-eylem.test.ts` | MFA ZORUNLUYKEN kayıt KALDIRILAMAZ — sır referansı yerinde kalır | evet | geçti |
+| `SIS-DGM-002` | Sistem | SERVER · DOMAIN · RBAC | `politika-s3-eylem.test.ts` | MFA ZORUNLU DEĞİLKEN aynı eylem bu gerekçeyle DÜŞMEZ — politikaya bağlı | evet | geçti |
+| `SIS-DGM-002` | Sistem | SERVER · DOMAIN · RBAC | `politika-s3-eylem.test.ts` | BOYUTSUZ taban REDDEDİLİR — her cihaza uyan taban doğmaz | evet | geçti |
+| `SIS-DGM-002` | Sistem | SERVER · DOMAIN · RBAC | `politika-s3-eylem.test.ts` | KARŞI TANIK · TEK boyutu olan taban KABUL edilir | evet | geçti |
+| `SIS-DGM-002` | Sistem | SERVER · DOMAIN · RBAC | `politika-s3-eylem.test.ts` | AYNI sapmadan İKİNCİ risk açılamaz — ikinci kayıt doğmaz | evet | geçti |
+| `SIS-DGM-002` | Sistem | SERVER · DOMAIN · RBAC | `politika-s3-eylem.test.ts` | BAĞLI kayıt varken tanım SİLİNMEZ ve satır DURUR | evet | geçti |
 | `SIS-PAS-001` | Sistem | ENGINE · SERVER · INTEGRATION | `politika-pasif-once.test.ts` | sahte ağ GERÇEKTEN kapalı — ölçüm boşa koşmuyor | evet | geçti |
 | `SIS-PAS-001` | Sistem | ENGINE · SERVER · INTEGRATION | `politika-pasif-once.test.ts` | anlık görüntü motoru ağa HİÇ paket göndermez | evet | geçti |
 | `SIS-PAS-001` | Sistem | ENGINE · SERVER · INTEGRATION | `politika-pasif-once.test.ts` | topoloji sapma motoru da ağa çıkmaz | evet | geçti |
@@ -637,6 +692,104 @@
 | `SIS-YTK-010` | Sistem | RBAC · SCOPE · SERVER | `politika-yetki-kapilari.test.ts` | yönetim yazması OLAN rol geçer | evet | geçti |
 | `SIS-YTK-010` | Sistem | RBAC · SCOPE · SERVER | `politika-yetki-kapilari.test.ts` | uyum ONAYI olmayan rol belgeyi yürürlüğe ALAMAZ | evet | geçti |
 | `SIS-YTK-010` | Sistem | RBAC · SCOPE · SERVER | `politika-yetki-kapilari.test.ts` | TESİSE KISITLI rol dönemi kapatamaz | evet | geçti |
+| `SIS-YTK-012` | Sistem | RBAC · SCOPE · SERVER · DOMAIN | `politika-s1-ekran.test.ts` | ŞEMADA sır DEĞERİ için alan YOKTUR — olmayan alan doldurulamaz | evet | geçti |
+| `SIS-YTK-012` | Sistem | RBAC · SCOPE · SERVER · DOMAIN | `politika-s1-ekran.test.ts` | SAĞLAYICI KAYDI sır değeri KABUL ETMEZ — eylem yolunda da alan yok | evet | geçti |
+| `SIS-YTK-012` | Sistem | RBAC · SCOPE · SERVER · DOMAIN | `politika-s1-ekran.test.ts` | ANAHTAR İPTALİ izi yazar ve token DEĞERİNİ ize sokmaz | evet | geçti |
+| `SIS-YTK-012` | Sistem | RBAC · SCOPE · SERVER · DOMAIN | `politika-s1-ekran.test.ts` | POL-168 · İPTAL ANINDA GEÇERLİDİR — aynı token GERÇEK kimlik yolunda 401 | evet | geçti |
+| `SIS-YTK-012` | Sistem | RBAC · SCOPE · SERVER · DOMAIN | `politika-s1-ekran.test.ts` | POL-171 · KAPSAM DEĞİŞİMİ TOKENI DEĞİŞTİRMEZ — aynı anahtar çalışır, uçlar kısılır | evet | geçti |
+| `SIS-YTK-012` | Sistem | RBAC · SCOPE · SERVER · DOMAIN | `politika-s1-ekran.test.ts` | ONAYSIZ rol etki alanına YAZAMAZ ve kayıt DEĞİŞMEZ | evet | geçti |
+| `SIS-YTK-012` | Sistem | RBAC · SCOPE · SERVER · DOMAIN | `politika-s1-ekran.test.ts` | KARŞI TANIK · ONAY yetkisi olan rol AYNI çağrıyla yazabilir | evet | geçti |
+| `SIS-YTK-012` | Sistem | RBAC · SCOPE · SERVER · DOMAIN | `politika-s1-ekran.test.ts` | YENİ kullanıcı YETKİSİZ doğar — hesap açmak erişim vermez | evet | geçti |
+| `SIS-YTK-012` | Sistem | RBAC · SCOPE · SERVER · DOMAIN | `politika-s1-ekran.test.ts` | YETKİSİZ hesap HİÇBİR modülü okuyamaz — liste türetilir | evet | geçti |
+| `SIS-YTK-012` | Sistem | RBAC · SCOPE · SERVER · DOMAIN | `politika-s1-ekran.test.ts` | MADDE DURUMU OLMADAN kanıt açılamaz — satır doğmaz | evet | geçti |
+| `SIS-YTK-012` | Sistem | RBAC · SCOPE · SERVER · DOMAIN | `politika-s1-ekran.test.ts` | DIŞ DENETÇİ erişimi kapatıldığında KAYIT DURUR, yetki satırı kalkar | evet | geçti |
+| `SIS-YTK-012` | Sistem | RBAC · SCOPE · SERVER · DOMAIN | `politika-s1-ekran.test.ts` | YARDIM sayfası veritabanına HİÇ dokunmaz — yapısal | evet | geçti |
+| `SIS-YTK-012` | Sistem | RBAC · SCOPE · SERVER · DOMAIN | `politika-s1-ekran.test.ts` | SAYIM paydası açılıştaki kapsamdan gelir — sonradan eklenen varlık değiştirmez | evet | geçti |
+| `SIS-YTK-012` | Sistem | RBAC · SCOPE · SERVER · DOMAIN | `politika-s1-ekran.test.ts` | KAPSAM DIŞI tesis adına gelen kayıt REDDEDİLİR ve sayaçta görünür | evet | geçti |
+| `SIS-YTK-012` | Sistem | RBAC · SCOPE · SERVER · DOMAIN | `politika-s1-ekran.test.ts` | KÖKENSİZ kayıt ne "doğrulanmış" görünür ne kuyruğa girer | evet | geçti |
+| `SIS-YTK-012` | Sistem | RBAC · SCOPE · SERVER · DOMAIN | `politika-s1-ekran.test.ts` | EŞLEŞME DURUMU ile YETKİ DURUMU ayrı alanlardır — karıştırılamaz | evet | geçti |
+| `SIS-YTK-012` | Sistem | RBAC · SCOPE · SERVER · DOMAIN | `politika-s1-ekran.test.ts` | KURULUM İSTEK LİSTESİ yalnız ALAN ADI sayar, DEĞER taşımaz | evet | geçti |
+| `SIS-YTK-012` | Sistem | RBAC · SCOPE · SERVER · DOMAIN | `politika-s1-ekran.test.ts` | KURALSIZ çerçevede kapsam SÜREÇTEN gelir, uydurulmaz | evet | geçti |
+| `SIS-YTK-012` | Sistem | RBAC · SCOPE · SERVER · DOMAIN | `politika-s1-ekran.test.ts` | YABANCI YAZAR görevin durumunu DEĞİŞTİREMEZ — kayıt ve iz durur | evet | geçti |
+| `SIS-YTK-012` | Sistem | RBAC · SCOPE · SERVER · DOMAIN | `politika-s1-ekran.test.ts` | KARŞI TANIK · SORUMLUSU aynı rolle değiştirebilir | evet | geçti |
+| `SIS-YTK-012` | Sistem | RBAC · SCOPE · SERVER · DOMAIN | `politika-s1-ekran.test.ts` | ONAYSIZ rol kuyruğu GÖRÜR, karar VEREMEZ — kayıt ve iz durur | evet | geçti |
+| `SIS-YTK-012` | Sistem | RBAC · SCOPE · SERVER · DOMAIN | `politika-s1-ekran.test.ts` | KARŞI TANIK · ENVANTER ONAY yetkisi AYNI çağrıyla karar verebilir | evet | geçti |
+| `SIS-DGM-003` | Sistem | SERVER · DOMAIN · ENGINE | `politika-s2-degismez.test.ts` | KURU KOŞU madde durumlarını DEĞİŞTİRMEZ; uygulama kaydı kuru koşuya BAĞLIDIR | evet | geçti |
+| `SIS-DGM-003` | Sistem | SERVER · DOMAIN · ENGINE | `politika-s2-degismez.test.ts` | EŞLEME PROVASI hiçbir tabloya yazmaz ve ağa çıkmaz | evet | geçti |
+| `SIS-DGM-003` | Sistem | SERVER · DOMAIN · ENGINE | `politika-s2-degismez.test.ts` | KALDIRILAN hold SİLİNMEZ — ne zaman konduğu ve kalktığı kayıtta DURUR | evet | geçti |
+| `SIS-DGM-003` | Sistem | SERVER · DOMAIN · ENGINE | `politika-s2-degismez.test.ts` | ONAYDAN SONRA konan hold imhayı DURDURUR — hiçbir kayıt silinmez | evet | geçti |
+| `SIS-DGM-003` | Sistem | SERVER · DOMAIN · ENGINE | `politika-s2-degismez.test.ts` | İMHA ÖNERİSİ hiçbir kaydı silmez; sayıyı ÖLÇER ve karara yazar | evet | geçti |
+| `SIS-DGM-003` | Sistem | SERVER · DOMAIN · ENGINE | `politika-s2-degismez.test.ts` | PAKET KALDIRMA arşivler — kurulum satırı DURUR, durumu değişir | evet | geçti |
+| `SIS-DGM-003` | Sistem | SERVER · DOMAIN · ENGINE | `politika-s2-degismez.test.ts` | SAPMADAN BULGU madde durumu OLMADAN açılamaz — motor maddeyi seçemez | evet | geçti |
+| `SIS-DGM-003` | Sistem | SERVER · DOMAIN · ENGINE | `politika-s2-degismez.test.ts` | SAPMADAN AÇILAN RİSK SKORSUZ doğar — otomatik sayı uydurulmaz | evet | geçti |
+| `SIS-DGM-003` | Sistem | SERVER · DOMAIN · ENGINE | `politika-s2-degismez.test.ts` | KAPATMA TALEBİ oturumu KAPATMAZ — görev açar, iz gerekçeyle düşer | evet | geçti |
+| `SIS-DGM-003` | Sistem | SERVER · DOMAIN · ENGINE | `politika-s2-degismez.test.ts` | KONFİG TEMELİ ONAYI cihaz kaydını DEĞİŞTİRMEZ — yalnız karşılaştırma temeli yazar | evet | geçti |
+| `SIS-DGM-003` | Sistem | SERVER · DOMAIN · ENGINE | `politika-s2-degismez.test.ts` | MOTORLARIN HİÇBİRİ köken kuyruğunu boşaltmaz | evet | geçti |
+| `SIS-DGM-003` | Sistem | SERVER · DOMAIN · ENGINE | `politika-s2-degismez.test.ts` | REDDEDİLEN köken SİLİNMEZ — reddin kendisi saklanır | evet | geçti |
+| `SIS-DGM-003` | Sistem | SERVER · DOMAIN · ENGINE | `politika-s2-degismez.test.ts` | MOTOR bulguyu SUSTURAMAZ — hiçbir koşu "yok sayıldı" yazmaz | evet | geçti |
+| `SIS-DGM-003` | Sistem | SERVER · DOMAIN · ENGINE | `politika-s2-degismez.test.ts` | "YOK SAY" İNSAN kararıdır ve GEREKÇESİZ kabul edilmez | evet | geçti |
+| `SIS-DGM-003` | Sistem | SERVER · DOMAIN · ENGINE | `politika-s2-degismez.test.ts` | PASİF taban hiçbir cihaz için karar ÜRETMEZ; kaydı DURUR | evet | geçti |
+| `SIS-DGM-003` | Sistem | SERVER · DOMAIN · ENGINE | `politika-s2-degismez.test.ts` | KOŞUSUZ motor "ok" GÖRÜNMEZ — işaret "unk", söz "Hiç koşmadı" | evet | geçti |
+| `SIS-DGM-003` | Sistem | SERVER · DOMAIN · ENGINE | `politika-s2-degismez.test.ts` | SAHİPSİZ BIRAKMA her kayıt için AYRI iz yazar; PASİF kişiye devir REDDEDİLİR | evet | geçti |
+| `SIS-DGM-003` | Sistem | SERVER · DOMAIN · ENGINE | `politika-s2-degismez.test.ts` | BULUNAMADI işareti varlığı envanterden DÜŞÜRMEZ — kayıt durur | evet | geçti |
+| `SIS-DGM-003` | Sistem | SERVER · DOMAIN · ENGINE | `politika-s2-degismez.test.ts` | ONAY KARARI kaynak kaydına DOKUNMAZ ve İZE yazılır | evet | geçti |
+| `SIS-DGM-003` | Sistem | SERVER · DOMAIN · ENGINE | `politika-s2-degismez.test.ts` | ELLE AÇILAN görev motor görevinden AYRIŞIR; son tarihsizin gecikmesi BİLİNMEZ | evet | geçti |
+| `SIS-DGM-003` | Sistem | SERVER · DOMAIN · ENGINE | `politika-s2-degismez.test.ts` | PAKET KURULUMU hiçbir çerçeve sürümünü AKTİF yapmaz | evet | geçti |
+| `SIS-BAG-001` | Sistem | UI · DOMAIN | `bekci/olu-bag.test.ts` | POPÜLASYON AĞAÇTAN gelir ve BOŞ DEĞİL | evet | geçti |
+| `SIS-BAG-001` | Sistem | UI · DOMAIN | `bekci/olu-bag.test.ts` | BEŞ HEDEF TÜRÜ de taranıyor — kapsam beyanlı | evet | geçti |
+| `SIS-BAG-001` | Sistem | UI · DOMAIN | `bekci/olu-bag.test.ts` | İÇ BAĞLARIN HEPSİ gerçek bir rota desenine çözülür | evet | geçti |
+| `SIS-BAG-001` | Sistem | UI · DOMAIN | `bekci/olu-bag.test.ts` | DÜZ ve SORGULU rota çözülür | evet | geçti |
+| `SIS-BAG-001` | Sistem | UI · DOMAIN | `bekci/olu-bag.test.ts` | DİNAMİK segment TEK seviye yer | evet | geçti |
+| `SIS-BAG-001` | Sistem | UI · DOMAIN | `bekci/olu-bag.test.ts` | YAKALAYICI desen kalan segmentleri yer; ZORUNLU olan çıplak üst yolu YEMEZ | evet | geçti |
+| `SIS-BAG-001` | Sistem | UI · DOMAIN | `bekci/olu-bag.test.ts` | OLMAYAN rota ÇÖZÜLMEZ | evet | geçti |
+| `SIS-BAG-001` | Sistem | UI · DOMAIN | `bekci/olu-bag.test.ts` | ŞABLON İFADESİ bir segmenttir — şekil ölçülür | evet | geçti |
+| `SIS-BAG-001` | Sistem | UI · DOMAIN | `bekci/olu-bag.test.ts` | YORUMDAKİ yol bir bağ DEĞİLDİR | evet | geçti |
+| `SIS-BAG-001` | Sistem | UI · DOMAIN | `bekci/olu-bag.test.ts` | KÖK YOL normalleşir | evet | geçti |
+| `URN-TNK-001` | Sistem | UI · DOMAIN | `bekci/dom-tanik.test.ts` | TANIK ÇIKTISI VAR — yoksa CI kırmızı, yerelde "ölçülmedi" | evet | geçti |
+| `URN-TNK-001` | Sistem | UI · DOMAIN | `bekci/dom-tanik.test.ts` | TANIĞIN ERİŞİMİ DARALMADI — kör tanık sıfır ayrışma bulur | evet | geçti |
+| `URN-TNK-001` | Sistem | UI · DOMAIN | `bekci/dom-tanik.test.ts` | TANIĞIN ERİŞİM SINIRI ÖLÇÜLÜR ve BEYANLIDIR — "ayrışma 0" yetmez | evet | geçti |
+| `URN-TNK-001` | Sistem | UI · DOMAIN | `bekci/dom-tanik.test.ts` | EKRANDA GÖRÜLEN her cümle bir kütükte AÇIKLANIYOR | evet | geçti |
+| `URN-TNK-001` | Sistem | UI · DOMAIN | `bekci/dom-tanik.test.ts` | TANIK KÜTÜĞÜNDE ölü satır YOK | evet | geçti |
+| `URN-TNK-001` | Sistem | UI · DOMAIN | `bekci/dom-tanik.test.ts` | TANIK KÜTÜĞÜNÜN her satırı ÖLÇÜMÜNÜ taşır — tavan SIFIR | evet | geçti |
+| `URN-TNK-001` | Sistem | UI · DOMAIN | `bekci/dom-tanik.test.ts` | ÖLÇÜM referansı GERÇEK: dosya var ve vaka o dosyada | evet | geçti |
+| `URN-TNK-001` | Sistem | UI · DOMAIN | `bekci/dom-tanik.test.ts` | TANIK KÜTÜĞÜ CIRCIRDADIR — taban dala göre BÜYÜYEMEZ | evet | geçti |
+| `URN-TNK-001` | Sistem | UI · DOMAIN | `bekci/dom-tanik.test.ts` | ARA DEĞER dolmuş cümle, şablonu AÇIKLAR | evet | geçti |
+| `URN-TNK-001` | Sistem | UI · DOMAIN | `bekci/dom-tanik.test.ts` | BAŞKA bir cümle açıklamaz — ölçüt her şeyi eşleştirmiyor | evet | geçti |
+| `URN-TNK-001` | Sistem | UI · DOMAIN | `bekci/dom-tanik.test.ts` | ÇOK KISA kütük satırı hiçbir şeyi açıklayamaz | evet | geçti |
+| `URN-TNK-001` | Sistem | UI · DOMAIN | `bekci/dom-tanik.test.ts` | SIRA ÖNEMLİ — aynı sözcükler farklı sırada açıklamaz | evet | geçti |
+| `URN-TNK-001` | Sistem | UI · DOMAIN | `bekci/dom-tanik.test.ts` | SAYILAR düşer, harfler kalır | evet | geçti |
+| `URN-TNK-001` | Sistem | UI · DOMAIN | `bekci/dom-tanik.test.ts` | BOŞ kütükte HİÇBİR ŞEY açıklanmaz — ayrışma sessizce sıfırlanamaz | evet | geçti |
+| `URN-TNK-001` | Sistem | UI · DOMAIN | `bekci/dom-tanik.test.ts` | EKRANDA görülen boş durumun EYLEMİ de var | evet | geçti |
+| `SIS-POL-002` | Sistem | UI · SERVER · DOMAIN | `politika-tanik-acilan.test.ts` | ÖNEKSİZ ad HİÇBİR ögeye bağlanmaz; önek eklenince bağlanır | evet | geçti |
+| `SIS-POL-002` | Sistem | UI · SERVER · DOMAIN | `politika-tanik-acilan.test.ts` | UZUN AD ÖNCE denenir — kısa adlı öge uzun adlının kaydını KAPMAZ | evet | geçti |
+| `SIS-POL-002` | Sistem | UI · SERVER · DOMAIN | `politika-tanik-acilan.test.ts` | EKRAN ve SAYFA aynı kuralı kullanır — cümle ile bağ AYNI YERDEN | evet | geçti |
+| `SIS-POL-002` | Sistem | UI · SERVER · DOMAIN | `politika-tanik-acilan.test.ts` | ADIMI OLMAYAN sürece varlık BAĞLANAMAZ; adım açılınca bağlanır | evet | geçti |
+| `SIS-POL-002` | Sistem | UI · SERVER · DOMAIN | `politika-tanik-acilan.test.ts` | ŞEMADA belge İÇERİĞİ için alan YOKTUR — olmayan alan doldurulamaz | evet | geçti |
+| `SIS-POL-002` | Sistem | UI · SERVER · DOMAIN | `politika-tanik-acilan.test.ts` | KOD hiçbir yerde `disKaynak`a istek ATMAZ | evet | geçti |
+| `SIS-POL-002` | Sistem | UI · SERVER · DOMAIN | `politika-tanik-acilan.test.ts` | KARARSIZ kayıt tamamlanamaz; karar eklenince tamamlanır | evet | geçti |
+| `SIS-POL-002` | Sistem | UI · SERVER · DOMAIN | `politika-tanik-acilan.test.ts` | HİÇBİR MOTOR bu alanları yazmaz; insan eylemi YAZAR | evet | geçti |
+| `SIS-POL-002` | Sistem | UI · SERVER · DOMAIN | `politika-tanik-acilan.test.ts` | İKİ kapsama bağlı kanıt, TEK kapsamlı rolle düzenlenemez | evet | geçti |
+| `SIS-POL-002` | Sistem | UI · SERVER · DOMAIN | `politika-tanik-acilan.test.ts` | BAĞI OLMAYAN kanıt yalnız KAPSAMSIZ yetkiyle düzenlenir | evet | geçti |
+| `SIS-POL-002` | Sistem | UI · SERVER · DOMAIN | `politika-tanik-acilan.test.ts` | PENCERE gerçekten 300: daha fazla iz varken 300 satır dönüyor | evet | geçti |
+| `SIS-POL-002` | Sistem | UI · SERVER · DOMAIN | `politika-tanik-acilan.test.ts` | BOŞ kapsamla davet REDDEDİLİR ve HİÇBİR yetki satırı yazılmaz | evet | geçti |
+| `SIS-POL-002` | Sistem | UI · SERVER · DOMAIN | `politika-tanik-acilan.test.ts` | KAPSAM DIŞI paydadan düşer ama SAYISI ayrıca durur | evet | geçti |
+| `SIS-POL-002` | Sistem | UI · SERVER · DOMAIN | `politika-tanik-acilan.test.ts` | SEBEPSİZ ret bayrağı YANAR; sebep yazılınca söner | evet | geçti |
+| `SIS-POL-002` | Sistem | UI · SERVER · DOMAIN | `politika-tanik-acilan.test.ts` | KAYITSIZ bağ sayılmaz — ve bu "etkisi yok" DİYE yazılmaz | evet | geçti |
+| `SIS-POL-002` | Sistem | UI · SERVER · DOMAIN | `politika-tanik-acilan.test.ts` | KRİTİK OLMAYAN sapma aday ÜRETMEZ; kritik üretir | evet | geçti |
+| `SIS-POL-002` | Sistem | UI · SERVER · DOMAIN | `politika-tanik-acilan.test.ts` | KOD güncellemede YAZILMAZ — ad değişir, kod durur | evet | geçti |
+| `SIS-POL-002` | Sistem | UI · SERVER · DOMAIN | `politika-tanik-acilan.test.ts` | TESİSE KISITLI rol, grup çapındaki süreci DÜZENLEYEMEZ | evet | geçti |
+| `SIS-POL-002` | Sistem | UI · SERVER · DOMAIN | `politika-tanik-acilan.test.ts` | DEĞER yazılır, İZ oluşur ve AYNI talep ikinci kez uygulanamaz | evet | geçti |
+| `SIS-POL-002` | Sistem | UI · SERVER · DOMAIN | `politika-tanik-acilan.test.ts` | EKRANIN cümlesi SAĞLAYICI SABİTİNDEN gelir ve sağlayıcı BAĞLI DEĞİLDİR | evet | geçti |
+| `SIS-POL-002` | Sistem | UI · SERVER · DOMAIN | `politika-tanik-acilan.test.ts` | ETKİN KAYNAK YOKKEN radar AĞA HİÇ ÇIKMAZ | evet | geçti |
+| `SIS-POL-002` | Sistem | UI · SERVER · DOMAIN | `politika-tanik-acilan.test.ts` | UYUM ONAY YETKİSİ olmayan kapatamaz; açık aksiyon da kapanışı durdurur | evet | geçti |
+| `SIS-POL-002` | Sistem | UI · SERVER · DOMAIN | `politika-tanik-acilan.test.ts` | PASİF kayıt haritanın verisine GİRMEZ; aktif girer | evet | geçti |
+| `SIS-POL-002` | Sistem | UI · SERVER · DOMAIN | `politika-tanik-acilan.test.ts` | KAPSAMA KISITLI rol yalnız kendi kapsamının kayıtlarını görür | evet | geçti |
+| `SIS-POL-002` | Sistem | UI · SERVER · DOMAIN | `politika-tanik-acilan.test.ts` | KEŞİF ve TOPOLOJİ yolları ağ ilkellerini HİÇ ÇAĞIRMAZ | evet | geçti |
+| `SIS-POL-002` | Sistem | UI · SERVER · DOMAIN | `politika-tanik-acilan.test.ts` | DUYURU kaydı ELLE açılır; hiçbir motor akıştan duyuru yazmaz | evet | geçti |
+| `SIS-POL-002` | Sistem | UI · SERVER · DOMAIN | `politika-tanik-acilan.test.ts` | KANIT dosyası BAYT olarak saklanır ve SHA-256 özeti alınır | evet | geçti |
+| `SIS-POL-002` | Sistem | UI · SERVER · DOMAIN | `politika-tanik-acilan.test.ts` | MEDYA kaydı bir ENGELLEME eylemi üretmez; yalnız kütük satırıdır | evet | geçti |
+| `SIS-POL-002` | Sistem | UI · SERVER · DOMAIN | `politika-tanik-acilan.test.ts` | METİN ÜRETEN bir eylem ya da uç YOKTUR — beyan kurumundur | evet | geçti |
+| `SIS-POL-002` | Sistem | UI · SERVER · DOMAIN | `politika-tanik-acilan.test.ts` | SAHADA GÖRÜLEN duruş, envanter kaydını YAZMAZ | evet | geçti |
 | `SIS-SNG-001` | Sistem | DOMAIN | `giris-zaman.test.ts` | ileri ve geri aynı kaydırma noktasında aynı pozu verir | evet | geçti |
 | `SIS-SNG-001` | Sistem | DOMAIN | `giris-zaman.test.ts` | dört kareyi tek dünya koordinatına diker: ortak hedef komşu karelerde aynı noktadadır | evet | geçti |
 | `SIS-SNG-001` | Sistem | DOMAIN | `giris-zaman.test.ts` | her bantta en fazla iki komşu kare görünür, toplam opaklık 1 ve görünen her kare görüntü alanını kaplar | evet | geçti |
@@ -1004,6 +1157,7 @@
 | `URN-POL-001` | Ürünleştirme | DOMAIN | `bekci/politika-olcumu.test.ts` | KODDAKİ her cümle kütükte VAR | evet | geçti |
 | `URN-POL-001` | Ürünleştirme | DOMAIN | `bekci/politika-olcumu.test.ts` | KÜTÜKTEKİ her satır kodda VAR — ölü satır kalmaz | evet | geçti |
 | `URN-POL-001` | Ürünleştirme | DOMAIN | `bekci/politika-olcumu.test.ts` | sınıf ya POLITIKA ya IDDIA_DEGIL — sınıflanmamış satır KIRMIZI | evet | geçti |
+| `URN-POL-001` | Ürünleştirme | DOMAIN | `bekci/politika-olcumu.test.ts` | IDDIA_DEGIL kaçış kapısı CIRCIRDADIR — sessiz indirme yok, yeni muafiyet gerekçeli | evet | geçti |
 | `URN-POL-001` | Ürünleştirme | DOMAIN | `bekci/politika-olcumu.test.ts` | IDDIA_DEGIL satırı NEDEN iddia olmadığını söyler | evet | geçti |
 | `URN-POL-001` | Ürünleştirme | DOMAIN | `bekci/politika-olcumu.test.ts` | POLİTİKA satırı ya ÖLÇÜMÜNÜ ya ÖLÇÜLMEDİĞİNİ söyler — ikisi de yoksa KIRMIZI | evet | geçti |
 | `URN-POL-001` | Ürünleştirme | DOMAIN | `bekci/politika-olcumu.test.ts` | İKİSİ BİRDEN olamaz — ölçülen satır "ölçülmedi" taşıyamaz | evet | geçti |
@@ -1014,6 +1168,7 @@
 | `URN-POL-001` | Ürünleştirme | DOMAIN | `bekci/politika-olcumu.test.ts` | HER politika satırı sonuç sınıfı TAŞIR | evet | geçti |
 | `URN-POL-001` | Ürünleştirme | DOMAIN | `bekci/politika-olcumu.test.ts` | SINIF ELLE VERİLMEZ — kütüktekiyle TÜRETİLEN aynı | evet | geçti |
 | `URN-POL-001` | Ürünleştirme | DOMAIN | `bekci/politika-olcumu.test.ts` | S1 · YETKİ VE GÜVENLİK: ÖLÇÜLMEYEN SIFIRDIR — istisna YOK | evet | geçti |
+| `URN-POL-001` | Ürünleştirme | DOMAIN | `bekci/politika-olcumu.test.ts` | YEDİNCİ DİŞ · BORÇ SIFIRDA KİLİTLİ — hiçbir sınıf yeniden açılamaz | evet | geçti |
 | `URN-POL-001` | Ürünleştirme | DOMAIN | `bekci/politika-olcumu.test.ts` | SINIF TAVANLARI ölçülenle BİREBİR — gevşeklik dişi | evet | geçti |
 | `URN-POL-001` | Ürünleştirme | DOMAIN | `bekci/politika-olcumu.test.ts` | TAVAN YÜKSELMESİ DOSYADA GEREKÇE İSTER — beşinci diş | evet | geçti |
 | `URN-POL-001` | Ürünleştirme | DOMAIN | `bekci/politika-olcumu.test.ts` | TABAN DAL CIRCIRI: liste tabana göre BÜYÜYEMEZ | evet | geçti |
@@ -1027,12 +1182,22 @@
 | `URN-POL-001` | Ürünleştirme | DOMAIN | `bekci/politika-olcumu.test.ts` | ESKİ satır bu dişin konusu DEĞİL — cırcırın öbür dişleri tutar | evet | geçti |
 | `URN-POL-001` | Ürünleştirme | DOMAIN | `bekci/politika-olcumu.test.ts` | IDDIA_DEGIL satırı politika değildir — diş ona bakmaz | evet | geçti |
 | `URN-POL-001` | Ürünleştirme | DOMAIN | `bekci/politika-olcumu.test.ts` | TOPLAM DÜŞERKEN SIZAN CÜMLE yakalanır — dişin var oluş sebebi | evet | geçti |
+| `URN-POL-001` | Ürünleştirme | DOMAIN | `bekci/politika-olcumu.test.ts` | KAÇIŞ · sessiz indirme yakalanır — tabanda POLITIKA, dalda IDDIA_DEGIL | evet | geçti |
+| `URN-POL-001` | Ürünleştirme | DOMAIN | `bekci/politika-olcumu.test.ts` | KAÇIŞ · YENİ S1 cümlesi IDDIA_DEGIL olamaz — gerekçe ne kadar uzun olursa olsun | evet | geçti |
+| `URN-POL-001` | Ürünleştirme | DOMAIN | `bekci/politika-olcumu.test.ts` | KAÇIŞ · zayıf gerekçeli YENİ satır yakalanır; güçlü gerekçeli S3 geçer | evet | geçti |
+| `URN-POL-001` | Ürünleştirme | DOMAIN | `bekci/politika-olcumu.test.ts` | KAÇIŞ · TABANDA ZATEN IDDIA_DEGIL olan satır yeniden yargılanmaz | evet | geçti |
+| `URN-POL-001` | Ürünleştirme | DOMAIN | `bekci/politika-olcumu.test.ts` | KAÇIŞ · POLITIKA satırı bu dişin konusu değil | evet | geçti |
 | `URN-POL-001` | Ürünleştirme | DOMAIN | `bekci/politika-olcumu.test.ts` | GERÇEK KÜTÜK: taban dala göre yeni satırların hepsi kuralı geçer | evet | geçti |
 | `URN-POL-001` | Ürünleştirme | DOMAIN | `bekci/politika-olcumu.test.ts` | KÜTÜKTEKİ her `olculmedi` satırı ŞEMAYA uyar — üç alan da dolu | evet | geçti |
 | `URN-POL-001` | Ürünleştirme | DOMAIN | `bekci/politika-olcumu.test.ts` | ÖZNE koşulu alan doğrulamasını dışarıda tutar | evet | geçti |
 | `URN-POL-001` | Ürünleştirme | DOMAIN | `bekci/politika-olcumu.test.ts` | SİSTEM iddiası yakalanır | evet | geçti |
 | `URN-POL-001` | Ürünleştirme | DOMAIN | `bekci/politika-olcumu.test.ts` | YORUMDAKİ cümle kütüğe girmez | evet | geçti |
 | `URN-POL-001` | Ürünleştirme | DOMAIN | `bekci/politika-olcumu.test.ts` | JSX parçası cümle sayılmaz | evet | geçti |
+| `URN-POL-001` | Ürünleştirme | DOMAIN | `bekci/politika-olcumu.test.ts` | AÇGÖZLÜ ALTERNATİF kusuru geri gelmez — uzun eşleşme kısa dizeyi YUTAMAZ | evet | geçti |
+| `URN-POL-001` | Ürünleştirme | DOMAIN | `bekci/politika-olcumu.test.ts` | TÜRKÇE KESME İŞARETİ tırnak değildir — arasındaki dize YUTULMAZ | evet | geçti |
+| `URN-POL-001` | Ürünleştirme | DOMAIN | `bekci/politika-olcumu.test.ts` | KAÇIŞ karakteri dizeyi erken KAPATMAZ | evet | geçti |
+| `URN-POL-001` | Ürünleştirme | DOMAIN | `bekci/politika-olcumu.test.ts` | KAPANMAYAN tırnak dosyanın geri kalanını YUTMAZ | evet | geçti |
+| `URN-POL-001` | Ürünleştirme | DOMAIN | `bekci/politika-olcumu.test.ts` | TABAN ve TAVAN dışındaki dizeler elenir — sınırlar dâhildir | evet | geçti |
 | `URN-MEV-001` | Ürünleştirme | DOMAIN | `bekci/radar-agsiz.test.ts` | dosya listesi TÜRETİLİYOR ve boş değil | evet | geçti |
 | `URN-MEV-001` | Ürünleştirme | DOMAIN | `bekci/radar-agsiz.test.ts` | hiçbir karar dosyasında ağ çağrısı YOK | evet | geçti |
 | `URN-MEV-001` | Ürünleştirme | DOMAIN | `bekci/radar-agsiz.test.ts` | koşum getirmeyi DIŞARIDAN alır | evet | geçti |

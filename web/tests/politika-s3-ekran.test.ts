@@ -96,10 +96,10 @@ describe('POL-024 · POL-047 · "kayıt evreni bilinmiyor" · "hiçbir koşulda 
        sayıyı 0 yazmak (yalan) ve satırı yeşil göstermek (daha kötü —
        kimse bakmaz). İkisi de ayrı ayrı ölçülür. */
     const S = await import('@/app/(kabuk)/(operasyonel)/saglik/mantik');
-    const bilinmeyen = {
+    const bilinmeyen: Parameters<typeof S.kokensizYazisi>[0] = {
       varlikTipi: 'Kurgusal', manuel: null, otomatik: 0, dogrulanmis: 0,
-      reddedildi: 0, bayat: 0,
-    } as Parameters<typeof S.kokensizYazisi>[0];
+      reddedildi: 0, kokenli: 0, toplam: null,
+    };
 
     expect(S.kokensizYazisi(bilinmeyen), 'bilinmeyen evren SIFIR yazıldı')
       .toBe('bilinmiyor');
@@ -115,10 +115,10 @@ describe('POL-024 · POL-047 · "kayıt evreni bilinmiyor" · "hiçbir koşulda 
 
   it('KÖKENİ OLMAYAN kayıt hiçbir sayımda "doğrulanmış" tarafa geçmez [SIS-EKR-001]', async () => {
     const S = await import('@/app/(kabuk)/(operasyonel)/saglik/mantik');
-    const kokensiz = {
+    const kokensiz: Parameters<typeof S.kokenImi>[0] = {
       varlikTipi: 'Kurgusal', manuel: 7, otomatik: 0, dogrulanmis: 0,
-      reddedildi: 0, bayat: 0,
-    } as Parameters<typeof S.kokenImi>[0];
+      reddedildi: 0, kokenli: 0, toplam: 7,
+    };
     expect(S.kokenImi(kokensiz), 'kökensiz kayıt taşıyan satır "ok" göründü')
       .not.toBe('ok');
   });
@@ -129,8 +129,10 @@ describe('POL-045 · "hiçbirine yazamaz DEĞİL, SINIR YOK" [SIS-EKR-001]', () 
     /* Boş seçimi "kimseye yazamaz" sanmak, kapsamı açık bir bağlantıyı
        kapalı sanmaktır — yetki yüzeyinde en pahalı yanılgı. */
     const S = await import('@/app/(kabuk)/(operasyonel)/saglik/mantik');
-    const g = { varsayilanTesisKodu: null, mirasKodlari: [] } as
-      Parameters<typeof S.kapsamUyarilari>[1];
+    const g: Parameters<typeof S.kapsamUyarilari>[1] = {
+      varsayilanTesisKodu: null, mirasKodlari: [], kodlar: [],
+      kaynak: 'yok', secenekler: [],
+    };
     const uyarilar = S.kapsamUyarilari([], g);
     expect(uyarilar.join(' '), 'boş seçim uyarısı yok').toContain('SINIR YOK');
 

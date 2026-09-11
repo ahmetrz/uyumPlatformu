@@ -316,6 +316,13 @@ export default function Tesis360({ veri, tesisler, sozluk }: {
             <p className="bos">
               Kayıtlı {t(sozluk, 'birim')} yok — bu {t(sozluk, 'tesis')} için
               hiç {t(sozluk, 'birim')} tanımlanmamış.
+              {/* Birim kataloğu yönetim tezgâhında yaşar. Çıkış, kullanıcının
+                  BULUNDUĞU tesisi yanında taşır: hangi kayıt için geldiğini
+                  orada ikinci kez seçtirmek gereksiz bir adım olurdu. */}
+              <Link href={`/yonetim-tezgahi?katalog=birim&tesis=${veri.id}`}
+                className="ab-dugme satir">
+                {tBas(sozluk, 'birim', 'tekil')} tanımla
+              </Link>
             </p>
           ) : veri.birimler.map((u) => (
             <div key={u.id} className="birim">

@@ -40,12 +40,23 @@ describe('Demo oturumu · salt okunur', () => {
   it('her sunucu eylemi dosyasının bir demo ikizi vardır', () => {
     const dizin = path.join(KOK, 'lib/eylemler2');
     const hepsi = readdirSync(dizin).filter((d) => d.endsWith('.ts'));
-    /* `ortak.ts` bir EYLEM DOSYASI DEĞİL, eylemlerin paylaştığı
-       yardımcılardır: dışa aktardığı hiçbir şey sunucu eylemi değildir
-       ve bir demo ikizi anlamsız olurdu. */
+    /* ── ÖLÇÜT DERLEMENİN ÖLÇÜTÜDÜR (Brief L · faz 3) ──────────────────
+       Burada önce "`ortak.ts` dışında HER dosya" deniyordu ve bu ölçüt
+       DERLEMENİNKİNDEN farklıydı: `next.config.ts` takma ad listesini
+       yalnız `'use server'` taşıyan modüllerden kurar. Fark bir ölü
+       ikiz doğurmuştu — `kapsamMesaji.ts` `server-only`dir, eşlenmez,
+       tüketicileri onu GÖRELİ yolla alır; ikizi hiçbir yoldan
+       yüklenemiyordu ama bu vaka onu ZORUNLU tutuyordu.
+
+       İki ölçüt bir olmalı: eşlenmeyen bir modülün ikizi ölü atıftır
+       (`tests/politika-s3-demo-ikizleri.test.ts` · SIS-DEM-003 kümeyi
+       iki yönlü tutar), eşlenen bir modülün ikizsizliği ise derlemeyi
+       yayın anında patlatır. */
     const gercek = hepsi
       .filter((d) => !d.endsWith('.demo.ts'))
-      .filter((d) => d !== 'ortak.ts');
+      .filter((d) => /^\s*['"]use server['"]/m.test(
+        readFileSync(path.join(dizin, d), 'utf8')));
+    expect(gercek.length, 'eşlenen modül bulunamadı — ölçüt bozuk').toBeGreaterThan(20);
     for (const g of gercek) {
       const ikiz = g.replace(/\.ts$/, '.demo.ts');
       expect(hepsi, `${g} için demo ikizi yok`).toContain(ikiz);

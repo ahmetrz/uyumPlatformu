@@ -249,6 +249,32 @@ export default function EnvanterIstemci({
                 : varliklar.length === 0
                   ? 'Kapsamınızda varlık kaydı yok.'
                   : 'Sinyal merceğinde varlık yok — bilinen açık ve geçmiş ömür yok.'}
+              {/* ── ÇIKIŞ, KULLANICININ NASIL GELDİĞİNE BAĞLIDIR ──────
+                  Üç boşluğun üç ayrı sebebi var ve üçünün çözümü ayrı
+                  yerde: süzgeç KULLANICININ kendi kararıdır (yerinde
+                  geri alınır), boş kapsam bir KAYIT işidir, boş sinyal
+                  merceği ise "sorun yok" demektir — oradaki çıkış başka
+                  bir mercektir, yeni kayıt değil. */}
+              {filtreAktif ? (
+                <button type="button" className="ab-dugme satir"
+                  onClick={filtreleriTemizle}>Süzgeci temizle</button>
+              ) : varliklar.length === 0 ? (
+                yazabilir ? (
+                  <button type="button" className="ab-dugme satir"
+                    onClick={() => { setYeniAcik(true); setSeciliId(null); }}>
+                    İlk varlığı ekle
+                  </button>
+                ) : (
+                  <Link href="/yonetim-tezgahi" className="ab-dugme satir">
+                    Kapsamımı gör
+                  </Link>
+                )
+              ) : (
+                <button type="button" className="ab-dugme satir"
+                  onClick={() => { setMercek('hepsi'); setKuyrukAcik(false); }}>
+                  Tümü merceğine geç
+                </button>
+              )}
             </p>
           ) : kip === 'zincir' ? (
             <Zincir zincir={zincir} secili={secili} sec={sec} />
@@ -302,6 +328,15 @@ export default function EnvanterIstemci({
                 <p className="bos">
                   Zincirde ya da tabloda bir varlık seçin; yedi halka o varlıktan geçen
                   yolu gösterir.
+                  {/* Sistem listeyi ZATEN elinde tutuyor: "birini seçin"
+                      deyip seçtirmemek, kullanıcıyı tabloya geri yollayıp
+                      aynı kararı ikinci kez aldırırdı. */}
+                  {gorunur.length > 0 && (
+                    <button type="button" className="ab-dugme satir"
+                      onClick={() => sec(gorunur[0].id)}>
+                      İlk varlığı aç
+                    </button>
+                  )}
                 </p>
               </div>
             </>
@@ -492,6 +527,10 @@ function Zincir({ zincir, secili, sec }: {
   /* Seçim yokken son dört halka hiç dolmaz (bkz. `zinciriKur`). */
   const kisali = !secili;
   const gorunur = kisali ? zincir.slice(0, 3) : zincir;
+  /* Zincirdeki İLK seçilebilir düğüm — "bir varlık seçin" diyen boşluklar
+     kullanıcıyı tabloya geri yollamak yerine burada seçtirir. Düğüm
+     kimliği iki harflik halka önekiyle taşınır; seçim onu atar. */
+  const ilkSecilebilir = zincir.flat().find((d) => d.secilebilir)?.id.slice(2) ?? null;
   const gorunurBaslik = kisali ? HALKALAR.slice(0, 3) : HALKALAR;
   return (
     <div className={`ab-zincir${kisali ? ' kisali' : ''}`}>
@@ -511,6 +550,20 @@ function Zincir({ zincir, secili, sec }: {
                 {secili
                   ? 'Seçili varlığa bağlı kayıt yok; bu halka boş.'
                   : 'Kayıt yok; bir varlık seçilmedi.'}
+                {/* İki boşluğun iki ayrı çıkışı var: seçim VARKEN halka
+                    gerçekten boştur ve çözüm bağ kurmaktır; seçim YOKKEN
+                    kullanıcının tek eksiği bir seçimdir ve onu burada
+                    yapabilir. */}
+                {secili ? (
+                  <Link href={`/varliklar/${secili.id}`} className="ab-dugme satir">
+                    Bağları düzenle
+                  </Link>
+                ) : ilkSecilebilir ? (
+                  <button type="button" className="ab-dugme satir"
+                    onClick={() => sec(ilkSecilebilir)}>
+                    İlk varlığı aç
+                  </button>
+                ) : null}
               </span>
             ) : halka.map((d) => {
               const govde = (
@@ -541,6 +594,12 @@ function Zincir({ zincir, secili, sec }: {
           <div className="sutun bekleyen-ray">
             <span className="bos">
               Bir varlık seçin; dört halka o varlıktan geçen yolu gösterir.
+              {ilkSecilebilir && (
+                <button type="button" className="ab-dugme satir"
+                  onClick={() => sec(ilkSecilebilir)}>
+                  İlk varlığı aç
+                </button>
+              )}
             </span>
           </div>
         )}
@@ -733,6 +792,13 @@ function Ozet({ v, simdi }: { v: V; simdi: number }) {
           <p className="bos">
             Bu varlık bir risk ya da projeye bağlı değil; bağ kurulduğunda
             yönetişim izi burada görünür.
+            {/* Bağ BU varlıktan kurulmaz — riskin ya da projenin kendi
+                kaydından kurulur. Çıkış o yüzden yönetişim yüzeyine
+                gider ve varlığı yanında TAŞIR: kullanıcı hangi varlık
+                için geldiğini orada ikinci kez aramaz. */}
+            <Link href={`/riskler?varlik=${v.id}`} className="ab-dugme satir">
+              Risk ya da projeye bağla
+            </Link>
           </p>
         ) : (
           <>

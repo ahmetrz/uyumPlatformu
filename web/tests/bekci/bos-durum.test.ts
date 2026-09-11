@@ -135,6 +135,40 @@ describe('İKİ ÖLÇÜT ve CIRCIR [SIS-BSD-001]', () => {
     }
   });
 
+  it('EYLEMSİZ SIFIRDA KİLİTLİ — HİÇBİR sınıf yeniden açılamaz [SIS-BSD-001]', () => {
+    /* ── R0-21 KAPANDI (Brief L · faz 4) ──────────────────────────────
+       Dolu bir ekranın İÇİNDEKİ bölüm notları (`satirIci`) eylemsiz
+       kalmıştı ve tavanı ölçülen sayıya (12) sabitlenmişti. On ikisinin
+       de çıkışı verildi; çözüm arketipiktir ve üç kuralı var:
+
+         · ÇÖZÜM AYNI EKRANDAYSA eylem YERİNDEDİR — var olan formu açar
+           ya da listeden ilk kaydı seçer. Gezinme bağı koymak kullanıcıyı
+           çalıştığı ekrandan koparırdı.
+         · ÇÖZÜM BAŞKA EKRANDAYSA bağ BAĞLAMI TAŞIR (varlık/tesis kimliği
+           sorguda) — kullanıcı hangi kayıt için geldiğini orada ikinci
+           kez aramaz.
+         · YETKİSİ OLMAYANA ölü bir eylem gösterilmez; çıkış kapsamın
+           görüldüğü yere gider.
+
+       Bu diş kilidi mutlak yapar: ölçülen sayıya "eşit tavan" kuralı,
+       sıfıra inmiş bir borcu 0'dan 1'e çıkaran bir satırı GEÇİRİRDİ —
+       tavan da onunla 1 olurdu ve cırcır sessizce gevşerdi. Kilidi
+       açmak bu dişi SİLMEYİ gerektirir. */
+    const kalan = eylemsiz.map(anahtar);
+    expect(kalan, `EYLEMSİZ boş durum — tavan SIFIRDA kilitli:\n${kalan.join('\n')}`)
+      .toEqual([]);
+    for (const s of SINIFLAR) {
+      expect(olculenSinif[s].eylemsiz, `${s} eylemsiz tavanı sıfır olmalı`).toBe(0);
+      expect(kutuk.sinifTavanlari?.[s]?.eylemsiz, `${s} eylemsiz tavanı kütükte sıfır değil`)
+        .toBe(0);
+    }
+    /* Popülasyon dişi: kütük boşalırsa yukarıdaki her şey sıfır turda
+       yeşil biterdi — "hiç boş durum yok" ile "hepsi eylemli" aynı
+       görünür ve bu dişin var oluş sebebi buharlaşır. */
+    expect(bulunan.length, 'boş durum kütüğü BOŞ — vaka hiçbir şey ölçmedi')
+      .toBeGreaterThan(50);
+  });
+
   it('SINIF TAVANLARI aşılmaz ve ölçülenin ÜSTÜNDE tutulmaz [SIS-BSD-001]', () => {
     /* TEK TOPLAM TAVAN YETMEZ: `BosIlk`e eylemsiz bir satır eklenir,
        `satirIci`den biri düzelir, toplam DEĞİŞMEZ ve en sıkı sınıf

@@ -2,7 +2,7 @@
   "not": "Boş durum kütüğü. Satırlar arac/bos-durum-kutugu.mjs ile TÜRETİLİR, elle yazılmaz.",
   "tavanlar": {
     "nedensiz": 1,
-    "eylemsiz": 12
+    "eylemsiz": 0
   },
   "sinifTavanlari": {
     "BosIlk": {
@@ -17,7 +17,7 @@
     },
     "satirIci": {
       "nedensiz": 0,
-      "eylemsiz": 12,
+      "eylemsiz": 0,
       "iyiHaber": 3
     }
   },
@@ -29,14 +29,6 @@
       "sahip": "KODLAYAN",
       "kapanisAsamasi": "P3 · mesaj kataloğu (arayüz metinleri sözlükten gelir; türetici o gün kütükten okur)",
       "gerekce": "Cümle bir FONKSİYONDAN dönüyor (`katalogBoslukCumlesi`): türetici JSX metin sabitini okur, çağrılan bir fonksiyonun çalışma anındaki çıktısını okuyamaz. Kusur cümlede DEĞİL, türeticinin görüş alanındadır; cümlenin üç hâli de iki yan tümce taşır ve ölçümü `istisnalar` altında adıyla beyanlıdır."
-    },
-    {
-      "alan": "satirIci.eylemsiz",
-      "eski": 11,
-      "yeni": 12,
-      "sahip": "KODLAYAN",
-      "kapanisAsamasi": "P3 · ekran arketipi turu (envanter · duruş · yönetişim · karne ekranlarının bölüm notları tek geçişte gözden geçirilir)",
-      "gerekce": "Bu satırlar EKRANIN YERİNE GEÇEN bir boşluk değil, dolu bir ekranın İÇİNDEKİ bölüm notudur (`<p className=\"bos\">`). Her birine gezinme bağı koymak kullanıcıyı çalıştığı ekrandan koparır ve etkileşim sadeleştirmenin 'minimum gereksiz gezinme' ölçütünü ihlal eder; hangi notun gerçekten bir bağ hak ettiği ekran ekran bir TASARIM kararıdır. Hepsinin NEDEN ölçütü GEÇİYOR: kullanıcı boşluğun sebebini görüyor, yalnız bir sonraki adımı görmüyor. Sayı 11'den 12'ye çıktı çünkü türeticinin körlüğü kapatıldı (tur 2, B2) — yeni bir kusur değil, ölçülmemiş bir kusurun görünür olması."
     },
     {
       "alan": "BosIlk.iyiHaber",
@@ -125,14 +117,14 @@
       "yer": "app/(kabuk)/(flagship)/tesisler/[id]/Tesis360.tsx",
       "satir": 316,
       "tur": "satirIci",
-      "cumle": "Kayıtlı … yok — bu … için hiç … tanımlanmamış.",
+      "cumle": "Kayıtlı … yok — bu … için hiç … tanımlanmamış. … tanımla",
       "iyiHaber": false,
       "neden": true,
-      "eylem": false
+      "eylem": true
     },
     {
       "yer": "app/(kabuk)/(flagship)/tesisler/[id]/Tesis360.tsx",
-      "satir": 350,
+      "satir": 357,
       "tur": "satirIci",
       "cumle": "Açık bulgu yok; bu … için kapatılmamış denetim bulgusu bulunmuyor.",
       "iyiHaber": true,
@@ -258,70 +250,70 @@
     },
     {
       "yer": "app/(kabuk)/(operasyonel)/envanter/Durus.tsx",
-      "satir": 87,
+      "satir": 94,
       "tur": "satirIci",
-      "cumle": "… kaydı yok — ölçülmedi; bilinmeyen sıfır sayılmaz.",
+      "cumle": "… kaydı yok — ölçülmedi; bilinmeyen sıfır sayılmaz. Kaynak bağla",
       "iyiHaber": false,
       "neden": true,
-      "eylem": false
+      "eylem": true
     },
     {
       "yer": "app/(kabuk)/(operasyonel)/envanter/Durus.tsx",
-      "satir": 245,
+      "satir": 253,
       "tur": "satirIci",
-      "cumle": "Bu varlığı besleyen kaynak sistem yok — duruş ölçülmedi.",
+      "cumle": "Bu varlığı besleyen kaynak sistem yok — duruş ölçülmedi. Kaynak bağla",
       "iyiHaber": false,
       "neden": true,
-      "eylem": false
+      "eylem": true
     },
     {
       "yer": "app/(kabuk)/(operasyonel)/envanter/Durus.tsx",
-      "satir": 770,
+      "satir": 779,
       "tur": "satirIci",
-      "cumle": "Segment atanmadı — adres tutarlılığı denetlenemez.",
+      "cumle": "Segment atanmadı — adres tutarlılığı denetlenemez. … {yazilabilir ? ( Segment ata ) : ( Segment kataloğunu gör )}",
       "iyiHaber": false,
       "neden": true,
-      "eylem": false
+      "eylem": true
     },
     {
       "yer": "app/(kabuk)/(operasyonel)/envanter/EnvanterIstemci.tsx",
       "satir": 246,
       "tur": "satirIci",
-      "cumle": "Bu süzgeçte varlık yok. Kapsamınızda varlık kaydı yok. Sinyal merceğinde varlık yok — bilinen açık ve geçmiş ömür yok.",
+      "cumle": "Bu süzgeçte varlık yok. Kapsamınızda varlık kaydı yok. Sinyal merceğinde varlık yok — bilinen açık ve geçmiş ömür yok. … {filtreAktif ? ( Süzgeci temizle ) : varliklar.length === 0 ? ( yazabilir ? ( …}> İlk varlığı ekle ) : ( Kapsamımı gör ) ) : ( …}> Tümü merceğine geç )}",
       "iyiHaber": false,
       "neden": true,
-      "eylem": false
+      "eylem": true
     },
     {
       "yer": "app/(kabuk)/(operasyonel)/envanter/EnvanterIstemci.tsx",
-      "satir": 302,
+      "satir": 328,
       "tur": "satirIci",
-      "cumle": "Zincirde ya da tabloda bir varlık seçin; yedi halka o varlıktan geçen yolu gösterir.",
+      "cumle": "Zincirde ya da tabloda bir varlık seçin; yedi halka o varlıktan geçen yolu gösterir. … {gorunur.length > 0 && ( İlk varlığı aç )}",
       "iyiHaber": false,
       "neden": true,
-      "eylem": false
+      "eylem": true
     },
     {
       "yer": "app/(kabuk)/(operasyonel)/envanter/EnvanterIstemci.tsx",
-      "satir": 510,
+      "satir": 549,
       "tur": "satirIci",
-      "cumle": "Seçili varlığa bağlı kayıt yok; bu halka boş. Kayıt yok; bir varlık seçilmedi.",
+      "cumle": "Seçili varlığa bağlı kayıt yok; bu halka boş. Kayıt yok; bir varlık seçilmedi. … {secili ? ( Bağları düzenle ) : ilkSecilebilir ? ( İlk varlığı aç ) : null}",
       "iyiHaber": false,
       "neden": true,
-      "eylem": false
+      "eylem": true
     },
     {
       "yer": "app/(kabuk)/(operasyonel)/envanter/EnvanterIstemci.tsx",
-      "satir": 542,
+      "satir": 595,
       "tur": "satirIci",
-      "cumle": "Bir varlık seçin; dört halka o varlıktan geçen yolu gösterir.",
+      "cumle": "Bir varlık seçin; dört halka o varlıktan geçen yolu gösterir. {ilkSecilebilir && ( İlk varlığı aç )}",
       "iyiHaber": false,
       "neden": true,
-      "eylem": false
+      "eylem": true
     },
     {
       "yer": "app/(kabuk)/(operasyonel)/envanter/EnvanterIstemci.tsx",
-      "satir": 722,
+      "satir": 781,
       "tur": "satirIci",
       "cumle": "Açık zafiyet kaydı yok; bu varlık için kapatılmamış zafiyet bulunmuyor.",
       "iyiHaber": true,
@@ -330,30 +322,30 @@
     },
     {
       "yer": "app/(kabuk)/(operasyonel)/envanter/EnvanterIstemci.tsx",
-      "satir": 733,
+      "satir": 792,
       "tur": "satirIci",
-      "cumle": "Bu varlık bir risk ya da projeye bağlı değil; bağ kurulduğunda yönetişim izi burada görünür.",
+      "cumle": "Bu varlık bir risk ya da projeye bağlı değil; bağ kurulduğunda yönetişim izi burada görünür. … Risk ya da projeye bağla",
       "iyiHaber": false,
       "neden": true,
-      "eylem": false
+      "eylem": true
     },
     {
       "yer": "app/(kabuk)/(operasyonel)/envanter/Yonetisim.tsx",
       "satir": 240,
       "tur": "satirIci",
-      "cumle": "Etki değerlendirmesi yok — üretim kaybı hesaplanmadı.",
+      "cumle": "Etki değerlendirmesi yok — üretim kaybı hesaplanmadı. … {v.yazilabilir ? ( Etki değerlendir ) : ( Değerlendirme yetkisini gör )}",
       "iyiHaber": false,
       "neden": true,
-      "eylem": false
+      "eylem": true
     },
     {
       "yer": "app/(kabuk)/(operasyonel)/envanter/Yonetisim.tsx",
-      "satir": 406,
+      "satir": 419,
       "tur": "satirIci",
-      "cumle": "Bu varlık hiçbir proses adımına bağlanmadı — durduğunda hangi işin etkileneceği bilinmiyor.",
+      "cumle": "Bu varlık hiçbir proses adımına bağlanmadı — durduğunda hangi işin etkileneceği bilinmiyor. … Proses adımına bağla",
       "iyiHaber": false,
       "neden": true,
-      "eylem": false
+      "eylem": true
     },
     {
       "yer": "app/(kabuk)/(operasyonel)/esleme/EslemeIstemci.tsx",
@@ -546,12 +538,12 @@
     },
     {
       "yer": "app/(kabuk)/(operasyonel)/raporlar/karne/Karne.tsx",
-      "satir": 111,
+      "satir": 112,
       "tur": "satirIci",
-      "cumle": "Hiçbir … için uyum yüzdesi ölçülmedi; yüzde, değerlendirilmiş kontrollerden hesaplanır.",
+      "cumle": "Hiçbir … için uyum yüzdesi ölçülmedi; yüzde, değerlendirilmiş kontrollerden hesaplanır. … Kontrolleri değerlendir",
       "iyiHaber": false,
       "neden": true,
-      "eylem": false
+      "eylem": true
     },
     {
       "yer": "app/(kabuk)/(operasyonel)/raporlar/RaporlarIstemci.tsx",

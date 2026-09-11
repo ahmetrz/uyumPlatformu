@@ -553,6 +553,7 @@
 | `SIS-BSD-001` | Sistem | UI · DOMAIN | `bekci/bos-durum.test.ts` | KÜTÜKTEKİ her satır kodda VAR — ölü satır kalmaz | evet | geçti |
 | `SIS-BSD-001` | Sistem | UI · DOMAIN | `bekci/bos-durum.test.ts` | KÜTÜK ÖLÇÜMÜ elle yazılmaz — türetilenle BİREBİR | evet | geçti |
 | `SIS-BSD-001` | Sistem | UI · DOMAIN | `bekci/bos-durum.test.ts` | İLK KURULUM boşluğunda EYLEMSİZ SIFIRDIR — istisnası yalnız iyi haber | evet | geçti |
+| `SIS-BSD-001` | Sistem | UI · DOMAIN | `bekci/bos-durum.test.ts` | EYLEMSİZ SIFIRDA KİLİTLİ — HİÇBİR sınıf yeniden açılamaz | evet | geçti |
 | `SIS-BSD-001` | Sistem | UI · DOMAIN | `bekci/bos-durum.test.ts` | SINIF TAVANLARI aşılmaz ve ölçülenin ÜSTÜNDE tutulmaz | evet | geçti |
 | `SIS-BSD-001` | Sistem | UI · DOMAIN | `bekci/bos-durum.test.ts` | SIFIR OLMAYAN her sınıf tavanı SAHİBİ ve KAPANIŞ AŞAMASIYLA beyanlı | evet | geçti |
 | `SIS-BSD-001` | Sistem | UI · DOMAIN | `bekci/bos-durum.test.ts` | TOPLAM TAVAN ölçülenle BİREBİR — özet sayı da elle yazılmaz | evet | geçti |
@@ -1052,6 +1053,7 @@
 | `URN-POL-001` | Ürünleştirme | DOMAIN | `bekci/politika-olcumu.test.ts` | HER politika satırı sonuç sınıfı TAŞIR | evet | geçti |
 | `URN-POL-001` | Ürünleştirme | DOMAIN | `bekci/politika-olcumu.test.ts` | SINIF ELLE VERİLMEZ — kütüktekiyle TÜRETİLEN aynı | evet | geçti |
 | `URN-POL-001` | Ürünleştirme | DOMAIN | `bekci/politika-olcumu.test.ts` | S1 · YETKİ VE GÜVENLİK: ÖLÇÜLMEYEN SIFIRDIR — istisna YOK | evet | geçti |
+| `URN-POL-001` | Ürünleştirme | DOMAIN | `bekci/politika-olcumu.test.ts` | YEDİNCİ DİŞ · BORÇ SIFIRDA KİLİTLİ — hiçbir sınıf yeniden açılamaz | evet | geçti |
 | `URN-POL-001` | Ürünleştirme | DOMAIN | `bekci/politika-olcumu.test.ts` | SINIF TAVANLARI ölçülenle BİREBİR — gevşeklik dişi | evet | geçti |
 | `URN-POL-001` | Ürünleştirme | DOMAIN | `bekci/politika-olcumu.test.ts` | TAVAN YÜKSELMESİ DOSYADA GEREKÇE İSTER — beşinci diş | evet | geçti |
 | `URN-POL-001` | Ürünleştirme | DOMAIN | `bekci/politika-olcumu.test.ts` | TABAN DAL CIRCIRI: liste tabana göre BÜYÜYEMEZ | evet | geçti |

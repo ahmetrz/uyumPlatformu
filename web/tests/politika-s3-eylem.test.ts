@@ -280,7 +280,7 @@ describe('POL-095 · "çok adımlı doğrulama zorunlu — kaydınızı kaldıra
     });
     const oncekiIz = await izSayisi();
 
-    const s = await mfaKaldir({} as never);
+    const s = await mfaKaldir();
 
     expect(gerekce(s)).toContain('kaydınızı kaldıramazsınız');
     expect(await izSayisi(), 'reddetti ama denetim izine satır düştü').toBe(oncekiIz);
@@ -295,7 +295,7 @@ describe('POL-095 · "çok adımlı doğrulama zorunlu — kaydınızı kaldıra
       update: { mfaZorunlu: false },
       create: { kiraci: 'varsayilan', mfaZorunlu: false },
     });
-    const s = await mfaKaldir({} as never) as { ok: boolean; hata?: string };
+    const s = await mfaKaldir() as { ok: boolean; hata?: string };
     expect(s.hata ?? '', 'politika kapalıyken de "zorunlu" gerekçesi döndü')
       .not.toContain('kaydınızı kaldıramazsınız');
   });

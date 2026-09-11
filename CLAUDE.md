@@ -573,8 +573,10 @@ kapı eklendi ve altısı da o testte adıyla beyanlı — bölünmenin kendisi
 üçünü getirdi (derleme ortamı damgası · doğrulaması · `kapi:derleme-artefakti`),
 kalan altısı sonraki işlerde eklendi (`kanit:denetim-formu` ·
 `kapi:ithal-zinciri` · `kanit:bildirim-kaydi` · `kanit:bildirim-donemi` ·
-`kanit:kimlik` · `kanit:mevzuat-radari`). Ölçüm (10 Eyl 2026): 23 + 9 =
-**32 benzersiz komut, 33 adım** (bir komut iki ayrı ortamda koşuyor ve bu iki ayrı kapıdır). Sayı
+`kanit:kimlik` · `kanit:mevzuat-radari`) ve düzeltme turunda İKİ tane
+daha eklendi (`tanik:dom` · `kapi:dom-tanik` — ikinci popülasyon tanığı).
+Ölçüm (11 Eyl 2026): **36 benzersiz komut, 37 adım** (bir komut iki ayrı
+ortamda koşuyor ve bu iki ayrı kapıdır). Sayı
 elle sayılmaz, testte iki yönlü eşitlikle tutulur: kapı düşerse de,
 BEYANSIZ kapı eklenirse de kırmızı.
 

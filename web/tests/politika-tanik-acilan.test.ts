@@ -39,6 +39,10 @@ const { db } = await import('@/lib/db');
 const damga = Date.now();
 type Yetki = {
   rol: string; modul: string | null; kapsamOgesiId: string | null;
+  /* KÖPRÜ: tesis tabanlı tablolar kapsamı tesis kimliğiyle sorar
+     (`kapsamUyar`). Köprüsüz bir yetki, kendi kapsamındaki kayda bile
+     yazamaz — bunu ölçerken öğrendik. */
+  tesisId?: string | null;
   surecId: string | null; regulasyonId: string | null;
 };
 const oturum = {
@@ -541,15 +545,45 @@ describe('POL-224 · süreç kodu DEĞİŞMEZ, grup çapındaki süreç KISITLI 
     expect((await isSureciKaydet({ kod, ad: 'Grup çapında', tesisId: null })).ok).toBe(true);
     const s = await db.isSureci.findFirst({ where: { kod }, select: { id: true } });
 
+    /* ── S186b BULGUSU · TESTİN KUSURU ─────────────────────────────────
+       İlk yazımda rol `tesis_yoneticisi`ydi ve o rolün `tanimlar`
+       modülünde ONAY izni HİÇ YOK: ret kapsamdan değil, modül izninden
+       geliyordu — yani ölçülen şey "kısıtlı rol grup çapındakine
+       dokunamaz" değil, "bu rol hiç tanım yazamaz"dı. Sabotaj (iki
+       kapsam kapısı da kaldırıldı) kırmızı YAKMADI ve kusuru gösterdi.
+
+       Bugün rol, `tanimlar/onay` izni OLAN ama KAPSAMA KISITLI bir
+       roldür: ret yalnızca kapsamdan gelebilir. */
     const onceki = oturum.yetkiler;
     try {
       const oge = await db.kapsamOgesi.findFirst({ select: { id: true } });
-      oturum.yetkiler = rol('tesis_yoneticisi', oge!.id);
+      oturum.yetkiler = rol('yonetici', oge!.id);
       const ret = await isSureciKaydet({
         id: s!.id, kod, ad: 'Kısıtlı rol yazdı', tesisId: null });
       expect(ret.ok, 'tesise kısıtlı rol grup çapındaki süreci düzenledi').toBe(false);
       expect((await db.isSureci.findUnique({
         where: { id: s!.id }, select: { ad: true } }))!.ad).toBe('Grup çapında');
+
+      /* KARŞI TANIK: AYNI rol, KENDİ kapsamındaki bir süreci düzenler —
+         ret rolün yetersizliğinden değil, kaydın grup çapında
+         olmasından geliyor. */
+      const kendi = `TNK-KENDI-${damga}`;
+      oturum.yetkiler = rol('yonetici');
+      const kapsamOgesi = await db.kapsamOgesi.findFirst({
+        where: { tesisId: { not: null } }, select: { id: true, tesisId: true } });
+      expect(kapsamOgesi?.tesisId, 'tesise köprülü kapsam ögesi yok').toBeTruthy();
+      expect((await isSureciKaydet({
+        kod: kendi, ad: 'Tesise bağlı', tesisId: kapsamOgesi!.tesisId })).ok).toBe(true);
+      const kendiSurec = await db.isSureci.findFirst({
+        where: { kod: kendi }, select: { id: true } });
+      oturum.yetkiler = [{ rol: 'yonetici', modul: null,
+        kapsamOgesiId: kapsamOgesi!.id, tesisId: kapsamOgesi!.tesisId,
+        surecId: null, regulasyonId: null }];
+      expect((await isSureciKaydet({
+        id: kendiSurec!.id, kod: kendi, ad: 'Kısıtlı rol KENDİ kapsamına yazdı',
+        tesisId: kapsamOgesi!.tesisId })).ok,
+      'kısıtlı rol kendi kapsamındaki süreci de düzenleyemedi — ret kapsamdan değil')
+        .toBe(true);
     } finally { oturum.yetkiler = onceki; }
   });
 });
@@ -629,13 +663,38 @@ describe('POL-229 · resmî kaynak takibi BAĞLI DEĞİL [SIS-POL-002]', () => {
   });
 
   it('ETKİN KAYNAK YOKKEN radar AĞA HİÇ ÇIKMAZ [SIS-POL-002]', async () => {
+    /* ── S189b BULGUSU · TESTİN KUSURU ─────────────────────────────────
+       İlk yazımda yalnız `etkin=false` yapılıyordu; `etkin: true`
+       süzgeci kaldırıldığında da kırmızı YANMADI, çünkü tohumdaki
+       kaynakların hiçbiri zaten GETİRİLEBİLİR değildi (engelli ya da
+       adressiz). "Ağa çıkılmadı" ölçümü bedavaydı.
+
+       Bugün fikstür, süzgeç kaldırılsa MUTLAKA getirilecek bir kaynak
+       kurar: etkin=false · durum normal · yayın kanalı dolu. */
     const { mevzuatRadariniKos } = await import('@/lib/uyum/mevzuatRadariKosumu');
     await db.mevzuatKaynagi.updateMany({ data: { etkin: false } });
+    await db.mevzuatKaynagi.create({ data: {
+      kod: `TNK-KYN-${damga}`, ad: 'Kurgusal resmî kaynak',
+      yayinKanali: 'https://kurgusal.local/mevzuat', tur: 'sayfa',
+      durum: 'aktif', etkin: false,
+    } });
     let cagri = 0;
     const k = await mevzuatRadariniKos(db as never, {
       getir: async () => { cagri += 1; return { ok: false, httpKodu: null, hata: 'olmamalı' }; },
     });
-    expect(cagri, 'etkin kaynak yokken ağa çıkıldı').toBe(0);
+    expect(cagri, 'etkin OLMAYAN kaynağa istek gitti').toBe(0);
     expect(k.taranan).toBe(0);
+
+    /* KARŞI TANIK: AYNI kaynak etkinleştirilince istek GİDİYOR — sıfır
+       "hiçbir kaynak getirilebilir değil"den gelmiyor. */
+    await db.mevzuatKaynagi.updateMany({
+      where: { kod: `TNK-KYN-${damga}` }, data: { etkin: true } });
+    await mevzuatRadariniKos(db as never, {
+      getir: async () => { cagri += 1; return { ok: false, httpKodu: null, hata: 'kurgusal' }; },
+    });
+    expect(cagri, 'etkin kaynağa da gidilmedi — vaka bir şey ölçmüyor')
+      .toBeGreaterThan(0);
+    await db.mevzuatKaynagi.updateMany({
+      where: { kod: `TNK-KYN-${damga}` }, data: { etkin: false } });
   });
 });

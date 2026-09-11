@@ -1,5 +1,6 @@
 'use client';
 import { useState } from 'react';
+import Link from 'next/link';
 import { Alan, Dugme, Im } from '@/components/kabuk/temel';
 import { useEylem } from '@/components/useEylem';
 import {
@@ -127,9 +128,13 @@ export function VarlikYedegi({ varlik, kaynakBagli }: {
                 <p className="ab-panel-dip" style={{ margin: 0 }}>{veri.iyi.gerekce}</p>
 
                 {veri.kayitlar.length === 0 ? (
-                  <p style={{ margin: 0, fontSize: 'var(--t-label)', color: 'var(--unk)' }}>
+                  /* NE YAPMALIYIM: ölçüm boşluğunun çözümü connector
+                     yapılandırmasıdır — yedek platformu bağlanmadan kayıt
+                     doğmaz. */
+                  <p className="bos" style={{ margin: 0, fontSize: 'var(--t-label)', color: 'var(--unk)' }}>
                     Hiç yedek kaydı yok — bu &quot;yedek alınmıyor&quot; değil,
-                    &quot;ölçülmedi&quot; demektir.
+                    &quot;ölçülmedi&quot; demektir.{' '}
+                    <Link href="/saglik?bolum=yapilandirma">Kaynağı bağla</Link>
                   </p>
                 ) : (
                   <div style={{ display: 'grid', gap: 'var(--s8)' }}>

@@ -1,5 +1,6 @@
 'use client';
 import { useState } from 'react';
+import Link from 'next/link';
 import { Alan, BosIlk, Dugme } from '@/components/kabuk/temel';
 import { EkranBasligi } from '@/components/kabuk/ekran';
 import { Tablo, type Satir } from '@/components/kabuk/tablo';
@@ -248,9 +249,12 @@ function KararEkleme({ planlilar, kisiler }: {
         Toplantıyı &quot;yapıldı&quot; işaretle
       </Dugme>
       {secili && secili.kararlar.length === 0 && (
-        <p className="ab-panel-dip" style={{ margin: 0 }}>
+        /* NE YAPMALIYIM: çözüm AYNI EKRANDA — karar girme formu bu bloğun
+           üstünde; eylem YERİNDEDİR, gezinme bağı kullanıcıyı koparırdı. */
+        <p className="ab-panel-dip bos" style={{ margin: 0 }}>
           Henüz karar girilmedi; kararsız bir toplantı &quot;yapıldı&quot;
-          işaretlenemez.
+          işaretlenemez — gözden geçirmenin çıktısı kararlarıdır.{' '}
+          <Link href="/gozden-gecirme">Karar gir</Link>
         </p>
       )}
       {hata && <p className="ab-gr-hata" role="alert" style={{ margin: 0 }}>{hata}</p>}

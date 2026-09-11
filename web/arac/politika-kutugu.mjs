@@ -43,8 +43,17 @@ const KOK = process.cwd();
 
    Sınır BURADA yazılıdır ki bir gün genişletilmek istendiğinde
    tartışılacak şey açık olsun. Ölçüm (10 Eyl 2026): app 85 ·
-   app+lib/eylemler2 119 · app+lib 293. */
-const TARANAN = ['app', 'lib/eylemler2'];
+   app+lib/eylemler2 119 · app+lib 293.
+
+   ── `components/` EKLENDİ (düzeltme turu · inceleme bulgusu P1-1 eki) ──
+   Boş durum türeticisi `['app','components']` tarıyordu; yani depo kendi
+   ölçümüyle `components/`i EKRAN yüzeyi sayıyor, politika türeticisi ise
+   onu beyansız dışarıda bırakıyordu. İki kütüğün aynı ürünün aynı
+   yüzeyleri için farklı evrenler kullanması, hangisinin doğru olduğunu
+   sormayı imkânsız kılar. Ölçüldü: `components/kabuk/temel.tsx`te ekrana
+   çıkan "`…` bağlayıcısı bu ortamda tanımlı değil; … bu yüzden
+   gösterilmez" cümlesi ne taranıyor ne sayılıyordu. */
+const TARANAN = ['app', 'components', 'lib/eylemler2'];
 const KUTUK = path.join(KOK, 'arac', 'politika-cumleleri.json');
 
 /** İddiayı SİSTEME bağlayan sözcük. */
@@ -169,6 +178,48 @@ export function sonucSinifi(cumle) {
   return 'S3';
 }
 
+/* Satır içi (metni BÖLMEYEN) etiketler: bunlar bir cümlenin ortasında
+   durur ve cümleyi ikiye ayırmaz. Blok etiketleri (`p`, `div`, `li`…)
+   ayırır ve ayrı cümle sayılır. */
+const SATIR_ICI = /<\/?(?:b|strong|em|i|u|code|abbr|small|sup|sub|mark|span|a|Link|Im|Rozet)\b[^>]*>/g;
+
+/** Dengeli `{…}` ifadelerini boşluğa çevirir — iç içe süsleri de sayar. */
+export function suslulariAt(metin) {
+  let cikan = '';
+  let derinlik = 0;
+  for (const ch of metin) {
+    if (ch === '{') { derinlik += 1; continue; }
+    if (ch === '}') { derinlik = Math.max(0, derinlik - 1); cikan += ' '; continue; }
+    if (derinlik === 0) cikan += ch;
+  }
+  return cikan;
+}
+
+/**
+ * JSX gövdelerindeki STATİK metinler.
+ *
+ * Kalıp bir metin düğümü değil, BİR BLOK GÖVDESİ alır: açılış etiketinin
+ * `>`sinden bir sonraki blok sınırına kadar. Satır içi etiketler ve
+ * `{…}` ifadeleri boşluğa çevrilir; böylece `…erişim vermez{' '}` ile
+ * `…erişim <strong>vermez</strong>` aynı cümleyi verir.
+ */
+export function jsxMetinleri(kod) {
+  const cikan = [];
+  /* Blok sınırı: bir blok etiketinin açılışı ya da kapanışı. */
+  const blok = /<\/?(?:p|div|li|ul|ol|td|th|tr|table|section|article|aside|h[1-6]|summary|details|figcaption|label|button|form|option|BosIlk|BosFiltre|Alan|Dugme|VeriTablosu)\b/;
+  for (const m of kod.matchAll(/>([^<]*(?:<(?!\/?(?:p|div|li|ul|ol|td|th|tr|table|section|article|aside|h[1-6]|summary|details|figcaption|label|button|form|option|BosIlk|BosFiltre|Alan|Dugme|VeriTablosu)\b)[^<]*)*)/g)) {
+    const ham = m[1];
+    if (!ham || blok.test(ham)) continue;
+    const cumle = suslulariAt(ham.replace(SATIR_ICI, ' '))
+      .replace(/<[^>]*>/g, ' ')
+      .replace(/\s+/g, ' ')
+      .trim();
+    if (cumle.length < 25 || cumle.length > 400) continue;
+    cikan.push(cumle);
+  }
+  return cikan;
+}
+
 export function turet() {
   const cikan = [];
   for (const kok of TARANAN) {
@@ -190,15 +241,28 @@ export function turet() {
          Tırnaklı dize sabitleri evrenin TAMAMI değildi: ekranda duran
          `<p>Kullanıcı oluşturmak erişim vermez: yetki ayrı verilir…</p>`
          gibi TIRNAKSIZ metin düğümleri türeticinin görüş alanının
-         dışındaydı. Payda kör olunca "123/123 ölçüldü" oranı da kör olur;
-         bu, körlük düzeltilirken açılan ikinci körlüğün (boş durum
-         türeticisinde iki kez ölçüldü) politika tarafındaki eşidir.
+         dışındaydı.
 
-         Metin düğümü: bir etiketin `>`si ile bir sonraki `<` arasındaki
-         gövde. Süslü ifade içeren parçalar atılır — değerleri çalışma
-         anında doğar ve statik okuma onları bilemez (beyanlı sınır). */
-      for (const m of kod.matchAll(/>([^<>{}]{25,300})</g)) {
-        const cumle = m[1].replace(/\s+/g, ' ').trim();
+         ── ÜÇÜNCÜ KÖRLÜK (düzeltme turu · inceleme bulgusu P1-1) ────────
+         İlk yazım `>([^<>{}]{25,300})<` kalıbını kullanıyordu ve karakter
+         sınıfı `{` ile `}`yi DIŞLADIĞI için, bir metin düğümünde TEK bir
+         `{…}` ifadesi ya da TEK bir satır içi etiket (`<b>`, `<strong>`)
+         varsa O DÜĞÜMDEKİ BÜTÜN METİN düşüyordu — ifadenin kendisi değil,
+         YANINDAKİ TAM STATİK CÜMLE. Beyan edilen sınır ("değerler çalışma
+         anında doğar") atılan şeyi yanlış anlatıyordu.
+
+         Ölçüldü: bu depoda `{t('tesis')}` · `{' '}` · `{sayi}` egemen
+         stil; 17 tam statik politika cümlesi (8'i S1) bu yüzden paydanın
+         dışında kalmıştı. "175/175 ölçüldü" oranı, kendi düzelttiğini
+         iddia ettiği kusurla kör kalmıştı.
+
+         Bugün metin düğümü DÜĞÜM OLARAK okunur: bir açılış etiketinin
+         `>`si ile bir sonraki KAPANIŞ/BLOK etiketi arasındaki gövde
+         alınır, içindeki `{…}` ifadeleri ve SATIR İÇİ etiketler
+         boşluğa çevrilir, kalan statik metin cümledir. Beyanlı sınır
+         daralır ve doğrulaşır: atılan şey yalnız ifadenin KENDİ
+         DEĞERİDİR, çevresindeki cümle değil. */
+      for (const cumle of jsxMetinleri(kod)) {
         if (!politikaMi(cumle)) continue;
         if (!cikan.some((c) => c.cumle === cumle)) cikan.push({ yer: rel, cumle });
       }

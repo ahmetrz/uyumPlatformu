@@ -1,5 +1,6 @@
 'use client';
 import { useState } from 'react';
+import Link from 'next/link';
 import { useTerim } from '@/lib/dil/SozlukSaglayici';
 import { Alan, Dugme } from '@/components/kabuk/temel';
 import { useEylem } from '@/components/useEylem';
@@ -278,8 +279,13 @@ export function UyelikFormu({ ekip, adaylar }: {
   return (
     <div style={{ display: 'grid', gap: 'var(--s10)', marginTop: 'var(--s12)' }}>
       {secilebilir.length === 0 ? (
-        <p className="ab-panel-dip" style={{ margin: 0 }}>
-          Eklenebilecek aktif kullanıcı yok — pasif hesaplar ekibe alınamaz.
+        /* NE YAPMALIYIM: aday yoksa sebebi ya herkesin zaten üye olması ya
+           da hesapların pasif olmasıdır; ikisinin de çözümü hesap
+           listesindedir. */
+        <p className="ab-panel-dip bos" style={{ margin: 0 }}>
+          Eklenebilecek aktif kullanıcı yok — pasif hesaplar ekibe ALINAMAZ
+          ve zaten üye olanlar listede görünmez.{' '}
+          <Link href="/yetkiler">Hesapları aç</Link>
         </p>
       ) : (
         <>

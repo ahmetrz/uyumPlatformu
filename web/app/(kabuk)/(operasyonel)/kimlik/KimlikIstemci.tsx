@@ -408,7 +408,15 @@ function HesapOzeti({ hesap, yetki, secYetki }: {
           Yetkiler · {acik.length} açık
         </p>
         {hesap.yetkiler.length === 0 ? (
-          <p className="ab-panel-dip" style={{ margin: 0 }}>Bu hesaba bağlı erişim ataması yok.</p>
+          /* NEDEN + NE YAPMALIYIM: yetkisizlik bir kusur değil, ürünün
+             varsayılanıdır (hesap açmak erişim vermez) — ama kullanıcının
+             çıkışı olmalı. Yetki VERME ekranı /yetkiler'dir ve bağ hesabı
+             taşır: kullanıcı orada aynı hesabı ikinci kez aramaz. */
+          <p className="ab-panel-dip bos" style={{ margin: 0 }}>
+            Bu hesaba bağlı erişim ataması yok — hesap giriş yapabilir ama
+            hiçbir ekranı açamaz; yetki ayrı verilir.{' '}
+            <Link href={`/yetkiler?hesap=${hesap.id}`}>Yetki ver</Link>
+          </p>
         ) : (
           <div style={{ display: 'grid', gap: 'var(--s3)' }}>
             {hesap.yetkiler.map((y) => {

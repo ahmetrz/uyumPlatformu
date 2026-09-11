@@ -291,6 +291,58 @@ export function satirIciBul(kod) {
   return cikan;
 }
 
+/* ── DÖRDÜNCÜ YÜZEY · BOŞLUK KOŞULU (düzeltme turu · bulgu P1-3) ──────
+   Üç körlük kapandı ve üçünün de ortak VARSAYIMI yerinde kaldı:
+
+     "boş durum, `className` içinde `bos` sözcüğü geçen bir öğedir."
+
+   Boş durum bir CSS SINIFI DEĞİL, bir OLGUDUR: `X.length === 0` dalında
+   ekranın yerine geçen cümle. Sınıf adını yazmayan her boş durum kütüğe
+   hiç girmiyordu — ne `nedensiz` sayılıyordu ne `eylemsiz`, ne tabana
+   dokunuyordu. "EYLEMSİZ SIFIRDA KİLİTLİ" dişi, kilidi SINIF ADINI
+   YAZMAMAKLA açan bir kapıydı.
+
+   Ölçüldü (bağımsız inceleme · düzeltme turu): kaynakta tek tek
+   doğrulanmış altı canlı örnek — `kimlik/KimlikIstemci.tsx` ·
+   `envanter/Formlar.tsx` · `saglik/Yapilandirma.tsx` ·
+   `uyum/UyumIstemci.tsx` · `yonetim-tezgahi/KonsolFormlar.tsx` ×2 —
+   hepsi tek yan tümce, sebepsiz ve çıkışsız.
+
+   Bugün dördüncü yüzey de taranır: bir BOŞLUK KOŞULUNUN (`.length === 0`,
+   `.length < 1`, `!x.length`, `x.size === 0`) hemen ardından gelen metin
+   taşıyıcısı, sınıfı ne olursa olsun boş durumdur. */
+const BOSLUK_KOSULU_G = /(?:\.\s*length\s*===?\s*0|\.\s*length\s*<\s*1|!\s*[\w.]+\.length\b|\.\s*size\s*===?\s*0)/g;
+
+/** Boşluk koşuluna bağlı, `bos` sınıfı TAŞIMAYAN metin taşıyıcıları.
+
+    ── ÜÇ DARALTMA, HER BİRİ ÖLÇÜLDÜ ─────────────────────────────────
+    İlk yazım 240 karakterlik bir geriye bakışla koşul arıyordu ve
+    58 yanlış pozitif üretti: bir üçlünün DOLU dalı (`{kayitlar.map(…)`)
+    komşu boşluk koşulunun penceresine düşüyordu. Kör bir türetici kadar
+    zararlıdır — gürültü, cırcırı anlamsız kılar ve gerçek borcu gizler.
+
+    (a) Gövde STATİK olmalı: `{` taşıyan bir gövde cümle değil ifadedir.
+    (b) Koşul ile taşıyıcı arası KISA (120 karakter) olmalı.
+    (c) Arada `:` ya da `.map(` varsa DOLU dala geçilmiştir — elenir. */
+export function kosulluBoslar(kod) {
+  const cikan = [];
+  const kalip = /<(p|span|div|li|td|small)\b([^>]*)>([^<{}]{3,400})</g;
+  let m;
+  while ((m = kalip.exec(kod)) !== null) {
+    const oznitelik = m[2] ?? '';
+    if (/\bclassName="[^"]*\bbos\b/.test(oznitelik)) continue;   /* üçüncü yüzeyin işi */
+    const pencere = kod.slice(Math.max(0, m.index - 120), m.index);
+    const k = [...pencere.matchAll(BOSLUK_KOSULU_G)].pop();
+    if (!k) continue;
+    const ara = pencere.slice(k.index + k[0].length);
+    if (/:|\.map\(/.test(ara)) continue;                          /* DOLU dala geçildi */
+    const metin = m[3].replace(/\s+/g, ' ').trim();
+    if (!cumleMi(metin)) continue;
+    cikan.push({ konum: m.index, sinif: '(koşullu)', kapanissiz: false, govde: metin });
+  }
+  return cikan;
+}
+
 /** Bir JSX ifadesi SEÇİM mi (dize seçen bir ifade) yoksa HESAP mı
     (çağrı, şablon, aritmetik)? Seçimse cümle oradadır ve okunmalıdır:
     `{secili ? 'bağlı kayıt yok' : 'kayıt yok'}` bir boş durum
@@ -438,6 +490,21 @@ export function turet() {
          gövde YİNE girer: körlüğü sıfır kusura çeviren şey düşürmedir. */
       if (kayit.cumle.startsWith('«okunamadı»') || cumleMi(kayit.cumle)) cikan.push(kayit);
     }
+    /* DÖRDÜNCÜ YÜZEY · sınıf adı yazmayan boşluk dalları. Ayrı bir tür
+       (`kosullu`) olarak girer: sınıf adına yaslanmadığı için `BosIlk`
+       ile `satirIci` arasındaki ayrımı da taşımaz, ama İKİ ÖLÇÜTE aynen
+       vurulur ve eylemsiz sayısına DÂHİLDİR. */
+    for (const c of kosulluBoslar(kod)) {
+      cikan.push({
+        yer: rel,
+        satir: kod.slice(0, c.konum).split('\n').length,
+        tur: 'kosullu',
+        cumle: c.govde.slice(0, 300),
+        iyiHaber: false,
+        neden: nedenSoyluyor(c.govde),
+        eylem: satirIciEylem(kod.slice(c.konum, c.konum + 600)),
+      });
+    }
     if (!kod.includes('<BosIlk')) continue;
     {
       for (const c of cagrilariBul(kod)) {
@@ -474,7 +541,11 @@ export function kutuguOku() { return JSON.parse(readFileSync(KUTUK, 'utf8')); }
     karışmasına izin verir: `BosIlk`e eylemsiz bir satır eklenir,
     `satirIci`den biri düzelir ve toplam DEĞİŞMEZ. Tavan sınıf başına
     tutulunca bu takas imkânsızdır. */
-export const SINIFLAR = ['BosIlk', 'BosFiltre', 'satirIci'];
+/* DÖRDÜNCÜ SINIF `kosullu`: boşluk koşuluna bağlı ama `bos` sınıfı
+   TAŞIMAYAN metin taşıyıcıları. Sınıf listesine girmesi bilinçlidir —
+   tavanı da sıfırda kilitlidir; aksi hâlde kilidi açmanın yolu "sınıf
+   adını yazmamak" olurdu (bulgu P1-3'ün ta kendisi). */
+export const SINIFLAR = ['BosIlk', 'BosFiltre', 'satirIci', 'kosullu'];
 
 export function sinifTavanlari(bulunan) {
   const t = {};

@@ -1,5 +1,6 @@
 'use client';
 import { useState } from 'react';
+import Link from 'next/link';
 import { Alan, Dugme, Im } from '@/components/kabuk/temel';
 import { useEylem } from '@/components/useEylem';
 import {
@@ -369,9 +370,12 @@ export function OlayBagi({ d, adaylar }: { d: D; adaylar: OlayAdayi[] }) {
       </p>
 
       {d.olaylar.length === 0 ? (
-        <p className="ab-panel-dip" style={{ margin: '0 0 var(--s10)' }}>
+        /* NE YAPMALIYIM: bağ yokluğu ölçüm boşluğudur; çözüm olay
+           kütüğündedir ve bağ ORADAN kurulur. */
+        <p className="ab-panel-dip bos" style={{ margin: '0 0 var(--s10)' }}>
           Bu değişikliğe bağlı olay kaydı yok. Bağ yokluğu &quot;bu değişiklik
-          olaysız geçti&quot; demek DEĞİLDİR — kimse bağlamamış olabilir.
+          olaysız geçti&quot; demek DEĞİLDİR — kimse bağlamamış olabilir.{' '}
+          <Link href="/olaylar">Olay kütüğünü aç</Link>
         </p>
       ) : (
         <div style={{ display: 'grid', gap: 'var(--s6)', marginBottom: 'var(--s10)' }}>

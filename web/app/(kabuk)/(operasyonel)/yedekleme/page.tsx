@@ -10,6 +10,7 @@ import YedeklemeIstemci from './YedeklemeIstemci';
 import type {
   DriftSatiri, Politika, Sapma, Tesis, TurKirilimi, YedekBulgusu,
 } from './mantik';
+import { politikaEslemesi } from '@/lib/yedekleme/politikaEslemesi';
 
 export const metadata: Metadata = { title: 'Yedekleme & kurtarma' };
 
@@ -146,15 +147,14 @@ export default async function Sayfa() {
      paylaşamaz.
 
      `tesisYedekGorunumu` bu kırılgan eşlemeyi bilerek TEKRARLAMIYOR —
-     hangi politikanın kastedildiğini çağıran söyler. Eşleme bu yüzden
-     burada, tek yerde kalıyor. */
-  const havuz = new Set(politikalar);
-  const politikaHaritasi = new Map<string, (typeof politikalar)[number]>();
-  for (const t of [...tesisler].sort((a, b) => b.ad.length - a.ad.length)) {
-    for (const p of havuz) {
-      if (p.ad.startsWith(t.ad)) { politikaHaritasi.set(t.id, p); havuz.delete(p); break; }
-    }
-  }
+     hangi politikanın kastedildiğini çağıran söyler.
+
+     EŞLEME `lib/yedekleme/politikaEslemesi.ts`E TAŞINDI ve sebebi
+     R-F'dir: ekranda "Ad … ile başlamıyor — kayıt bu tesise bağlanmaz"
+     yazıyor, ama sayfa gövdesindeki bir döngü o cümleyi doğrulayan bir
+     vakaya KAPALIYDI. Kural hâlâ tek yerde; artık ölçülebilir bir
+     yerde. */
+  const politikaHaritasi = politikaEslemesi(tesisler, politikalar);
 
   /* Bulgu → tesis eşlemesi varlık üzerinden kurulur (motor `kaynakId`ye
      varlık kimliği yazar). Kapsam dışı varlığa asılı bir bulgu hiçbir

@@ -535,8 +535,12 @@ function BelgeCekmecesi({ belge, simdi, yazabilir, onaylayabilir, duzenle, kapat
         <div className="ab-panel-blok" style={{ marginTop: 'var(--s24)', display: 'grid', gap: 'var(--s12)' }}>
           <p className="etiket" style={{ margin: 0 }}>Yaşam döngüsü</p>
           {gecisler.length === 0 ? (
-            <p style={{ margin: 0, fontSize: 'var(--t-field)', color: 'var(--i3)' }}>
-              Yürürlükten kalkmış belge geri döndürülmez; yerine yeni sürüm açılır.
+            /* NE YAPMALIYIM: bu belgenin yaşam döngüsü bitmiş; ileri yol
+               YENİ SÜRÜMDÜR ve o belge listesinden açılır. */
+            <p className="bos" style={{ margin: 0, fontSize: 'var(--t-field)', color: 'var(--i3)' }}>
+              Geçerli bir yaşam döngüsü adımı kalmadı — yürürlükten kalkmış
+              belge geri döndürülmez; yerine yeni sürüm açılır.{' '}
+              <Link href="/dokumanlar">Yeni sürüm aç</Link>
             </p>
           ) : (
             <>

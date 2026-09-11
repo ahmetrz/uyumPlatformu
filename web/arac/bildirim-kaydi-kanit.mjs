@@ -11,14 +11,83 @@
    ihraç ediyordu; tsc · lint · derleme · rota duman temizdi, düğme 500
    döndü). O yüzden burada TIKLANIR.
 
-   FİKSTÜRÜ DEĞİŞTİRİR: bir taslağı "gönderildi" yapar. CI her koşumda
-   veritabanını yeniden kurduğu için sorun değil; yerelde ikinci koşumdan
-   önce `npm run db:hazirla` gerekir ve betik taslak bulamazsa SUSMAZ,
-   kırmızı yanar.
+   ── KAPI KENDİ FİKSTÜRÜNÜ KURAR (gözden geçiren kararı · düzeltme turu)
+   Bu betik bir taslağı "gönderildi" yapar; yani KENDİ FİKSTÜRÜNÜ TÜKETİR.
+   Eski hâli bunu bir kullanım notuyla geçiştiriyordu ("yerelde ikinci
+   koşumdan önce `npm run db:hazirla` gerekir") ve bu, kapıyı DURUMA
+   BAĞIMLI yapıyordu:
+
+     · CI'da veritabanı her koşumda yeniden kurulduğu için kapı hep
+       yeşildi — ama YANLIŞ SEBEPLE yeşildi: tüketilebilir bir fikstüre
+       yaslanan ölçüm, o fikstür varken doğruyu, yokken hiçbir şeyi
+       ölçer. Yerelde ikinci koşumda "ÖLÇÜM YETERSİZ" verdi ve kusur
+       ancak orada göründü.
+     · Aynı sınıf POL-084'te de çıktı: tablo geneline bakan bir sayaç,
+       vaka sırasına göre farklı sonuç veriyordu.
+
+   Bugün kapı kendi kaydını AÇAR ve koşum sonunda KENDİ KAPATIR. Taze
+   veritabanı varsayımı yoktur; ikinci, üçüncü, onuncu koşum da aynı
+   şeyi ölçer. Kayıt kapının kendi damgasını taşır (`KANIT-FIKSTUR-…`)
+   ve temizlik SON KOŞULUNU DOĞRULAR: silinmediyse betik kırmızı yanar.
+
+   SINIR (beyanlı): fikstür SQLite `dev.db`ye doğrudan yazılır. Bu kapı
+   `kapi-rota` işinde yerel kurulumla koşar; compose/PostgreSQL kurulumu
+   yalnız `rota:duman` koşturur ve oraya bu betik girmez.
 
    Kullanım: PORT=3210 node arac/bildirim-kaydi-kanit.mjs   (canlı sunucu ister) */
 import { chromium } from 'playwright-core';
-import { KOK, girisYap, tarayiciYolu } from './kosu-ortak.mjs';
+import { randomUUID } from 'node:crypto';
+import path from 'node:path';
+import Database from 'better-sqlite3';
+import { KOK, WEB, girisYap, tarayiciYolu } from './kosu-ortak.mjs';
+
+const DB_YOL = process.env.DB_YOL || path.join(WEB, 'prisma', 'dev.db');
+
+/* ── FİKSTÜR ───────────────────────────────────────────────────────────
+   Kapının süreceği AÇIK bildirim kaydını kendisi açar. Var olan bir
+   taslağı ödünç almaz: ödünç alınan kayıt tüketilir ve bir sonraki koşum
+   yine fikstürsüz kalırdı — düzeltilmek istenen kusur tam olarak budur. */
+function fiksturKur() {
+  const db = new Database(DB_YOL);
+  try {
+    const yuk = db.prepare(
+      "select id, kod from BildirimYukumlulugu where aktif = 1 and sureSaat is not null"
+      + ' order by kod limit 1').get();
+    if (!yuk) return { hata: 'aktif ve süreli bildirim yükümlülüğü yok (tohum eksik)' };
+
+    /* Tekillik kısıtı (olayId + yukumlulukId): bu yükümlülük için kaydı
+       OLMAYAN bir olay seçilir. Yoksa kapı sessizce başka bir kaydı
+       ölçmeye kaymaz, sebebiyle kırmızı yanar. */
+    const olay = db.prepare(
+      'select o.id, o.kod from Olay o where o.silindi is null'
+      + ' and not exists (select 1 from BildirimKaydi b'
+      + '   where b.olayId = o.id and b.yukumlulukId = ?)'
+      + ' order by o.kod limit 1').get(yuk.id);
+    if (!olay) return { hata: `"${yuk.kod}" için kaydı olmayan olay kalmadı` };
+
+    const id = `kanit-fikstur-${randomUUID()}`;
+    const simdi = new Date();
+    const sonTarih = new Date(simdi.getTime() + 36 * 3_600_000);
+    db.prepare(
+      'insert into BildirimKaydi (id, olayId, yukumlulukId, durum, sonTarih,'
+      + ' taslakMetin, acildi, guncellendi) values (?,?,?,?,?,?,?,?)',
+    ).run(id, olay.id, yuk.id, 'taslak', sonTarih.toISOString(),
+      'KANIT-FIKSTUR · kapının kendi açtığı taslak; koşum sonunda silinir.',
+      simdi.toISOString(), simdi.toISOString());
+    return { id, olayId: olay.id, olayKodu: olay.kod, yukumlulukKodu: yuk.kod };
+  } finally { db.close(); }
+}
+
+/* TEMİZLİK SON KOŞULUNU DOĞRULAR: "sildim" diyen bir adım, sildiğini
+   ÖLÇMELİDİR. Başarısız olamayan bir adım, adım değildir. */
+function fiksturSil(id) {
+  const db = new Database(DB_YOL);
+  try {
+    db.prepare('delete from BildirimKaydi where id = ?').run(id);
+    const kalan = db.prepare('select count(*) c from BildirimKaydi where id = ?').get(id).c;
+    return kalan === 0 ? { ok: true } : { ok: false, hata: `${kalan} satır kaldı` };
+  } finally { db.close(); }
+}
 
 const BANTLAR = [
   { ad: '1440×900', width: 1440, height: 900, tiklar: true },
@@ -35,6 +104,14 @@ const kaydet = (bant, ad, ok, not = '') => {
   iddialar.push({ bant, ad, ok, not });
   console.log(`  ${ok ? 'geçti  ' : 'KIRMIZI'} ${bant} · ${ad}${not ? ` — ${not}` : ''}`);
 };
+
+const fikstur = fiksturKur();
+if (fikstur.hata) {
+  console.error(`\nFİKSTÜR KURULAMADI: ${fikstur.hata}`);
+  console.error('  Kapı kendi kaydını açamadı; ölçüm yapılmadı ve "geçti" YAZILMAZ.');
+  process.exit(1);
+}
+console.log(`  fikstür kuruldu: ${fikstur.yukumlulukKodu} · olay ${fikstur.olayKodu}`);
 
 const browser = await chromium.launch({
   executablePath: tarayiciYolu(), headless: true, args: ['--no-sandbox'],
@@ -67,7 +144,11 @@ try {
       const c = page.locator('.ab-panel, [role="dialog"], aside').first();
       await c.waitFor({ timeout: 5000 });
       const metin = await c.innerText();
-      if (icerir(metin, 'Bildirim yükümlülükleri')) { cekmece = c; blokMetni = metin; break; }
+      /* KAPININ KENDİ kaydını taşıyan çekmece aranır: yalnız "blok var mı"
+         demek, fikstürü başka bir olayda olan bir koşumda yanlış kaydı
+         ölçmeye açıktı. */
+      if (icerir(metin, 'Bildirim yükümlülükleri')
+        && icerir(metin, fikstur.yukumlulukKodu)) { cekmece = c; blokMetni = metin; break; }
     }
 
     kaydet(bant.ad, 'bildirim yükümlülükleri bloğu var', cekmece !== null);
@@ -118,7 +199,11 @@ try {
        veritabanı her koşumda yeniden kurulduğu için bu hiç görünmezdi:
        kapı YANLIŞ SEBEPLE yeşildi. Bugün eylem düğmesini TAŞIYAN satır
        bulunur ve bütün tıklama iddiaları o satırın metnine bakar. */
+    /* SATIR KAPININ KENDİ KAYDIDIR. Eskiden "gönderim düğmesi olan İLK
+       satır" seçiliyordu ve bu, komşu bir kaydı ölçmeye açıktı; bugün
+       fikstürün yükümlülük KODU ile daraltılıyor. */
     const satir = cekmece.locator('.ab-panel-satir')
+      .filter({ hasText: fikstur.yukumlulukKodu })
       .filter({ has: page.getByRole('button', { name: /Gönderildi olarak işaretle/ }) })
       .first();
     const acikVar = await satir.count() > 0;
@@ -183,7 +268,17 @@ try {
 
     await context.close();
   }
-} finally { await browser.close(); }
+} finally {
+  await browser.close();
+  const t = fiksturSil(fikstur.id);
+  if (!t.ok) {
+    console.error(`\nFİKSTÜR TEMİZLENEMEDİ: ${t.hata}`);
+    console.error('  "Sildim" diyen bir adım, sildiğini ÖLÇMELİDİR;');
+    console.error('  başarısız olamayan bir adım adım değildir.');
+    process.exit(1);
+  }
+  console.log('  fikstür silindi ve silindiği doğrulandı');
+}
 
 /* ÖLÇÜM TABANI. Kusur sayısı sıfır olabilir; ÖLÇÜM sayısı olamaz.
    Fikstürde bildirim kaydı yoksa betik yalnız üç iddia sayıp "geçti"
@@ -194,9 +289,9 @@ try {
 const ASGARI_IDDIA = 24;
 if (iddialar.length < ASGARI_IDDIA) {
   console.error(`\nÖLÇÜM YETERSİZ: ${iddialar.length} iddia ölçüldü, taban ${ASGARI_IDDIA}.`);
-  console.error('  Çekmecede bildirim bloğu bulunamadıysa bu bir EKRAN kusuru değil,');
-  console.error('  fikstürün bu ekranı beslememesidir — ama ölçülmemiş bir kapı');
-  console.error('  "geçti" diye yazılmaz. Veritabanını yeniden kurun: npm run db:hazirla');
+  console.error('  Kapı kendi kaydını açıyor; "fikstür tükendi" artık bir sebep');
+  console.error('  DEĞİLDİR. Blok bulunamadıysa EKRAN kaydı göstermiyor demektir —');
+  console.error('  ölçülmemiş bir kapı "geçti" diye yazılmaz.');
   process.exit(1);
 }
 

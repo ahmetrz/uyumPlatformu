@@ -343,8 +343,15 @@ export default function UyumIstemci({
             </p>
           </div>
         ) : gorunur.length === 0 ? (
-          <p style={{ color: 'var(--i3)', fontSize: 13 }}>
-            Bu çerçevede uygulanabilir kontrol bulunmuyor.
+          /* NEDEN + NE YAPMALIYIM: "uygulanabilir kontrol yok" bir uyum
+             sonucu DEĞİLDİR — uygulanabilirlik kararı ya hiç verilmemiş ya
+             da hepsi kapsam dışı bırakılmıştır. İkisi de düzeltilebilir ve
+             kararın verildiği yer çerçeve ekranıdır. */
+          <p className="bos" style={{ color: 'var(--i3)', fontSize: 13 }}>
+            Bu çerçevede uygulanabilir kontrol bulunmuyor — ya uygulanabilirlik
+            kararı hiç verilmedi ya da maddelerin tamamı kapsam dışı bırakıldı;
+            ikisi de &quot;uyumlu&quot; demek değildir.{' '}
+            <Link href="/regulasyonlar">Çerçeveyi aç</Link>
           </p>
         ) : (
           <UyumMatrisi

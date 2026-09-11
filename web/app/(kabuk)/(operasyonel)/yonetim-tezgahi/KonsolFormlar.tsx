@@ -1,5 +1,6 @@
 'use client';
 import { useMemo, useState, type ReactNode } from 'react';
+import Link from 'next/link';
 import { Alan, Dugme } from '@/components/kabuk/temel';
 import { Cekmece, CekmeceKimlik, CekmeceAlanlar, CekmeceEylemler } from '@/components/kabuk/panel';
 import { useEylem } from '@/components/useEylem';
@@ -130,7 +131,14 @@ export function FarkTablosu({ once, sonra, etiketler, bicim }: {
   bicim?: (alan: string, v: unknown) => string;
 }) {
   const satirlar = fark(once, sonra);
-  if (satirlar.length === 0) return <p className="ab-dip">Fark yok — kaydedilecek bir değişiklik bulunmuyor.</p>;
+  /* İYİ HABER boşluğu — çözüm gerektirmez. */
+  if (satirlar.length === 0) {
+    return (
+      <p className="ab-dip bos iyi">
+        Fark yok — girilen değerler kayıttakiyle aynı, kaydedilecek bir değişiklik bulunmuyor.
+      </p>
+    );
+  }
   const yaz = (alan: string, v: unknown) => (bicim ? bicim(alan, v) : degerYaz(v));
   return (
     <table className="ab-fark">
@@ -150,7 +158,20 @@ export function FarkTablosu({ once, sonra, etiketler, bicim }: {
 
 /* ── Etki paneli ───────────────────────────────────────────────────────── */
 function EtkiListesi({ etki }: { etki: EtkiSatiri[] }) {
-  if (etki.length === 0) return <p className="ab-dip">Ölçülebilir bağlı kayıt bulunmadı.</p>;
+  /* NEDEN: "ölçülebilir bağlı kayıt yok" ile "etkisi yok" AYNI ŞEY
+     DEĞİLDİR — motor yalnız BAĞI KAYITLI olanları sayabilir. Bunu
+     söylemeyen bir cümle, ölçülmemiş bir etkiyi sıfır gösterirdi.
+     İYİ HABER DEĞİLDİR: bu yüzden eylem taşır. */
+  if (etki.length === 0) {
+    return (
+      <p className="ab-dip bos">
+        Ölçülebilir bağlı kayıt bulunmadı — bu &quot;etkisi yok&quot; demek
+        değildir; motor yalnız bağı KAYITLI olanları sayabilir, kayıtsız bağ
+        ölçülemez.{' '}
+        <Link href="/prosesler">Bağları gözden geçir</Link>
+      </p>
+    );
+  }
   return (
     <ul className="ab-konsol-etki">
       {etki.map((e) => (
@@ -192,7 +213,19 @@ function EtkiPaneli({ hedefTipi, hedefId, sonra, basliklar }: {
 /* ── Geçmiş listesi ────────────────────────────────────────────────────── */
 function GecmisListesi({ gecmis }: { gecmis: IzKaydi[] }) {
   const [acik, setAcik] = useState<string | null>(null);
-  if (gecmis.length === 0) return <p className="ab-dip">Bu kayıt için iz bulunmuyor (son 300 kayıt tarandı).</p>;
+  /* NEDEN: pencere BEYANLIDIR. "İz yok" ile "taranan pencerede iz yok"
+     farklı şeylerdir ve ikincisi doğrudur; birincisi denetim izini
+     yanlış temsil ederdi. İYİ HABER DEĞİLDİR — kullanıcı tam izi
+     görebilmeli. */
+  if (gecmis.length === 0) {
+    return (
+      <p className="ab-dip bos">
+        Bu kayıt için iz bulunmuyor — yalnız son 300 kayıt tarandı, daha
+        eskisi bu pencerede görünmez; &quot;hiç iz yok&quot; demek değildir.{' '}
+        <Link href="/aktivite">Tam denetim izini aç</Link>
+      </p>
+    );
+  }
   return (
     <ol className="ab-konsol-iz">
       {gecmis.map((g) => (

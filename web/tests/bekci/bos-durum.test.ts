@@ -297,8 +297,26 @@ describe('İKİ ÖLÇÜT ve CIRCIR [SIS-BSD-001]', () => {
          varsayılanı ölçülüdür" kuralının bu kütükteki karşılığı. */
       const t = tabanSinif[s] ?? { nedensiz: 0, eylemsiz: 0, iyiHaber: 0 };
       for (const alan of ['nedensiz', 'eylemsiz', 'iyiHaber'] as const) {
+        /* ── YÜKSELME DOSYADA GEREKÇE İSTER (beşinci dişin bu kütükteki
+           karşılığı · düzeltme turu) ────────────────────────────────────
+           Eski hâl HİÇBİR yükselmeye izin vermiyordu ve bu, türeticinin
+           GENİŞLEMESİNİ cezalandırıyordu: dördüncü yüzey açılınca kütüğe
+           giren İYİ HABER boşlukları tavanı büyütür ve kapı kırmızı yanar
+           — yani "körlüğü düzeltme" yolunu kapatır. Ölçüldü: satirIci
+           iyiHaber 3 → 8, hepsi `className="bos iyi"` ile KODDAN işaretli.
+
+           Bugün yükselme mümkündür ama BEDAVA DEĞİL: `tavanGerekceleri`
+           altında o yükselmeyi (`eski` → `yeni`) adıyla anlatan bir
+           gerekçe ister. Gerekçesiz yükselme hâlâ KIRMIZIDIR ve gerekçe
+           yükselmenin KENDİSİNİ anlatmalıdır (ölçülen değerle birebir). */
+        const g = (kutuk.tavanGerekceleri ?? []).find((x) => x.alan === `${s}.${alan}`);
+        const tabanDeger = t[alan] ?? 0;
+        if (olculenSinif[s][alan] > tabanDeger && g
+          && g.eski === tabanDeger && g.yeni === olculenSinif[s][alan]
+          && (g.gerekce ?? '').trim().length >= 40) continue;
         expect(olculenSinif[s][alan],
-          `${s}.${alan}: ${t[alan] ?? 0} → ${olculenSinif[s][alan]} — sınıf tavanı BÜYÜYEMEZ`
+          `${s}.${alan}: ${tabanDeger} → ${olculenSinif[s][alan]} — sınıf tavanı `
+          + 'BÜYÜYEMEZ (gerekçesiz); `tavanGerekceleri` altında eski → yeni yazın'
           + (tabanSinif[s] ? '' : ' (sınıf tabanda YOK: varsayılan tavan SIFIR)'))
           .toBeLessThanOrEqual(t[alan] ?? 0);
       }

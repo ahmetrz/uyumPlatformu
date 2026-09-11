@@ -97,6 +97,63 @@ describe('her POLİTİKA satırı BEYANLI [URN-POL-001]', () => {
     expect(kusur, kusur.join('\n')).toEqual([]);
   });
 
+  it('IDDIA_DEGIL kaçış kapısı CIRCIRDADIR — sessiz indirme yok, yeni muafiyet gerekçeli [URN-POL-001]', () => {
+    /* ── BULGU (bağımsız inceleme · düzeltme turu · P1-5) ──────────────
+       Yedinci diş de, altıncı diş de, S1 tavanı da, sınıf cırcırı da aynı
+       süzgeçle başlıyor: `s.sinif === 'POLITIKA'`. Ama `sinif` ELLE
+       yazılıyor ve onu doğrulayan tek diş gerekçenin 15 karakterden uzun
+       olmasıydı.
+
+       Yani kilit MUTLAK DEĞİLDİ: yeni bir politika cümlesine
+       `"sinif": "IDDIA_DEGIL"` + yirmi dört karakterlik bir gerekçe
+       yazmak yedi dişin yedisini birden atlatıyordu. CLAUDE.md'nin
+       "kilidi gevşetmek o dişi SİLMEYİ gerektirir" cümlesi bu yüzden
+       doğru değildi: bir sayı değil, bir ETİKET değiştirmek yetiyordu.
+
+       Bugün kaçış kapısının kendisi cırcırdadır: `IDDIA_DEGIL` sayısı
+       taban dala (`origin/main`) göre BÜYÜYEMEZ. Bir cümleyi iddia
+       saymamak hâlâ mümkündür — ama ancak başka birini iddia sayarak. */
+    const git = (a: string[]) => execFileSync('git', a,
+      { cwd: process.cwd(), encoding: 'utf8', stdio: ['ignore', 'pipe', 'ignore'] });
+    let tabanDalVar = true;
+    try { git(['rev-parse', '--verify', 'origin/main']); } catch { tabanDalVar = false; }
+    if (!tabanDalVar) {
+      expect(process.env.CI ?? '', "CI'da taban dal okunamadı").toBe('');
+      return;
+    }
+    const YOL = 'origin/main:web/arac/politika-cumleleri.json';
+    let tabandaVar = true;
+    try { git(['cat-file', '-e', YOL]); } catch { tabandaVar = false; }
+    let ham: string | null = null;
+    if (tabandaVar) { try { ham = git(['show', YOL]); } catch { ham = null; } }
+    const karar = tabanDalKarari(tabandaVar, ham);
+    if (karar.hal === 'taban_yok') return;
+    if (karar.hal === 'olculemedi') {
+      expect(process.env.CI ?? '', `TABAN DAL ÖLÇÜLEMEDİ (${karar.sebep})`).toBe('');
+      return;
+    }
+    const taban = karar.belge as { satirlar: { cumle: string; sinif: string }[] };
+    /* İKİ AYRI KUSUR, İKİ AYRI DİŞ — sayıya bakmak YANLIŞ olurdu: türetici
+       genişleyince kütüğe yeni İDDİA OLMAYAN satırlar da girer ve salt
+       sayıya bakan bir cırcır, körlüğü düzeltmeyi CEZALANDIRIRDI.
+
+       (a) SESSİZ İNDİRME: tabanda POLITIKA olan bir satır bu dalda
+           IDDIA_DEGIL'e çekilemez. Kaçış kapısının gerçek kullanımı budur.
+       (b) YENİ SATIRIN VARSAYILANI POLİTİKADIR: tabanda olmayan bir satır
+           IDDIA_DEGIL ise gerekçesi KUSUR ASGARİSİ kadar uzun olmalıdır
+           (15 değil, `GEREKCE_ASGARI`) — "bir durum etiketidir" yetmez. */
+    const tabanSinif = new Map(taban.satirlar.map((s) => [s.cumle, s.sinif]));
+    const indirilen = kutuk.satirlar
+      .filter((s) => s.sinif === 'IDDIA_DEGIL' && tabanSinif.get(s.cumle) === 'POLITIKA')
+      .map((s) => `${s.kod}: tabanda POLITIKA idi, bu dalda IDDIA_DEGIL`);
+    const zayifYeni = kutuk.satirlar
+      .filter((s) => s.sinif === 'IDDIA_DEGIL' && !tabanSinif.has(s.cumle)
+        && (s.gerekce ?? '').trim().length < GEREKCE_ASGARI)
+      .map((s) => `${s.kod}: YENİ IDDIA_DEGIL, gerekçe ${GEREKCE_ASGARI} karakterden kısa`);
+    expect([...indirilen, ...zayifYeni],
+      [...indirilen, ...zayifYeni].join('\n')).toEqual([]);
+  });
+
   it('IDDIA_DEGIL satırı NEDEN iddia olmadığını söyler [URN-POL-001]', () => {
     /* Kaçış kapısı gerekçesiz olamaz: "bu bir etiket" demek kolaydır,
        yazmak zordur. */

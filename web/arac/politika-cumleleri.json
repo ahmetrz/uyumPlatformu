@@ -39,10 +39,9 @@
       "yer": "lib/eylemler2/saklama.ts",
       "sinif": "POLITIKA",
       "sonucSinifi": "S3",
-      "olculmedi": {
-        "sahip": "KODLAYAN",
-        "kapanisAsamasi": "R0-17 · R-F ölçüm dalgası",
-        "gerekce": "Cümle S3'tür: ihlali veri SIZDIRMAZ ve ürün değişmezini bozmaz, ama kullanıcıyı YANILTIR — ekranda anlatılan mekanizma ile kodun yaptığı sessizce ayrışabilir. Zararı sınırlı olduğu için ölçüm sırası S1 ve S2'den sonradır; küme R0-17 kütüğünde sayısıyla duruyor ve yalnız küçülür."
+      "olcum": {
+        "dosya": "tests/politika-s3-eylem.test.ts",
+        "vaka": "DEĞİŞMEZ aileye \"imha öner\" YAZILAMAZ — politika satırı doğmaz"
       }
     },
     {
@@ -302,10 +301,9 @@
       "yer": "lib/eylemler2/varlikAktarim.ts",
       "sinif": "POLITIKA",
       "sonucSinifi": "S3",
-      "olculmedi": {
-        "sahip": "KODLAYAN",
-        "kapanisAsamasi": "R0-17 · R-F ölçüm dalgası",
-        "gerekce": "Cümle S3'tür: ihlali veri SIZDIRMAZ ve ürün değişmezini bozmaz, ama kullanıcıyı YANILTIR — ekranda anlatılan mekanizma ile kodun yaptığı sessizce ayrışabilir. Zararı sınırlı olduğu için ölçüm sırası S1 ve S2'den sonradır; küme R0-17 kütüğünde sayısıyla duruyor ve yalnız küçülür."
+      "olcum": {
+        "dosya": "tests/politika-s3-eylem.test.ts",
+        "vaka": "ONAYLANMIŞ aktarımın EŞLEMESİ değiştirilemez"
       }
     },
     {
@@ -383,10 +381,9 @@
       "yer": "lib/eylemler2/degerlendirmeAktarimi.ts",
       "sinif": "POLITIKA",
       "sonucSinifi": "S3",
-      "olculmedi": {
-        "sahip": "KODLAYAN",
-        "kapanisAsamasi": "R0-17 · R-F ölçüm dalgası",
-        "gerekce": "Cümle S3'tür: ihlali veri SIZDIRMAZ ve ürün değişmezini bozmaz, ama kullanıcıyı YANILTIR — ekranda anlatılan mekanizma ile kodun yaptığı sessizce ayrışabilir. Zararı sınırlı olduğu için ölçüm sırası S1 ve S2'den sonradır; küme R0-17 kütüğünde sayısıyla duruyor ve yalnız küçülür."
+      "olcum": {
+        "dosya": "tests/politika-s3-eylem.test.ts",
+        "vaka": "KURU KOŞU OLMAYAN aktarım UYGULANAMAZ — durum değişmez"
       }
     },
     {
@@ -395,10 +392,9 @@
       "yer": "lib/eylemler2/mevzuatRadari.ts",
       "sinif": "POLITIKA",
       "sonucSinifi": "S3",
-      "olculmedi": {
-        "sahip": "KODLAYAN",
-        "kapanisAsamasi": "R0-17 · R-F ölçüm dalgası",
-        "gerekce": "Cümle S3'tür: ihlali veri SIZDIRMAZ ve ürün değişmezini bozmaz, ama kullanıcıyı YANILTIR — ekranda anlatılan mekanizma ile kodun yaptığı sessizce ayrışabilir. Zararı sınırlı olduğu için ölçüm sırası S1 ve S2'den sonradır; küme R0-17 kütüğünde sayısıyla duruyor ve yalnız küçülür."
+      "olcum": {
+        "dosya": "tests/politika-s3-eylem.test.ts",
+        "vaka": "ENGELLİ kaynağın taraması AÇILAMAZ — ürün engeli AŞMAZ"
       }
     },
     {
@@ -431,10 +427,9 @@
       "yer": "lib/eylemler2/mfa.ts",
       "sinif": "POLITIKA",
       "sonucSinifi": "S3",
-      "olculmedi": {
-        "sahip": "KODLAYAN",
-        "kapanisAsamasi": "R0-17 · R-F ölçüm dalgası",
-        "gerekce": "Cümle S3'tür: ihlali veri SIZDIRMAZ ve ürün değişmezini bozmaz, ama kullanıcıyı YANILTIR — ekranda anlatılan mekanizma ile kodun yaptığı sessizce ayrışabilir. Zararı sınırlı olduğu için ölçüm sırası S1 ve S2'den sonradır; küme R0-17 kütüğünde sayısıyla duruyor ve yalnız küçülür."
+      "olcum": {
+        "dosya": "tests/politika-s3-eylem.test.ts",
+        "vaka": "MFA ZORUNLUYKEN kayıt KALDIRILAMAZ — sır referansı yerinde kalır"
       }
     },
     {
@@ -554,10 +549,9 @@
       "yer": "lib/eylemler2/kanit.demo.ts",
       "sinif": "POLITIKA",
       "sonucSinifi": "S3",
-      "olculmedi": {
-        "sahip": "KODLAYAN",
-        "kapanisAsamasi": "R0-17 · R-F ölçüm dalgası",
-        "gerekce": "Cümle S3'tür: ihlali veri SIZDIRMAZ ve ürün değişmezini bozmaz, ama kullanıcıyı YANILTIR — ekranda anlatılan mekanizma ile kodun yaptığı sessizce ayrışabilir. Zararı sınırlı olduğu için ölçüm sırası S1 ve S2'den sonradır; küme R0-17 kütüğünde sayısıyla duruyor ve yalnız küçülür."
+      "olcum": {
+        "dosya": "tests/politika-s3-demo-ikizleri.test.ts",
+        "vaka": "HER ikizin HER ihracı çağrılır: `{ ok: true }` dönen YOKTUR"
       }
     },
     {
@@ -566,10 +560,9 @@
       "yer": "lib/eylemler2/varlikDurusu.demo.ts",
       "sinif": "POLITIKA",
       "sonucSinifi": "S3",
-      "olculmedi": {
-        "sahip": "KODLAYAN",
-        "kapanisAsamasi": "R0-17 · R-F ölçüm dalgası",
-        "gerekce": "Cümle S3'tür: ihlali veri SIZDIRMAZ ve ürün değişmezini bozmaz, ama kullanıcıyı YANILTIR — ekranda anlatılan mekanizma ile kodun yaptığı sessizce ayrışabilir. Zararı sınırlı olduğu için ölçüm sırası S1 ve S2'den sonradır; küme R0-17 kütüğünde sayısıyla duruyor ve yalnız küçülür."
+      "olcum": {
+        "dosya": "tests/politika-s3-demo-ikizleri.test.ts",
+        "vaka": "HER ikizin HER ihracı çağrılır: `{ ok: true }` dönen YOKTUR"
       }
     },
     {
@@ -578,10 +571,9 @@
       "yer": "lib/eylemler2/yonetim.demo.ts",
       "sinif": "POLITIKA",
       "sonucSinifi": "S3",
-      "olculmedi": {
-        "sahip": "KODLAYAN",
-        "kapanisAsamasi": "R0-17 · R-F ölçüm dalgası",
-        "gerekce": "Cümle S3'tür: ihlali veri SIZDIRMAZ ve ürün değişmezini bozmaz, ama kullanıcıyı YANILTIR — ekranda anlatılan mekanizma ile kodun yaptığı sessizce ayrışabilir. Zararı sınırlı olduğu için ölçüm sırası S1 ve S2'den sonradır; küme R0-17 kütüğünde sayısıyla duruyor ve yalnız küçülür."
+      "olcum": {
+        "dosya": "tests/politika-s3-demo-ikizleri.test.ts",
+        "vaka": "HER ikizin HER ihracı çağrılır: `{ ok: true }` dönen YOKTUR"
       }
     },
     {
@@ -590,10 +582,9 @@
       "yer": "lib/eylemler2/disaAktarim.demo.ts",
       "sinif": "POLITIKA",
       "sonucSinifi": "S3",
-      "olculmedi": {
-        "sahip": "KODLAYAN",
-        "kapanisAsamasi": "R0-17 · R-F ölçüm dalgası",
-        "gerekce": "Cümle S3'tür: ihlali veri SIZDIRMAZ ve ürün değişmezini bozmaz, ama kullanıcıyı YANILTIR — ekranda anlatılan mekanizma ile kodun yaptığı sessizce ayrışabilir. Zararı sınırlı olduğu için ölçüm sırası S1 ve S2'den sonradır; küme R0-17 kütüğünde sayısıyla duruyor ve yalnız küçülür."
+      "olcum": {
+        "dosya": "tests/politika-s3-demo-ikizleri.test.ts",
+        "vaka": "HER ikizin HER ihracı çağrılır: `{ ok: true }` dönen YOKTUR"
       }
     },
     {
@@ -635,10 +626,9 @@
       "yer": "lib/eylemler2/bildirimKaydi.demo.ts",
       "sinif": "POLITIKA",
       "sonucSinifi": "S3",
-      "olculmedi": {
-        "sahip": "KODLAYAN",
-        "kapanisAsamasi": "R0-17 · R-F ölçüm dalgası",
-        "gerekce": "Cümle S3'tür: ihlali veri SIZDIRMAZ ve ürün değişmezini bozmaz, ama kullanıcıyı YANILTIR — ekranda anlatılan mekanizma ile kodun yaptığı sessizce ayrışabilir. Zararı sınırlı olduğu için ölçüm sırası S1 ve S2'den sonradır; küme R0-17 kütüğünde sayısıyla duruyor ve yalnız küçülür."
+      "olcum": {
+        "dosya": "tests/politika-s3-demo-ikizleri.test.ts",
+        "vaka": "HER ikizin HER ihracı çağrılır: `{ ok: true }` dönen YOKTUR"
       }
     },
     {
@@ -647,10 +637,9 @@
       "yer": "lib/eylemler2/varlikYonetisim.demo.ts",
       "sinif": "POLITIKA",
       "sonucSinifi": "S3",
-      "olculmedi": {
-        "sahip": "KODLAYAN",
-        "kapanisAsamasi": "R0-17 · R-F ölçüm dalgası",
-        "gerekce": "Cümle S3'tür: ihlali veri SIZDIRMAZ ve ürün değişmezini bozmaz, ama kullanıcıyı YANILTIR — ekranda anlatılan mekanizma ile kodun yaptığı sessizce ayrışabilir. Zararı sınırlı olduğu için ölçüm sırası S1 ve S2'den sonradır; küme R0-17 kütüğünde sayısıyla duruyor ve yalnız küçülür."
+      "olcum": {
+        "dosya": "tests/politika-s3-demo-ikizleri.test.ts",
+        "vaka": "HER ikizin HER ihracı çağrılır: `{ ok: true }` dönen YOKTUR"
       }
     },
     {
@@ -659,10 +648,9 @@
       "yer": "lib/eylemler2/varlikYonetisim.demo.ts",
       "sinif": "POLITIKA",
       "sonucSinifi": "S3",
-      "olculmedi": {
-        "sahip": "KODLAYAN",
-        "kapanisAsamasi": "R0-17 · R-F ölçüm dalgası",
-        "gerekce": "Cümle S3'tür: ihlali veri SIZDIRMAZ ve ürün değişmezini bozmaz, ama kullanıcıyı YANILTIR — ekranda anlatılan mekanizma ile kodun yaptığı sessizce ayrışabilir. Zararı sınırlı olduğu için ölçüm sırası S1 ve S2'den sonradır; küme R0-17 kütüğünde sayısıyla duruyor ve yalnız küçülür."
+      "olcum": {
+        "dosya": "tests/politika-s3-demo-ikizleri.test.ts",
+        "vaka": "HER ikizin HER ihracı çağrılır: `{ ok: true }` dönen YOKTUR"
       }
     },
     {
@@ -671,10 +659,9 @@
       "yer": "lib/eylemler2/bildirimDonemi.demo.ts",
       "sinif": "POLITIKA",
       "sonucSinifi": "S3",
-      "olculmedi": {
-        "sahip": "KODLAYAN",
-        "kapanisAsamasi": "R0-17 · R-F ölçüm dalgası",
-        "gerekce": "Cümle S3'tür: ihlali veri SIZDIRMAZ ve ürün değişmezini bozmaz, ama kullanıcıyı YANILTIR — ekranda anlatılan mekanizma ile kodun yaptığı sessizce ayrışabilir. Zararı sınırlı olduğu için ölçüm sırası S1 ve S2'den sonradır; küme R0-17 kütüğünde sayısıyla duruyor ve yalnız küçülür."
+      "olcum": {
+        "dosya": "tests/politika-s3-demo-ikizleri.test.ts",
+        "vaka": "HER ikizin HER ihracı çağrılır: `{ ok: true }` dönen YOKTUR"
       }
     },
     {
@@ -683,10 +670,9 @@
       "yer": "lib/eylemler2/varlikDurusu.demo.ts",
       "sinif": "POLITIKA",
       "sonucSinifi": "S3",
-      "olculmedi": {
-        "sahip": "KODLAYAN",
-        "kapanisAsamasi": "R0-17 · R-F ölçüm dalgası",
-        "gerekce": "Cümle S3'tür: ihlali veri SIZDIRMAZ ve ürün değişmezini bozmaz, ama kullanıcıyı YANILTIR — ekranda anlatılan mekanizma ile kodun yaptığı sessizce ayrışabilir. Zararı sınırlı olduğu için ölçüm sırası S1 ve S2'den sonradır; küme R0-17 kütüğünde sayısıyla duruyor ve yalnız küçülür."
+      "olcum": {
+        "dosya": "tests/politika-s3-demo-ikizleri.test.ts",
+        "vaka": "HER ikizin HER ihracı çağrılır: `{ ok: true }` dönen YOKTUR"
       }
     },
     {
@@ -695,10 +681,9 @@
       "yer": "lib/eylemler2/konfigYedek.demo.ts",
       "sinif": "POLITIKA",
       "sonucSinifi": "S3",
-      "olculmedi": {
-        "sahip": "KODLAYAN",
-        "kapanisAsamasi": "R0-17 · R-F ölçüm dalgası",
-        "gerekce": "Cümle S3'tür: ihlali veri SIZDIRMAZ ve ürün değişmezini bozmaz, ama kullanıcıyı YANILTIR — ekranda anlatılan mekanizma ile kodun yaptığı sessizce ayrışabilir. Zararı sınırlı olduğu için ölçüm sırası S1 ve S2'den sonradır; küme R0-17 kütüğünde sayısıyla duruyor ve yalnız küçülür."
+      "olcum": {
+        "dosya": "tests/politika-s3-demo-ikizleri.test.ts",
+        "vaka": "HER ikizin HER ihracı çağrılır: `{ ok: true }` dönen YOKTUR"
       }
     },
     {
@@ -1102,10 +1087,9 @@
       "yer": "lib/eylemler2/gozdenGecirme.ts",
       "sinif": "POLITIKA",
       "sonucSinifi": "S3",
-      "olculmedi": {
-        "sahip": "KODLAYAN",
-        "kapanisAsamasi": "R0-17 · R-F ölçüm dalgası",
-        "gerekce": "Cümle S3'tür: ihlali veri SIZDIRMAZ ve ürün değişmezini bozmaz, ama kullanıcıyı YANILTIR — ekranda anlatılan mekanizma ile kodun yaptığı sessizce ayrışabilir. Zararı sınırlı olduğu için ölçüm sırası S1 ve S2'den sonradır; küme R0-17 kütüğünde sayısıyla duruyor ve yalnız küçülür."
+      "olcum": {
+        "dosya": "tests/politika-s3-eylem.test.ts",
+        "vaka": "PLANLI OLMAYAN gözden geçirme TAMAMLANAMAZ"
       }
     },
     {
@@ -1160,10 +1144,9 @@
       "yer": "lib/eylemler2/koken.ts",
       "sinif": "POLITIKA",
       "sonucSinifi": "S3",
-      "olculmedi": {
-        "sahip": "KODLAYAN",
-        "kapanisAsamasi": "R0-17 · R-F ölçüm dalgası",
-        "gerekce": "Cümle S3'tür: ihlali veri SIZDIRMAZ ve ürün değişmezini bozmaz, ama kullanıcıyı YANILTIR — ekranda anlatılan mekanizma ile kodun yaptığı sessizce ayrışabilir. Zararı sınırlı olduğu için ölçüm sırası S1 ve S2'den sonradır; küme R0-17 kütüğünde sayısıyla duruyor ve yalnız küçülür."
+      "olcum": {
+        "dosya": "tests/politika-s3-eylem.test.ts",
+        "vaka": "PASİF kullanıcı köken DOĞRULAYAMAZ — kayıt doğrulanmış görünmez"
       }
     },
     {
@@ -1227,10 +1210,9 @@
       "yer": "lib/eylemler2/kimlikSaglayici.ts",
       "sinif": "POLITIKA",
       "sonucSinifi": "S3",
-      "olculmedi": {
-        "sahip": "KODLAYAN",
-        "kapanisAsamasi": "R0-17 · R-F ölçüm dalgası",
-        "gerekce": "Cümle S3'tür: ihlali veri SIZDIRMAZ ve ürün değişmezini bozmaz, ama kullanıcıyı YANILTIR — ekranda anlatılan mekanizma ile kodun yaptığı sessizce ayrışabilir. Zararı sınırlı olduğu için ölçüm sırası S1 ve S2'den sonradır; küme R0-17 kütüğünde sayısıyla duruyor ve yalnız küçülür."
+      "olcum": {
+        "dosya": "tests/politika-s3-eylem.test.ts",
+        "vaka": "BOZUK rol eşlemesi REDDEDİLİR — sağlayıcı satırı yazılmaz"
       }
     },
     {
@@ -1250,10 +1232,9 @@
       "yer": "lib/eylemler2/egitim.ts",
       "sinif": "POLITIKA",
       "sonucSinifi": "S3",
-      "olculmedi": {
-        "sahip": "KODLAYAN",
-        "kapanisAsamasi": "R0-17 · R-F ölçüm dalgası",
-        "gerekce": "Cümle S3'tür: ihlali veri SIZDIRMAZ ve ürün değişmezini bozmaz, ama kullanıcıyı YANILTIR — ekranda anlatılan mekanizma ile kodun yaptığı sessizce ayrışabilir. Zararı sınırlı olduğu için ölçüm sırası S1 ve S2'den sonradır; küme R0-17 kütüğünde sayısıyla duruyor ve yalnız küçülür."
+      "olcum": {
+        "dosya": "tests/politika-s3-eylem.test.ts",
+        "vaka": "PASİF eğitime kayıt REDDEDİLİR ve hiçbir kayıt satırı doğmaz"
       }
     },
     {
@@ -1450,11 +1431,11 @@
     }
   ],
   "tavanlar": {
-    "olculmeyen": 39,
+    "olculmeyen": 20,
     "sinif": {
       "S1": 0,
       "S2": 0,
-      "S3": 39
+      "S3": 20
     }
   },
   "not": "R-F · politika cümlesi kütüğü. Satırlar arac/politika-kutugu.mjs ile TÜRETİLİR, elle yazılmaz.",

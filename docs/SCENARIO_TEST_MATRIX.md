@@ -4,12 +4,12 @@
 
 | Ölçü | Değer |
 | --- | --- |
-| Senaryo | 369 |
-| Testi olan senaryo | 369 |
+| Senaryo | 371 |
+| Testi olan senaryo | 371 |
 | **GAP** | **0** |
 | Hayalet işaret (kütükte olmayan kimlik) | 0 |
 | Kütüksüz test dosyası | 0 |
-| Taranan test dosyası | 238 |
+| Taranan test dosyası | 240 |
 
 ## Katman başına kapsam
 
@@ -18,14 +18,14 @@
 | ACCESSIBILITY | 8 | 8 | 0 |
 | API | 12 | 12 | 0 |
 | CONCURRENCY | 8 | 8 | 0 |
-| DOMAIN | 220 | 220 | 0 |
+| DOMAIN | 222 | 222 | 0 |
 | ENGINE | 37 | 37 | 0 |
-| INTEGRATION | 42 | 42 | 0 |
+| INTEGRATION | 43 | 43 | 0 |
 | MIGRATION | 10 | 10 | 0 |
-| RBAC | 41 | 41 | 0 |
+| RBAC | 42 | 42 | 0 |
 | RESPONSIVE | 9 | 9 | 0 |
 | SCOPE | 33 | 33 | 0 |
-| SERVER | 153 | 153 | 0 |
+| SERVER | 155 | 155 | 0 |
 | UI | 105 | 105 | 0 |
 | VISUAL | 4 | 4 | 0 |
 | WORKFLOW | 39 | 39 | 0 |
@@ -625,6 +625,23 @@
 | `SIS-DEM-002` | Sistem | SERVER · DOMAIN | `politika-demo-salt-okunur.test.ts` | denetim formu üretilmez — sebep GEREKÇE ile söylenir | evet | geçti |
 | `SIS-DEM-002` | Sistem | SERVER · DOMAIN | `politika-demo-salt-okunur.test.ts` | kimlik sağlayıcı yapılandırılmaz — SIR REFERANSI gerekçesiyle | evet | geçti |
 | `SIS-DEM-002` | Sistem | SERVER · DOMAIN | `politika-demo-salt-okunur.test.ts` | mevzuat adayı karara BAĞLANMAZ ve tarama AÇILMAZ | evet | geçti |
+| `SIS-DEM-003` | Sistem | SERVER · DOMAIN · INTEGRATION | `politika-s3-demo-ikizleri.test.ts` | POPÜLASYON BOŞ DEĞİL — ölçüt bozulursa vaka hiçbir şey ölçmezdi | evet | geçti |
+| `SIS-DEM-003` | Sistem | SERVER · DOMAIN · INTEGRATION | `politika-s3-demo-ikizleri.test.ts` | YAZAN HER MODÜLÜN ikizi VAR — eksik ikiz demo derlemesini patlatır | evet | geçti |
+| `SIS-DEM-003` | Sistem | SERVER · DOMAIN · INTEGRATION | `politika-s3-demo-ikizleri.test.ts` | FAZLA İKİZ DE YOKTUR — yüklenemeyen ikiz ÖLÜ ATIFTIR | evet | geçti |
+| `SIS-DEM-003` | Sistem | SERVER · DOMAIN · INTEGRATION | `politika-s3-demo-ikizleri.test.ts` | İKİZ, gerçeğin HER çalışma-anı ihracını taşır — eksik ad ekranı ÇÖKERTİR | evet | geçti |
+| `SIS-DEM-003` | Sistem | SERVER · DOMAIN · INTEGRATION | `politika-s3-demo-ikizleri.test.ts` | HER ikizin HER ihracı çağrılır: `{ ok: true }` dönen YOKTUR | evet | geçti |
+| `SIS-DEM-003` | Sistem | SERVER · DOMAIN · INTEGRATION | `politika-s3-demo-ikizleri.test.ts` | HİÇBİR ikiz veritabanına dokunmaz — ret dönüp yolda satır yazan ikiz de olmaz | evet | geçti |
+| `SIS-DGM-002` | Sistem | SERVER · DOMAIN · RBAC | `politika-s3-eylem.test.ts` | PASİF eğitime kayıt REDDEDİLİR ve hiçbir kayıt satırı doğmaz | evet | geçti |
+| `SIS-DGM-002` | Sistem | SERVER · DOMAIN · RBAC | `politika-s3-eylem.test.ts` | AYNI eylem AKTİF eğitimde GEÇER — kapı her şeyi reddetmiyor | evet | geçti |
+| `SIS-DGM-002` | Sistem | SERVER · DOMAIN · RBAC | `politika-s3-eylem.test.ts` | ENGELLİ kaynağın taraması AÇILAMAZ — ürün engeli AŞMAZ | evet | geçti |
+| `SIS-DGM-002` | Sistem | SERVER · DOMAIN · RBAC | `politika-s3-eylem.test.ts` | DEĞİŞMEZ aileye "imha öner" YAZILAMAZ — politika satırı doğmaz | evet | geçti |
+| `SIS-DGM-002` | Sistem | SERVER · DOMAIN · RBAC | `politika-s3-eylem.test.ts` | KURU KOŞU OLMAYAN aktarım UYGULANAMAZ — durum değişmez | evet | geçti |
+| `SIS-DGM-002` | Sistem | SERVER · DOMAIN · RBAC | `politika-s3-eylem.test.ts` | ONAYLANMIŞ aktarımın EŞLEMESİ değiştirilemez | evet | geçti |
+| `SIS-DGM-002` | Sistem | SERVER · DOMAIN · RBAC | `politika-s3-eylem.test.ts` | PLANLI OLMAYAN gözden geçirme TAMAMLANAMAZ | evet | geçti |
+| `SIS-DGM-002` | Sistem | SERVER · DOMAIN · RBAC | `politika-s3-eylem.test.ts` | BOZUK rol eşlemesi REDDEDİLİR — sağlayıcı satırı yazılmaz | evet | geçti |
+| `SIS-DGM-002` | Sistem | SERVER · DOMAIN · RBAC | `politika-s3-eylem.test.ts` | PASİF kullanıcı köken DOĞRULAYAMAZ — kayıt doğrulanmış görünmez | evet | geçti |
+| `SIS-DGM-002` | Sistem | SERVER · DOMAIN · RBAC | `politika-s3-eylem.test.ts` | MFA ZORUNLUYKEN kayıt KALDIRILAMAZ — sır referansı yerinde kalır | evet | geçti |
+| `SIS-DGM-002` | Sistem | SERVER · DOMAIN · RBAC | `politika-s3-eylem.test.ts` | MFA ZORUNLU DEĞİLKEN aynı eylem bu gerekçeyle DÜŞMEZ — politikaya bağlı | evet | geçti |
 | `SIS-PAS-001` | Sistem | ENGINE · SERVER · INTEGRATION | `politika-pasif-once.test.ts` | sahte ağ GERÇEKTEN kapalı — ölçüm boşa koşmuyor | evet | geçti |
 | `SIS-PAS-001` | Sistem | ENGINE · SERVER · INTEGRATION | `politika-pasif-once.test.ts` | anlık görüntü motoru ağa HİÇ paket göndermez | evet | geçti |
 | `SIS-PAS-001` | Sistem | ENGINE · SERVER · INTEGRATION | `politika-pasif-once.test.ts` | topoloji sapma motoru da ağa çıkmaz | evet | geçti |

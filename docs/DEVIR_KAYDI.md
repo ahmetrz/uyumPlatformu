@@ -81,6 +81,11 @@ kod kusuru gibi görünen bir hatayla düşer.
 - **Merge ön koşulu ikidir: CI yeşil VE açık inceleme yorumu yok.**
 - Uzun koşan elle kapı: `PORT=3211 npm run kapi:iki-sozluk` (~22 dk).
 - Parti kapanışı: `npm run kapi:parti` (`--liste` ile koşmadan görülür).
+- **`kapi-compose`nin otoritesi CI'dır.** Geliştirme kum havuzunda yerel
+  ölçüm yapılamıyor (`dockerd` bayat bir vekil portu taşıyor; düzeltmeyi
+  ortam sınıflandırıcısı reddetti ve etrafından dolaşılmadı), bu yüzden
+  yerel `kapi:parti` çıktısındaki bu satır ne "geçti" ne de kod kusuru
+  sayılır — ölçümü CI yapar. Karar: gözden geçiren, 11 Eyl 2026.
 
 ---
 

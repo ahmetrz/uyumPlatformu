@@ -164,7 +164,10 @@ Dinamik rota değerleri neden kurulumdan okunur: kimlikler `cuid()` ile
 onlarla kurulan her URL 404 olurdu — kapı, ürün sağlamken kırmızı yanardı.
 
 Kapı CI'da `kapi-compose` işi olarak koşar ve `npm run kapi:parti`
-kümesindedir.
+kümesindedir. **Bu kapının otoritesi CI'dır**: geliştirme kum havuzunda
+yerel ölçüm yapılamıyor (`dockerd` bayat bir vekil portu taşıyor,
+düzeltmeyi ortam sınıflandırıcısı reddetti ve etrafından dolaşılmadı),
+bu yüzden yerel `kapi:parti` çıktısında bu satır "geçti" diye okunmaz.
 
 ---
 

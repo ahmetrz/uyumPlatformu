@@ -1,7 +1,7 @@
 {
-  "imza": "88838e83fde1bc15848c26650c872450",
-  "dosya": 238,
-  "vaka": 4259,
+  "imza": "37ed6e348b51150ed50318f8f54a7b6b",
+  "dosya": 240,
+  "vaka": 4276,
   "atlanan": 1,
   "dosyalar": {
     "tests/adaptor-yetenekleri.test.ts": {
@@ -718,6 +718,14 @@
     },
     "tests/politika-s2-eylem.test.ts": {
       "vaka": 28,
+      "atlanan": 0
+    },
+    "tests/politika-s3-demo-ikizleri.test.ts": {
+      "vaka": 6,
+      "atlanan": 0
+    },
+    "tests/politika-s3-eylem.test.ts": {
+      "vaka": 11,
       "atlanan": 0
     },
     "tests/politika-yetki-kapilari.test.ts": {

@@ -1587,6 +1587,38 @@ export const PLATFORM_SENARYOLARI_6: Senaryo[] = [
     katmanlar: ['SERVER', 'DOMAIN'],
   },
   {
+    id: 'SIS-DEM-003', alan: 'Sistem', rota: '—', eksen: 'yetki',
+    amac: 'Demo ORTAM VAADİNİN tamamının ölçülmesi: eşleme kapsamı, ihraç '
+      + 'paritesi, sessiz başarı yokluğu ve yapısal yazamazlık',
+    rol: 'demo ziyaretçisi', kapsam: 'demo kurulumu',
+    onkosul: 'Yazan her sunucu eylemi modülünün bir demo ikizi var',
+    veriHali: 'normal',
+    eylem: 'İkizlerin TAMAMI glob ile yüklenir ve HER ihracı gerçekten çağrılır',
+    beklenenSonuc: 'Hiçbiri sessizce başarı dönmez; ikiz kümesi eşlenen modül '
+      + 'kümesiyle birebirdir; hiçbir ikiz veritabanına dokunmaz',
+    beklenenEkran: 'Demo ekranı "bu ortamda çalışmaz" der ve ÇÖKMEZ',
+    beklenenIz: 'yazma yok', beklenenBildirim: 'yok',
+    /* Takma ad eşlemesi DERLEME ANI bir bağlantıdır; katman kataloğunda
+       ayrı bir `BUILD` yok ve yenisini açmak kataloğu bu tek vaka için
+       genişletmek olurdu — `INTEGRATION` derleme/ortam bağlantısını
+       zaten taşıyor. */
+    katmanlar: ['SERVER', 'DOMAIN', 'INTEGRATION'],
+  },
+  {
+    id: 'SIS-DGM-002', alan: 'Sistem', rota: '—', eksen: 'veri',
+    amac: 'Sunucu eyleminin RET GEREKÇESİ cümlelerinin (S3) gerçek yolla ölçülmesi',
+    rol: 'uyum sorumlusu', kapsam: 'kurum geneli',
+    onkosul: 'Pasif eğitim, engelli mevzuat kaynağı, değişmez saklama ailesi, '
+      + 'uygulanmış aktarım, tamamlanmış gözden geçirme ve pasif kullanıcı kurulu',
+    veriHali: 'normal',
+    eylem: 'Her durumda GERÇEK sunucu eylemi çağrılır',
+    beklenenSonuc: 'Eylem REDDEDER ve gerekçe EKRANDAKİ cümledir; kayıt DEĞİŞMEZ',
+    beklenenEkran: 'Ekranın yazdığı ret gerekçesi sunucunun verdiğiyle aynıdır',
+    beklenenIz: 'reddedilen denemede iz satırı YOK — delta ile ölçülür',
+    beklenenBildirim: 'yok',
+    katmanlar: ['SERVER', 'DOMAIN', 'RBAC'],
+  },
+  {
     id: 'SIS-PAS-001', alan: 'Sistem', rota: '/topoloji', eksen: 'entegrasyon',
     amac: 'Ekranın "ağa paket göndermez" sözünün ÇALIŞMA ANINDA tutulması',
     rol: 'OT güvenlik sorumlusu', kapsam: 'kurum geneli',

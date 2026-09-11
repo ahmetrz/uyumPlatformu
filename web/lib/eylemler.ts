@@ -223,7 +223,7 @@ export async function maddeAlanAta(girdi: { maddeId: string; alanIdler: string[]
     });
     await iz({ aktorId: k.id, varlikTipi: 'Madde', varlikId: girdi.maddeId, eylem: 'guncelleme',
       alan: 'alanlar', sonra: `${girdi.alanIdler.length} alan` });
-    revalidatePath('/regulasyonlar'); revalidatePath('/maddeler');
+    revalidatePath('/regulasyonlar'); revalidatePath('/uyum');
     return tamam();
   } catch (e) { return hata(e); }
 }
@@ -402,7 +402,7 @@ export async function maddeDurumGuncelle(girdi: {
        işaret eder. Damgayı silmiyoruz — `dogrulamaDurumu()` bunu
        `degerlendirme_sonrasi_degisti` olarak okur ve ekranda kırmızı
        yazar; silmek, doğrulamanın hiç yapılmadığı izlenimini verirdi. */
-    revalidatePath('/surecler'); revalidatePath('/maddeler'); revalidatePath('/');
+    revalidatePath('/surecler'); revalidatePath('/uyum'); revalidatePath('/');
     return tamam();
   } catch (e) { return hata(e); }
 }
@@ -670,7 +670,7 @@ export async function kanitEkle(girdi: {
       kanitId: kanit.id, maddeDurumuId: v.maddeDurumuId } });
     await iz({ aktorId: k.id, varlikTipi: 'MaddeDurumu', varlikId: v.maddeDurumuId,
       eylem: 'dosya_ekleme', dosyaAdi: v.ad });
-    revalidatePath('/maddeler'); revalidatePath('/surecler');
+    revalidatePath('/uyum'); revalidatePath('/surecler');
     return tamam();
   } catch (e) { return hata(e); }
 }
@@ -1058,7 +1058,7 @@ export async function maddeKaydet(girdi: {
     if (!v.id) {
       await iz({ aktorId: k.id, varlikTipi: 'Madde', varlikId: maddeId, eylem: 'olusturma' });
     }
-    revalidatePath('/regulasyonlar'); revalidatePath('/maddeler');
+    revalidatePath('/regulasyonlar'); revalidatePath('/uyum');
     return tamam();
   } catch (e) { return hata(e); }
 }

@@ -1,6 +1,8 @@
 import { describe, expect, it } from 'vitest';
-import { readFileSync, readdirSync } from 'node:fs';
 import path from 'node:path';
+import {
+  HEDEF_TURLERI, bagHedefleri, kaynakDosyalari, kokYol, rotaCozulur, rotaDesenleri,
+} from '../../arac/rota-agaci.mjs';
 
 /* ═══════════════════════════════════════════════════════════════════════
    ÖLÜ BAĞ BEKÇİSİ — ekranın gösterdiği çıkış GERÇEK OLMALI [SIS-BAG-001]
@@ -8,112 +10,137 @@ import path from 'node:path';
    ── NEDEN BU DOSYA VAR ────────────────────────────────────────────────
    ÖLÇÜLDÜ (bağımsız inceleme, Brief L · tur 1): R0-21 kapatılırken on iki
    bölüm notuna "çıkış" eklendi ve bunların ÜÇÜ olmayan bir rotaya
-   gidiyordu (`/entegrasyonlar` ×2 · `/varliklar/<id>`). Kodun yanındaki
-   yorum "kullanıcıyı çözüme götürür" diyordu; kullanıcı 404 görüyordu.
+   gidiyordu. Kodun yanındaki yorum "kullanıcıyı çözüme götürür" diyordu;
+   kullanıcı 404 görüyordu. Bu, R-G'nin kendi kendini yiyen hâlidir:
+   "eylemsiz boş durum yasak" kuralı, eylemi OLMAYAN bir boşluğa SAHTE
+   eylem uydurma baskısı yaratır.
 
-   Bu, boş durum kuralının (R-G) kendi kendini yiyen hâlidir: "eylemsiz
-   boş durum yasak" kuralı, eylemi OLMAYAN bir boşluğa SAHTE eylem
-   uydurma baskısı yaratır. Kural yetmedi, kapı gerekti — R-C'de olduğu
-   gibi.
+   Düzeltme turunda AYNI SINIF BİR KEZ DAHA çıktı: `saglik/Cekmeceler.tsx`
+   içindeki `/isler` bağı — böyle bir rota yok.
 
-   Hiçbir kapı bunu göremiyordu: `rota:duman` envanterdeki rotaları
-   gezer, ekranların İÇİNDEKİ bağları değil.
-
-   ── NE ÖLÇÜLÜR ────────────────────────────────────────────────────────
-   Kaynakta yazılı her SABİT iç bağ (`href="/..."`), rota envanterinde
-   var olan bir yola çözülmelidir. Dinamik bağlar (`href={...}`) bu dişin
-   dışındadır ve bu BEYANLI bir sınırdır: değeri çalışma anında doğar,
-   statik okuma onu bilemez.
+   ── DÜZELTME TURUNDA ÜÇ KUSURU GİDERİLDİ ──────────────────────────────
+   1. POPÜLASYON LİSTEDEN GELİYORDU. İlk yazım `arac/rotalar.json`u
+      okuyordu; o dosya ÜRETİLMİŞtir ve üreticisi kör kalırsa bekçi
+      olmayan bir rotayı "var" sayar. Bugün küme `app/` AĞACINDAN
+      türetilir: her `page.tsx` bir rota, `(grup)` düşer, `[id]` desen
+      olarak kalır.
+   2. ÇÖZÜMLEYİCİ GEVŞEKTİ. Herhangi bir ÜST yolun bulunması yeterliydi:
+      `/tesisler/cm1/olmayan/derin` üç seviyelik uydurma bir yol olduğu
+      hâlde `/tesisler` üstü yüzünden ÇÖZÜLÜYORDU. Bugün eşleşme segment
+      segmenttir ve SEGMENT SAYISI uyuşmalıdır.
+   3. KAPSAM DARDI. Yalnız `href="..."` taranıyordu; `router.push`,
+      `redirect`, `revalidatePath` ve şablon dizeli `href={...}` ölçümün
+      dışındaydı; tarama da yalnız `app` + `components` içindeydi ve
+      `revalidatePath` çağrılarının 272'si `lib`de yaşıyor. Ölçüldü:
+      kapsam beş hedef türüne ve üç köke çıkınca taranan bağ sayısı
+      20'den 423'e yükseldi ve DÖRT ölü hedef daha çıktı —
+      `revalidatePath('/maddeler')`, olmayan bir rotayı tazeleyen sessiz
+      bir no-op.
    ═══════════════════════════════════════════════════════════════════════ */
 
 const KOK = path.resolve(__dirname, '../..');
-
-/** Rota envanteri — `arac/rotalar.json` tek kaynaktır, elle liste yok. */
-function rotalar(): Set<string> {
-  const ham = JSON.parse(readFileSync(path.join(KOK, 'arac/rotalar.json'), 'utf8'));
-  const liste: unknown[] = Array.isArray(ham) ? ham : (ham.rotalar ?? []);
-  const kume = new Set<string>();
-  for (const r of liste) {
-    const yol = typeof r === 'string' ? r : (r as { yol?: string }).yol;
-    if (yol) kume.add(yol);
-  }
-  return kume;
-}
-
-/** `app/` ve `components/` altındaki tüm kaynak dosyalar. */
-function kaynaklar(): { yer: string; kod: string }[] {
-  const cikan: { yer: string; kod: string }[] = [];
-  const gez = (d: string) => {
-    for (const ad of readdirSync(d, { withFileTypes: true })) {
-      const tam = path.join(d, ad.name);
-      if (ad.isDirectory()) { gez(tam); continue; }
-      if (!/\.tsx?$/.test(ad.name)) continue;
-      cikan.push({ yer: path.relative(KOK, tam), kod: readFileSync(tam, 'utf8') });
-    }
-  };
-  for (const d of ['app', 'components']) gez(path.join(KOK, d));
-  return cikan;
-}
-
-/** Yorum ayıklanmış kod — yorumdaki örnek bir yol kusur değildir. */
-function yorumsuz(kod: string): string {
-  return kod
-    .replace(/\/\*[\s\S]*?\*\//g, ' ')
-    .replace(/(^|[^:])\/\/.*$/gm, '$1');
-}
-
-/** Dinamik parçası olmayan bir yolun kök segmenti — `?`/`#` atılır. */
-function kokYol(yol: string): string {
-  return yol.split(/[?#]/)[0].replace(/\/+$/, '') || '/';
-}
-
-/** Rota envanterinde var mı? Dinamik segment (`[id]`) tek seviye eşleşir. */
-function cozulur(yol: string, kume: Set<string>): boolean {
-  const y = kokYol(yol);
-  if (y === '/' || kume.has(y)) return true;
-  /* `/tesisler/<id>` gibi: üst yol envanterde varsa ve altında dinamik
-     segment tanımlıysa çözülür. Envanter üst yolu taşır. */
-  const parcalar = y.split('/').filter(Boolean);
-  for (let i = parcalar.length - 1; i > 0; i -= 1) {
-    const ust = `/${parcalar.slice(0, i).join('/')}`;
-    if (kume.has(ust)) return true;
-  }
-  return false;
-}
-
-const ROTALAR = rotalar();
-const KAYNAKLAR = kaynaklar();
+const DESENLER = rotaDesenleri(KOK);
+const KAYNAKLAR = kaynakDosyalari(KOK);
 
 describe('ÖLÜ BAĞ YOKTUR [SIS-BAG-001]', () => {
-  it('POPÜLASYON BOŞ DEĞİL — envanter ya da tarama bozulursa vaka hiçbir şey ölçmezdi [SIS-BAG-001]', () => {
-    expect(ROTALAR.size, 'rota envanteri boş okundu').toBeGreaterThan(30);
+  it('POPÜLASYON AĞAÇTAN gelir ve BOŞ DEĞİL [SIS-BAG-001]', () => {
+    /* Sıfır desen bulan bir bekçi, sıfır ölü bağ bulur. */
+    expect(DESENLER.size, 'app/ ağacından rota deseni çıkmadı').toBeGreaterThan(50);
     expect(KAYNAKLAR.length, 'kaynak dosyası bulunamadı').toBeGreaterThan(100);
+    /* Ağaç GERÇEKTEN ağaç: dinamik desen taşımayan bir küme, dizin
+       adlarını düz okumuş demektir. */
+    expect([...DESENLER].filter((d) => d.includes('[')).length,
+      'dinamik rota deseni hiç yok — ağaç okunmamış').toBeGreaterThanOrEqual(3);
+    /* Rota GRUBU segmenti yola SIZMAZ. */
+    expect([...DESENLER].filter((d) => d.includes('(')), 'rota grubu yola sızdı')
+      .toEqual([]);
   });
 
-  it('SABİT iç bağların HEPSİ gerçek bir rotaya çözülür [SIS-BAG-001]', () => {
+  it('BEŞ HEDEF TÜRÜ de taranıyor — kapsam beyanlı [SIS-BAG-001]', () => {
+    expect(HEDEF_TURLERI).toEqual([
+      'href-duz', 'href-ifade', 'router-push', 'redirect', 'revalidate',
+    ]);
+    /* Her türün kaynakta GERÇEKTEN eşleştiği ölçülür: listede duran ama
+       hiç eşleşmeyen bir tür, kapsamı olduğundan geniş gösterirdi. */
+    const sayim: Record<string, number> = {};
+    for (const { kod } of KAYNAKLAR) {
+      for (const b of bagHedefleri(kod)) sayim[b.tur] = (sayim[b.tur] ?? 0) + 1;
+    }
+    const bos = HEDEF_TURLERI.filter((t) => !sayim[t]);
+    expect(bos, `beyan edilen ama hiç eşleşmeyen hedef türü: ${bos.join(', ')}`)
+      .toEqual([]);
+  });
+
+  it('İÇ BAĞLARIN HEPSİ gerçek bir rota desenine çözülür [SIS-BAG-001]', () => {
     const olu: string[] = [];
     let sayilan = 0;
     for (const { yer, kod } of KAYNAKLAR) {
-      for (const m of yorumsuz(kod).matchAll(/href="(\/[^"]*)"/g)) {
+      for (const b of bagHedefleri(kod)) {
         sayilan += 1;
-        if (!cozulur(m[1], ROTALAR)) olu.push(`${yer} → ${m[1]}`);
+        if (!rotaCozulur(b.yol, DESENLER)) olu.push(`${yer} → ${b.ham}  [${b.tur}]`);
       }
     }
     /* Sayım da yazılır: sıfır bağ tarayan bir diş, sıfır ölü bağ bulur. */
-    expect(sayilan, 'hiç sabit iç bağ bulunamadı — tarama kalıbı bozuk')
-      .toBeGreaterThan(20);
+    expect(sayilan, 'hiç iç bağ bulunamadı — tarama kalıbı bozuk')
+      .toBeGreaterThan(400);
     expect(olu, `OLMAYAN rotaya giden bağ:\n  ${olu.join('\n  ')}`).toEqual([]);
   });
+});
 
-  it('ÇÖZÜMLEYİCİ SAFTIR ve yanlış pozitif üretmez — sentetik vakalar [SIS-BAG-001]', () => {
-    /* Kuralın kendisi sentetik kütükle sınanır: ölçüm ortamı değil,
-       KARAR sabote edilebilsin. */
-    const k = new Set(['/envanter', '/tesisler', '/raporlar/karne']);
-    expect(cozulur('/envanter', k), 'düz rota çözülmedi').toBe(true);
-    expect(cozulur('/envanter?sec=abc', k), 'sorgulu rota çözülmedi').toBe(true);
-    expect(cozulur('/tesisler/cm123', k), 'dinamik segment çözülmedi').toBe(true);
-    expect(cozulur('/raporlar/karne', k), 'iki seviyeli rota çözülmedi').toBe(true);
-    expect(cozulur('/entegrasyonlar', k), 'OLMAYAN rota çözüldü — diş kör').toBe(false);
-    expect(cozulur('/varliklar/cm123', k), 'OLMAYAN kök çözüldü — diş kör').toBe(false);
+/* ═══ KURALIN KENDİSİ · SENTETİK VAKALAR ═════════════════════════════
+   Karar saf bir fonksiyondadır ve sentetik desenlerle sınanır — sabotaj
+   kuralı sabote eder, ölçüm ortamını değil. */
+
+describe('ÇÖZÜMLEYİCİ SAFTIR ve kaçamak DEĞİL [SIS-BAG-001]', () => {
+  const D = new Set(['/', '/envanter', '/tesisler', '/tesisler/[id]',
+    '/raporlar/karne', '/belge/[...yol]']);
+
+  it('DÜZ ve SORGULU rota çözülür [SIS-BAG-001]', () => {
+    expect(rotaCozulur('/envanter', D)).toBe(true);
+    expect(rotaCozulur('/envanter?sec=abc', D)).toBe(true);
+    expect(rotaCozulur('/envanter#bolum', D)).toBe(true);
+    expect(rotaCozulur('/', D)).toBe(true);
+  });
+
+  it('DİNAMİK segment TEK seviye yer [SIS-BAG-001]', () => {
+    expect(rotaCozulur('/tesisler/cm123', D)).toBe(true);
+    /* ── ESKİ KUSURUN VAKASI ──────────────────────────────────────────
+       İlk yazım "herhangi bir üst yol varsa çözülür" diyordu ve bu yol
+       ÇÖZÜLÜYORDU. Üç seviyelik uydurma bir yol artık KIRMIZI. */
+    expect(rotaCozulur('/tesisler/cm123/olmayan/derin', D),
+      'üst yola yaslanan gevşek eşleşme geri geldi').toBe(false);
+    expect(rotaCozulur('/tesisler/cm123/uydurma', D)).toBe(false);
+  });
+
+  it('YAKALAYICI desen kalan segmentleri yer [SIS-BAG-001]', () => {
+    expect(rotaCozulur('/belge/a/b/c', D)).toBe(true);
+    expect(rotaCozulur('/belge', D)).toBe(true);
+  });
+
+  it('OLMAYAN rota ÇÖZÜLMEZ [SIS-BAG-001]', () => {
+    expect(rotaCozulur('/entegrasyonlar', D)).toBe(false);
+    expect(rotaCozulur('/varliklar/cm123', D)).toBe(false);
+    expect(rotaCozulur('/isler', D)).toBe(false);
+    /* Boş küme HİÇBİR ŞEYİ çözmez — bekçi sessizce yeşile dönemez. */
+    expect(rotaCozulur('/envanter', new Set())).toBe(false);
+  });
+
+  it('ŞABLON İFADESİ bir segmenttir — şekil ölçülür [SIS-BAG-001]', () => {
+    const [b] = bagHedefleri('<Link href={`/tesisler/${t.id}`}>x</Link>');
+    expect(b.tur).toBe('href-ifade');
+    expect(rotaCozulur(b.yol, D), 'şablon bağ çözülmedi').toBe(true);
+    const [k] = bagHedefleri('<Link href={`/uydurma/${t.id}`}>x</Link>');
+    expect(rotaCozulur(k.yol, D), 'uydurma şablon bağ çözüldü').toBe(false);
+  });
+
+  it('YORUMDAKİ yol bir bağ DEĞİLDİR [SIS-BAG-001]', () => {
+    expect(bagHedefleri('/* eskiden href="/olmayan" idi */')).toEqual([]);
+    expect(bagHedefleri('// href="/olmayan"')).toEqual([]);
+  });
+
+  it('KÖK YOL normalleşir [SIS-BAG-001]', () => {
+    expect(kokYol('/x/?a=1#b')).toBe('/x');
+    expect(kokYol('/')).toBe('/');
+    expect(kokYol('///')).toBe('/');
   });
 });

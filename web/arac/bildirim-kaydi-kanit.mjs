@@ -50,20 +50,42 @@ const DB_YOL = process.env.DB_YOL || path.join(WEB, 'prisma', 'dev.db');
 function fiksturKur() {
   const db = new Database(DB_YOL);
   try {
-    const yuk = db.prepare(
-      "select id, kod from BildirimYukumlulugu where aktif = 1 and sureSaat is not null"
-      + ' order by kod limit 1').get();
-    if (!yuk) return { hata: 'aktif ve süreli bildirim yükümlülüğü yok (tohum eksik)' };
+    /* ── FİKSTÜR KENDİ YÜKÜMLÜLÜĞÜNÜ DE KURAR ────────────────────────
+       Üç kusur ölçüldü ve üçü de "kapı hiç koşulmadan yazıldı"
+       sınıfındandı:
 
-    /* Tekillik kısıtı (olayId + yukumlulukId): bu yükümlülük için kaydı
-       OLMAYAN bir olay seçilir. Yoksa kapı sessizce başka bir kaydı
-       ölçmeye kaymaz, sebebiyle kırmızı yanar. */
+       1. Sorgu `Olay.silindi` süzüyordu; O KOLON YOK ve sorgu çalışma
+          anında patlıyordu.
+       2. Düzeltilince kapı yine kırmızı kaldı: fikstür ekranın
+          GÖSTERMEDİĞİ bir olaya kuruluyordu (`/olaylar` kapsamla
+          daralıyor; koşumda 3 satır).
+       3. Ekranda görünen olaya kurmaya çalışınca da fikstür KURULAMADI:
+          tohumda görünen iki olayın SÜRELİ yükümlülüklerinin HEPSİ
+          zaten dolu. Yani kapı, tohumun elinde boş bir çift bırakmasına
+          bağımlıydı — POL-084 ile aynı sınıf: kendi kurmadığı bir duruma
+          yaslanan kapı, yanlış sebeple geçebilir ya da kalabilir.
+
+       Bugün fikstür KENDİ YÜKÜMLÜLÜĞÜNÜ de açar. Ekranda görünen bir
+       olaya (bildirim kaydı OLAN bir olay) kendi süreli yükümlülüğünü
+       bağlar ve koşum sonunda ikisini de siler. Tohumun hâli artık
+       kapının sonucunu belirlemiyor. */
     const olay = db.prepare(
-      'select o.id, o.kod from Olay o where o.silindi is null'
-      + ' and not exists (select 1 from BildirimKaydi b'
-      + '   where b.olayId = o.id and b.yukumlulukId = ?)'
-      + ' order by o.kod limit 1').get(yuk.id);
-    if (!olay) return { hata: `"${yuk.kod}" için kaydı olmayan olay kalmadı` };
+      'select o.id, o.kod from Olay o'
+      + ' where exists (select 1 from BildirimKaydi v where v.olayId = o.id)'
+      + ' order by o.kod limit 1').get();
+    if (!olay) return { hata: 'ekranda bildirim kaydı olan olay yok (tohum eksik)' };
+
+    const yukId = `kanit-fikstur-yuk-${randomUUID()}`;
+    const yukKod = `KANIT-FIKSTUR-${Date.now()}`;
+    db.prepare(
+      'insert into BildirimYukumlulugu (id, kod, ad, asgariSiddet, sureSaat,'
+      + ' dayanak, merci, aktif, olusturuldu, koken, tetikleyici, kanalNotu)'
+      + " values (?,?,?,?,?,?,?,1,?,'kiraci','olay',?)",
+    ).run(yukId, yukKod, 'Kanıt fikstürü · kapının kendi yükümlülüğü',
+      'dusuk', 36, 'Kurgusal dayanak · yalnız kapı koşumunda yaşar',
+      'Kurgusal Merci', new Date().toISOString(),
+      'Kanal notu: kurgusal — adres YOKTUR, ürün hiçbir mercie istek atmaz.');
+    const yuk = { id: yukId, kod: yukKod };
 
     const id = `kanit-fikstur-${randomUUID()}`;
     const simdi = new Date();
@@ -74,18 +96,25 @@ function fiksturKur() {
     ).run(id, olay.id, yuk.id, 'taslak', sonTarih.toISOString(),
       'KANIT-FIKSTUR · kapının kendi açtığı taslak; koşum sonunda silinir.',
       simdi.toISOString(), simdi.toISOString());
-    return { id, olayId: olay.id, olayKodu: olay.kod, yukumlulukKodu: yuk.kod };
+    return { id, yukumlulukId: yuk.id, olayId: olay.id, olayKodu: olay.kod, yukumlulukKodu: yuk.kod };
   } finally { db.close(); }
 }
 
 /* TEMİZLİK SON KOŞULUNU DOĞRULAR: "sildim" diyen bir adım, sildiğini
    ÖLÇMELİDİR. Başarısız olamayan bir adım, adım değildir. */
-function fiksturSil(id) {
+function fiksturSil(id, yukumlulukId) {
   const db = new Database(DB_YOL);
   try {
     db.prepare('delete from BildirimKaydi where id = ?').run(id);
-    const kalan = db.prepare('select count(*) c from BildirimKaydi where id = ?').get(id).c;
-    return kalan === 0 ? { ok: true } : { ok: false, hata: `${kalan} satır kaldı` };
+    if (yukumlulukId) {
+      db.prepare('delete from BildirimYukumlulugu where id = ?').run(yukumlulukId);
+    }
+    const kalanKayit = db.prepare(
+      'select count(*) c from BildirimKaydi where id = ?').get(id).c;
+    const kalanYuk = yukumlulukId ? db.prepare(
+      'select count(*) c from BildirimYukumlulugu where id = ?').get(yukumlulukId).c : 0;
+    if (kalanKayit === 0 && kalanYuk === 0) return { ok: true };
+    return { ok: false, hata: `kayıt ${kalanKayit} · yükümlülük ${kalanYuk} satır kaldı` };
   } finally { db.close(); }
 }
 
@@ -270,7 +299,7 @@ try {
   }
 } finally {
   await browser.close();
-  const t = fiksturSil(fikstur.id);
+  const t = fiksturSil(fikstur.id, fikstur.yukumlulukId);
   if (!t.ok) {
     console.error(`\nFİKSTÜR TEMİZLENEMEDİ: ${t.hata}`);
     console.error('  "Sildim" diyen bir adım, sildiğini ÖLÇMELİDİR;');

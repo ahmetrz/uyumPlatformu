@@ -313,7 +313,10 @@ export default function Tesis360({ veri, tesisler, sozluk }: {
         <div className="birimler">
           <p className="etiket">{tBas(sozluk, 'birim', 'cogul')}</p>
           {veri.birimler.length === 0 ? (
-            <p className="bos">Kayıtlı {t(sozluk, 'birim')} yok.</p>
+            <p className="bos">
+              Kayıtlı {t(sozluk, 'birim')} yok — bu {t(sozluk, 'tesis')} için
+              hiç {t(sozluk, 'birim')} tanımlanmamış.
+            </p>
           ) : veri.birimler.map((u) => (
             <div key={u.id} className="birim">
               <span className="kod">{u.kod}</span>
@@ -343,7 +346,11 @@ export default function Tesis360({ veri, tesisler, sozluk }: {
             </span>
           </header>
           {veri.acikBulgular.length === 0 ? (
-            <p className="bos">Açık bulgu yok.</p>
+            /* BEKLENEN YOKLUK — eylem istemez. */
+            <p className="bos iyi">
+              Açık bulgu yok; bu {t(sozluk, 'tesis')} için kapatılmamış denetim
+              bulgusu bulunmuyor.
+            </p>
           ) : veri.acikBulgular.map((b) => (
             <Link key={b.id} href={`/bulgular/${b.id}`} className="satir">
               <span className={`mono onem ${ONEM_SINIF[b.onem] ?? 'pl'}`}>

@@ -118,7 +118,7 @@ export default function EgitimlerIstemci({
 
       {tablo.length === 0
         ? (
-          <BosIlk cumle="Tanımlı eğitim yok."
+          <BosIlk cumle="Tanımlı eğitim yok. Eğitim tanımlanmadan katılım ve tazelik izlenemez; farkındalık kontrolleri kanıtsız kalır."
             eylem={yazabilir
               ? <Dugme tur="birincil" onClick={() => setForm('egitim')}>Eğitim tanımla</Dugme>
               : undefined} />

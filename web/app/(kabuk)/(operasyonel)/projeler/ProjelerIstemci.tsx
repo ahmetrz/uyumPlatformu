@@ -200,7 +200,7 @@ export default function ProjelerIstemci({
           <EkranBasligi eyebrow={`Dönüşüm ${terim('portfoy')}`}
             baslik={`${tBas('portfoy')} boş`} />
           <div className="ab-ekran-govde" style={{ paddingTop: 'var(--s26)' }}>
-            <BosIlk cumle="Kayıtlı proje yok."
+            <BosIlk cumle="Kayıtlı proje yok. Proje, bulgu ve aksiyonların bütçeye ve takvime bağlandığı yerdir; proje olmadan iş kalemleri sahipsiz kalır."
               eylem={yazabilir
                 ? <Dugme tur="birincil" onClick={() => setYeniAcik(true)}>Proje oluştur</Dugme>
                 : undefined} />

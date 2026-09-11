@@ -183,7 +183,7 @@ export default function SaklamaIstemci({
       <Bolum baslik="Hukuki muhafaza">
         {holdSatirlari.length === 0
           ? (
-            <BosIlk cumle="Tanımlı hukuki muhafaza yok."
+            <BosIlk cumle="Tanımlı hukuki muhafaza yok. Muhafaza, saklama süresi dolan kaydın imhasını DURDURAN tek şeydir; tanımlanmadan imha kararları süreye göre işler."
               eylem={yonetebilir
                 ? <Dugme tur="birincil" onClick={() => setForm('hold')}>Muhafaza aç</Dugme>
                 : undefined} />
@@ -197,7 +197,7 @@ export default function SaklamaIstemci({
       <Bolum baslik="İmha kararları">
         {kararSatirlari.length === 0
           ? (
-            <BosIlk cumle="Hiç imha kararı açılmadı."
+            <BosIlk cumle="Hiç imha kararı açılmadı. İmha bir insan kararıdır ve ürün onu kendiliğinden vermez; süresi dolan kayıt karar açılana kadar durur."
               eylem={yonetebilir
                 ? <Dugme tur="birincil" onClick={() => setForm('imha')}>İmha kararı aç</Dugme>
                 : undefined} />

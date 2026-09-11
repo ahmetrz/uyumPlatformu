@@ -315,7 +315,7 @@ export default function DenetimlerIstemci({
             }} />
           ) : (
             <BosIlk
-              cumle="Denetim programında kayıt yok."
+              cumle="Denetim programında kayıt yok. Program, kanıt taleplerinin ve bulguların bağlandığı çerçevedir; denetim açılmadan ikisi de kayda geçmez."
               eylem={yazabilir
                 ? <Dugme tur="birincil" onClick={() => setYeniAcik(true)}>Denetim planla</Dugme>
                 : undefined}

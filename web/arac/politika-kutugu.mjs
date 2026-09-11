@@ -164,6 +164,75 @@ export function kutuguOku() {
   return JSON.parse(readFileSync(KUTUK, 'utf8'));
 }
 
+/* ── ALTINCI DİŞ · YENİ CÜMLENİN VARSAYILANI ÖLÇÜLÜDÜR ────────────────
+   R-F EKİ. Cırcırın ilk beş dişi TOPLAMA bakar: liste yalnız küçülür,
+   tavan ölçülene eşittir, yükselme gerekçe ister. Hepsi doğruydu ve yine
+   de bir delik bıraktı — ÖLÇÜLDÜ:
+
+     eski ölçülmeyen 65 · iki eski cümle ölçüldü · bir YENİ cümle
+     ölçülmeden eklendi → 64. Cırcırın beş dişi de yeşil. Liste küçüldü,
+     ama depoya ölçülmemiş YENİ bir iddia girdi.
+
+   Toplam düşerken içeri sızan cümle, cırcırın göremediği şeydir: cırcır
+   BORCU ölçer, borcun BİLEŞİMİNİ değil. Bu yüzden yeni satır ayrı
+   yargılanır ve varsayılanı ÖLÇÜLÜ olmaktır.
+
+   Gerekçeli istisna mümkündür — ama iki koşulla: gerekçe KUSURU anlatır
+   (maliyeti değil) ve HANGİ AŞAMADA kapanacağını yazar. Aşamasız gerekçe
+   kabul edilmez; "süresiz beyan yoktur" kuralının bu kütükteki
+   karşılığıdır.
+
+   S1'de istisna HİÇ yoktur. İhlali veri sızdıran bir cümle, gerekçesi ne
+   olursa olsun ölçülmeden depoya giremez — R-C bekçisiyle aynı sertlik.
+
+   Fonksiyon SAF tutuldu: taban kütüğü dışarıdan verilir. Böylece kural
+   git durumundan bağımsız, sentetik kütüklerle sınanabilir — ve sabotaj
+   gerçekten kuralı sabote eder, ölçüm ortamını değil. */
+
+/** Ölçülmeme gerekçesinin asgari uzunluğu. Kısa gerekçe kusuru anlatmaz;
+    "vakit yoktu" bir gerekçe değildir. */
+export const GEREKCE_ASGARI = 40;
+
+/**
+ * Taban dalda OLMAYAN (yani YENİ) politika satırlarının kusurlarını
+ * döndürür. Eski satırlar bu dişin konusu değildir — onları cırcırın
+ * öbür dişleri tutar.
+ *
+ * @param {Array} satirlar bugünkü kütüğün satırları
+ * @param {Set<string>} tabanCumleleri taban daldaki cümleler
+ * @returns {string[]} kusur açıklamaları; boş dizi = temiz
+ */
+export function yeniSatirKusurlari(satirlar, tabanCumleleri) {
+  const kusur = [];
+  for (const s of satirlar) {
+    if (s.sinif !== 'POLITIKA') continue;
+    if (tabanCumleleri.has(s.cumle)) continue; /* ESKİ satır: cırcırın işi */
+    if (s.olcum) continue; /* VARSAYILAN yerine gelmiş */
+
+    /* Sınıf kütükten DEĞİL cümleden türetilir: elle verilmiş bir sınıf
+       bu dişi S1'den kaçırmak için kullanılabilirdi. */
+    if (sonucSinifi(s.cumle) === 'S1') {
+      kusur.push(`${s.kod}: YENİ S1 cümlesi ÖLÇÜLMEDEN giremez — `
+        + 'S1\'de gerekçeli istisna kabul edilmez');
+      continue;
+    }
+    const b = s.olculmedi;
+    if (!b) {
+      kusur.push(`${s.kod}: YENİ cümle ne ÖLÇÜM ne GEREKÇE taşıyor — `
+        + 'yeni bir politika cümlesinin varsayılanı ölçülü olmaktır');
+      continue;
+    }
+    if (!(b.kapanisAsamasi ?? '').trim()) {
+      kusur.push(`${s.kod}: AŞAMASIZ GEREKÇE — hangi aşamada kapanacağı yazılmamış`);
+    }
+    if ((b.gerekce ?? '').trim().length < GEREKCE_ASGARI) {
+      kusur.push(`${s.kod}: YENİ cümlenin ölçülmeme GEREKÇESİ yok ya da `
+        + `kusuru anlatmıyor (asgari ${GEREKCE_ASGARI} karakter)`);
+    }
+  }
+  return kusur;
+}
+
 /* Doğrudan koşulduğunda: türet ve raporla. */
 if (import.meta.url === `file://${process.argv[1]}`) {
   const bulunan = turet();

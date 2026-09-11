@@ -153,7 +153,7 @@ export default function EslestirmeIstemci({
         <EkranBasligi eyebrow="Çapraz eşleme" baslik="Çerçeve tanımlı değil" />
         <section className="ab-ekran-govde" style={{ paddingTop: 'var(--s26)' }}>
           <BosIlk
-            cumle="Eşleme için en az iki aktif regülasyon gerekir."
+            cumle="Eşleme için en az iki aktif regülasyon gerekir. Eşleme iki çerçevenin maddelerini karşılaştırır; tek çerçeveyle karşılaştıracak bir taraf yoktur."
             eylem={<Link className="ab-dugme birincil" href="/regulasyonlar">Regülasyon kütüphanesi</Link>}
           />
         </section>

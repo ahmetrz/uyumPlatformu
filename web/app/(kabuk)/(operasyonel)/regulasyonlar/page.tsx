@@ -48,7 +48,18 @@ export default async function Sayfa() {
         },
         surumler: {
           orderBy: { olusturuldu: 'desc' },
-          include: { farklar: true, _count: { select: { maddeler: true } } },
+          include: {
+            farklar: true,
+            /* SİLİNMİŞ MADDE SAYILMAZ. `_count` süzgeçsizken yumuşak
+               silinmişleri de sayıyordu; madde LİSTESİ ise `silindi:
+               null`dan geçiyordu — iki sayı ayrışıyordu. Bu bir
+               bilgilendirme sayısıyken zararsızdı; bugün ekranın BOŞLUK
+               CÜMLESİNİ ve önerdiği eylemi bu sayı belirliyor (bağımsız
+               inceleme, PR #51 tur 1). Maddeleri yumuşak silinmiş bir
+               taslak "578 madde bekliyor" der ve kullanıcıyı içi boş bir
+               sürümün aktifleştirme kararına yollardı. */
+            _count: { select: { maddeler: { where: { silindi: null } } } },
+          },
         },
         /* UY-41 · Resmî kaynak kütüğü. Adres kurumdan gelir; ürün hiçbir
            adresle GELMEZ ve buraya hiçbir varsayılan yazılmaz. */

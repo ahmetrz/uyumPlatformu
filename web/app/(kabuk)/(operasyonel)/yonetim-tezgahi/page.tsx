@@ -131,7 +131,12 @@ export default async function Sayfa({ searchParams }: { searchParams: Promise<{ 
       /* Kullanım sayısı KAPSAM ÖĞESİNDEN (B1): süreç kapsamı öğeye bağlıdır. */
       kapsamOgesi: { select: { _count: { select: { surecKapsamlari: true } } } } },
       orderBy: { kod: 'asc' } }),
-    db.regulasyon.findMany({ include: { _count: { select: { maddeler: true, surecler: true } } },
+    /* SİLİNMİŞ MADDE SAYILMAZ. Bu sayı bir KARAR sürüyor ("madde içe
+       aktarılmadı" eksiği) — maddelerinin tamamı yumuşak silinmiş aktif
+       bir regülasyon, süzgeçsiz `_count` ile "578 kullanım" gösterir ve
+       eksiği GİZLERDİ (bağımsız inceleme, PR #51 tur 2). */
+    db.regulasyon.findMany({
+      include: { _count: { select: { maddeler: { where: { silindi: null } }, surecler: true } } },
       orderBy: { kod: 'asc' } }),
     db.kapsamAlani.findMany({ include: { _count: { select: { maddeAlanlari: true } } },
       orderBy: { kod: 'asc' } }),

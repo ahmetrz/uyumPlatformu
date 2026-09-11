@@ -215,7 +215,7 @@ export default function DenetimDetayIstemci({ veri }: { veri: DetayVerisi }) {
             {kip === 'talep' ? (
               veri.talepler.length === 0 ? (
                 <BosIlk
-                  cumle="Bu denetim için kanıt talebi açılmadı."
+                  cumle="Bu denetim için kanıt talebi açılmadı. Talep açılmadan denetçinin ne istediği kayda geçmez ve gelen dosya bu denetime bağlanamaz."
                   eylem={veri.yazabilir && !kapandiMi(d)
                     ? <Dugme tur="birincil" onClick={() => {
                       setPanel(true); setPanelKipi('kayit'); setTalepFormu(true);
@@ -241,7 +241,7 @@ export default function DenetimDetayIstemci({ veri }: { veri: DetayVerisi }) {
                 />
               )
             ) : veri.bulgular.length === 0 ? (
-              <BosIlk iyiHaber cumle="Bu denetime bağlı bulgu yok." />
+              <BosIlk iyiHaber cumle="Bu denetime bağlı bulgu yok. Bu, “uygunsuzluk yok” demek DEĞİLDİR: denetim yürütülürken açılan bulgular burada listelenir." />
             ) : (
               <Tablo
                 sik

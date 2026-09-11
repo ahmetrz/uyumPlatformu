@@ -2,7 +2,11 @@ import { describe, expect, it } from 'vitest';
 import { execFileSync } from 'node:child_process';
 import { existsSync, readFileSync } from 'node:fs';
 import path from 'node:path';
-import { politikaMi, sonucSinifi, turet, yorumsuz } from '../../arac/politika-kutugu.mjs';
+import {
+  GEREKCE_ASGARI, politikaMi, sonucSinifi, turet, yeniSatirKusurlari, yorumsuz,
+} from '../../arac/politika-kutugu.mjs';
+import { tabanKarari, tabanOku } from '../../arac/olcum-tabani.mjs';
+import { tabanDalKarari } from '../../arac/taban-dal.mjs';
 
 /* ═══════════════════════════════════════════════════════════════════════
    R-F · EKRANIN POLİTİKA CÜMLESİ ÖLÇÜLÜR · BEKÇİ [URN-POL-001]
@@ -41,7 +45,14 @@ const kutuk = JSON.parse(readFileSync(KUTUK, 'utf8')) as {
     kod: string; cumle: string; yer: string; sinif: string; gerekce?: string;
     sonucSinifi?: string;
     olcum?: { dosya: string; vaka: string };
-    olculmedi?: { sahip: string; kapanisAsamasi: string };
+    /* `gerekce` şemanın PARÇASIDIR ve öyle beyan edilir. Bağımsız
+       inceleme (PR #51, tur 1) ölçtü: altıncı diş bu alanı istiyordu,
+       kütüğün 39 `olculmedi` satırının HİÇBİRİNDE yoktu ve gerekçe
+       metni `kapanisAsamasi` içine sıkışmıştı — üstelik oraya yazılan
+       şey bir AŞAMA değil bir HIZDI ("her partide en az beş satır").
+       İlk gerçek istisnayı yazan kişi, deponun mevcut şeklini izleyip
+       beklenmedik bir kırmızıya çarpardı. */
+    olculmedi?: { sahip: string; kapanisAsamasi: string; gerekce?: string };
   }[];
 };
 
@@ -51,7 +62,12 @@ describe('politika cümlesi KÜTÜKTE [URN-POL-001]', () => {
   it('TÜRETME boş değil — kalıp bozulursa bekçi her şeyi geçirirdi [URN-POL-001]', () => {
     /* Sıfır ölçümle "kusur yok" demek hiçbir şeye bakmadan temiz
        raporlamaktır; sayı kapısı bu depoda tam bu şekilde kandırıldı. */
-    expect(bulunan.length).toBeGreaterThanOrEqual(50);
+    /* Taban testin İÇİNE sabit yazılmaz: ölçülen 126 iken 50'lik bir
+       sabit, arada 76 satırlık sessiz bir daralma penceresi bırakır.
+       Taban `olcum-tabani.json`dan okunur ve yalnız `--taban-yaz
+       --sebep=` ile iner (PR #51, tur 1 bulgusu). */
+    const hata = tabanKarari('politika.cumle', bulunan.length, tabanOku().tabanlar);
+    expect(hata, hata ?? '').toBeNull();
   });
 
   it('KODDAKİ her cümle kütükte VAR [URN-POL-001]', () => {
@@ -189,27 +205,59 @@ describe('SONUÇ SINIFI ve CIRCIR [URN-POL-001]', () => {
        altında `eski → yeni` olarak anlatılır. Commit mesajı yetmez:
        commit mesajı dosyayı okuyanın önünde durmaz.
 
+       ── DİŞİN KENDİ KUSURU · ÖLÇÜLDÜ (10 Eylül 2026) ─────────────────
+       İlk yazımda diş, son gerekçenin `yeni` değerinin BUGÜNKÜ tavana
+       EŞİT olmasını istiyordu. Bu, yükselmeyi değil DEĞİŞMEYİ ölçüyordu:
+       S2 tavanı 26'dan SIFIRA indirildiğinde — yani cırcır tam da
+       istenen yönde sıkıldığında — diş kırmızı yandı ve iyileştirmeyi
+       bloke etti. Bir gevşeklik dişinin sıkılaşmayı cezalandırması,
+       dişin kendi kusurudur.
+
+       Bugün yükselmenin olup olmadığı DOSYANIN İÇİNDEN değil TABAN
+       DALDAN okunur: `origin/main`deki tavan ile bugünkü tavan
+       karşılaştırılır. Düşüş ve eşitlik gerekçe istemez; YÜKSELİŞ,
+       tam o yükselişi (`eski` → `yeni`) adıyla anlatan bir gerekçe
+       ister. Böylece "0'dan 5'e çık, eski bir 24→26 kaydına yaslan"
+       kaçamağı da kapanır.
+
        Gerekçe KUSURU anlatır, maliyeti değil: "bu turda yazmaya vaktimiz
        olmadı" bir gerekçe değildir; "ölçüm alanı şu sebeple genişledi"
        gerekçedir. */
+    const git = (a: string[]) => execFileSync('git', a,
+      { cwd: process.cwd(), encoding: 'utf8', stdio: ['ignore', 'pipe', 'ignore'] });
+    let tabanDalVar = true;
+    try { git(['rev-parse', '--verify', 'origin/main']); } catch { tabanDalVar = false; }
+    if (!tabanDalVar) {
+      expect(process.env.CI ?? '',
+        "CI'da taban dal okunamadı — cırcırın beşinci dişi ölçülemedi").toBe('');
+      return;
+    }
+    let taban: typeof kutuk | null = null;
+    try {
+      taban = JSON.parse(git(['show', 'origin/main:web/arac/politika-cumleleri.json']));
+    } catch { taban = null; }
+    if (taban === null) return; /* kütüğü GETİREN dal */
+
+    const oku = (k: typeof kutuk): Record<string, number> => ({
+      olculmeyen: k.tavanlar.olculmeyen,
+      'sinif.S1': k.tavanlar.sinif.S1,
+      'sinif.S2': k.tavanlar.sinif.S2,
+      'sinif.S3': k.tavanlar.sinif.S3,
+    });
+    const bugunku = oku(kutuk);
+    const tabanki = oku(taban);
     const gecmis = kutuk.tavanGerekceleri ?? [];
-    const bugunku: Record<string, number> = {
-      olculmeyen: kutuk.tavanlar.olculmeyen,
-      'sinif.S1': kutuk.tavanlar.sinif.S1,
-      'sinif.S2': kutuk.tavanlar.sinif.S2,
-      'sinif.S3': kutuk.tavanlar.sinif.S3,
-    };
     const kusur: string[] = [];
     for (const [alan, deger] of Object.entries(bugunku)) {
-      const kayitlar = gecmis.filter((g) => g.alan === alan);
-      if (kayitlar.length === 0) continue; /* hiç yükselmemiş */
-      const son = kayitlar[kayitlar.length - 1];
-      if (son.yeni !== deger) {
-        kusur.push(`${alan}: tavan ${deger} ama son gerekçe ${son.eski} → ${son.yeni}`
-          + ' diyor — yükselme gerekçesiz kalmış');
+      const eski = tabanki[alan];
+      if (deger <= eski) continue; /* düşüş ya da eşitlik: gerekçe istemez */
+      const kayit = gecmis.find((g) => g.alan === alan && g.eski === eski && g.yeni === deger);
+      if (!kayit) {
+        kusur.push(`${alan}: tavan ${eski} → ${deger} YÜKSELDİ ama dosyada `
+          + 'tam bu yükselmeyi anlatan bir gerekçe yok');
+        continue;
       }
-      if (son.yeni <= son.eski) kusur.push(`${alan}: gerekçe bir YÜKSELME anlatmıyor`);
-      if ((son.gerekce ?? '').trim().length < 40) {
+      if ((kayit.gerekce ?? '').trim().length < 40) {
         kusur.push(`${alan}: gerekçe çok kısa — kusuru anlatmıyor`);
       }
     }
@@ -256,6 +304,217 @@ describe('SONUÇ SINIFI ve CIRCIR [URN-POL-001]', () => {
       .filter((s) => s.olculmedi && s.sonucSinifi === 'S1').length;
     const bugunS1 = politikalar.filter((s) => s.olculmedi && s.sonucSinifi === 'S1').length;
     expect(bugunS1, `ölçülmeyen S1 ${tabanS1} → ${bugunS1}`).toBeLessThanOrEqual(tabanS1);
+  });
+});
+
+describe('ALTINCI DİŞ · YENİ CÜMLENİN VARSAYILANI ÖLÇÜLÜ [URN-POL-001]', () => {
+  /* ── NEDEN AYRI DİŞ ─────────────────────────────────────────────────
+     Cırcırın ilk beş dişi TOPLAMA bakar. Beşi de yeşilken şu geçebilir
+     (ölçüldü, sentetik): iki eski cümle ölçülür, bir YENİ cümle
+     ölçülmeden eklenir — toplam 65'ten 64'e iner, liste "küçüldü",
+     ve depoya ölçülmemiş yeni bir iddia girer.
+
+     Cırcır BORCU ölçer, borcun BİLEŞİMİNİ değil. Yeni satır bu yüzden
+     ayrı yargılanır.
+
+     Vakalar SAF fonksiyona koşulur (`yeniSatirKusurlari`): git durumuna
+     bağlı olmadıkları için hem CI'da hem yerelde aynı şeyi ölçerler ve
+     sabotaj kuralı sabote eder, ölçüm ortamını değil. */
+
+  const TABAN = new Set(['Bu ekran eski bir cümledir ve tabanda vardır.']);
+  const satir = (ek: Record<string, unknown>) => ({
+    kod: 'POL-TEST', sinif: 'POLITIKA',
+    cumle: 'Bu ekran kaydı silmez; arşivler ve iz bırakır', ...ek,
+  });
+  /* 40 karakteri geçen, KUSURU anlatan bir gerekçe. */
+  const GEREKCE = 'Vakayı süren yol henüz yok: ekran bu iddiayı taşıyor ama '
+    + 'onu uygulayan katman P2 ile geliyor.';
+
+  it('YENİ + ÖLÇÜLÜ satır temizdir — varsayılan budur [URN-POL-001]', () => {
+    const k = yeniSatirKusurlari(
+      [satir({ olcum: { dosya: 'tests/x.test.ts', vaka: 'y' } })], TABAN);
+    expect(k).toEqual([]);
+  });
+
+  it('YENİ + ÖLÇÜMSÜZ + GEREKÇESİZ satır KIRMIZI [URN-POL-001]', () => {
+    const k = yeniSatirKusurlari([satir({})], TABAN);
+    expect(k.length, k.join('\n')).toBe(1);
+    expect(k[0]).toMatch(/ne ÖLÇÜM ne GEREKÇE/);
+  });
+
+  it('AŞAMASIZ GEREKÇE kabul edilmez [URN-POL-001]', () => {
+    /* "Süresiz beyan yoktur" kuralının bu kütükteki karşılığı: gerekçe
+       tek başına yetmez, kapanış aşamasını da yazmalıdır. */
+    const k = yeniSatirKusurlari(
+      [satir({ olculmedi: { sahip: 'KODLAYAN', gerekce: GEREKCE } })], TABAN);
+    expect(k.length, k.join('\n')).toBe(1);
+    expect(k[0]).toMatch(/AŞAMASIZ GEREKÇE/);
+  });
+
+  it('GEREKÇE + AŞAMA birlikte olunca istisna GEÇERLİDİR [URN-POL-001]', () => {
+    /* Diş bir yasak değil, bir BEDEL koyar: istisna mümkündür ama
+       yazılıdır ve kapanışı bellidir. */
+    const k = yeniSatirKusurlari([satir({
+      olculmedi: { sahip: 'KODLAYAN', kapanisAsamasi: 'P2', gerekce: GEREKCE },
+    })], TABAN);
+    expect(k).toEqual([]);
+  });
+
+  it('KISA GEREKÇE kusuru anlatmaz — KIRMIZI [URN-POL-001]', () => {
+    /* "Vakit yoktu" bir gerekçe değildir; maliyeti anlatan cümle de
+       değildir (CLAUDE.md: gerekçe kusuru anlatır, maliyeti değil). */
+    const k = yeniSatirKusurlari([satir({
+      olculmedi: { sahip: 'KODLAYAN', kapanisAsamasi: 'P2', gerekce: 'vakit yoktu' },
+    })], TABAN);
+    expect(k.length, k.join('\n')).toBe(1);
+    expect(k[0]).toMatch(/GEREKÇESİ yok ya da/);
+    expect('vakit yoktu'.length).toBeLessThan(GEREKCE_ASGARI);
+  });
+
+  it('S1 · YENİ cümlede GEREKÇE HİÇ KABUL EDİLMEZ [URN-POL-001]', () => {
+    /* İhlali veri sızdıran bir cümle, gerekçesi ne olursa olsun
+       ölçülmeden depoya giremez — R-C bekçisiyle aynı sertlik. */
+    const cumle = 'Bu ekran yetkisiz kullanıcıya kapsam dışı kaydı göstermez';
+    expect(sonucSinifi(cumle), 'vaka gerçekten S1 sürmeli').toBe('S1');
+    const k = yeniSatirKusurlari([satir({
+      cumle, olculmedi: { sahip: 'KODLAYAN', kapanisAsamasi: 'P2', gerekce: GEREKCE },
+    })], TABAN);
+    expect(k.length, k.join('\n')).toBe(1);
+    expect(k[0]).toMatch(/S1.*ÖLÇÜLMEDEN giremez/);
+  });
+
+  it('SINIF KÜTÜKTEN DEĞİL CÜMLEDEN türetilir — S3 etiketiyle kaçılamaz [URN-POL-001]', () => {
+    /* Sınıf kütükten okunsaydı, yeni bir S1 cümlesine elle "S3" yazıp
+       dişin en sıkı dalından kaçmak mümkün olurdu. */
+    const k = yeniSatirKusurlari([satir({
+      cumle: 'Bu ekran yetkisiz kullanıcıya kapsam dışı kaydı göstermez',
+      sonucSinifi: 'S3',
+      olculmedi: { sahip: 'KODLAYAN', kapanisAsamasi: 'P2', gerekce: GEREKCE },
+    })], TABAN);
+    expect(k.length, k.join('\n')).toBe(1);
+    expect(k[0]).toMatch(/S1/);
+  });
+
+  it('ESKİ satır bu dişin konusu DEĞİL — cırcırın öbür dişleri tutar [URN-POL-001]', () => {
+    const k = yeniSatirKusurlari(
+      [{ kod: 'POL-ESKI', sinif: 'POLITIKA', cumle: [...TABAN][0] }], TABAN);
+    expect(k).toEqual([]);
+  });
+
+  it('IDDIA_DEGIL satırı politika değildir — diş ona bakmaz [URN-POL-001]', () => {
+    const k = yeniSatirKusurlari(
+      [satir({ sinif: 'IDDIA_DEGIL', gerekce: 'bir durum etiketi' })], TABAN);
+    expect(k).toEqual([]);
+  });
+
+  it('TOPLAM DÜŞERKEN SIZAN CÜMLE yakalanır — dişin var oluş sebebi [URN-POL-001]', () => {
+    /* Cırcırın körlüğünün kendisi: liste küçülürken içeri ölçülmemiş
+       yeni bir iddia girer. Beş diş de yeşil kalır, altıncı yanar. */
+    const eskiler = ['a', 'b', 'c'].map((c) => `Bu ekran ${c} kaydını silmez`);
+    const taban = new Set(eskiler);
+    /* İki eskisi ölçüldü, biri hâlâ ölçümsüz, YENİ bir ölçümsüz eklendi:
+       ölçülmeyen 3 → 2, yani liste KÜÇÜLDÜ. */
+    const bugun = [
+      { kod: 'P1', sinif: 'POLITIKA', cumle: eskiler[0], olcum: { dosya: 'x', vaka: 'y' } },
+      { kod: 'P2', sinif: 'POLITIKA', cumle: eskiler[1], olcum: { dosya: 'x', vaka: 'y' } },
+      { kod: 'P3', sinif: 'POLITIKA', cumle: eskiler[2], olculmedi: { sahip: 'K', kapanisAsamasi: 'P2' } },
+      { kod: 'P4', sinif: 'POLITIKA', cumle: 'Bu ekran yeni kaydı silmez', olculmedi: { sahip: 'K', kapanisAsamasi: 'P2' } },
+    ];
+    const oncekiOlculmeyen = taban.size;
+    const bugunkuOlculmeyen = bugun.filter((s) => !s.olcum).length;
+    expect(bugunkuOlculmeyen, 'kurgu gerçekten KÜÇÜLME göstermeli')
+      .toBeLessThan(oncekiOlculmeyen);
+    const k = yeniSatirKusurlari(bugun, taban);
+    expect(k.length, `liste küçülürken sızan cümle görülmedi:\n${k.join('\n')}`).toBe(1);
+    expect(k[0]).toMatch(/^P4:/);
+  });
+
+  it('GERÇEK KÜTÜK: taban dala göre yeni satırların hepsi kuralı geçer [URN-POL-001]', () => {
+    /* Saf vakalar kuralı ölçer; bu vaka DEPOYU ölçer. Üç hâl dördüncü
+       dişteki gibi ayrı okunur. */
+    const git = (a: string[]) => execFileSync('git', a,
+      { cwd: process.cwd(), encoding: 'utf8', stdio: ['ignore', 'pipe', 'ignore'] });
+    let tabanDalVar = true;
+    try { git(['rev-parse', '--verify', 'origin/main']); } catch { tabanDalVar = false; }
+    if (!tabanDalVar) {
+      expect(process.env.CI ?? '',
+        "CI'da taban dal okunamadı — altıncı diş ölçülemedi").toBe('');
+      return;
+    }
+    const YOL = 'origin/main:web/arac/politika-cumleleri.json';
+    let tabandaVar = true;
+    try { git(['cat-file', '-e', YOL]); } catch { tabandaVar = false; }
+    let ham: string | null = null;
+    if (tabandaVar) { try { ham = git(['show', YOL]); } catch { ham = null; } }
+    /* ÜÇ HÂL TEK KARARDA (`arac/taban-dal.mjs`); sentetik vakaları
+       `tests/bekci/bos-durum.test.ts` içinde. */
+    const karar = tabanDalKarari(tabandaVar, ham);
+    if (karar.hal === 'taban_yok') return;
+    if (karar.hal === 'olculemedi') {
+      expect(process.env.CI ?? '',
+        `TABAN DAL ÖLÇÜLEMEDİ (${karar.sebep}) — altıncı diş koşmadı`).toBe('');
+      return;
+    }
+    const taban = karar.belge as { satirlar?: { cumle: string }[] };
+    const tabanCumleleri = new Set((taban.satirlar ?? []).map((s) => s.cumle));
+    /* KAÇ SATIR YARGILANDI. Bağımsız inceleme (PR #51, tur 1) ölçtü: bu
+       dalın altı yeni satırının altısı da `olcum` taşıdığı için kural
+       BOŞ KÜME üzerinde koştu ve vaka yine yeşil yandı — "temiz" ile
+       "hiç bakılmadı" ayırt edilemiyordu. Sayı yazılınca ayrılır. */
+    const yeniler = kutuk.satirlar.filter(
+      (s) => s.sinif === 'POLITIKA' && !tabanCumleleri.has(s.cumle));
+    console.log(`altıncı diş · yargılanan YENİ politika satırı: ${yeniler.length}`);
+    const kusur = yeniSatirKusurlari(kutuk.satirlar, tabanCumleleri);
+    expect(kusur, `YENİ politika cümlesi ölçüsüz girmiş:\n${kusur.join('\n')}`)
+      .toEqual([]);
+    /* ── SAYI YAZILIR, ŞART KOŞULMAZ ───────────────────────────────────
+       İlk yazım `yeniler.length > 0` istiyordu ve bu bir kapı değil bir
+       MAYINDI (bağımsız inceleme, PR #51 tur 2): "hiç yeni politika
+       cümlesi yok" sağlıklı ve beklenen hâldir. Bu PR merge edilir
+       edilmez, ekran metnine dokunmayan HER dal kırmızı yanacaktı —
+       kusur yok, dal temiz, kapı yanlış. Kapının ilk susturulacağı yer
+       tam olarak burasıdır.
+
+       Ölçülmek istenen şey "her dal yeni cümle getirir" değil, "KÜTÜK
+       DEĞİŞTİYSE diş boş küme üzerinde koşmadı"dır. Koşul da ona
+       bağlandı. */
+    let kutukDegisti = true;
+    try { git(['diff', '--quiet', 'origin/main', '--', 'web/arac/politika-cumleleri.json']); kutukDegisti = false; }
+    catch { kutukDegisti = true; }
+    if (kutukDegisti) {
+      expect(yeniler.length, 'kütük bu dalda DEĞİŞTİ ama taban dala göre yeni '
+        + 'POLITIKA satırı yok — altıncı diş boş küme üzerinde koştu')
+        .toBeGreaterThan(0);
+    }
+  });
+
+  it('KÜTÜKTEKİ her `olculmedi` satırı ŞEMAYA uyar — üç alan da dolu [URN-POL-001]', () => {
+    /* Diş yalnız YENİ satırları yargılar; eski satırlar bu şemayı
+       taşımasaydı kütük ile kural sessizce ayrışırdı ve ayrışma ancak
+       ilk istisnayı yazan kişinin önünde patlardı. */
+    const kusur: string[] = [];
+    const politikalar = kutuk.satirlar.filter((x) => x.sinif === 'POLITIKA');
+    for (const s of politikalar) {
+      const b = s.olculmedi;
+      if (!b) continue;
+      if (!(b.sahip ?? '').trim()) kusur.push(`${s.kod}: SAHİPSİZ`);
+      if (!(b.kapanisAsamasi ?? '').trim()) kusur.push(`${s.kod}: AŞAMASIZ`);
+      if ((b.gerekce ?? '').trim().length < GEREKCE_ASGARI) {
+        kusur.push(`${s.kod}: GEREKÇE yok ya da kusuru anlatmıyor`);
+      }
+    }
+    expect(kusur, kusur.join('\n')).toEqual([]);
+    /* SAYI YAZILIR, ŞART KOŞULMAZ — aynı sınıf (PR #51 tur 2). Borç
+       sıfırlandığı gün (S3 39 → 0) bir şart, İSTENEN durumu kırmızı
+       yakardı. Sayı raporlanır; sıfırsa bu vaka ölçüm yapmadığını
+       SÖYLER ve kaldırılması gerektiğini yazar. */
+    const olculmeyen = politikalar.filter((s) => s.olculmedi).length;
+    if (olculmeyen === 0) {
+      console.log('ÖLÇÜM YOK: kütükte `olculmedi` satırı kalmamış — '
+        + 'bu vaka artık boş küme ölçüyor, kaldırılabilir.');
+    } else {
+      console.log(`\`olculmedi\` şeması ölçüldü: ${olculmeyen} satır`);
+    }
   });
 });
 

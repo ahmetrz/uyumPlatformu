@@ -311,7 +311,7 @@ export default function SureclerIstemci({
             }} />
           ) : (
             <BosIlk
-              cumle="Uyum kütüğünde kampanya yok."
+              cumle="Uyum kütüğünde kampanya yok. Kampanya, maddelerin hangi kapsamda değerlendirileceğini belirler; kampanyasız bir çerçevede madde durumu yazılamaz."
               eylem={yazabilir
                 ? <Dugme tur="birincil" onClick={() => setYeniAcik(true)}>Kampanya başlat</Dugme>
                 : undefined}

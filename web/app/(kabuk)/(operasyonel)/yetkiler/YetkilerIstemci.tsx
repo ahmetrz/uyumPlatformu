@@ -255,7 +255,7 @@ export default function YetkilerIstemci({
             <BosFiltre temizle={() => { setMercek('hepsi'); setRolF(null); setArama(''); }} />
           ) : (
             <div style={{ marginTop: 'var(--s26)' }}>
-              <BosIlk cumle="Kullanıcı kütüğünde kayıt yok."
+              <BosIlk cumle="Kullanıcı kütüğünde kayıt yok. Kurulumun ilk hesabı komut satırından açılır (docs/KURULUM.md §4); sonraki hesaplar bu ekrandan."
                 eylem={yazabilir
                   ? <Dugme tur="birincil" onClick={() => setYeniAcik(true)}>Kullanıcı oluştur</Dugme>
                   : undefined} />

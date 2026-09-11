@@ -249,7 +249,13 @@ export function BosFiltre({ temizle }: { temizle: () => void }) {
   return (
     <div className="ab-blok">
       <span className="etiket">Süzgeç</span>
-      <p className="cumle">Bu süzgeçle kayıt yok.</p>
+      {/* Cümle bir kez yazılır, yirmi beş çağrıda görünür — arketip
+          düzeltmesi. İki yan tümce: NEDEN boş (süzgeç) ve NE OLACAĞI
+          (temizlenince kapsamdaki kayıtlar geri gelir). */}
+      <p className="cumle">
+        Bu süzgeçle kayıt yok; süzgeci temizleyince kapsamdaki tüm kayıtlar
+        yeniden listelenir.
+      </p>
       <div className="eylem">
         <Dugme onClick={temizle}>Süzgeci temizle</Dugme>
       </div>

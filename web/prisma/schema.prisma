@@ -2597,7 +2597,7 @@ model VeriKalitesiBulgusu {
   kaynakTipi  String
   kaynakId    String
   aciklama    String
-  durum       String    @default("acik") // acik | cozuldu | yok_sayildi
+  durum       String    @default("acik") // acik | kapandi | cozuldu | yok_sayildi
   olusturuldu DateTime  @default(now())
   kapanis     DateTime?
 

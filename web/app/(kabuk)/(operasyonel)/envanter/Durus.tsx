@@ -83,7 +83,11 @@ function Blok({ ad, rozet, children }: {
 
 /** "kayıt yok" cümlesi — "sorun yok" DEĞİLDİR ve öyle yazılmaz. */
 function KayitYok({ ne }: { ne: string }) {
-  return <p className="bos">{ne} kaydı yok — ölçülmedi.</p>;
+  return (
+    <p className="bos">
+      {ne} kaydı yok — ölçülmedi; bilinmeyen sıfır sayılmaz.
+    </p>
+  );
 }
 
 /* ── OT-21b · Canlı duruş ───────────────────────────────────────────

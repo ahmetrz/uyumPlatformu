@@ -1,4 +1,4 @@
-import { girisZorunlu } from '@/lib/erisim';
+import { girisZorunlu, izinVar } from '@/lib/erisim';
 import { Yetkisiz } from '@/components/kabuk/temel';
 import { modulOkuyabilir } from '@/app/kapsam';
 import Genel from './Genel';
@@ -37,6 +37,10 @@ export default async function Sayfa() {
       egilim={veri.egilim}
       yerlesim={veri.yerlesim}
       olculmemisGosterimi={veri.olculmemisGosterimi}
+      /* Boş durumun eylemi, gideceği sayfanın KENDİ kapısıyla aynı
+         yüklemden sorulur (`yonetim-tezgahi/page.tsx`). */
+      tanimlayabilir={izinVar(k, 'tanimlar', 'okuma') || izinVar(k, 'uyum', 'okuma')
+        || izinVar(k, 'yonetim', 'okuma')}
     />
   );
 }

@@ -1,7 +1,7 @@
 {
-  "imza": "a791aa237a292168efc13e42f581ed7e",
-  "dosya": 229,
-  "vaka": 4133,
+  "imza": "88838e83fde1bc15848c26650c872450",
+  "dosya": 238,
+  "vaka": 4259,
   "atlanan": 1,
   "dosyalar": {
     "tests/adaptor-yetenekleri.test.ts": {
@@ -42,6 +42,10 @@
     },
     "tests/bekci/bildirim-motoru.test.ts": {
       "vaka": 11,
+      "atlanan": 0
+    },
+    "tests/bekci/bos-durum.test.ts": {
+      "vaka": 22,
       "atlanan": 0
     },
     "tests/bekci/cekirdek-taban.test.ts": {
@@ -97,7 +101,7 @@
       "atlanan": 0
     },
     "tests/bekci/politika-olcumu.test.ts": {
-      "vaka": 21,
+      "vaka": 33,
       "atlanan": 0
     },
     "tests/bekci/radar-agsiz.test.ts": {
@@ -106,6 +110,10 @@
     },
     "tests/bekci/rol-sabitleri.test.ts": {
       "vaka": 5,
+      "atlanan": 0
+    },
+    "tests/bekci/sabotaj-kacagi.test.ts": {
+      "vaka": 3,
       "atlanan": 0
     },
     "tests/bekci/sektor-terimi.test.ts": {
@@ -122,6 +130,10 @@
     },
     "tests/bekci/terim-dogrulama.test.ts": {
       "vaka": 21,
+      "atlanan": 0
+    },
+    "tests/bekci/yumusak-silme-sayimi.test.ts": {
+      "vaka": 4,
       "atlanan": 0
     },
     "tests/belge-sayimlari.test.ts": {
@@ -154,6 +166,10 @@
     },
     "tests/bildirim-tetikleyici-ayrimi.test.ts": {
       "vaka": 6,
+      "atlanan": 0
+    },
+    "tests/bos-kurulum-duman.test.ts": {
+      "vaka": 11,
       "atlanan": 0
     },
     "tests/canli-durus.test.ts": {
@@ -512,6 +528,10 @@
       "vaka": 20,
       "atlanan": 0
     },
+    "tests/kurucu-hesap.test.ts": {
+      "vaka": 14,
+      "atlanan": 0
+    },
     "tests/marka-adi.test.ts": {
       "vaka": 4,
       "atlanan": 0
@@ -553,7 +573,7 @@
       "atlanan": 0
     },
     "tests/olcum-tabani.test.ts": {
-      "vaka": 23,
+      "vaka": 24,
       "atlanan": 0
     },
     "tests/omur-ufuk.test.ts": {
@@ -672,8 +692,16 @@
       "vaka": 31,
       "atlanan": 0
     },
+    "tests/pg-artik.test.ts": {
+      "vaka": 18,
+      "atlanan": 0
+    },
     "tests/pg-gocu.test.ts": {
       "vaka": 10,
+      "atlanan": 0
+    },
+    "tests/politika-bos-durum-iddialari.test.ts": {
+      "vaka": 5,
       "atlanan": 0
     },
     "tests/politika-demo-salt-okunur.test.ts": {
@@ -688,12 +716,20 @@
       "vaka": 5,
       "atlanan": 0
     },
+    "tests/politika-s2-eylem.test.ts": {
+      "vaka": 28,
+      "atlanan": 0
+    },
     "tests/politika-yetki-kapilari.test.ts": {
       "vaka": 7,
       "atlanan": 0
     },
     "tests/proje-bagimliligi.test.ts": {
       "vaka": 9,
+      "atlanan": 0
+    },
+    "tests/regulasyon-katalog-boslugu.test.ts": {
+      "vaka": 8,
       "atlanan": 0
     },
     "tests/risk-eylem.test.ts": {

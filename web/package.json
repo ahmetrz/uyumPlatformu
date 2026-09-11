@@ -63,7 +63,8 @@
     "pg:test-sablonu": "node arac/pg-test-sablonu.mjs",
     "kapi:compose": "node arac/compose-duman.mjs",
     "kanit:mevzuat-radari": "node arac/mevzuat-radari-kanit.mjs",
-    "kanit:veri-koruma": "node arac/veri-koruma-kanit.mjs"
+    "kanit:veri-koruma": "node arac/veri-koruma-kanit.mjs",
+    "kapi:bos-kurulum": "KAPI_BOS_KURULUM=1 vitest run tests/bos-kurulum-duman.test.ts"
   },
   "dependencies": {
     "@prisma/adapter-better-sqlite3": "^7.10.0",

@@ -140,7 +140,7 @@ const ONEM_SINIF: Record<string, string> = {
 export default function Genel({
   bugun, ozet, odak, kuyruk, toplamKayit, kapsamli = false,
   tesisler, tipler, risk, egilim, yerlesim = SAHA_YERLESIM_VARSAYILAN,
-  olculmemisGosterimi = OLCULMEMIS_VARSAYILAN,
+  olculmemisGosterimi = OLCULMEMIS_VARSAYILAN, tanimlayabilir = false,
 }: {
   /* Sunum katmanı yerleşimi — yönetim konsolu `saha.yerlesim` (A sınıfı).
      Yalnız `lib/yonetim/sahaModulleri.ts` beyaz listesindeki bloklar
@@ -171,6 +171,13 @@ export default function Genel({
   takvim?: TakvimKalemi[];
   akis?: AkisHaftasi[];
   egilim: { etiket: string; yuzde: number }[] | null;
+  /* Boş durumun EYLEMİ yetkiye bağlıdır. Yüklem `/yonetim-tezgahi`
+     sayfasının kendi kapısıyla AYNIDIR; kabuğun `kullanici.yonetim`
+     bayrağı da aynı kuralı kullanıyor (`components/kabuk/kabukVerisi`).
+     Ölçüldü (bağımsız inceleme, PR #51 tur 2): yetkisiz bir okuyucu boş
+     sahada "Tesis tanımla →" görüp tıklıyor ve `Yetkisiz` ekranına
+     düşüyordu — "ÇÖZÜME işaret eder" ölçütü onun için geçmiyordu. */
+  tanimlayabilir?: boolean;
 }) {
   const dikkat = odak ? [odak, ...kuyruk] : kuyruk;
   const katmanVar = gorunur(yerlesim, 'katman');
@@ -217,7 +224,8 @@ export default function Genel({
 
         {/* ── Takımyıldız — koordinat DEĞİL, endeks × güç ───────────── */}
         <Takimyildizi tesisler={tesisler} gosterim={olculmemisGosterimi}
-          serit={olculmemisSerit} panelAcik={olculmemisAcik} setPanelAcik={setOlculmemisAcik} />
+          serit={olculmemisSerit} panelAcik={olculmemisAcik} setPanelAcik={setOlculmemisAcik}
+          tanimlayabilir={tanimlayabilir} />
 
         {/* ── Katman paneli · 320px — gizlenebilir (saha.yerlesim) ──────
             Panel içeriği KAP BOYUNU AŞABİLİR ve kendi içinde kayar; ne
@@ -243,7 +251,15 @@ export default function Genel({
                   UĞRAYAMADI, sızıntı bir üstteki kardeşi düzeltilirken elle
                   görüldü. Kapının erişemediği durum kapının temiz dediği durum
                   değildir. */}
-              {tipler.length === 0 && <p className="bos">Kapsamında {terim('tesis')} yok.</p>}
+              {tipler.length === 0 && (
+                <p className="bos">
+                  Kapsamınızda {terim('tesis')} yok — uyum katmanları{' '}
+                  {terim('tesis')} kayıtlarından türetilir.{' '}
+                  {tanimlayabilir
+                    ? <Link href="/yonetim-tezgahi">{tBas('tesis')} tanımla →</Link>
+                    : <>Tanımlama yetkisi yöneticinizdedir.</>}
+                </p>
+              )}
               {tipler.slice(0, KATMAN_TAVANI).map((t) => (
                 <div key={t.kod} className="katman">
                   <div className="bas">
@@ -564,10 +580,14 @@ function Mudahale({ dikkat, toplamKayit, kapsamli }: {
         <span className="mono adet">{toplamKayit}</span>
       </div>
       {cizilecek === 0 ? (
-        <p className="bos">
+        /* BEKLENEN YOKLUK: açık bulgu olmaması iyi haberdir. İşaret
+           edeceği bir çözüm yoktur; olmayan bir eylem uydurmak
+           kullanıcıyı gereksiz bir yola sokardı. Bayrak sınıftan
+           gelir (`bos iyi`), kütükten değil. */
+        <p className="bos iyi">
           {kapsamli
-            ? 'Kapsamındaki tesislerde açık bulgu yok.'
-            : 'Açık bulgu yok.'}
+            ? 'Kapsamınızdaki tesislerde açık bulgu yok; müdahale bekleyen kayıt bulunmuyor.'
+            : 'Açık bulgu yok; müdahale bekleyen kayıt bulunmuyor.'}
         </p>
       ) : dikkat.slice(0, cizilecek).map((b, i) => (
         <Link key={b.id} href={`/bulgular/${b.id}`}
@@ -595,8 +615,11 @@ function Mudahale({ dikkat, toplamKayit, kapsamli }: {
   );
 }
 
-function Takimyildizi({ tesisler, gosterim = OLCULMEMIS_VARSAYILAN, serit, panelAcik, setPanelAcik }: {
+function Takimyildizi({ tesisler, gosterim = OLCULMEMIS_VARSAYILAN, serit, panelAcik,
+  setPanelAcik, tanimlayabilir = false }: {
   tesisler: TesisKarti[];
+  /** Boş durumun eylemi yetkiye bağlıdır — `Genel`den geçer. */
+  tanimlayabilir?: boolean;
   /** Değerlendirilmemiş özetinin ayrıntı düzeyi — konsol `saha.olculmemis`. */
   gosterim?: OlculmemisGosterimi;
   /* Liste ve panelin AÇIKLIĞI yukarıda tutulur. Sebep ölçüldü: panel bu
@@ -681,7 +704,17 @@ function Takimyildizi({ tesisler, gosterim = OLCULMEMIS_VARSAYILAN, serit, panel
         )}
       </div>
       {tesisler.length === 0 ? (
-        <p className="bos">Kapsamda tesis yok.</p>
+        /* İLK KURULUM BOŞLUĞU: bu bölüm ekranın BİRİNCİL içeriğidir ve
+           boşken kullanıcı ilerleyemez — bu yüzden bir bağ taşır. Bir
+           kart NOTU değildir; not, kullanıcıyı çalıştığı ekrandan
+           koparmaz (etkileşim sadeleştirme: gereksiz gezinme yok). */
+        <p className="bos">
+          Kapsamınızda {terim('tesis')} yok — uyum tuvali{' '}
+          {terim('tesis')} kayıtlarından çizilir.{' '}
+          {tanimlayabilir
+            ? <Link href="/yonetim-tezgahi">{tBas('tesis')} tanımla →</Link>
+            : <>Tanımlama yetkisi yöneticinizdedir.</>}
+        </p>
       ) : (
         <div className="ab-tuval-sar">
           <div className="ab-tuval">

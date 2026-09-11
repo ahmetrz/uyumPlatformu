@@ -107,7 +107,7 @@ export default function SayimIstemci({
 
       {tablo.length === 0
         ? (
-          <BosIlk cumle="Hiç envanter sayımı açılmadı."
+          <BosIlk cumle="Hiç envanter sayımı açılmadı. Sayım, envanterin sahadaki gerçekle karşılaştırıldığı tek yerdir; sayımsız bir envanter yalnız kayıttır."
             eylem={yazabilir
               ? <Dugme tur="birincil" onClick={() => setFormAcik(true)}>Sayım aç</Dugme>
               : undefined} />

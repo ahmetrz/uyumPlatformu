@@ -188,6 +188,34 @@ describe('SONUÇ SINIFI ve CIRCIR [URN-POL-001]', () => {
     expect(kutuk.tavanlar.sinif.S1, 'S1 tavanı sıfır olmalı').toBe(0);
   });
 
+  it('YEDİNCİ DİŞ · BORÇ SIFIRDA KİLİTLİ — hiçbir sınıf yeniden açılamaz [URN-POL-001]', () => {
+    /* ── R0-17 KAPANDI (Brief L) ──────────────────────────────────────
+       S1 · S2 · S3'ün üçü de sıfırlandı: 123 politika cümlesinin 123'ü
+       gerçek yolla ölçülüyor. Bu dişten ÖNCE cırcır yalnız "büyümesin"
+       diyordu; sıfıra inen bir borç için bu yetmez — yarın eklenen
+       ölçüsüz bir cümle tavanı 0'dan 1'e çıkarır ve öbür dişler bunu
+       "tavan ölçülene eşit" diye GEÇİRİRDİ.
+
+       Bugün kilit mutlaktır: ÖLÇÜLMEYEN POLİTİKA CÜMLESİ SIFIRDIR.
+       Yeni bir cümle ölçümüyle birlikte gelir (altıncı diş zaten bunu
+       istiyor); ölçümsüz geliyorsa kapı kırmızıdır ve gerekçe onu
+       açmaz. Kilidi gevşetmek, bu dişi SİLMEYİ gerektirir — sessizce
+       bir sayı büyütmeyi değil. */
+    const acik = politikalar
+      .filter((s) => s.olculmedi)
+      .map((s) => `${s.kod} (${s.sonucSinifi}) :: ${s.cumle.slice(0, 70)}`);
+    expect(acik, `ÖLÇÜLMEYEN politika cümlesi — borç SIFIRDA kilitli:\n${acik.join('\n')}`)
+      .toEqual([]);
+    expect(kutuk.tavanlar.olculmeyen, 'toplam tavan sıfır olmalı').toBe(0);
+    for (const sinif of ['S1', 'S2', 'S3'] as const) {
+      expect(kutuk.tavanlar.sinif[sinif], `${sinif} tavanı sıfır olmalı`).toBe(0);
+    }
+    /* Popülasyon dişi: kütük boşalırsa yukarıdaki her şey sıfır turda
+       yeşil biterdi — "hiç cümle yok" ile "hepsi ölçülü" aynı görünür. */
+    expect(politikalar.length, 'politika kütüğü BOŞ — vaka hiçbir şey ölçmedi')
+      .toBeGreaterThan(100);
+  });
+
   it('SINIF TAVANLARI ölçülenle BİREBİR — gevşeklik dişi [URN-POL-001]', () => {
     const bugun: Record<string, number> = { S1: 0, S2: 0, S3: 0 };
     for (const s of politikalar) if (s.olculmedi) bugun[s.sonucSinifi ?? 'S3'] += 1;

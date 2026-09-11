@@ -4,29 +4,29 @@
 
 | Ölçü | Değer |
 | --- | --- |
-| Senaryo | 371 |
-| Testi olan senaryo | 371 |
+| Senaryo | 372 |
+| Testi olan senaryo | 372 |
 | **GAP** | **0** |
 | Hayalet işaret (kütükte olmayan kimlik) | 0 |
 | Kütüksüz test dosyası | 0 |
-| Taranan test dosyası | 240 |
+| Taranan test dosyası | 241 |
 
 ## Katman başına kapsam
 
 | Katman | Senaryo | Testli | GAP |
 | --- | --- | --- | --- |
-| ACCESSIBILITY | 8 | 8 | 0 |
+| ACCESSIBILITY | 9 | 9 | 0 |
 | API | 12 | 12 | 0 |
 | CONCURRENCY | 8 | 8 | 0 |
-| DOMAIN | 222 | 222 | 0 |
+| DOMAIN | 223 | 223 | 0 |
 | ENGINE | 37 | 37 | 0 |
 | INTEGRATION | 43 | 43 | 0 |
 | MIGRATION | 10 | 10 | 0 |
 | RBAC | 42 | 42 | 0 |
 | RESPONSIVE | 9 | 9 | 0 |
 | SCOPE | 33 | 33 | 0 |
-| SERVER | 155 | 155 | 0 |
-| UI | 105 | 105 | 0 |
+| SERVER | 156 | 156 | 0 |
+| UI | 106 | 106 | 0 |
 | VISUAL | 4 | 4 | 0 |
 | WORKFLOW | 39 | 39 | 0 |
 
@@ -631,6 +631,27 @@
 | `SIS-DEM-003` | Sistem | SERVER · DOMAIN · INTEGRATION | `politika-s3-demo-ikizleri.test.ts` | İKİZ, gerçeğin HER çalışma-anı ihracını taşır — eksik ad ekranı ÇÖKERTİR | evet | geçti |
 | `SIS-DEM-003` | Sistem | SERVER · DOMAIN · INTEGRATION | `politika-s3-demo-ikizleri.test.ts` | HER ikizin HER ihracı çağrılır: `{ ok: true }` dönen YOKTUR | evet | geçti |
 | `SIS-DEM-003` | Sistem | SERVER · DOMAIN · INTEGRATION | `politika-s3-demo-ikizleri.test.ts` | HİÇBİR ikiz veritabanına dokunmaz — ret dönüp yolda satır yazan ikiz de olmaz | evet | geçti |
+| `SIS-EKR-001` | Sistem | DOMAIN · SERVER · UI · ACCESSIBILITY | `politika-s3-ekran.test.ts` | BİLİNMEYEN EVREN sıfır YAZILMAZ ve satır "ok" GÖRÜNMEZ | evet | geçti |
+| `SIS-EKR-001` | Sistem | DOMAIN · SERVER · UI · ACCESSIBILITY | `politika-s3-ekran.test.ts` | KÖKENİ OLMAYAN kayıt hiçbir sayımda "doğrulanmış" tarafa geçmez | evet | geçti |
+| `SIS-EKR-001` | Sistem | DOMAIN · SERVER · UI · ACCESSIBILITY | `politika-s3-ekran.test.ts` | BOŞ kapsam seçimi "sınır yok" diye uyarır — sessiz geçmez | evet | geçti |
+| `SIS-EKR-001` | Sistem | DOMAIN · SERVER · UI · ACCESSIBILITY | `politika-s3-ekran.test.ts` | REDDEDİLEN aktarımın cümlesi bu — ve onaylanan aktarımınki DEĞİL | evet | geçti |
+| `SIS-EKR-001` | Sistem | DOMAIN · SERVER · UI · ACCESSIBILITY | `politika-s3-ekran.test.ts` | ÇERÇEVE DIŞI koordinat UYARIR ama ENGELLEMEZ — iki ayrı fonksiyon | evet | geçti |
+| `SIS-EKR-001` | Sistem | DOMAIN · SERVER · UI · ACCESSIBILITY | `politika-s3-ekran.test.ts` | ÖLÇÜLMEMİŞ oturum kaynağı "erişim yok" diye OKUNMAZ | evet | geçti |
+| `SIS-EKR-001` | Sistem | DOMAIN · SERVER · UI · ACCESSIBILITY | `politika-s3-ekran.test.ts` | EKSİK KAPI sayısı gerçek kapı listesinden türer — uydurulmaz | evet | geçti |
+| `SIS-EKR-001` | Sistem | DOMAIN · SERVER · UI · ACCESSIBILITY | `politika-s3-ekran.test.ts` | TABANSIZ cihaz "uyumlu" SAYILMAZ — işaret "unk" olur | evet | geçti |
+| `SIS-EKR-001` | Sistem | DOMAIN · SERVER · UI · ACCESSIBILITY | `politika-s3-ekran.test.ts` | KARARA BAĞLANAN veri koruma başvurusu SİLİNMEZ — satır durur | evet | geçti |
+| `SIS-EKR-001` | Sistem | DOMAIN · SERVER · UI · ACCESSIBILITY | `politika-s3-ekran.test.ts` | SUNUCU EYLEMİ KATMANINDA silme YOK — "silinmez" yapısal olarak tutuluyor | evet | geçti |
+| `SIS-EKR-001` | Sistem | DOMAIN · SERVER · UI · ACCESSIBILITY | `politika-s3-ekran.test.ts` | PASİF katalog tanımı yeni kayıtta SEÇİLEMEZ — okuyucu yalnız aktifi verir | evet | geçti |
+| `SIS-EKR-001` | Sistem | DOMAIN · SERVER · UI · ACCESSIBILITY | `politika-s3-ekran.test.ts` | SORUMLUSUZ kayıt için bildirim ÜRETİLMEZ — görev açılır | evet | geçti |
+| `SIS-EKR-001` | Sistem | DOMAIN · SERVER · UI · ACCESSIBILITY | `politika-s3-ekran.test.ts` | MOTOR ÖNERİSİ etki alanlarını KENDİLİĞİNDEN doldurmaz | evet | geçti |
+| `SIS-EKR-001` | Sistem | DOMAIN · SERVER · UI · ACCESSIBILITY | `politika-s3-ekran.test.ts` | BELGESİZ örtü "karşılamıyor" DEĞİL "bilinmiyor" okunur | evet | geçti |
+| `SIS-EKR-001` | Sistem | DOMAIN · SERVER · UI · ACCESSIBILITY | `politika-s3-ekran.test.ts` | ANLIK GÖRÜNTÜ YOKSA eğilim ÇİZİLMEZ — seri uydurulmaz | evet | geçti |
+| `SIS-EKR-001` | Sistem | DOMAIN · SERVER · UI · ACCESSIBILITY | `politika-s3-ekran.test.ts` | NORMALİZE EDİLMEMİŞ keşif kaydı için gerekçe AYRI cümledir | evet | geçti |
+| `SIS-EKR-001` | Sistem | DOMAIN · SERVER · UI · ACCESSIBILITY | `politika-s3-ekran.test.ts` | EKRANIN sözü SUNUCUNUN davranışıyla AYNI — ikisi ayrı yerde | evet | geçti |
+| `SIS-EKR-001` | Sistem | DOMAIN · SERVER · UI · ACCESSIBILITY | `politika-s3-ekran.test.ts` | KÖKEN İŞARETİ hap DEĞİL: ne satır içi ne CSS zemin/kenarlık/yarıçap verir | evet | geçti |
+| `SIS-EKR-001` | Sistem | DOMAIN · SERVER · UI · ACCESSIBILITY | `politika-s3-ekran.test.ts` | KÖKENİ OLMAYAN kayıt sessizce KAYBOLMAZ — "Elle girildi" der | evet | geçti |
+| `SIS-EKR-001` | Sistem | DOMAIN · SERVER · UI · ACCESSIBILITY | `politika-s3-ekran.test.ts` | ÖLÇÜLMEMİŞ güven "%0" DEĞİL "ölçülmedi" yazar | evet | geçti |
+| `SIS-EKR-001` | Sistem | DOMAIN · SERVER · UI · ACCESSIBILITY | `politika-s3-ekran.test.ts` | İPUCU ODAKLA DA açılır — yalnız hover, klavyeyi dışarıda bırakırdı | evet | geçti |
 | `SIS-DGM-002` | Sistem | SERVER · DOMAIN · RBAC | `politika-s3-eylem.test.ts` | PASİF eğitime kayıt REDDEDİLİR ve hiçbir kayıt satırı doğmaz | evet | geçti |
 | `SIS-DGM-002` | Sistem | SERVER · DOMAIN · RBAC | `politika-s3-eylem.test.ts` | AYNI eylem AKTİF eğitimde GEÇER — kapı her şeyi reddetmiyor | evet | geçti |
 | `SIS-DGM-002` | Sistem | SERVER · DOMAIN · RBAC | `politika-s3-eylem.test.ts` | ENGELLİ kaynağın taraması AÇILAMAZ — ürün engeli AŞMAZ | evet | geçti |

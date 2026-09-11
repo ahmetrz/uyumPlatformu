@@ -1605,6 +1605,23 @@ export const PLATFORM_SENARYOLARI_6: Senaryo[] = [
     katmanlar: ['SERVER', 'DOMAIN', 'INTEGRATION'],
   },
   {
+    id: 'SIS-EKR-001', alan: 'Sistem', rota: '—', eksen: 'arayuz',
+    amac: 'Ekranda okunan ama iddiası EKRANIN DIŞINDA yaşayan cümlelerin '
+      + '(S3) gerçek yolla ölçülmesi',
+    rol: 'uyum sorumlusu', kapsam: 'kurum geneli',
+    onkosul: 'Kayıt evreni bilinmeyen tip, boş kapsam seçimi, reddedilmiş '
+      + 'aktarım, çerçeve dışı koordinat ve engelli mevzuat kaynağı kurulu',
+    veriHali: 'bilinmeyen',
+    eylem: 'Cümleyi üreten saf fonksiyon, onu uygulayan sunucu eylemi ve '
+      + 'onu boyayan bileşen+CSS sözleşmesi ayrı ayrı sürülür',
+    beklenenSonuc: 'Bilinmeyen evren SIFIR yazılmaz ve "ok" görünmez; '
+      + '"silinmez" diyen ekranın eyleminde kayıt silme yoktur; köken '
+      + 'işareti hap değildir; ipucu odakla da açılır',
+    beklenenEkran: 'Ekranın cümlesi, onu uygulayan kodun davranışıyla aynıdır',
+    beklenenIz: 'okuma yolları iz bırakmaz', beklenenBildirim: 'yok',
+    katmanlar: ['DOMAIN', 'SERVER', 'UI', 'ACCESSIBILITY'],
+  },
+  {
     id: 'SIS-DGM-002', alan: 'Sistem', rota: '—', eksen: 'veri',
     amac: 'Sunucu eyleminin RET GEREKÇESİ cümlelerinin (S3) gerçek yolla ölçülmesi',
     rol: 'uyum sorumlusu', kapsam: 'kurum geneli',

@@ -37,9 +37,20 @@ export function tabanDalKarari(tabandaVar, ham) {
   if (ham === null || ham === undefined) {
     return { hal: 'olculemedi', sebep: 'taban daldaki dosya okunamadı' };
   }
+  let belge;
   try {
-    return { hal: 'okundu', belge: JSON.parse(ham) };
+    belge = JSON.parse(ham);
   } catch (e) {
     return { hal: 'olculemedi', sebep: `taban daldaki kütük bozuk: ${e.message.split('\n')[0]}` };
   }
+  /* GEÇERLİ JSON YETMEZ, BİÇİM DE DOĞRU OLMALI. Ölçüldü (bağımsız
+     inceleme, PR #51 tur 2): `null`, `"x"` ve `[]` "okundu" sayılıyordu
+     ve çağıran `belge.tavanlar`/`belge.satirlar` deyince ham bir tip
+     hatasıyla düşüyordu — kırmızı yanıyordu ama "ÖLÇÜLEMEDİ (sebep)"
+     demiyordu, yani modülün var oluş gerekçesi o dalda çalışmıyordu. */
+  if (belge === null || typeof belge !== 'object' || Array.isArray(belge)) {
+    return { hal: 'olculemedi',
+      sebep: `taban daldaki kütük bir NESNE değil (${Array.isArray(belge) ? 'dizi' : typeof belge})` };
+  }
+  return { hal: 'okundu', belge };
 }

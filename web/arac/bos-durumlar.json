@@ -2,20 +2,23 @@
   "not": "Boş durum kütüğü. Satırlar arac/bos-durum-kutugu.mjs ile TÜRETİLİR, elle yazılmaz.",
   "tavanlar": {
     "nedensiz": 1,
-    "eylemsiz": 11
+    "eylemsiz": 12
   },
   "sinifTavanlari": {
     "BosIlk": {
       "nedensiz": 1,
-      "eylemsiz": 0
+      "eylemsiz": 0,
+      "iyiHaber": 14
     },
     "BosFiltre": {
       "nedensiz": 0,
-      "eylemsiz": 0
+      "eylemsiz": 0,
+      "iyiHaber": 0
     },
     "satirIci": {
       "nedensiz": 0,
-      "eylemsiz": 11
+      "eylemsiz": 12,
+      "iyiHaber": 3
     }
   },
   "tavanGerekceleri": [
@@ -30,10 +33,26 @@
     {
       "alan": "satirIci.eylemsiz",
       "eski": 11,
-      "yeni": 11,
+      "yeni": 12,
       "sahip": "KODLAYAN",
       "kapanisAsamasi": "P3 · ekran arketipi turu (envanter · duruş · yönetişim · karne ekranlarının bölüm notları tek geçişte gözden geçirilir)",
-      "gerekce": "Bu on bir satır EKRANIN YERİNE GEÇEN bir boşluk değil, dolu bir ekranın İÇİNDEKİ bölüm notudur (`<p className=\"bos\">`). Her birine bir gezinme bağı koymak kullanıcıyı çalıştığı ekrandan koparır ve etkileşim sadeleştirmenin 'minimum gereksiz gezinme' ölçütünü ihlal eder; hangi notun gerçekten bir bağ hak ettiği ekran ekran bir tasarım kararıdır ve arketip turunda verilir. On birinin de NEDEN ölçütü GEÇİYOR: kullanıcı boşluğun sebebini görüyor, yalnız bir sonraki adımı görmüyor."
+      "gerekce": "Bu satırlar EKRANIN YERİNE GEÇEN bir boşluk değil, dolu bir ekranın İÇİNDEKİ bölüm notudur (`<p className=\"bos\">`). Her birine gezinme bağı koymak kullanıcıyı çalıştığı ekrandan koparır ve etkileşim sadeleştirmenin 'minimum gereksiz gezinme' ölçütünü ihlal eder; hangi notun gerçekten bir bağ hak ettiği ekran ekran bir TASARIM kararıdır. Hepsinin NEDEN ölçütü GEÇİYOR: kullanıcı boşluğun sebebini görüyor, yalnız bir sonraki adımı görmüyor. Sayı 11'den 12'ye çıktı çünkü türeticinin körlüğü kapatıldı (tur 2, B2) — yeni bir kusur değil, ölçülmemiş bir kusurun görünür olması."
+    },
+    {
+      "alan": "BosIlk.iyiHaber",
+      "eski": 14,
+      "yeni": 14,
+      "sahip": "KODLAYAN",
+      "kapanisAsamasi": "KALICI — kapanış aşaması yoktur; sıfır BEKLENMEZ",
+      "gerekce": "İYİ HABER boş durumu ('Açık bulgu yok') bir kusur değildir ve sıfırlanması BEKLENMEZ: yokluğun beklenen olduğu bir bölümde olmayan bir eylem uydurmak kullanıcıyı gereksiz bir yola sokar. Tavan yine de tutulur çünkü bayrak `eylem`i otomatik doğru yapar — yani sıfır eylemsiz tavanının en ucuz kaçış kapısıdır. Sayı yalnız küçülür; yükselişi burada adıyla anlatılmadan geçemez."
+    },
+    {
+      "alan": "satirIci.iyiHaber",
+      "eski": 3,
+      "yeni": 3,
+      "sahip": "KODLAYAN",
+      "kapanisAsamasi": "KALICI — kapanış aşaması yoktur; sıfır BEKLENMEZ",
+      "gerekce": "İYİ HABER boş durumu ('Açık bulgu yok') bir kusur değildir ve sıfırlanması BEKLENMEZ: yokluğun beklenen olduğu bir bölümde olmayan bir eylem uydurmak kullanıcıyı gereksiz bir yola sokar. Tavan yine de tutulur çünkü bayrak `eylem`i otomatik doğru yapar — yani sıfır eylemsiz tavanının en ucuz kaçış kapısıdır. Sayı yalnız küçülür; yükselişi burada adıyla anlatılmadan geçemez."
     }
   ],
   "istisnalar": [
@@ -50,16 +69,16 @@
   "satirlar": [
     {
       "yer": "app/(kabuk)/(flagship)/Genel.tsx",
-      "satir": 247,
+      "satir": 255,
       "tur": "satirIci",
-      "cumle": "Kapsamınızda tesis yok — uyum katmanları tesis kayıtlarından türetilir. tesis tanımla →",
+      "cumle": "Kapsamınızda … yok — uyum katmanları … kayıtlarından türetilir. {tanimlayabilir ? … tanımla → : Tanımlama yetkisi yöneticinizdedir. }",
       "iyiHaber": false,
       "neden": true,
       "eylem": true
     },
     {
       "yer": "app/(kabuk)/(flagship)/Genel.tsx",
-      "satir": 577,
+      "satir": 587,
       "tur": "satirIci",
       "cumle": "Kapsamınızdaki tesislerde açık bulgu yok; müdahale bekleyen kayıt bulunmuyor. Açık bulgu yok; müdahale bekleyen kayıt bulunmuyor.",
       "iyiHaber": true,
@@ -68,9 +87,9 @@
     },
     {
       "yer": "app/(kabuk)/(flagship)/Genel.tsx",
-      "satir": 698,
+      "satir": 711,
       "tur": "satirIci",
-      "cumle": "Kapsamınızda tesis yok — uyum tuvali tesis kayıtlarından çizilir. tesis tanımla →",
+      "cumle": "Kapsamınızda … yok — uyum tuvali … kayıtlarından çizilir. {tanimlayabilir ? … tanımla → : Tanımlama yetkisi yöneticinizdedir. }",
       "iyiHaber": false,
       "neden": true,
       "eylem": true
@@ -106,7 +125,7 @@
       "yer": "app/(kabuk)/(flagship)/tesisler/[id]/Tesis360.tsx",
       "satir": 316,
       "tur": "satirIci",
-      "cumle": "Kayıtlı … yok — bu … için operasyonel birim tanımlanmamış.",
+      "cumle": "Kayıtlı … yok — bu … için hiç … tanımlanmamış.",
       "iyiHaber": false,
       "neden": true,
       "eylem": false
@@ -260,6 +279,15 @@
       "satir": 770,
       "tur": "satirIci",
       "cumle": "Segment atanmadı — adres tutarlılığı denetlenemez.",
+      "iyiHaber": false,
+      "neden": true,
+      "eylem": false
+    },
+    {
+      "yer": "app/(kabuk)/(operasyonel)/envanter/EnvanterIstemci.tsx",
+      "satir": 246,
+      "tur": "satirIci",
+      "cumle": "Bu süzgeçte varlık yok. Kapsamınızda varlık kaydı yok. Sinyal merceğinde varlık yok — bilinen açık ve geçmiş ömür yok.",
       "iyiHaber": false,
       "neden": true,
       "eylem": false
@@ -520,7 +548,7 @@
       "yer": "app/(kabuk)/(operasyonel)/raporlar/karne/Karne.tsx",
       "satir": 111,
       "tur": "satirIci",
-      "cumle": "Hiçbir tesis için uyum yüzdesi ölçülmedi; yüzde, değerlendirilmiş kontrollerden hesaplanır.",
+      "cumle": "Hiçbir … için uyum yüzdesi ölçülmedi; yüzde, değerlendirilmiş kontrollerden hesaplanır.",
       "iyiHaber": false,
       "neden": true,
       "eylem": false
@@ -889,7 +917,7 @@
       "yer": "components/kabuk/temel.tsx",
       "satir": 248,
       "tur": "BosFiltre",
-      "cagri": 25,
+      "cagri": 24,
       "cumle": "Bu süzgeçle kayıt yok; süzgeci temizleyince kapsamdaki tüm kayıtlar yeniden listelenir.",
       "iyiHaber": false,
       "neden": true,

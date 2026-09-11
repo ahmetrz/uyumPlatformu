@@ -111,7 +111,7 @@ try {
   if (on.yetim.length > 0) {
     console.log(`artık süpürmesi: ${on.yetim.length - on.kalan.length} yetim veritabanı düşürüldü`);
   }
-  if (on.kalan.length > 0) {
+  if (on.kalan.length > 0 || on.olculemedi.length > 0) {
     /* "Sildim" diyen adım sildiğini ÖLÇER; başarısız OLAMAYAN bir adım
        adım değildir. Eski hâl bunu yalnız yazıyordu ve `cikis`i
        değiştirmiyordu (bağımsız inceleme, PR #51 tur 1) — düşürülemeyen
@@ -163,7 +163,7 @@ try {
         + 'sızıntı ölçümünün tabanı yok');
     }
     if (sizanlar.length > 0) {
-      const kalan = dusur(url, sizanlar);
+      const { kalan } = dusur(url, sizanlar);
       console.error(`\nSIZINTI: koşum ${sizanlar.length} test veritabanı bıraktı `
         + `(${sizanlar.join(', ')}). Süpürüldü: ${sizanlar.length - kalan.length}.`
         + ' Test izolasyonu kendi veritabanını düşürmüyor — koşum KIRMIZI.');

@@ -5,7 +5,8 @@ import {
 } from 'node:fs';
 import path from 'node:path';
 import {
-  BOS_KURULUM_SOZU, KURULUM_KURUCU_ANAHTARI, KURUCU_PAROLA_EN_AZ, KURUCU_ROL,
+  BOS_KURULUM_SOZU, KURULUM_KAYDI_ARTIK_VAR, KURULUM_KURUCU_ANAHTARI,
+  KURUCU_PAROLA_EN_AZ, KURUCU_ROL,
   baglantiOzeti, girdiKusurlari, hataTemizle, istemciKur, kurucuHesapAc, ozetle,
   sqliteYolu,
 } from '../arac/kurucu-hesap';
@@ -350,8 +351,8 @@ dbTanimla('YARIŞ · iki operatör aynı anda [SIS-KUR-001]', () => {
     });
     expect(s.ok, 'ikinci yönetici açıldı — yarış kapalı değil').toBe(false);
     /* Operatör ham bir veritabanı hatası değil, ne olduğunu söyleyen
-       cümleyi görür. */
-    if (!s.ok) expect(s.hata).toBe(BOS_KURULUM_SOZU);
+       cümleyi görür — HANGİ cümle olduğu hemen aşağıda ölçülüyor. */
+    if (!s.ok) expect(s.hata).not.toMatch(/Unique constraint|P2002|prisma\./);
     /* Reddi ölçmek YETMEZ: reddeden ama kullanıcıyı çoktan yazmış bir
        araç da "reddetti" görünürdü. Transaction TÜMÜYLE geri alınmalı. */
     expect({
@@ -359,6 +360,24 @@ dbTanimla('YARIŞ · iki operatör aynı anda [SIS-KUR-001]', () => {
       yetki: await dbYaris.yetki.count(),
       iz: await dbYaris.aktiviteKaydi.count(),
     }, 'kaybeden transaction yan etki bıraktı').toEqual(once);
+
+    /* ── AYNI ANIN İKİNCİ OKUMASI: CÜMLE DOĞRU MU ─────────────────────
+       Bağımsız inceleme bulgusu (PR #51, tur 2): bu hâlde araç
+       "Kurulumda zaten kullanıcı var" diyordu — ilk yarısı YANLIŞ
+       (kullanıcı yok), ikinci yarısı ÇIKMAZ (giriş yapacak kimse yok).
+       Aracın var oluş sebebi olan kusurun birebir tekrarıydı.
+
+       Yarış anında bu ayrım görünmez (kazanan hemen kullanıcı yazar);
+       ama DESTEK senaryosunda — kullanıcılar silinmiş, kayıt kalmış —
+       operatör tam olarak bu cümleyi görür. */
+    if (!s.ok) {
+      expect(s.hata, 'kayıt var + kullanıcı yok hâlinde YANLIŞ cümle')
+        .toBe(KURULUM_KAYDI_ARTIK_VAR);
+      /* Cümle SEBEBİNİ söyler ve ÇÖZÜME işaret eder (R-G). */
+      expect(s.hata).toMatch(/Kullanici tablosu BOŞ/);
+      expect(s.hata, 'çözüm yolu yazılmamış').toMatch(/DELETE FROM Yapilandirma/);
+      expect(s.hata, 'yanlış cümle geri gelmiş').not.toBe(BOS_KURULUM_SOZU);
+    }
 
     /* Kurulan an geri alınır: sonraki vaka gerçekten boş bir kurulumda
        koşmalı. "Sildim" diyen adım sildiğini ÖLÇER. */

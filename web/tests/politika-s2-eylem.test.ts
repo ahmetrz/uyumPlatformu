@@ -239,21 +239,33 @@ describe('POL-098 · "Demo sürümü: değişiklikler bu ortamda kaydedilmez" [S
        Bu vaka kusur ARAMAZ, SAYIYI YAZAR ve bir TAVAN tutar: ölçülen
        ikiz sayısı düşerse kırmızı yanar. Kapsamın tamamı R0 kütüğünde
        sahibi ve kapanış aşamasıyla duruyor. */
-    const { readdirSync } = await import('node:fs');
+    const { readdirSync, readFileSync } = await import('node:fs');
     const hepsi = readdirSync('lib/eylemler2').filter((f) => f.endsWith('.demo.ts'));
-    /* Bu dosyada bir, `politika-demo-salt-okunur.test.ts`te üç ikiz
-       gerçek yolla sürülüyor. Sayı ELLE değil dosyadan okunur. */
-    const olculen = ['apiAnahtari.demo.ts'];
-    const digerVaka = await import('node:fs')
-      .then((m) => m.readFileSync('tests/politika-demo-salt-okunur.test.ts', 'utf8'));
-    for (const f of hepsi) {
-      if (digerVaka.includes(f.replace(/\.ts$/, ''))) olculen.push(f);
+    /* ── SAYIM İÇE AKTARIMDAN TÜRETİLİR, AD GEÇİŞİNDEN DEĞİL ───────────
+       İlk yazım dosya metninde adın HERHANGİ BİR YERDE geçmesine
+       bakıyordu ve `olculen` dizisini elle bir adla başlatıyordu
+       (bağımsız inceleme, PR #51 tur 2): bir yorum satırına altı ad
+       yazmak tabanı 10'a çıkarıyor, üstteki vaka silinse bile taban 4'te
+       kalıyordu — yani "4/56 ölçülüyor" yalan olabilirdi.
+
+       Bugün ölçülen şey GERÇEK BİR İÇE AKTARIMDIR: test dosyası ikizi
+       `import … '@/lib/eylemler2/X.demo'` ile alıyor mu. Yorumlar ve
+       dizeler ayıklanır; elle başlatılan liste yok. */
+    const ICE_AKTARIM = /@\/lib\/eylemler2\/([A-Za-z0-9_.-]+)\.demo/g;
+    const yorumsuz = (k: string) => k
+      .replace(/\/\*[\s\S]*?\*\//g, ' ')
+      .replace(/(^|[^:])\/\/.*$/gm, '$1');
+    const olculen = new Set<string>();
+    for (const dosya of readdirSync('tests').filter((f) => f.endsWith('.test.ts'))) {
+      const kod = yorumsuz(readFileSync(`tests/${dosya}`, 'utf8'));
+      for (const m of kod.matchAll(ICE_AKTARIM)) olculen.add(`${m[1]}.demo.ts`);
     }
-    const benzersiz = [...new Set(olculen)];
-    console.log(`POL-098 kapsamı: ${benzersiz.length}/${hepsi.length} demo ikizi `
-      + `gerçek yolla ölçülüyor · ölçülmeyen ${hepsi.length - benzersiz.length}`);
+    /* Ölçülen ikizler GERÇEKTEN var olmalı — ölü bir ad sayıyı şişirir. */
+    const gercek = [...olculen].filter((f) => hepsi.includes(f));
+    console.log(`POL-098 kapsamı: ${gercek.length}/${hepsi.length} demo ikizi `
+      + `gerçek yolla ölçülüyor · ölçülmeyen ${hepsi.length - gercek.length}`);
     expect(hepsi.length, 'demo ikizi bulunamadı — vaka kalıbı bozuk').toBeGreaterThan(0);
-    expect(benzersiz.length, 'ölçülen demo ikizi sayısı DÜŞTÜ — kapsam daraldı')
+    expect(gercek.length, 'ölçülen demo ikizi sayısı DÜŞTÜ — kapsam daraldı')
       .toBeGreaterThanOrEqual(4);
   });
 });
@@ -545,6 +557,8 @@ describe('POL-005 · "karar kaynak kaydı otomatik değiştirmez" [SIS-DGM-001]'
     expect(tanim, `vaka olmayan bir ayarı sürüyor: ${anahtar}`).toBeTruthy();
     expect(tanim?.sinif, 'vaka onay akışı olmayan bir ayarı sürüyor').toBe('B');
     const once = await ayarOku(anahtar);
+    const talepOnce = await db.degisiklikTalebi.count({
+      where: { hedefTipi: 'ayar', hedefId: anahtar, durum: 'incelemede' } });
     const s = await degisiklikOner({
       hedefTipi: 'ayar', hedefId: anahtar,
       sonra: { anahtar, deger: Number(once.deger) + 1 },
@@ -555,8 +569,11 @@ describe('POL-005 · "karar kaynak kaydı otomatik değiştirmez" [SIS-DGM-001]'
     expect(sonra.deger, 'öneri açmak kaynağı DEĞİŞTİRDİ').toEqual(once.deger);
     /* İkinci tanık: öneri GERÇEKTEN açıldı. Kaynağın değişmemesi, hiç
        öneri açılmadıysa da doğrudur — o hâlde ölçülen şey politika
-       değil, hiçliktir. */
-    /* sabotaj */
+       değil, hiçliktir. Talep `incelemede` durumunda doğar. */
+    expect(await db.degisiklikTalebi.count({
+      where: { hedefTipi: 'ayar', hedefId: anahtar, durum: 'incelemede' } }),
+      'öneri kaydı yazılmadı — vaka gerçek yolu sürmüyor')
+      .toBe(talepOnce + 1);
   });
 });
 

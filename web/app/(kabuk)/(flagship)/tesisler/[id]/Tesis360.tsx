@@ -315,7 +315,7 @@ export default function Tesis360({ veri, tesisler, sozluk }: {
           {veri.birimler.length === 0 ? (
             <p className="bos">
               Kayıtlı {t(sozluk, 'birim')} yok — bu {t(sozluk, 'tesis')} için
-              operasyonel birim tanımlanmamış.
+              hiç {t(sozluk, 'birim')} tanımlanmamış.
             </p>
           ) : veri.birimler.map((u) => (
             <div key={u.id} className="birim">

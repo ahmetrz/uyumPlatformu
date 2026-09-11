@@ -111,6 +111,15 @@ describe('katalog boşluğu · üç ayrı hâl [REG-BOS-001]', () => {
     expect(c).toMatch(/ARŞİVDE/);
     /* Aktifleştirme yine İNSAN KARARIDIR ve cümle bunu söyler. */
     expect(c).toMatch(/insan tarafından verilir/);
+    /* ── CÜMLE İLE EYLEM BAĞI (R-F) ────────────────────────────────────
+       Ekran bu hâlde `/ice-aktarim`a gönderir (`RegulasyonlarIstemci`
+       `taslakta_bekliyor` dışındaki her hâlde o düğmeyi çizer). Cümle
+       başka bir yol anlatırsa — ilk yazımda "yeni bir sürüm açılır"
+       diyordu — kullanıcı söylenenle götürüldüğü yer arasında kalır.
+       İddia ile onu uygulayan yolun ayrı ayrı doğru olması, aradaki
+       BAĞI kurmuş saymaz. */
+    expect(c, 'cümle, ekranın açtığı yolu (içe aktarım) SÖYLEMİYOR')
+      .toMatch(/içe aktarım/i);
   });
 
   it('GERÇEKTEN BOŞ sürüm hâlâ "içi boş" der — arşiv dişi hâli yutmaz [REG-BOS-001]', () => {

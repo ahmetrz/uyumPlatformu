@@ -98,6 +98,20 @@ export const BOS_KURULUM_SOZU = 'Kurulumda zaten kullanıcı var — bu araç ya
   + 'BOŞ kurulumda çalışır ve hiçbir şey yazmadı. Yeni kullanıcı, giriş '
   + 'yapmış bir yöneticinin /yetkiler ekranından açılır.';
 
+/** Kurulum kaydı KALICIDIR ve silinirse kurulum yeniden açılabilir —
+    cümlesi bunu SÖYLER. Ölçüldü (bağımsız inceleme, PR #51 tur 2):
+    `Kullanici` boşaltılıp bu satır bırakılırsa araç "Kurulumda zaten
+    kullanıcı var" diyordu. Cümlenin ilk yarısı YANLIŞ (kullanıcı yok),
+    ikinci yarısı ÇIKMAZ (giriş yapacak kimse yok) — yani aracın var
+    oluş sebebi olan kusurun birebir tekrarı, üstelik ürünün kendi
+    mesajıyla. Bugün üç hâl ayrı: kullanıcı VAR · kayıt var kullanıcı
+    YOK · gerçek hata. */
+export const KURULUM_KAYDI_ARTIK_VAR = 'Kurulum kaydı duruyor ama Kullanici '
+  + 'tablosu BOŞ: kurucu hesap daha önce açılmış ve kullanıcılar sonradan '
+  + 'silinmiş. Kurulumu yeniden açmak için kurulum kaydını silin — '
+  + "DELETE FROM Yapilandirma WHERE anahtar = 'kurulum.kurucu'; — sonra bu "
+  + 'aracı yeniden koşun.';
+
 /** YARIŞI KAPATAN SATIR. Sabit birincil anahtar: aynı anda koşan ikinci
     transaction bu satırı yazamaz, benzersizlik ihlaliyle düşer ve TÜMÜ
     geri alınır. `Yapilandirma.anahtar` bir `@id`dir; ihlal veritabanının
@@ -112,8 +126,17 @@ export const KURULUM_KURUCU_ANAHTARI = 'kurulum.kurucu';
     kodla düşer ve operatöre ham bir veritabanı hatası değil, doğru cümle
     gösterilir: kurulum artık boş DEĞİLDİR. */
 function benzersizlikIhlali(e: unknown): boolean {
-  return typeof e === 'object' && e !== null && 'code' in e
-    && (e as { code?: unknown }).code === 'P2002';
+  if (!(typeof e === 'object' && e !== null && 'code' in e)) return false;
+  if ((e as { code?: unknown }).code !== 'P2002') return false;
+  /* HANGİ KISIT ihlal edildi? Bugün bu akışta yalnız kurulum kaydının
+     birincil anahtarına çarpılabilir — ama kod onu hiç sormuyordu ve
+     şemaya bir kısıt eklendiği gün GERÇEK bir kusur "Kurulumda zaten
+     kullanıcı var" diye teşhis edilirdi; en yanıltıcı hâliyle (bağımsız
+     inceleme, PR #51 tur 2). `meta.target` sağlayıcıya göre dizi ya da
+     dize gelir; ikisi de okunur. */
+  const hedef = (e as { meta?: { target?: unknown } }).meta?.target;
+  const metin = Array.isArray(hedef) ? hedef.join(',') : String(hedef ?? '');
+  return metin === '' || /anahtar|Yapilandirma|eposta|Kullanici/i.test(metin);
 }
 
 /** Hata metnini operatöre göstermeden önce parola türevlerini siler.
@@ -209,11 +232,18 @@ export async function kurucuHesapAc(db: PrismaClient, g: Girdi): Promise<Sonuc> 
       return { ok: true as const, kullaniciId: k.id, eposta };
     });
   } catch (e) {
-    /* Benzersizlik ihlali = yarışı kaybettik ya da kurulum bu arada
-       doldu. İkisi de aynı gerçeği söyler ve aynı cümleyi hak eder:
-       kurulum artık boş değil ve BU KOŞUM hiçbir şey yazmadı
-       (transaction geri alındı). */
-    if (benzersizlikIhlali(e)) return { ok: false, hata: BOS_KURULUM_SOZU };
+    /* BENZERSİZLİK İHLALİ ÜÇ AYRI GERÇEĞİ ANLATABİLİR ve aynı cümleyi
+       hak etmezler. Yeniden ÖLÇÜLÜR:
+         · kullanıcı VAR  → yarışı kaybettik ya da kurulum bu arada
+           doldu; operatörün yapacağı şey /yetkiler ekranıdır.
+         · kullanıcı YOK  → kurulum kaydı kalmış, kullanıcılar silinmiş;
+           cümle sebebi söyler ve ÇÖZÜME işaret eder (R-G).
+       Her iki hâlde de BU KOŞUM hiçbir şey yazmadı: transaction geri
+       alındı. */
+    if (benzersizlikIhlali(e)) {
+      const kullanici = await db.kullanici.count().catch(() => -1);
+      return { ok: false, hata: kullanici === 0 ? KURULUM_KAYDI_ARTIK_VAR : BOS_KURULUM_SOZU };
+    }
     return { ok: false,
       hata: hataTemizle(e instanceof Error ? e.message : String(e), parolaHash) };
   }
@@ -241,6 +271,16 @@ export function sqliteYolu(url: string | undefined): string {
     basılmaz — yalnız sağlayıcı adı yazılır. */
 export function baglantiOzeti(url: string | undefined): string {
   if (url && /^postgres(ql)?:\/\//i.test(url)) return 'PostgreSQL (DATABASE_URL)';
+  /* BEYAZ LİSTE. Ölçüldü (bağımsız inceleme, PR #51 tur 2): başında bir
+     boşluk olan ya da başka şemalı bir URL (`mysql://u:gizli@h/db`)
+     SQLite dalına düşüyor ve özet PAROLAYI stderr'e — CI günlüğüne,
+     `docker compose logs`a — basıyordu. Fonksiyonun kendi vaadi
+     ("kimlik bilgisi TAŞIMAZ") o yollarda tutmuyordu. Tanınmayan şema
+     artık DEĞERİ YAZILMADAN raporlanır. */
+  if (url !== undefined && url !== '' && !/^(file:)?[^:]*$/i.test(url.trim())
+    && !/^file:/i.test(url.trim())) {
+    return 'tanınmayan DATABASE_URL şeması — değeri YAZILMADI';
+  }
   return `SQLite · ${sqliteYolu(url)}`;
 }
 

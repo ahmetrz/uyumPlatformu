@@ -4,12 +4,12 @@
 
 | Ölçü | Değer |
 | --- | --- |
-| Senaryo | 367 |
-| Testi olan senaryo | 367 |
+| Senaryo | 369 |
+| Testi olan senaryo | 369 |
 | **GAP** | **0** |
 | Hayalet işaret (kütükte olmayan kimlik) | 0 |
 | Kütüksüz test dosyası | 0 |
-| Taranan test dosyası | 236 |
+| Taranan test dosyası | 238 |
 
 ## Katman başına kapsam
 
@@ -18,7 +18,7 @@
 | ACCESSIBILITY | 8 | 8 | 0 |
 | API | 12 | 12 | 0 |
 | CONCURRENCY | 8 | 8 | 0 |
-| DOMAIN | 218 | 218 | 0 |
+| DOMAIN | 220 | 220 | 0 |
 | ENGINE | 37 | 37 | 0 |
 | INTEGRATION | 42 | 42 | 0 |
 | MIGRATION | 10 | 10 | 0 |
@@ -26,7 +26,7 @@
 | RESPONSIVE | 9 | 9 | 0 |
 | SCOPE | 33 | 33 | 0 |
 | SERVER | 153 | 153 | 0 |
-| UI | 104 | 104 | 0 |
+| UI | 105 | 105 | 0 |
 | VISUAL | 4 | 4 | 0 |
 | WORKFLOW | 39 | 39 | 0 |
 
@@ -566,6 +566,7 @@
 | `SIS-BSD-001` | Sistem | UI · DOMAIN | `bekci/bos-durum.test.ts` | SINIR BEYANLIDIR: iki kelimelik kuyruk ölçütü GEÇER | evet | geçti |
 | `SIS-BSD-001` | Sistem | UI · DOMAIN | `bekci/bos-durum.test.ts` | SATIR İÇİ yüzey okunur: gövde, metin ve EYLEM | evet | geçti |
 | `SIS-BSD-001` | Sistem | UI · DOMAIN | `bekci/bos-durum.test.ts` | İFADE: dize SEÇEN açılır, HESAPLAYAN "…" olur | evet | geçti |
+| `SIS-BSD-001` | Sistem | UI · DOMAIN | `bekci/bos-durum.test.ts` | OKUNAMAYAN gövde SESSİZCE DÜŞMEZ — kütüğe işaretli girer | evet | geçti |
 | `SIS-BSD-001` | Sistem | UI · DOMAIN | `bekci/bos-durum.test.ts` | BosFiltre TANIM satırı okunur ve ÇAĞRI sayısı gerçektir | evet | geçti |
 | `SIS-BOS-001` | Sistem | MIGRATION · SERVER · WORKFLOW · DOMAIN | `bos-kurulum-duman.test.ts` | atlandıysa SEBEBİ ölçülür; adanmış kapıda atlama YASAK | evet | geçti |
 | `SIS-BOS-001` | Sistem | MIGRATION · SERVER · WORKFLOW · DOMAIN | `bos-kurulum-duman.test.ts` | 1 · GÖÇ ZİNCİRİ boş veritabanına uygulandı ve kurulum GERÇEKTEN boş | evet | geçti |
@@ -579,6 +580,15 @@
 | `SIS-BOS-001` | Sistem | MIGRATION · SERVER · WORKFLOW · DOMAIN | `bos-kurulum-duman.test.ts` | 9 · YEDEK alındı ve DOĞRULANDI | evet | geçti |
 | `SIS-BOS-001` | Sistem | MIGRATION · SERVER · WORKFLOW · DOMAIN | `bos-kurulum-duman.test.ts` | KAPININ KENDİSİ · dokuz adımın dokuzu da GEÇTİ ve tohuma dokunulmadı | evet | geçti |
 | `SIS-IZO-001` | Sistem | MIGRATION · CONCURRENCY | `pg-artik.test.ts` | SAHİP YAŞIYOR MU: ESRCH ölü, EPERM CANLI | evet | geçti |
+| `SIS-IZO-001` | Sistem | MIGRATION · CONCURRENCY | `pg-artik.test.ts` | ÖLÇÜLEMEDİ ile DÜŞMEDİ ayrı listelerdir | evet | geçti |
+| `SIS-IZO-001` | Sistem | MIGRATION · CONCURRENCY | `pg-artik.test.ts` | KALIP DIŞI ad FONKSİYON SINIRINDA reddedilir — İKİ SINIR AYRI | evet | geçti |
+| `SIS-SAB-001` | Sistem | DOMAIN | `bekci/sabotaj-kacagi.test.ts` | KAPSAM boş değil — kalıp bozulursa bekçi her şeyi geçirirdi | evet | geçti |
+| `SIS-SAB-001` | Sistem | DOMAIN | `bekci/sabotaj-kacagi.test.ts` | HİÇBİR izlenen kaynak dosyada yalnız başına sabotaj yorumu yok | evet | geçti |
+| `SIS-SAB-001` | Sistem | DOMAIN | `bekci/sabotaj-kacagi.test.ts` | KALIBIN KENDİ YÜRÜYÜŞÜ: neyi yakalar, neyi yakalamaz | evet | geçti |
+| `SIS-SIL-001` | Sistem | DOMAIN · UI | `bekci/yumusak-silme-sayimi.test.ts` | KAPSAM boş değil — kalıp bozulursa bekçi her şeyi geçirirdi | evet | geçti |
+| `SIS-SIL-001` | Sistem | DOMAIN · UI | `bekci/yumusak-silme-sayimi.test.ts` | HER madde sayımı `silindi: null` süzgeci TAŞIR | evet | geçti |
+| `SIS-SIL-001` | Sistem | DOMAIN · UI | `bekci/yumusak-silme-sayimi.test.ts` | İZİN LİSTESİ ÖLÜ SATIR taşımaz — yalnız küçülür | evet | geçti |
+| `SIS-SIL-001` | Sistem | DOMAIN · UI | `bekci/yumusak-silme-sayimi.test.ts` | KALIBIN KENDİ YÜRÜYÜŞÜ | evet | geçti |
 | `SIS-TAB-001` | Sistem | DOMAIN | `olcum-tabani.test.ts` | TABAN DALA GÖRE İNEN her taban `dususler` kaydı taşır | evet | geçti |
 | `SIS-TAB-002` | Sistem | DOMAIN | `bekci/bos-durum.test.ts` | TABAN DAL ÜÇ HÂLİ: yok · okundu · ÖLÇÜLEMEDİ | evet | geçti |
 | `SIS-KUR-001` | Sistem | DOMAIN · SERVER · RBAC · MIGRATION | `kurucu-hesap.test.ts` | atlandıysa SEBEBİ gerçek bir PostgreSQL koşumudur | evet | geçti |

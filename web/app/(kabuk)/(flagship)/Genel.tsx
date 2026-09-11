@@ -140,7 +140,7 @@ const ONEM_SINIF: Record<string, string> = {
 export default function Genel({
   bugun, ozet, odak, kuyruk, toplamKayit, kapsamli = false,
   tesisler, tipler, risk, egilim, yerlesim = SAHA_YERLESIM_VARSAYILAN,
-  olculmemisGosterimi = OLCULMEMIS_VARSAYILAN,
+  olculmemisGosterimi = OLCULMEMIS_VARSAYILAN, tanimlayabilir = false,
 }: {
   /* Sunum katmanı yerleşimi — yönetim konsolu `saha.yerlesim` (A sınıfı).
      Yalnız `lib/yonetim/sahaModulleri.ts` beyaz listesindeki bloklar
@@ -171,6 +171,13 @@ export default function Genel({
   takvim?: TakvimKalemi[];
   akis?: AkisHaftasi[];
   egilim: { etiket: string; yuzde: number }[] | null;
+  /* Boş durumun EYLEMİ yetkiye bağlıdır. Yüklem `/yonetim-tezgahi`
+     sayfasının kendi kapısıyla AYNIDIR; kabuğun `kullanici.yonetim`
+     bayrağı da aynı kuralı kullanıyor (`components/kabuk/kabukVerisi`).
+     Ölçüldü (bağımsız inceleme, PR #51 tur 2): yetkisiz bir okuyucu boş
+     sahada "Tesis tanımla →" görüp tıklıyor ve `Yetkisiz` ekranına
+     düşüyordu — "ÇÖZÜME işaret eder" ölçütü onun için geçmiyordu. */
+  tanimlayabilir?: boolean;
 }) {
   const dikkat = odak ? [odak, ...kuyruk] : kuyruk;
   const katmanVar = gorunur(yerlesim, 'katman');
@@ -217,7 +224,8 @@ export default function Genel({
 
         {/* ── Takımyıldız — koordinat DEĞİL, endeks × güç ───────────── */}
         <Takimyildizi tesisler={tesisler} gosterim={olculmemisGosterimi}
-          serit={olculmemisSerit} panelAcik={olculmemisAcik} setPanelAcik={setOlculmemisAcik} />
+          serit={olculmemisSerit} panelAcik={olculmemisAcik} setPanelAcik={setOlculmemisAcik}
+          tanimlayabilir={tanimlayabilir} />
 
         {/* ── Katman paneli · 320px — gizlenebilir (saha.yerlesim) ──────
             Panel içeriği KAP BOYUNU AŞABİLİR ve kendi içinde kayar; ne
@@ -247,7 +255,9 @@ export default function Genel({
                 <p className="bos">
                   Kapsamınızda {terim('tesis')} yok — uyum katmanları{' '}
                   {terim('tesis')} kayıtlarından türetilir.{' '}
-                  <Link href="/yonetim-tezgahi">{tBas('tesis')} tanımla →</Link>
+                  {tanimlayabilir
+                    ? <Link href="/yonetim-tezgahi">{tBas('tesis')} tanımla →</Link>
+                    : <>Tanımlama yetkisi yöneticinizdedir.</>}
                 </p>
               )}
               {tipler.slice(0, KATMAN_TAVANI).map((t) => (
@@ -605,8 +615,11 @@ function Mudahale({ dikkat, toplamKayit, kapsamli }: {
   );
 }
 
-function Takimyildizi({ tesisler, gosterim = OLCULMEMIS_VARSAYILAN, serit, panelAcik, setPanelAcik }: {
+function Takimyildizi({ tesisler, gosterim = OLCULMEMIS_VARSAYILAN, serit, panelAcik,
+  setPanelAcik, tanimlayabilir = false }: {
   tesisler: TesisKarti[];
+  /** Boş durumun eylemi yetkiye bağlıdır — `Genel`den geçer. */
+  tanimlayabilir?: boolean;
   /** Değerlendirilmemiş özetinin ayrıntı düzeyi — konsol `saha.olculmemis`. */
   gosterim?: OlculmemisGosterimi;
   /* Liste ve panelin AÇIKLIĞI yukarıda tutulur. Sebep ölçüldü: panel bu
@@ -698,7 +711,9 @@ function Takimyildizi({ tesisler, gosterim = OLCULMEMIS_VARSAYILAN, serit, panel
         <p className="bos">
           Kapsamınızda {terim('tesis')} yok — uyum tuvali{' '}
           {terim('tesis')} kayıtlarından çizilir.{' '}
-          <Link href="/yonetim-tezgahi">{tBas('tesis')} tanımla →</Link>
+          {tanimlayabilir
+            ? <Link href="/yonetim-tezgahi">{tBas('tesis')} tanımla →</Link>
+            : <>Tanımlama yetkisi yöneticinizdedir.</>}
         </p>
       ) : (
         <div className="ab-tuval-sar">

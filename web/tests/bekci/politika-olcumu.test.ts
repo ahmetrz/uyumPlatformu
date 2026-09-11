@@ -467,10 +467,25 @@ describe('ALTINCI DİŞ · YENİ CÜMLENİN VARSAYILANI ÖLÇÜLÜ [URN-POL-001]
     const kusur = yeniSatirKusurlari(kutuk.satirlar, tabanCumleleri);
     expect(kusur, `YENİ politika cümlesi ölçüsüz girmiş:\n${kusur.join('\n')}`)
       .toEqual([]);
-    /* Bu dalda yeni satır VAR ve sayısı sıfır değildir; sıfır olduğu gün
-       bu vaka hiçbir şey ölçmüyor demektir ve bunu SÖYLER. */
-    expect(yeniler.length, 'bu dal hiç yeni politika cümlesi getirmedi — '
-      + 'altıncı diş bu koşumda ölçüm YAPMADI').toBeGreaterThan(0);
+    /* ── SAYI YAZILIR, ŞART KOŞULMAZ ───────────────────────────────────
+       İlk yazım `yeniler.length > 0` istiyordu ve bu bir kapı değil bir
+       MAYINDI (bağımsız inceleme, PR #51 tur 2): "hiç yeni politika
+       cümlesi yok" sağlıklı ve beklenen hâldir. Bu PR merge edilir
+       edilmez, ekran metnine dokunmayan HER dal kırmızı yanacaktı —
+       kusur yok, dal temiz, kapı yanlış. Kapının ilk susturulacağı yer
+       tam olarak burasıdır.
+
+       Ölçülmek istenen şey "her dal yeni cümle getirir" değil, "KÜTÜK
+       DEĞİŞTİYSE diş boş küme üzerinde koşmadı"dır. Koşul da ona
+       bağlandı. */
+    let kutukDegisti = true;
+    try { git(['diff', '--quiet', 'origin/main', '--', 'web/arac/politika-cumleleri.json']); kutukDegisti = false; }
+    catch { kutukDegisti = true; }
+    if (kutukDegisti) {
+      expect(yeniler.length, 'kütük bu dalda DEĞİŞTİ ama taban dala göre yeni '
+        + 'POLITIKA satırı yok — altıncı diş boş küme üzerinde koştu')
+        .toBeGreaterThan(0);
+    }
   });
 
   it('KÜTÜKTEKİ her `olculmedi` satırı ŞEMAYA uyar — üç alan da dolu [URN-POL-001]', () => {
@@ -489,9 +504,17 @@ describe('ALTINCI DİŞ · YENİ CÜMLENİN VARSAYILANI ÖLÇÜLÜ [URN-POL-001]
       }
     }
     expect(kusur, kusur.join('\n')).toEqual([]);
-    expect(politikalar.filter((s) => s.olculmedi).length,
-      'ölçülmeyen satır kalmadıysa bu vaka boş küme ölçüyor — kaldırın')
-      .toBeGreaterThan(0);
+    /* SAYI YAZILIR, ŞART KOŞULMAZ — aynı sınıf (PR #51 tur 2). Borç
+       sıfırlandığı gün (S3 39 → 0) bir şart, İSTENEN durumu kırmızı
+       yakardı. Sayı raporlanır; sıfırsa bu vaka ölçüm yapmadığını
+       SÖYLER ve kaldırılması gerektiğini yazar. */
+    const olculmeyen = politikalar.filter((s) => s.olculmedi).length;
+    if (olculmeyen === 0) {
+      console.log('ÖLÇÜM YOK: kütükte `olculmedi` satırı kalmamış — '
+        + 'bu vaka artık boş küme ölçüyor, kaldırılabilir.');
+    } else {
+      console.log(`\`olculmedi\` şeması ölçüldü: ${olculmeyen} satır`);
+    }
   });
 });
 

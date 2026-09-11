@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import {
-  ARTIK_KALIBI, artikAdlari, dusur, sahipPid, sahipYasiyor, sizintiKarari,
-  yetimleriSec, yetimleriSupur,
+  ARTIK_KALIBI, ArtikHatasi, artikAdlari, baglantiVar, dusur, sahipPid,
+  sahipYasiyor, sizintiKarari, yetimleriSec, yetimleriSupur,
 } from '../arac/pg-artik.mjs';
 
 /* ═══════════════════════════════════════════════════════════════════════
@@ -83,7 +83,7 @@ describe('DÜŞÜRME SON KOŞULUNU ÖLÇER [SIS-IZO-001]', () => {
     /* "Sildim" diyen adım sildiğini ölçmelidir; başarısız olamayan bir
        adım adım değildir. */
     const { calistir, koşan } = sahtePsql({ kaliyor: true });
-    expect(dusur('u', ['uyum_test_9_9'], calistir), 'silinmeyen veritabanı sessizce geçti')
+    expect(dusur('u', ['uyum_test_9_9'], calistir).kalan, 'silinmeyen veritabanı sessizce geçti')
       .toEqual(['uyum_test_9_9']);
     expect(koşan.some((q) => q.startsWith('DROP DATABASE')),
       'vaka DROP koşmadan "kırmızı" ölçüyor').toBe(true);
@@ -91,12 +91,47 @@ describe('DÜŞÜRME SON KOŞULUNU ÖLÇER [SIS-IZO-001]', () => {
 
   it('DROP FIRLATIRSA da kalan listesine girer — sessiz yutma yok', () => {
     const patlar = () => { throw new Error('bağlantı düştü'); };
-    expect(dusur('u', ['uyum_test_9_9'], patlar as never)).toEqual(['uyum_test_9_9']);
+    expect(dusur('u', ['uyum_test_9_9'], patlar as never).kalan).toEqual(['uyum_test_9_9']);
   });
 
   it('gerçekten silinen KALAN listesine GİRMEZ', () => {
     const { calistir } = sahtePsql({});
-    expect(dusur('u', ['uyum_test_9_9'], calistir)).toEqual([]);
+    expect(dusur('u', ['uyum_test_9_9'], calistir).kalan).toEqual([]);
+  });
+
+  it('ÖLÇÜLEMEDİ ile DÜŞMEDİ ayrı listelerdir [SIS-IZO-001]', () => {
+    /* Kör bir `catch`, `psql`in cevap vermemesini de gerçek bir DROP
+       reddini de aynı kovaya atıyordu (bağımsız inceleme, PR #51 tur 2).
+       "Ölçemedim" ile "düşmedi" ayrı şeylerdir. */
+    const olcemez = () => { throw new ArtikHatasi('psql bulunamadı'); };
+    const s = dusur('u', ['uyum_test_9_9'], olcemez as never);
+    expect(s.olculemedi, 'ölçülemeyen düşmedi sayıldı').toEqual(['uyum_test_9_9']);
+    expect(s.kalan, 'ölçülemeyen `kalan`a da yazıldı').toEqual([]);
+  });
+
+  it('KALIP DIŞI ad FONKSİYON SINIRINDA reddedilir — İKİ SINIR AYRI [SIS-IZO-001]', () => {
+    /* ── SABOTAJ BULGUSU (R-E · PR #51, tur 2) ────────────────────────
+       İlk yazım tek vakayla iki sınırı birden ölçüyordu ve `dusur`un
+       kendi güvencesini kaldıran sabotaj (S103) KIRMIZI YAKMADI:
+       `baglantiVar` da aynı adı doğruluyor, yani ölçtüğüm şey yalnız
+       İKİSİNİN KESİŞİMİYDİ. S86'nın aynı sınıfı. Her sınır AYRI
+       ölçülür. */
+    const { calistir, koşan } = sahtePsql({});
+
+    /* SINIR 1 · `dusur`. Bağlantı dişi ENJEKTE EDİLİR ve doğrulama
+       YAPMAZ: reddi yalnız `dusur`un kendi güvencesi verebilir. */
+    const dogrulamayan = () => false;
+    const s = dusur('u', ['postgres'], calistir, dogrulamayan);
+    expect(s.olculemedi, '`dusur` kendi sınırında reddetmedi').toEqual(['postgres']);
+    expect(koşan.some((q) => q.startsWith('DROP DATABASE')),
+      'kalıp dışı ada DROP koşuldu').toBe(false);
+
+    /* SINIR 2 · `baglantiVar`. Doğrudan çağrılır; `dusur` devrede yok. */
+    expect(() => baglantiVar('u', 'postgres', calistir),
+      '`baglantiVar` kendi sınırında reddetmedi').toThrow(ArtikHatasi);
+
+    /* Kalıba UYAN ad ikisinden de geçer — güvence her şeyi reddetmiyor. */
+    expect(() => baglantiVar('u', 'uyum_test_9_9', calistir)).not.toThrow();
   });
 });
 
@@ -116,7 +151,7 @@ describe('BAĞLANTI DİŞİ · ad alanından BAĞIMSIZ [SIS-IZO-001]', () => {
     /* pid ad alanında YOK: birinci diş "yetim" der. */
     expect(yetimleriSec(['uyum_test_4711_1'], () => false)).toEqual(['uyum_test_4711_1']);
     /* İkinci diş kurtarır. */
-    expect(dusur('u', ['uyum_test_4711_1'], calistir),
+    expect(dusur('u', ['uyum_test_4711_1'], calistir).kalan,
       'canlı bağlantılı veritabanı düşürüldü — eşzamanlı koşum ezildi')
       .toEqual(['uyum_test_4711_1']);
     expect(koşan.some((q) => q.startsWith('DROP DATABASE')),
@@ -134,7 +169,7 @@ describe('BAĞLANTI DİŞİ · ad alanından BAĞIMSIZ [SIS-IZO-001]', () => {
 
   it('BAĞLANTISI YOK ve pid ÖLÜ ise düşürülür — diş kilitlemez', () => {
     const { calistir } = sahtePsql({ baglanti: 0 });
-    expect(dusur('u', ['uyum_test_9_9'], calistir)).toEqual([]);
+    expect(dusur('u', ['uyum_test_9_9'], calistir).kalan).toEqual([]);
   });
 });
 
@@ -188,6 +223,7 @@ describe('SÜPÜRME UÇTAN UCA (sahte psql) [SIS-IZO-001]', () => {
       .toEqual(['uyum_test_100_1', 'uyum_test_200_2']);
     expect(sonuc.yetim).toEqual(['uyum_test_200_2']);
     expect(sonuc.kalan, 'düşürülemeyen kaldı').toEqual([]);
+    expect(sonuc.olculemedi, 'ölçülemeyen kaldı').toEqual([]);
     expect(kalanlar.has('uyum_test_100_1'), 'CANLI koşumun veritabanı süpürüldü').toBe(true);
     expect(kalanlar.has('uyum_test_sablonu'), 'ŞABLON süpürüldü').toBe(true);
     expect(kalanlar.has('uyum_test_200_2'), 'yetim düşmedi').toBe(false);

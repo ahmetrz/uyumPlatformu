@@ -250,10 +250,16 @@ export function katalogBoslukCumlesi(reg: Reg, b: KatalogBoslugu): string {
       + 'bu ekran hiçbir sürümü kendiliğinden yürürlüğe almaz.';
   }
   if (b.hal === 'arsivde') {
+    /* CÜMLE, EKRANIN AÇTIĞI EYLEMİ SÖYLER. İlk yazım "yeni bir sürüm
+       açılır" diyordu ama ekran `/ice-aktarim`a gönderiyordu — yani
+       kullanıcıyı, maddeleri zaten arşivde duran bir kataloğu İKİNCİ
+       KEZ içe aktarmaya yolluyordu. Bu, R0-20'nin doğduğu cümlenin
+       birebir şeklidir (bağımsız inceleme, PR #51 tur 2). Bugün cümle
+       gerçekten açılan yolu anlatıyor. */
     return `${reg.kod} kataloğunun maddeleri ARŞİVDE: ${b.madde} madde `
       + `${b.etiket} sürümünde duruyor ama o sürüm yürürlükte değil. `
-      + 'Yürürlükteki bir katalog için yeni bir sürüm açılır ve '
-      + 'aktifleştirme kararı insan tarafından verilir.';
+      + 'Yürürlükteki bir katalog, içe aktarımla açılan YENİ bir sürümden '
+      + 'gelir; aktifleştirme kararı insan tarafından verilir.';
   }
   if (b.hal === 'surum_bos') {
     return `${reg.kod} için sürüm açılmış ama içinde madde yok; `

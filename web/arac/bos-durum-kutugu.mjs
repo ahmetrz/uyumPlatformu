@@ -80,6 +80,21 @@
    vakayla ölçülür (`bekci/bos-durum.test.ts`): iki kelimelik kuyruk
    GEÇER — beyan ile ölçüm ayrışırsa kapı kırmızıdır.
 
+   ÜÇÜNCÜ SINIR, AYNI CİNSTEN VE AYNI SEBEPLE AÇIK: üçlü işleçle seçilen
+   ALTERNATİF cümleler tek metinde BİRLEŞTİRİLİR. Her biri tek tümceli
+   üç alternatif, "üç yan tümceli bir cümle" gibi okunur ve ölçütü
+   geçer — oysa kullanıcı bir seferde yalnız BİR dalı görür. Bağımsız
+   inceleme (PR #51, tur 2) bunu doğru işaretledi.
+
+   DAL AYIRMA DENENDİ VE GERİ ALINDI, sebebi ölçüldü: dizeleri ayıran
+   bir bölücü, `?:` alternatiflerini `+` ile bölünmüş TEK cümleden ve
+   cümlenin İÇİNDEKİ tırnaklı ifadeden ayırt edemiyor. Ölçüm: 14 satır
+   kırmızıya dönüyordu ve on dördü de sebebini GERÇEKTEN söyleyen
+   cümlelerdi (ör. `Boş olması "sistemde uyarı yok" demek değildir…`).
+   Doğru cümleyi cezalandıran bir ölçüt, uzunluk eşiğinde olduğu gibi,
+   ölçütü değil kütüğü değiştirir. Ayrım ancak gerçek bir ayrıştırıcıyla
+   yapılabilir; o gelene kadar sınır YAZILI ve vakayla ölçülü.
+
    ── POPÜLASYON TABANI ─────────────────────────────────────────────────
    Sayı raporlayan her kapı bir ölçüm tabanı taşır ve bu kapı da taşır
    (`bos.durum`, `arac/olcum-tabani.json`). Taban testin içine sabit
@@ -94,6 +109,16 @@
 import { readdirSync, readFileSync, writeFileSync } from 'node:fs';
 import path from 'node:path';
 import { sebepBayragi, tabanDogrula, tabanYaz } from './olcum-tabani.mjs';
+
+/** Yorumları ve dize gövdelerini boşlukla değiştirir — "kodda geçiyor"
+    ile "yorumda geçiyor" ayrı şeylerdir. Aynı ayıklama `kapi-farki` ve
+    `olcum-tabani` ölçülerinde de var. */
+export function yorumsuz(kod) {
+  return kod
+    .replace(/\/\*[\s\S]*?\*\//g, ' ')
+    .replace(/(^|[^:])\/\/.*$/gm, '$1')
+    .replace(/'[^'\\\n]*'|"[^"\\\n]*"/g, "''");
+}
 
 const KOK = process.cwd();
 const TARANAN = ['app', 'components'];
@@ -196,44 +221,82 @@ export function dosyalar() {
 }
 
 /** `<p className="bos…">…</p>` / `<span …>` gövdelerini çıkarır.
-    İç içe aynı etiket sayılır; kapanışı bulamazsa satır atlanmaz —
-    gövde dosyanın sonuna kadar alınır ve cümle boş çıkarsa zaten
-    kütüğe girmez. */
+
+    İKİ KUSUR ÖLÇÜLDÜ VE KAPATILDI (bağımsız inceleme, PR #51 tur 2):
+
+    1. `className` İLK ÖZNİTELİK OLMAK ZORUNDA DEĞİL. Eski kalıp
+       `<p className="bos">` istiyordu; `<p id="a" className="bos">`
+       kütüğe HİÇ GİRMİYORDU — bir öznitelik eklemek boş durumu kapıdan
+       tümüyle gizliyordu.
+    2. KENDİ KENDİNİ KAPATAN aynı etiket (`<p … />`) derinlik sayılıyor,
+       kapanışı hiç gelmiyor ve gövde DOSYA SONUNA kadar uzuyordu —
+       sonraki bir `<Link>` yüzünden eylemsiz bir boş durum sessizce
+       "eylemli" görünebilirdi.
+
+    Kapanış bulunamazsa gövde EOF'a UZATILMAZ: satır `kapanissiz`
+    işaretlenir ve kütüğe öyle girer — okunamayan bir satır sessizce
+    düşmez (körlük sıfır kusur diye raporlanmaz). */
 export function satirIciBul(kod) {
   const cikan = [];
-  const kalip = /<(p|span)\s+className="bos([^"]*)"\s*>/g;
+  const kalip = /<(p|span)\b[^>]*?\bclassName="bos([^"]*)"[^>]*?>/g;
   let m;
   while ((m = kalip.exec(kod)) !== null) {
+    if (m[0].endsWith('/>')) continue;            /* kendi kendini kapatan açılış */
     const etiket = m[1];
-    const ac = new RegExp(`<${etiket}[\\s>]`, 'g');
+    /* Kendi kendini kapatan aynı etiket DERİNLİK SAYMAZ. */
+    const ac = new RegExp(`<${etiket}\\b[^>]*?>`, 'g');
     const kapa = new RegExp(`</${etiket}>`, 'g');
     let i = m.index + m[0].length;
     let derinlik = 1;
+    let kapanissiz = false;
     while (derinlik > 0 && i < kod.length) {
       ac.lastIndex = i; kapa.lastIndex = i;
       const a = ac.exec(kod); const k = kapa.exec(kod);
-      if (!k) { i = kod.length; break; }
-      if (a && a.index < k.index) { derinlik += 1; i = a.index + a[0].length; continue; }
+      if (!k) { kapanissiz = true; break; }
+      if (a && a.index < k.index) {
+        if (!a[0].endsWith('/>')) derinlik += 1;   /* yalnız GERÇEK açılış */
+        i = a.index + a[0].length;
+        continue;
+      }
       derinlik -= 1; i = k.index + k[0].length;
     }
     cikan.push({
       konum: m.index,
       sinif: `bos${m[2]}`,
-      govde: kod.slice(m.index + m[0].length, i),
+      kapanissiz,
+      govde: kapanissiz ? '' : kod.slice(m.index + m[0].length, i),
     });
   }
   return cikan;
 }
 
-/** Bir JSX ifadesi SEÇİM mi (yalnız dize seçen bir ifade) yoksa
-    HESAP mı (çağrı, alan erişimi, aritmetik)? Seçimse cümle oradadır ve
-    okunmalıdır: `{secili ? 'bağlı kayıt yok' : 'kayıt yok'}` bir boş
-    durum cümlesidir, `{t(sozluk, 'tesis')}` ise bir terim yerleşimidir.
-    Ayrım YAPISALDIR: seçimde dizelerin dışında yalnız koşul işleçleri
-    ve boşluk kalır. */
+/** Bir JSX ifadesi SEÇİM mi (dize seçen bir ifade) yoksa HESAP mı
+    (çağrı, şablon, aritmetik)? Seçimse cümle oradadır ve okunmalıdır:
+    `{secili ? 'bağlı kayıt yok' : 'kayıt yok'}` bir boş durum
+    cümlesidir, `{t(sozluk, 'tesis')}` ise bir terim yerleşimidir.
+
+    Ayrım YAPISALDIR ve KARŞILAŞTIRMA İŞLEÇLERİ SEÇİMİ BOZMAZ. İlk
+    yazım `=== !== > <` gören her ifadeyi "hesap" sayıyordu ve bağımsız
+    inceleme (PR #51, tur 2) bunun envanter ekranının BİRİNCİL boşluğunu
+    kütükten tümüyle düşürdüğünü ölçtü:
+
+      {filtreAktif ? '…' : varliklar.length === 0 ? '…' : '…'}
+
+    Yani "gerçek evren 94" kör bir sayıydı. Bugün elenen şey işleç
+    değil, YAN ETKİ/ÇAĞRI: bir ifade dizeleri, koşul ve karşılaştırma
+    işleçlerini, tanımlayıcıları ve sayıları çıkardıktan sonra boşsa
+    seçimdir. `f(x)` çağrısının parantezi boşalmaz çünkü `(` `)`
+    işleçleri çıkarılırken çağrının kendisi bir tanımlayıcı+parantez
+    dizisidir — bu yüzden çağrı ayrı bir kalıpla elenir. */
+const CAGRI = /[A-Za-zÇĞİÖŞÜçğıöşü_$][A-Za-zÇĞİÖŞÜçğıöşü0-9_$.]*\s*\(/;
+
 export function ifadeSecim(ifade) {
+  if (CAGRI.test(ifade)) return false;          /* çağrı → hesap */
+  if (/\$\{/.test(ifade)) return false;          /* şablon → hesap */
   const kalan = ifade.replace(/'[^'\\]*'|"[^"\\]*"|`[^`\\]*`/g, '')
-    .replace(/[?:()&|!\s]/g, '').replace(/[A-Za-zÇĞİÖŞÜçğıöşü0-9_.]+/g, '');
+    .replace(/[=!<>]=?=?|&&|\|\|/g, '')          /* karşılaştırma · mantık */
+    .replace(/[?:()&|!\s,]/g, '')
+    .replace(/[A-Za-zÇĞİÖŞÜçğıöşü0-9_.$]+/g, '');
   return kalan === '' && /['"`]/.test(ifade);
 }
 
@@ -267,8 +330,13 @@ export function bosFiltreSatiri(hepsi) {
   const cumle = satirIciMetin(
     (/<p className="cumle">([\s\S]*?)<\/p>/.exec(govde) ?? [, ''])[1]);
   if (!cumle) return null;
-  const cagri = hepsi.reduce(
-    (t, d) => t + (d.kod.match(/<BosFiltre[\s/>]/g) ?? []).length, 0);
+  /* ÇAĞRI SAYIMI GERÇEK EKRANLARI SAYAR. Bileşen GALERİSİ bir ekran
+     boşluğu değil, vitrindir; yorum ve dize içindeki geçişler de çağrı
+     değildir (bağımsız inceleme, PR #51 tur 2) — arketip düzeltmesinin
+     etkisi bir fazla raporlanıyordu. */
+  const cagri = hepsi
+    .filter((d) => !/\/bilesenler\//.test(d.yer))
+    .reduce((t, d) => t + (yorumsuz(d.kod).match(/<BosFiltre[\s/>]/g) ?? []).length, 0);
   return {
     yer: tanimlayan.yer,
     satir: tanimlayan.kod.slice(0, bas).split('\n').length,
@@ -281,6 +349,29 @@ export function bosFiltreSatiri(hepsi) {
   };
 }
 
+/** Bir satır içi gövdeyi kütük satırına çevirir — SAF ve tek başına
+    sınanabilir. Ayrı durmasının sebebi ölçüldü (sabotaj S101, PR #51
+    tur 2): "okunamayan gövde sessizce düşmez" güvencesinin depoda CANLI
+    bir örneği yok (`ifadeSecim` düzeltildikten sonra her gövde okunuyor),
+    yani sabotaj kırmızı yakamıyordu. Güvence GELECEK bir hâle karşıdır
+    ve ancak sentetik bir vakayla ölçülebilir. */
+export function satirIciKaydi(yer, satir, c) {
+  const metin = satirIciMetin(c.govde);
+  const okunamadi = !metin || metin === '…';
+  const iyiHaber = /\biyi\b/.test(c.sinif);
+  return {
+    yer,
+    satir,
+    tur: 'satirIci',
+    cumle: okunamadi
+      ? `«okunamadı» ${String(c.govde).replace(/\s+/g, ' ').trim().slice(0, 260)}`
+      : metin.slice(0, 300),
+    iyiHaber,
+    neden: okunamadi ? false : nedenSoyluyor(metin),
+    eylem: iyiHaber || satirIciEylem(c.govde),
+  };
+}
+
 export function turet() {
   const cikan = [];
   const hepsi = dosyalar();
@@ -290,19 +381,11 @@ export function turet() {
     /* Satır içi yüzey: `<p className="bos">` / `<span className="bos">`.
        `bos iyi` sınıfı BEKLENEN YOKLUK demektir ve eylem istemez —
        bayrak koddan gelir, kütükten değil. */
+    /* GÖVDE SESSİZCE DÜŞÜRÜLMEZ. Metni okunamayan bir boş durum kütükten
+       çıkarsa körlük SIFIR KUSUR diye raporlanır — tur 2'nin bulduğu
+       kusur tam olarak buydu. Karar `satirIciKaydi`de ve saf. */
     for (const c of satirIciBul(kod)) {
-      const metin = satirIciMetin(c.govde);
-      if (!metin || metin === '…') continue;
-      const iyiHaber = /\biyi\b/.test(c.sinif);
-      cikan.push({
-        yer: rel,
-        satir: kod.slice(0, c.konum).split('\n').length,
-        tur: 'satirIci',
-        cumle: metin.slice(0, 300),
-        iyiHaber,
-        neden: nedenSoyluyor(metin),
-        eylem: iyiHaber || satirIciEylem(c.govde),
-      });
+      cikan.push(satirIciKaydi(rel, kod.slice(0, c.konum).split('\n').length, c));
     }
     if (!kod.includes('<BosIlk')) continue;
     {
@@ -346,7 +429,17 @@ export function sinifTavanlari(bulunan) {
   const t = {};
   for (const s of SINIFLAR) {
     const k = bulunan.filter((b) => b.tur === s);
-    t[s] = { nedensiz: k.filter((b) => !b.neden).length, eylemsiz: k.filter((b) => !b.eylem).length };
+    t[s] = {
+      nedensiz: k.filter((b) => !b.neden).length,
+      eylemsiz: k.filter((b) => !b.eylem).length,
+      /* İYİ HABER de bir TAVANDIR. Bayrak `eylem`i otomatik doğru
+         yapıyor: eylemsiz bir boş duruma `iyiHaber` eklemek, sıfır
+         tavanı sahipsiz ve gerekçesiz aşmanın en ucuz yoluydu ve
+         kütükte hiçbir iz bırakmıyordu (bağımsız inceleme, PR #51
+         tur 2). Sayılınca cırcıra girer: yalnız küçülür, yükselişi
+         `tavanGerekceleri`nde anlatılır — beşinci dişin aynısı. */
+      iyiHaber: k.filter((b) => b.iyiHaber).length,
+    };
   }
   return t;
 }

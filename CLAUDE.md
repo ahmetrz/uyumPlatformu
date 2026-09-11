@@ -282,8 +282,18 @@ iyi"`), kütükten değil.
 tur 1) evrenin ~%62'sinin görülmediğini ölçtü — `<BosFiltre />` ve satır
 içi `className="bos"` metinleri kütükte HİÇ YOKTU, üstelik kuralın
 doğduğu `/tesisler` örneği de oradaydı. Ölçüm 73/74 diye raporlanmıştı;
-gerçeği **82/94**. Türetici körse cırcır, GÖREBİLDİĞİ kadarını sıfır
-kusur diye raporlar (aynı sınıf #50'de de çıkmıştı).
+türetici genişletilince **82/94** çıktı — ve o da yanlıştı: ikinci tur,
+karşılaştırma işleci taşıyan bir seçim ifadesinin (`{a ? '…' : v.length
+=== 0 ? '…' : '…'}`) "hesap" sayılıp satırın TÜMÜYLE düşürüldüğünü
+ölçtü. Gerçeği **82/95**. Türetici körse cırcır, GÖREBİLDİĞİ kadarını
+sıfır kusur diye raporlar (aynı sınıf #50'de de, #51'in İKİ TURUNDA da
+çıktı) — ve körlük düzeltilirken açılan ikinci körlük, ilkinden daha
+sessizdir.
+
+**OKUNAMAYAN SATIR SESSİZCE DÜŞMEZ.** Türeticinin metnini okuyamadığı
+bir boş durum kütükten çıkarsa körlük sıfır kusura dönüşür. Bugün böyle
+bir satır kütüğe İŞARETLİ girer (`«okunamadı»`), `neden` false sayılır
+ve cırcıra dâhil olur.
 
 Tek toplam tavan yetmez — sıkı bir sınıfın borcunu gevşek bir sınıfın
 düzelmesiyle takas ettirir. Bugün her sınıfın kendi tavanı vardır:

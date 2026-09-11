@@ -122,6 +122,17 @@ export function artikAdlari(url, calistir = psql) {
   return cikti.split('\n').map((s) => s.trim()).filter((s) => s && sahipPid(s) !== null);
 }
 
+/** Ad güvencesi ÇAĞIRANDA DEĞİL, FONKSİYON SINIRINDA. Bugün tek çağrı
+    yolu `artikAdlari` süzgecinden geçiyor ve güvenli — ama iki fonksiyon
+    da `export` ve yarın başka bir çağrı (ya da bir test yardımcısı) o
+    süzgeçten geçmeyebilir (bağımsız inceleme, PR #51 tur 2). Kalıp zaten
+    modülde; güvence onun yanında durmalı. */
+function adiDogrula(ad) {
+  if (!ARTIK_KALIBI.test(ad)) {
+    throw new ArtikHatasi(`artık kalıbına uymayan ad reddedildi: ${JSON.stringify(ad)}`);
+  }
+}
+
 /**
  * Veritabanına AÇIK OTURUM var mı?
  *
@@ -130,6 +141,7 @@ export function artikAdlari(url, calistir = psql) {
  * koşum sürüyorsa işçisinin veritabanına bağlıdır.
  */
 export function baglantiVar(url, ad, calistir = psql) {
+  adiDogrula(ad);
   const s = calistir(url,
     `SELECT count(*) FROM pg_stat_activity WHERE datname = '${ad}'`);
   return Number(s) > 0;
@@ -143,18 +155,30 @@ export function baglantiVar(url, ad, calistir = psql) {
  * KULLANIMDAKİ veritabanı DÜŞÜRÜLMEZ: `kalan`a yazılır ve bir sonraki
  * tura kalır. Bu bir başarısızlık değil, ikinci diştir — ad alanı farkı
  * yüzünden yetim SANILAN canlı bir koşum burada kurtulur.
+ *
+ * DÖNÜŞ İKİ LİSTEDİR: `kalan` (düşmedi) ve `olculemedi` (ölçüm aracı
+ * cevap vermedi). İkisi aynı şey değildir ve aynı kovaya atılmaları
+ * `sizintiKarari`nin ayırdığı üç hâli geri birleştirirdi.
  */
 export function dusur(url, adlar, calistir = psql, baglantiliMi = baglantiVar) {
   const kalan = [];
+  const olculemedi = [];
   for (const ad of adlar) {
     try {
+      adiDogrula(ad);
       if (baglantiliMi(url, ad, calistir)) { kalan.push(ad); continue; }
       calistir(url, `DROP DATABASE IF EXISTS "${ad}"`);
       const sayi = calistir(url, `SELECT count(*) FROM pg_database WHERE datname = '${ad}'`);
       if (sayi !== '0') kalan.push(ad);
-    } catch { kalan.push(ad); }
+    } catch (e) {
+      /* "ÖLÇEMEDİM" İLE "DÜŞMEDİ" AYRI ŞEYLERDİR. Kör bir `catch`,
+         `psql`in geçici bir hatasını da gerçek bir DROP reddini de aynı
+         kovaya atıyordu ve `sizintiKarari`nin özenle ayırdığı üç hâl
+         burada geri birleşiyordu (bağımsız inceleme, PR #51 tur 2). */
+      if (e instanceof ArtikHatasi) olculemedi.push(ad); else kalan.push(ad);
+    }
   }
-  return kalan;
+  return { kalan, olculemedi };
 }
 
 /** Yetimleri süpürür. Döndürdüğü `kalan` boş değilse temizlik KIRIKTIR. */
@@ -162,7 +186,8 @@ export function yetimleriSupur(url, calistir = psql, yasiyorMu = sahipYasiyor,
   baglantiliMi = baglantiVar) {
   const hepsi = artikAdlari(url, calistir);
   const yetim = yetimleriSec(hepsi, yasiyorMu);
-  return { hepsi, yetim, kalan: dusur(url, yetim, calistir, baglantiliMi) };
+  const d = dusur(url, yetim, calistir, baglantiliMi);
+  return { hepsi, yetim, kalan: d.kalan, olculemedi: d.olculemedi };
 }
 
 /**
@@ -216,12 +241,17 @@ if (process.argv[1] && /pg-artik\.mjs$/.test(process.argv[1])) {
       console.log(`test veritabanı: ${hepsi.length} · yetim: ${yetim.length}`);
       process.exit(0);
     }
-    const kalan = dusur(url, yetim);
-    console.log(`süpürüldü: ${yetim.length - kalan.length} · yetim: ${yetim.length} · toplam: ${hepsi.length}`);
+    const { kalan, olculemedi } = dusur(url, yetim);
+    console.log(`süpürüldü: ${yetim.length - kalan.length - olculemedi.length} `
+      + `· yetim: ${yetim.length} · toplam: ${hepsi.length}`);
+    if (olculemedi.length > 0) {
+      console.error(`ÖLÇÜLMEDİ: ${olculemedi.length} veritabanı için ölçüm aracı `
+        + `cevap vermedi: ${olculemedi.join(', ')}`);
+    }
     if (kalan.length > 0) {
       console.error(`TEMİZLİK KIRIK: düşürülemeyen ${kalan.length} veritabanı: ${kalan.join(', ')}`);
-      process.exit(1);
     }
+    if (kalan.length > 0 || olculemedi.length > 0) process.exit(1);
   } catch (e) {
     const olculemedi = e instanceof ArtikHatasi;
     console.error(`${olculemedi ? 'ÖLÇÜLMEDİ' : 'ARTIK SÜPÜRMESİ DÜŞTÜ'}: `

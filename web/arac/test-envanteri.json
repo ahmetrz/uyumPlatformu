@@ -1,7 +1,7 @@
 {
-  "imza": "71d3dd79813c9fc1cc8d03c346d02d79",
-  "dosya": 236,
-  "vaka": 4249,
+  "imza": "88838e83fde1bc15848c26650c872450",
+  "dosya": 238,
+  "vaka": 4259,
   "atlanan": 1,
   "dosyalar": {
     "tests/adaptor-yetenekleri.test.ts": {
@@ -45,7 +45,7 @@
       "atlanan": 0
     },
     "tests/bekci/bos-durum.test.ts": {
-      "vaka": 21,
+      "vaka": 22,
       "atlanan": 0
     },
     "tests/bekci/cekirdek-taban.test.ts": {
@@ -112,6 +112,10 @@
       "vaka": 5,
       "atlanan": 0
     },
+    "tests/bekci/sabotaj-kacagi.test.ts": {
+      "vaka": 3,
+      "atlanan": 0
+    },
     "tests/bekci/sektor-terimi.test.ts": {
       "vaka": 12,
       "atlanan": 0
@@ -126,6 +130,10 @@
     },
     "tests/bekci/terim-dogrulama.test.ts": {
       "vaka": 21,
+      "atlanan": 0
+    },
+    "tests/bekci/yumusak-silme-sayimi.test.ts": {
+      "vaka": 4,
       "atlanan": 0
     },
     "tests/belge-sayimlari.test.ts": {
@@ -685,7 +693,7 @@
       "atlanan": 0
     },
     "tests/pg-artik.test.ts": {
-      "vaka": 16,
+      "vaka": 18,
       "atlanan": 0
     },
     "tests/pg-gocu.test.ts": {

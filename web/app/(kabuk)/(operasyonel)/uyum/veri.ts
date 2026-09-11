@@ -149,7 +149,10 @@ export async function cerceveleriYukle(
              "0 kontrol" diye gösteriyordu — paketin TASLAK kurduğu çerçeve
              boş bir çerçeveden ayırt edilemiyordu (bilinmeyen ≠ sıfır).
              Taslağın madde sayısı ayrıca sayılır; matrise girmez. */
-          surumler: { where: { durum: { in: ['aktif', 'taslak'] } }, orderBy: { olusturuldu: 'desc' }, include: { _count: { select: { maddeler: true } } } },
+          /* Taslağın madde sayısı ekrana "N madde, aktifleştirme bekliyor"
+             diye çıkar; süzgeçsiz `_count` yumuşak silinmişleri de sayar
+             ve sayı ŞİŞER (bağımsız inceleme, PR #51 tur 2). */
+          surumler: { where: { durum: { in: ['aktif', 'taslak'] } }, orderBy: { olusturuldu: 'desc' }, include: { _count: { select: { maddeler: { where: { silindi: null } } } } } },
         },
       }),
       db.tesis.findMany({

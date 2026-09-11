@@ -1476,6 +1476,36 @@ export const PLATFORM_SENARYOLARI_6: Senaryo[] = [
     katmanlar: ['MIGRATION', 'CONCURRENCY'],
   },
   {
+    id: 'SIS-SAB-001', alan: 'Sistem', rota: '—', eksen: 'veri',
+    amac: 'Sabotaj turunda kaldırılan iddianın GERİ KONDUĞUNUN ölçülmesi',
+    rol: 'geliştirici', kapsam: 'depo',
+    onkosul: 'Sabotaj turu koşuldu; bir iddia geçici olarak kaldırıldı',
+    veriHali: 'yok',
+    eylem: 'İzlenen kaynak dosyalar sabotaj işareti için taranır',
+    beklenenSonuc: 'Tek başına bir ifadenin YERİNE geçmiş "sabotaj" yorumu '
+      + 'hiçbir izlenen dosyada kalmaz; sabotaj sözcüğünü ANLATAN yorumlar '
+      + 'yakalanmaz (gürültüye boğulan bekçi susturulur).',
+    beklenenEkran: 'Kalan işaret dosya ve satırıyla yazılır',
+    beklenenIz: 'yazma yok — ölçüm git kapsamını okur',
+    beklenenBildirim: 'yok',
+    katmanlar: ['DOMAIN'],
+  },
+  {
+    id: 'SIS-SIL-001', alan: 'Sistem', rota: '—', eksen: 'veri',
+    amac: 'Yumuşak silinmiş maddenin SAYIMA girmemesi — sayı ile liste ayrışmaz',
+    rol: 'uyum sorumlusu', kapsam: 'kurum geneli',
+    onkosul: 'Bir sürümün maddeleri yumuşak silinmiş (`silindi` dolu)',
+    veriHali: 'kısmi',
+    eylem: 'Madde sayan her `_count` bloğu taranır',
+    beklenenSonuc: 'Her sayım `where: { silindi: null }` taşır. Taşımayan bir '
+      + 'sayım, ekranın boşluk cümlesini ve "madde içe aktarılmadı" kararını '
+      + 'YANLIŞ tarafa çevirir: silinmiş ≠ var.',
+    beklenenEkran: 'Süzgeçsiz sayım dosya ve blok olarak yazılır',
+    beklenenIz: 'yazma yok',
+    beklenenBildirim: 'yok',
+    katmanlar: ['DOMAIN', 'UI'],
+  },
+  {
     id: 'SIS-TAB-001', alan: 'Sistem', rota: '—', eksen: 'veri',
     amac: 'Ölçüm tabanının ELLE indirilememesi — cırcır yalnız sıkılaşır',
     rol: 'geliştirici', kapsam: 'depo',

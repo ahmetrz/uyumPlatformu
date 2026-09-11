@@ -4,7 +4,8 @@ import { existsSync, readFileSync } from 'node:fs';
 import path from 'node:path';
 import {
   SINIFLAR, bosFiltreSatiri, cumleMetni, dosyalar, ifadeSecim, nedenSoyluyor,
-  ozellik, satirIciBul, satirIciEylem, satirIciMetin, sinifTavanlari, turet,
+  ozellik, satirIciBul, satirIciEylem, satirIciKaydi, satirIciMetin,
+  sinifTavanlari, turet,
 } from '../../arac/bos-durum-kutugu.mjs';
 import { tabanKarari, tabanOku } from '../../arac/olcum-tabani.mjs';
 import { tabanDalKarari } from '../../arac/taban-dal.mjs';
@@ -48,7 +49,7 @@ type Satir = {
   yer: string; satir: number; tur: string; cumle: string;
   iyiHaber: boolean; neden: boolean; eylem: boolean;
 };
-type SinifTavani = { nedensiz: number; eylemsiz: number };
+type SinifTavani = { nedensiz: number; eylemsiz: number; iyiHaber: number };
 type Kutuk = {
   tavanlar: SinifTavani;
   sinifTavanlari?: Record<string, SinifTavani>;
@@ -145,10 +146,10 @@ describe('İKİ ÖLÇÜT ve CIRCIR [SIS-BSD-001]', () => {
     for (const s of SINIFLAR) {
       const b = beyan[s];
       if (!b) { kusur.push(`${s}: sınıf tavanı beyan edilmemiş`); continue; }
-      for (const alan of ['nedensiz', 'eylemsiz'] as const) {
+      for (const alan of ['nedensiz', 'eylemsiz', 'iyiHaber'] as const) {
         const olculen = olculenSinif[s][alan];
-        if (olculen > b[alan]) kusur.push(`${s}.${alan}: ölçülen ${olculen} > tavan ${b[alan]}`);
-        if (b[alan] > olculen) kusur.push(`${s}.${alan}: tavan ${b[alan]} ölçülenin (${olculen}) ÜSTÜNDE`);
+        if (olculen > (b[alan] ?? -1)) kusur.push(`${s}.${alan}: ölçülen ${olculen} > tavan ${b[alan]}`);
+        if ((b[alan] ?? -1) > olculen) kusur.push(`${s}.${alan}: tavan ${b[alan]} ölçülenin (${olculen}) ÜSTÜNDE`);
       }
     }
     expect(kusur, kusur.join('\n')).toEqual([]);
@@ -253,12 +254,19 @@ describe('İKİ ÖLÇÜT ve CIRCIR [SIS-BSD-001]', () => {
     /* SINIF BAŞINA da küçülür: toplam düşerken bir sınıf gevşeyemez. */
     const tabanSinif = taban.sinifTavanlari ?? {};
     for (const s of SINIFLAR) {
-      const t = tabanSinif[s];
-      if (!t) continue; /* sınıf tabanda yoktu — yeni yüzey */
-      for (const alan of ['nedensiz', 'eylemsiz'] as const) {
+      /* YENİ SINIF MUAF DEĞİLDİR. Eski hâl `if (!t) continue` diyordu ve
+         sınıf tavanının kapatmak için yazıldığı takası yeni sınıf
+         üzerinden geri açıyordu (bağımsız inceleme, PR #51 tur 2): on
+         bir eylemsiz satır yeni bir `tur`a taşınır, eski sınıf 11 → 0
+         iner (cırcır mutlu), yeni sınıf muaf. Bugün tabanda olmayan bir
+         sınıfın tavanı SIFIR varsayılır — R-F ekinin "yeni satırın
+         varsayılanı ölçülüdür" kuralının bu kütükteki karşılığı. */
+      const t = tabanSinif[s] ?? { nedensiz: 0, eylemsiz: 0, iyiHaber: 0 };
+      for (const alan of ['nedensiz', 'eylemsiz', 'iyiHaber'] as const) {
         expect(olculenSinif[s][alan],
-          `${s}.${alan}: ${t[alan]} → ${olculenSinif[s][alan]} — sınıf tavanı BÜYÜYEMEZ`)
-          .toBeLessThanOrEqual(t[alan]);
+          `${s}.${alan}: ${t[alan] ?? 0} → ${olculenSinif[s][alan]} — sınıf tavanı BÜYÜYEMEZ`
+          + (tabanSinif[s] ? '' : ' (sınıf tabanda YOK: varsayılan tavan SIFIR)'))
+          .toBeLessThanOrEqual(t[alan] ?? 0);
       }
     }
   });
@@ -365,6 +373,41 @@ describe('ÖLÇÜTÜN KENDİ YÜRÜYÜŞÜ [SIS-BSD-001]', () => {
     expect(tabanDalKarari(true, '{ bozuk').hal, 'bozuk JSON "temiz" sayıldı')
       .toBe('olculemedi');
     expect(tabanDalKarari(true, '{ bozuk').sebep, 'sebep yazılmamış').toMatch(/bozuk/);
+    /* ── SABOTAJ BULGUSU (R-E · PR #51, tur 2) ────────────────────────
+       Biçim dişini kaldıran sabotaj (S105) KIRMIZI YAKMADI: diş
+       eklenmişti ama VAKASI YOKTU. GEÇERLİ ama YANLIŞ BİÇİM bir JSON
+       (`null` · `"x"` · `[]`) "okundu" sayılıyor, çağıran
+       `belge.tavanlar` deyince ham bir tip hatasıyla düşüyordu —
+       kırmızı yanıyordu ama "ÖLÇÜLEMEDİ (sebep)" demiyordu, yani
+       modülün var oluş gerekçesi o dalda çalışmıyordu. */
+    for (const ham of ['null', '"x"', '[]', '3']) {
+      expect(tabanDalKarari(true, ham).hal, `biçimi yanlış JSON "okundu" sayıldı: ${ham}`)
+        .toBe('olculemedi');
+    }
+    expect(tabanDalKarari(true, '[]').sebep, 'sebep biçimi anlatmıyor').toMatch(/NESNE değil/);
+    /* Doğru biçim yine geçer — diş her şeyi reddetmiyor. */
+    expect(tabanDalKarari(true, '{"tavanlar":{}}').hal).toBe('okundu');
+  });
+
+  it('OKUNAMAYAN gövde SESSİZCE DÜŞMEZ — kütüğe işaretli girer [SIS-BSD-001]', () => {
+    /* ── SABOTAJ BULGUSU (R-E · PR #51, tur 2) ────────────────────────
+       Sessiz düşürmeyi geri getiren sabotaj (S101) KIRMIZI YAKMADI ve
+       sebebi ölçüldü: `ifadeSecim` düzeltildikten sonra depoda okunamayan
+       GÖVDE KALMADI, yani sabotajın geri getireceği bir kusur yoktu.
+       Güvence GELECEK bir hâle karşıdır; canlı örneği olmayan bir
+       güvence ancak SENTETİK bir vakayla ölçülebilir — yoksa "kapı var"
+       demek, hiçbir şeye bakmadan temiz raporlamaktır. */
+    const okunamaz = satirIciBul('<p className="bos">{hesapla(x)}</p>')[0];
+    const k = satirIciKaydi('app/x.tsx', 7, okunamaz) as Satir;
+    expect(k, 'okunamayan gövde kütükten DÜŞTÜ').toBeTruthy();
+    expect(k.cumle, 'okunamayan satır işaretsiz girdi').toMatch(/^«okunamadı»/);
+    expect(k.neden, 'cümlesi okunamayan satır "sebebini söylüyor" sayıldı').toBe(false);
+
+    /* Okunabilen gövde işaretlenmez — diş her şeyi işaretlemiyor. */
+    const okunur = satirIciBul('<p className="bos">Kayıt yok; süzgeç eledi.</p>')[0];
+    const k2 = satirIciKaydi('app/x.tsx', 9, okunur) as Satir;
+    expect(k2.cumle).toBe('Kayıt yok; süzgeç eledi.');
+    expect(k2.neden).toBe(true);
   });
 
   it('BosFiltre TANIM satırı okunur ve ÇAĞRI sayısı gerçektir [SIS-BSD-001]', () => {

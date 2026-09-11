@@ -261,10 +261,19 @@ fonksiyondadır (`yeniSatirKusurlari`) ve sentetik kütüklerle sınanır —
 sabotaj kuralı sabote eder, ölçüm ortamını değil.
 
 **BUGÜN İSTİSNA YOLU KAPALIDIR — borç SIFIRDA KİLİTLİ (R-F eki 2).**
-11 Eylül 2026'da borcun üçü de sıfırlandı: ölçüldü **216 kütük satırı ·
-208'i POLITIKA (S1 85 · S2 60 · S3 63) · ölçülmeyen 0 ·
-SINIFLANDIRILMADI 0**; sekiz satır `IDDIA_DEGIL` olarak gerekçesiyle
-beyanlı ve o kaçış kapısı da cırcırdadır. Sıfıra inen bir
+11 Eylül 2026'da borcun üçü de sıfırlandı: ölçüldü **220 kütük satırı ·
+213'ü POLITIKA (S1 82 · S2 63 · S3 68) · ölçülmeyen 0 ·
+SINIFLANDIRILMADI 0**; yedi satır `IDDIA_DEGIL` olarak gerekçesiyle
+beyanlı ve o kaçış kapısı da cırcırdadır — üç dişle: tabanda POLITIKA
+olan satır bu dalda IDDIA_DEGIL'e çekilemez, yeni bir IDDIA_DEGIL
+gerekçesini kusur asgarisi kadar uzun yazar ve **cümlesi S1 TÜRETEN
+yeni bir satır IDDIA_DEGIL OLAMAZ**. Üçüncü diş düzeltme turunda
+eklendi ve kütükte gerçek bir satır yaktı: giriş ekranının tanıtım
+satırı 209 karakterlik bir gerekçeyle `IDDIA_DEGIL` girmişti, cümlesi
+S1 türetiyordu ve altıncı dişin "S1'de gerekçeli istisna kabul edilmez"
+kuralı `sinif === 'POLITIKA'` süzgecinin ARKASINDA durduğu için satır
+dişin önüne hiç gelmiyordu. Yani kilit bir SAYI değil bir ETİKET
+değiştirilerek geçilebiliyordu. Sıfıra inen bir
 borç için "yalnız küçülür" YETMEZ — yarın eklenen ölçüsüz bir cümle
 tavanı 0'dan 1'e çıkarır ve öbür dişler bunu "tavan ölçülene eşit" diye
 GEÇİRİR. Yedinci diş bu yüzden mutlaktır: `olculmedi` taşıyan tek bir
@@ -343,10 +352,15 @@ içine sabit yazılmış bir taban, arada sessiz bir daralma penceresi
 bırakır.
 
 **ÜÇ SINIFTA DA EYLEMSİZ SAYISI SIFIRDA KİLİTLİ (R-G eki).** 11 Eylül
-2026'da `satirIci` borcu da kapandı: ölçüldü **126 boş durum · 125'i iki
+2026'da `satirIci` borcu da kapandı: ölçüldü **125 boş durum · 124'ü iki
 ölçütü de karşılıyor · eylemsiz 0 · nedensiz 1** (tek nedensiz satır
 hesaplanan bir cümledir ve ölçümünü adıyla beyan ederek istisna
-listesinde durur). `satirIci` için yazılı olan "sahibi ile kapanış
+listesinde durur). Sınıf dağılımı: `BosIlk` 74 · `BosFiltre` 1 ·
+`satirIci` 48 · `kosullu` 2. Popülasyon 126'dan 125'e İNDİ ve sebebi
+`olcum-tabani.json`a işlendi: paylaşılan `VeriTablosu` artık KENDİ boş
+durumunu yazmıyor — sebebini bilmediği bir boşluğa cümle uyduruyor ve
+hiçbir çağıranın doldurmadığı bir `bosEylem` yuvası taşıyordu
+(düzeltme turu · P1-2). `satirIci` için yazılı olan "sahibi ile kapanış
 aşaması" yolu artık TARİHTİR: borç sıfırlandığı için kütükte sahipli
 bir erteleme satırı yoktur ve yenisi açılamaz — eylemsiz bir boş durum,
 sınıfı ne olursa olsun kapıyı KIRMIZI yakar

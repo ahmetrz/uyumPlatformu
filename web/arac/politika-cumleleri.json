@@ -198,17 +198,6 @@
       }
     },
     {
-      "kod": "POL-081",
-      "cumle": "Anahtar iptal edilmiş; kapsamı değiştirilemez.",
-      "yer": "lib/eylemler2/apiAnahtari.ts",
-      "sinif": "POLITIKA",
-      "sonucSinifi": "S1",
-      "olcum": {
-        "dosya": "tests/politika-eylem-kapsami.test.ts",
-        "vaka": "iptalli anahtarda kapsam güncellemesi REDDEDİLİR, kapsam AYNI kalır"
-      }
-    },
-    {
       "kod": "POL-204",
       "cumle": "Anahtar kendi ROLÜNÜ taşımaz: adına çalışır ve onun rol/kapsam yetkileriyle sınırlıdır. Sahibin yetkisi daralınca anahtarınki de daralır; sahip pasifleşirse anahtar 401 döner.",
       "yer": "app/(kabuk)/(operasyonel)/yonetim-tezgahi/TezgahIstemci.tsx",
@@ -239,6 +228,17 @@
       "olcum": {
         "dosya": "tests/politika-pasif-once.test.ts",
         "vaka": "anlık görüntü motoru ağa HİÇ paket göndermez"
+      }
+    },
+    {
+      "kod": "POL-239",
+      "cumle": "Aydınlatma metni ÜRETİLMEZ: metin kurumun hukuki beyanıdır ve ürün kurumun adına beyanda bulunmaz.",
+      "yer": "app/(kabuk)/(operasyonel)/kisisel-veri/VeriKorumaIstemci.tsx",
+      "sinif": "POLITIKA",
+      "sonucSinifi": "S3",
+      "olcum": {
+        "dosya": "tests/politika-tanik-acilan.test.ts",
+        "vaka": "METİN ÜRETEN bir eylem ya da uç YOKTUR — beyan kurumundur [SIS-POL-002]"
       }
     },
     {
@@ -444,6 +444,17 @@
       "olcum": {
         "dosya": "tests/politika-s1-ekran.test.ts",
         "vaka": "KURALSIZ çerçevede kapsam SÜREÇTEN gelir, uydurulmaz"
+      }
+    },
+    {
+      "kod": "POL-240",
+      "cumle": "Bu dayanak mercie bildirim gerektirmiyor — ürün olmayan bir yükümlülük için tarih istemez.",
+      "yer": "app/(kabuk)/(operasyonel)/kisisel-veri/VeriKorumaIstemci.tsx",
+      "sinif": "POLITIKA",
+      "sonucSinifi": "S3",
+      "olcum": {
+        "dosya": "tests/veri-koruma.test.ts",
+        "vaka": "BİLDİRİM gerektiren dayanak POZİTİF yüklemle seçilir [KVK-ENV-001]"
       }
     },
     {
@@ -708,6 +719,50 @@
       "olcum": {
         "dosya": "tests/politika-s3-ekran.test.ts",
         "vaka": "BİLİNMEYEN EVREN sıfır YAZILMAZ ve satır \"ok\" GÖRÜNMEZ"
+      }
+    },
+    {
+      "kod": "POL-241",
+      "cumle": "Bu ürün ağa paket ATMAZ. Bütün keşif, kurumun zaten çalışan gözlem kaynaklarının çıktısını OKUMAYA dayanır; gerekçe teknik değil emniyettir.",
+      "yer": "app/(kabuk)/(operasyonel)/kesif/KesifIstemci.tsx",
+      "sinif": "POLITIKA",
+      "sonucSinifi": "S1",
+      "olcum": {
+        "dosya": "tests/politika-tanik-acilan.test.ts",
+        "vaka": "KEŞİF ve TOPOLOJİ yolları ağ ilkellerini HİÇ ÇAĞIRMAZ [SIS-POL-002]"
+      }
+    },
+    {
+      "kod": "POL-242",
+      "cumle": "Bu ürün ICS-CERT, üretici PSIRT ya da NVD akışına BAĞLANMAZ. Duyurular elle indirilip buradan yüklenir; korelasyonu zafiyet korelasyon motoru hesaplar.",
+      "yer": "app/(kabuk)/(operasyonel)/tabanlar/TabanlarIstemci.tsx",
+      "sinif": "POLITIKA",
+      "sonucSinifi": "S2",
+      "olcum": {
+        "dosya": "tests/politika-tanik-acilan.test.ts",
+        "vaka": "DUYURU kaydı ELLE açılır; hiçbir motor akıştan duyuru yazmaz [SIS-POL-002]"
+      }
+    },
+    {
+      "kod": "POL-243",
+      "cumle": "Bu ürün OT ağında aktif tarama YAPMAZ. Buraya, başka bir yerde toplanmış gözlem (firewall oturumu, span port dışa aktarımı, switch ARP tablosu) yüklenir. MAC ön eki ve tanınan port imzası türetilir; tanınmayan trafik boş bırakılır.",
+      "yer": "app/(kabuk)/(operasyonel)/kesif/Karar.tsx",
+      "sinif": "POLITIKA",
+      "sonucSinifi": "S3",
+      "olcum": {
+        "dosya": "tests/politika-tanik-acilan.test.ts",
+        "vaka": "KEŞİF ve TOPOLOJİ yolları ağ ilkellerini HİÇ ÇAĞIRMAZ [SIS-POL-002]"
+      }
+    },
+    {
+      "kod": "POL-244",
+      "cumle": "Bu yükümlülüğün raporlama periyodu mevzuatta belirlenmedi ya da paket beyan etmedi. Ürün bir periyot uydurmaz: dönem açılmaz, geri sayım",
+      "yer": "app/(kabuk)/(operasyonel)/raporlar/takvim/TakvimIstemci.tsx",
+      "sinif": "POLITIKA",
+      "sonucSinifi": "S2",
+      "olcum": {
+        "dosya": "tests/bildirim-donemi.test.ts",
+        "vaka": "dönem BOŞSA pencere açılmaz ve ekran mevzuatın hâlini söyler [OLY-BIL-006]"
       }
     },
     {
@@ -1107,6 +1162,17 @@
       }
     },
     {
+      "kod": "POL-245",
+      "cumle": "Envanterde yazan ile sahada görülen AYNI DEĞİL. Ürün envanteri kendiliğinden değiştirmez: hangisinin doğru olduğuna insan karar verir.",
+      "yer": "app/(kabuk)/(operasyonel)/envanter/Durus.tsx",
+      "sinif": "POLITIKA",
+      "sonucSinifi": "S2",
+      "olcum": {
+        "dosya": "tests/politika-tanik-acilan.test.ts",
+        "vaka": "SAHADA GÖRÜLEN duruş, envanter kaydını YAZMAZ [SIS-POL-002]"
+      }
+    },
+    {
       "kod": "POL-034",
       "cumle": "Erişimin sahada kesilmesi için görev açılır; platform kesmez.",
       "yer": "app/(kabuk)/(operasyonel)/tedarikciler/Eylemler.tsx",
@@ -1221,17 +1287,6 @@
       "olcum": {
         "dosya": "tests/politika-s3-ekran.test.ts",
         "vaka": "HAM KAYIT saklanmamışsa bile SEBEP daima okunur — kayıt boşluğu sessiz değil"
-      }
-    },
-    {
-      "kod": "POL-236",
-      "cumle": "harita yalnız aktif kayıtları çizer, pasif olanlar gösterilmez.",
-      "yer": "app/(tam)/harita/HaritaIstemci.tsx",
-      "sinif": "POLITIKA",
-      "sonucSinifi": "S3",
-      "olcum": {
-        "dosya": "tests/politika-tanik-acilan.test.ts",
-        "vaka": "PASİF kayıt haritanın verisine GİRMEZ; aktif girer [SIS-POL-002]"
       }
     },
     {
@@ -1400,17 +1455,6 @@
       }
     },
     {
-      "kod": "POL-050",
-      "cumle": "İz kayıtları değiştirilemez ve silinemez.",
-      "yer": "app/(kabuk)/(operasyonel)/yonetim-tezgahi/KonsolFormlar.tsx",
-      "sinif": "POLITIKA",
-      "olcum": {
-        "dosya": "tests/faz-d-eylem.test.ts",
-        "vaka": "sürüm geçmişi DEĞİŞTİRİLEMEZ ve SİLİNEMEZ"
-      },
-      "sonucSinifi": "S2"
-    },
-    {
       "kod": "POL-235",
       "cumle": "Kapanış bir DOĞRULAMA kapısıdır: bulguyu yalnız uyum onay yetkisi olan kişi (denetim sorumlusu ya da yönetici) kapatabilir ve bulguya bağlı açık aksiyon (planlandı / devam ediyor) kalmamış olmalıdır. Kapanışta doğrulayan kişi ve zaman kayda yazılır; aksiyonlar bitmeden kapatma denemesi kaç aksiyonun açık olduğunu söyleyerek reddedilir.",
       "yer": "app/(kabuk)/(operasyonel)/yardim/page.tsx",
@@ -1430,17 +1474,6 @@
       "olcum": {
         "dosya": "tests/politika-s2-eylem.test.ts",
         "vaka": "KAPANMIŞ kayıtta taslak DEĞİŞMEZ"
-      }
-    },
-    {
-      "kod": "POL-120",
-      "cumle": "Kapanmış denetimin kapsamı değiştirilemez",
-      "yer": "lib/eylemler2/denetim.ts",
-      "sinif": "POLITIKA",
-      "sonucSinifi": "S1",
-      "olcum": {
-        "dosya": "tests/politika-eylem-kapsami.test.ts",
-        "vaka": "kapanış aşamasındaki denetimden kapsam ÇIKARILAMAZ"
       }
     },
     {
@@ -1477,17 +1510,6 @@
       }
     },
     {
-      "kod": "POL-051",
-      "cumle": "Kapsamın onaylı temeli yok — karşılaştırma yapılamaz, sapma HESAPLANMAZ.",
-      "yer": "app/(kabuk)/(operasyonel)/topoloji/Karar.tsx",
-      "sinif": "POLITIKA",
-      "olcum": {
-        "dosya": "tests/topoloji-sapma.test.ts",
-        "vaka": "temel yokken sapma HESAPLANMAZ"
-      },
-      "sonucSinifi": "S1"
-    },
-    {
       "kod": "POL-121",
       "cumle": "Kapsamınızda ağ bölgesi tanımı yok — bölge ve geçit tanımı varlık aktarımı (CMDB kaydı) ile gelir; bu ekran ağı taramaz.",
       "yer": "app/(kabuk)/(operasyonel)/topoloji/TopolojiIstemci.tsx",
@@ -1496,17 +1518,6 @@
       "olcum": {
         "dosya": "tests/politika-pasif-once.test.ts",
         "vaka": "KAYITTAN anlık alma eylemi ağa çıkmaz"
-      }
-    },
-    {
-      "kod": "POL-172",
-      "cumle": "Kapsamınızda kanıt bağlanacak madde durumu yok; kanıt kaydı bir madde durumu olmadan açılmaz.",
-      "yer": "app/(kabuk)/(operasyonel)/kanitlar/KanitlarIstemci.tsx",
-      "sinif": "POLITIKA",
-      "sonucSinifi": "S1",
-      "olcum": {
-        "dosya": "tests/politika-s1-ekran.test.ts",
-        "vaka": "MADDE DURUMU OLMADAN kanıt açılamaz — satır doğmaz"
       }
     },
     {
@@ -2011,8 +2022,12 @@
       "kod": "POL-193",
       "cumle": "Regülasyon maddeleri, tesis kapsamı, bulgu ve kanıt zinciri ile değişmez denetim izi.",
       "yer": "app/(giris)/giris/page.tsx",
-      "sinif": "IDDIA_DEGIL",
-      "gerekce": "Giriş ekranının ÜRÜN TANITIM satırı: ürünün neyi kapsadığını sayan bir liste parçası, sisteme bağlanan bir taahhüt değil. Öznesi yok — \"şunu yapmaz\" ya da \"şu yetki ister\" demiyor, ürünün içeriğini listeliyor."
+      "sinif": "POLITIKA",
+      "sonucSinifi": "S1",
+      "olcum": {
+        "dosya": "tests/politika-eylem-kapsami.test.ts",
+        "vaka": "iz satırı GÜNCELLENEMEZ — tetikleyici reddeder"
+      }
     },
     {
       "kod": "POL-194",
@@ -2045,17 +2060,6 @@
       "olcum": {
         "dosya": "tests/politika-s1-ekran.test.ts",
         "vaka": "ŞEMADA sır DEĞERİ için alan YOKTUR — olmayan alan doldurulamaz"
-      }
-    },
-    {
-      "kod": "POL-131",
-      "cumle": "Silinmiş connector kapsamı değiştirilemez",
-      "yer": "lib/eylemler2/entegrasyon.ts",
-      "sinif": "POLITIKA",
-      "sonucSinifi": "S1",
-      "olcum": {
-        "dosya": "tests/politika-eylem-kapsami.test.ts",
-        "vaka": "silinmiş connectorda kapsam kaydı REDDEDİLİR, kapsam AYNI kalır"
       }
     },
     {
@@ -2169,6 +2173,17 @@
       }
     },
     {
+      "kod": "POL-246",
+      "cumle": "Tarih SİZİN beyanınızdır: ürün bugünü varsaymaz, sayaç ancak gerçekleşen tarihle işler.",
+      "yer": "app/(kabuk)/(operasyonel)/kisisel-veri/VeriKorumaIstemci.tsx",
+      "sinif": "POLITIKA",
+      "sonucSinifi": "S3",
+      "olcum": {
+        "dosya": "tests/veri-koruma.test.ts",
+        "vaka": "tarih GİRİLMEDİYSE hâl \"tarih_girilmedi\" — geri sayım YOK [KVK-ENV-001]"
+      }
+    },
+    {
       "kod": "POL-068",
       "cumle": "Topoloji anlıklarını onaylı temelle karşılaştırır — kayıt değiştirmez",
       "yer": "app/(kabuk)/(operasyonel)/saglik/mantik.ts",
@@ -2224,6 +2239,17 @@
       }
     },
     {
+      "kod": "POL-247",
+      "cumle": "Ürün dosyayı AÇMAZ, ayrıştırmaz ve çalıştırmaz; bayt dizisi olarak saklar ve SHA-256 özetini alır. İzinli tipler: . En büyük boyut . Aynı içerik ikinci kez yüklenirse yeni sürüm AÇILMAZ.",
+      "yer": "app/(kabuk)/(operasyonel)/kanitlar/KanitlarIstemci.tsx",
+      "sinif": "POLITIKA",
+      "sonucSinifi": "S3",
+      "olcum": {
+        "dosya": "tests/politika-tanik-acilan.test.ts",
+        "vaka": "KANIT dosyası BAYT olarak saklanır ve SHA-256 özeti alınır [SIS-POL-002]"
+      }
+    },
+    {
       "kod": "POL-228",
       "cumle": "Ürün hiçbir kaydı KENDİLİĞİNDEN silmez: politika bir öneri üretir, imha kararını insan verir ve öneren ile onaylayan aynı kişi olamaz.",
       "yer": "app/(kabuk)/(operasyonel)/saklama/SaklamaIstemci.tsx",
@@ -2246,6 +2272,17 @@
       }
     },
     {
+      "kod": "POL-248",
+      "cumle": "Ürün medyayı ENGELLEMEZ — engelleme uç nokta koruma ürününün işidir. Burada tutulan şey kayıttır: kayıtsız medya, envanterin göremediği tek taşıyıcıdır.",
+      "yer": "app/(kabuk)/(operasyonel)/tasinabilir-medya/TasinabilirMedyaIstemci.tsx",
+      "sinif": "POLITIKA",
+      "sonucSinifi": "S3",
+      "olcum": {
+        "dosya": "tests/politika-tanik-acilan.test.ts",
+        "vaka": "MEDYA kaydı bir ENGELLEME eylemi üretmez; yalnız kütük satırıdır [SIS-POL-002]"
+      }
+    },
+    {
       "kod": "POL-230",
       "cumle": "varlık envanter onay kapsamınızın dışında ve bu formdan devredilemez — devir tek bir kapsam dışı kayıtta tamamen reddedilir, o yüzden liste peşin daraltıldı.",
       "yer": "app/(kabuk)/(operasyonel)/yetkiler/Formlar.tsx",
@@ -2265,6 +2302,17 @@
       "olcum": {
         "dosya": "tests/politika-s3-ekran.test.ts",
         "vaka": "MOTOR ÖNERİSİ etki alanlarını KENDİLİĞİNDEN doldurmaz"
+      }
+    },
+    {
+      "kod": "POL-249",
+      "cumle": "ve \"süresi geçti\" yazılmıyor. Ürün bir süre uydurmaz.",
+      "yer": "app/(kabuk)/(operasyonel)/kisisel-veri/VeriKorumaIstemci.tsx",
+      "sinif": "POLITIKA",
+      "sonucSinifi": "S2",
+      "olcum": {
+        "dosya": "tests/veri-koruma.test.ts",
+        "vaka": "SÜRE KURALI yoksa yükümlülük de YOK — ürün süre uydurmaz [KVK-ENV-001]"
       }
     },
     {

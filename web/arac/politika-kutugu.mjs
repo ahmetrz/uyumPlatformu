@@ -72,11 +72,23 @@ export const CUMLE_TAVANI = 400;
    atlanarak; tarama kapanıştan SONRA devam eder. Sınır değiştiğinde
    hangi dizelerin görüldüğü DEĞİŞMEZ — yalnız hangilerinin elendiği
    değişir. */
+/* Türkçe KESME İŞARETİ bir tırnak DEĞİLDİR (düzeltme turu · tur 2 · P2-6).
+   `EPDK'nın` · `2024'te` · `TEİAŞ'ın` — JSX metninde kesme işareti
+   harften ya da rakamdan SONRA gelir; bir dize açılışı ise gelmez
+   (`foo'bar'` JavaScript'te sözdizimi hatasıdır). Tarayıcı bu ayrımı
+   yapmadığı için kesme işaretini açılış sayıyor, bir sonrakine kadar
+   olan bölgeyi "dize" okuyor ve o bölgeyi ATLIYORDU — arada başlayan
+   gerçek bir dize sessizce yutulabilirdi. Aynı sınıf tavan 300→400
+   yükseltmesinde ÖLÇÜLMÜŞTÜ (POL-062 kütükten düşmüştü); bu sefer
+   tetikleyici tavan değil, taranan 224 dosyada geçen Türkçe ekti. */
+const HARF_VEYA_RAKAM = /[\p{L}\p{N}]/u;
+
 export function kaynakDizeleri(kod, taban = CUMLE_TABANI, tavan = CUMLE_TAVANI) {
   const cikan = [];
   for (let i = 0; i < kod.length; i += 1) {
     const q = kod[i];
     if (q !== "'" && q !== '"' && q !== '`') continue;
+    if (q === "'" && i > 0 && HARF_VEYA_RAKAM.test(kod[i - 1])) continue;
     let j = i + 1;
     let kapandi = false;
     while (j < kod.length) {
@@ -111,8 +123,43 @@ export function kaynakDizeleri(kod, taban = CUMLE_TABANI, tavan = CUMLE_TAVANI) 
 const TARANAN = ['app', 'components', 'lib/eylemler2'];
 const KUTUK = path.join(KOK, 'arac', 'politika-cumleleri.json');
 
-/** İddiayı SİSTEME bağlayan sözcük. */
-export const OZNE = /\b(bu ekran|bu kutu|bu liste|bu kurulum\w*|bu ortam\w*|bu sayfa|bu aktarım|sunucu|motor|kütük|ürün|sistem|platform|kayıt|kayıtlar|kapsam|yetki\w*|hiçbir|otomatik|denetim izi|iz)\b/iu;
+const HARF = '\\p{L}';
+const SOZCUK_BASI = `(?<![${HARF}])`;
+const SOZCUK_SONU = `(?![${HARF}])`;
+
+/* ── ÖZNE DE ASCII `\b` KULLANIYORDU (bağımsız inceleme · tur 2 · P1-1) ─
+   `YUKLEM` ve sınıf kalıpları Türkçe harf sınırına çevrilmişti; ÖZNE
+   atlanmıştı ve kusur aynıydı: `\b` ASCII'dir, Türkçe harfle BAŞLAYAN ya
+   da BİTEN bir alternatifte sözcük sınırı hiç kurulmaz. Ölçüldü:
+
+     /\bürün\b/iu.test('Ürün bu engeli aşmaz')  → false
+
+   Sonuç: içlerinde CLAUDE.md'nin S1'i TANIMLARKEN kullandığı arketip de
+   vardı — "Bu ürün OT ağında aktif tarama YAPMAZ." Yani "S1 tavanı 0 ·
+   yedinci diş" kilitlerinin hepsi o cümlenin ÜSTÜNDEN atlıyordu.
+
+   ── BEYANLI SINIR: GÖVDE GENİŞLETMESİ YAPILMADI ──────────────────────
+   İncelemeci gövdeleri KÖK hâline getirmeyi de önerdi (`kütük|kütüğ`,
+   `kayıt|kayd`, ardından serbest ek). ÖLÇÜLDÜ ve BU TURDA YAPILMADI:
+
+     bugün (ASCII `\b`)                    216 satır
+     yalnız Türkçe sınır (bu düzeltme)     220 satır   (+4)
+     gövde + serbest ek                    325 satır   (+109)
+
+   Gövde genişletmesi 105 satırlık yeni bir popülasyon açar ve bu
+   kütüğün yedinci dişi SIFIRDA KİLİTLİ: her satır gerçek yol ölçümüyle
+   gelmek zorunda. Yüz satırı bir turda aceleyle ölçmek, bu deponun
+   kaçındığı şeyin ta kendisidir — aynı gerekçe `TARANAN` kökleri için de
+   yazılı. Sınırın BEKÇİSİ türetici değil TANIKTIR: çekimli bir özne
+   taşıyan cümle gerçekten ekrana çıkıyorsa DOM tanığı onu görür ve
+   kütükte bulamayınca `tests/bekci/dom-tanik.test.ts` KIRMIZI yanar.
+
+   R0 kütüğüne SAHİBİ ve KAPANIŞ AŞAMASIYLA yazıldı (R0-23). */
+export const OZNE = new RegExp(
+  `${SOZCUK_BASI}(bu ekran|bu kutu|bu liste|bu kurulum\\w*|bu ortam\\w*`
+  + `|bu sayfa|bu aktarım|sunucu|motor|kütük|ürün|sistem|platform`
+  + `|kayıt|kayıtlar|kapsam|yetki\\w*|hiçbir|otomatik|denetim izi|iz)${SOZCUK_SONU}`,
+  'iu');
 
 /** Sistemin ne yapacağı/yapmayacağı.
  *
@@ -127,9 +174,6 @@ export const OZNE = /\b(bu ekran|bu kutu|bu liste|bu kurulum\w*|bu ortam\w*|bu s
  *
  * Bugün harf sınıfı `\p{L}` ile kurulur ve sözcük sınırı `\b` yerine
  * harf-olmayan bakışlarla (`(?<![\p{L}])`) verilir: `\b` de ASCII'dir. */
-const HARF = '\\p{L}';
-const SOZCUK_BASI = `(?<![${HARF}])`;
-const SOZCUK_SONU = `(?![${HARF}])`;
 export const YUKLEM = new RegExp(
   `(${SOZCUK_BASI}[${HARF}]+m[ae]z${SOZCUK_SONU}`
   + `|${SOZCUK_BASI}[${HARF}]+[ae]m[ae]z(siniz)?${SOZCUK_SONU}`
@@ -405,6 +449,63 @@ export function yeniSatirKusurlari(satirlar, tabanCumleleri) {
     if ((b.gerekce ?? '').trim().length < GEREKCE_ASGARI) {
       kusur.push(`${s.kod}: YENİ cümlenin ölçülmeme GEREKÇESİ yok ya da `
         + `kusuru anlatmıyor (asgari ${GEREKCE_ASGARI} karakter)`);
+    }
+  }
+  return kusur;
+}
+
+/* ═══════════════════════════════════════════════════════════════════════
+   KAÇIŞ KAPISININ KENDİSİ · SAF KARAR
+
+   Yedi dişin yedisi de aynı süzgeçle başlar: `s.sinif === 'POLITIKA'`.
+   Ama `sinif` ELLE yazılır. Bu, kilidi bir SAYI değil bir ETİKET
+   değiştirerek gevşetmeye açıktı ve açık ölçüldü: `IDDIA_DEGIL` yazıp
+   yeterince uzun bir gerekçe eklemek yediyi birden atlatıyordu.
+
+   Üç kusur ayrı ayrı sayılır; sayıya bakan TEK bir cırcır yanlış olurdu:
+   türetici genişleyince kütüğe yeni İDDİA OLMAYAN satırlar da girer ve
+   salt sayıya bakan bir diş, KÖRLÜĞÜ DÜZELTMEYİ cezalandırırdı.
+
+   (a) SESSİZ İNDİRME — tabanda POLITIKA olan satır bu dalda IDDIA_DEGIL
+       olamaz. Kaçış kapısının gerçek kullanımı budur.
+   (b) ZAYIF YENİ — tabanda olmayan bir IDDIA_DEGIL satırı, neden iddia
+       OLMADIĞINI kusur asgarisi kadar uzun anlatmak zorundadır.
+   (c) YENİ S1 KAÇIŞI — cümlesi S1 TÜRETEN yeni bir satır IDDIA_DEGIL
+       olamaz. Altıncı dişle simetriktir: orada "S1'de gerekçeli istisna
+       kabul edilmez" yazılıydı, ama diş `sinif === 'POLITIKA'` süzgecinin
+       ARKASINDAYDI — yani etiketi değiştiren kişi dişin önüne hiç
+       gelmiyordu. Sınıf kütükten DEĞİL cümleden türetilir; elle verilen
+       etiket burada delil değil, iddianın kendisidir.
+
+   (c)'ye `kapanisAsamasi`/`sahip` zorunluluğu EKLENMEDİ ve sebebi şudur:
+   IDDIA_DEGIL bir ERTELEME değildir, bir SINIFLANDIRMADIR — ölçülecek
+   bir şey yoktur, dolayısıyla kapanacak bir aşama da yoktur. Oraya bir
+   aşama yazmak, hiçbir zaman gelmeyecek bir tarih yazmaktır; "süresiz
+   beyan yoktur" kuralını güçlendirmez, anlamsızlaştırır. Yeni S1
+   satırının kaçışı ERTELENMEZ, YASAKLANIR.
+
+   Fonksiyon SAF: taban sınıf eşlemesi dışarıdan verilir.
+ *
+ * @param {Array} satirlar bugünkü kütüğün satırları
+ * @param {Map<string,string>} tabanSinif taban daldaki cümle → sınıf
+ * @returns {string[]} kusur açıklamaları; boş dizi = temiz
+ */
+export function kacisKapisiKusurlari(satirlar, tabanSinif) {
+  const kusur = [];
+  for (const s of satirlar) {
+    if (s.sinif !== 'IDDIA_DEGIL') continue;
+    if (tabanSinif.get(s.cumle) === 'POLITIKA') {
+      kusur.push(`${s.kod}: tabanda POLITIKA idi, bu dalda IDDIA_DEGIL`);
+      continue; /* İndirmenin kendisi kusur: gerekçesine bakmaya gerek yok. */
+    }
+    if (tabanSinif.has(s.cumle)) continue; /* ESKİ ve zaten IDDIA_DEGIL */
+    if (sonucSinifi(s.cumle) === 'S1') {
+      kusur.push(`${s.kod}: YENİ satırın cümlesi S1 TÜRETİYOR — `
+        + 'IDDIA_DEGIL etiketi S1 kaçışı olamaz');
+      continue;
+    }
+    if ((s.gerekce ?? '').trim().length < GEREKCE_ASGARI) {
+      kusur.push(`${s.kod}: YENİ IDDIA_DEGIL, gerekçe ${GEREKCE_ASGARI} karakterden kısa`);
     }
   }
   return kusur;

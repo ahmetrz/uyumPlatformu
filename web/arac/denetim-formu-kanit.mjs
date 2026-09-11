@@ -78,14 +78,22 @@ try {
       await context.close();
       continue;
     }
-    kaydet(bant.ad, 'liste dolu', true, `${satirSayisi} satır`);
+    kaydet(bant.ad, 'liste dolu', satirSayisi > 0, `${satirSayisi} satır`);
 
     /* 5b · Satır seçilince çekmece açılıyor — sayfa atlaması YOK. */
     const oncekiUrl = page.url();
     await satirlar.first().click();
     const cekmece = page.locator('.ab-panel, [role="dialog"], aside').first();
     await cekmece.waitFor({ timeout: 5000 });
-    kaydet(bant.ad, 'satır seçimi çekmece açıyor', true);
+    /* ── SABİT `true` BİR İDDİA DEĞİLDİR (düzeltme turu · tur 2 · P2-5) ─
+       Satır raporda "geçti" yazıyordu ve HİÇBİR ŞEY ölçmüyordu: üstündeki
+       `waitFor` düşerse koşum zaten patlar, düşmezse bu satır her hâlde
+       yeşil yanar. Yani rapora bakan insan, ölçülmüş bir iddia ile
+       ölçülmemiş bir cümleyi ayırt edemiyordu — deponun "hiçbir şey
+       ölçmeden yeşil yanan kapı" sınıfı. Bugün gözlem yazılır. */
+    kaydet(bant.ad, 'satır seçimi çekmece açıyor',
+      await cekmece.isVisible() && (await cekmece.innerText()).trim().length > 0,
+      `çekmece metni ${(await cekmece.innerText()).trim().length} karakter`);
     kaydet(bant.ad, 'sayfa atlaması yok', page.url() === oncekiUrl);
 
     const cekmeceMetni = await cekmece.innerText();
@@ -102,7 +110,12 @@ try {
     const sablonSayisi = await sablonSecenekleri.count();
     const cekirdekSayisi = await cekmece.locator('input[name="formTuru"]').count() - sablonSayisi;
     kaydet(bant.ad, 'çekirdek form türü sayısı 2', cekirdekSayisi === 2, `${cekirdekSayisi}`);
-    kaydet(bant.ad, 'kurulu paket şablonu', true, `${sablonSayisi} şablon`);
+    /* Şablon YOKLUĞU kusur değildir (çekirdekte şablon yoktur), ama
+       satır yine de bir şey ÖLÇER: sayı ile çekirdek sayısı tutarlı mı.
+       Sabit `true` yerine gözlem yazılır (P2-5). */
+    kaydet(bant.ad, 'kurulu paket şablonu sayıldı', Number.isInteger(sablonSayisi)
+      && sablonSayisi >= 0 && cekirdekSayisi + sablonSayisi > 0,
+      `${sablonSayisi} şablon · ${cekirdekSayisi} çekirdek`);
     if (sablonSayisi > 0) {
       const deger = await sablonSecenekleri.first().getAttribute('value');
       const etiket = await cekmece

@@ -5,7 +5,8 @@ import path from 'node:path';
 import {
   ASGARI_SOZCUK, aciklar, ayrisma, sirayla, sozcukler, tamAyrisma,
 } from '../../arac/tanik-karsilastirma.mjs';
-import { tabanDalKarari } from '../../arac/taban-dal.mjs';
+import { ilkTurTavani, tabanDalKarari } from '../../arac/taban-dal.mjs';
+import { tabanKarari, tabanOku } from '../../arac/olcum-tabani.mjs';
 
 /* ═══════════════════════════════════════════════════════════════════════
    İKİNCİ BAĞIMSIZ POPÜLASYON TANIĞI · BEKÇİ [URN-TNK-001]
@@ -49,7 +50,8 @@ type TanikCiktisi = {
   rota: string[];
   atlanan: { rota: string; sebep: string }[];
   politikaAdaylari: { cumle: string; rotalar: string[] }[];
-  bosDurumlar: { metin: string; rota: string; sinif: string; eylem: boolean }[];
+  bosDurumlar: { metin: string; rotalar: string[]; sinif: string;
+    iyiHaber?: boolean; eylem: boolean }[];
 };
 type TanikSatiri = {
   kod: string; rota: string; cekirdek: string; sinif: string;
@@ -61,7 +63,10 @@ const tanikVar = existsSync(TANIK);
 const tanik: TanikCiktisi | null = tanikVar
   ? JSON.parse(readFileSync(TANIK, 'utf8')) as TanikCiktisi : null;
 const tanikKutuk = JSON.parse(readFileSync(TANIK_KUTUK, 'utf8')) as {
-  tavanlar: { olculmeyen: number }; satirlar: TanikSatiri[];
+  tavanlar: { olculmeyen: number; atlananRota?: number };
+  /* ELLE yazılan ilk tur tavanı — taban dal yokken cırcırın tavanı. */
+  ilkTurTavani?: { satir?: number };
+  satirlar: TanikSatiri[];
 };
 const politika = JSON.parse(readFileSync(POLITIKA, 'utf8')) as {
   satirlar: { cumle: string }[];
@@ -70,8 +75,12 @@ const politika = JSON.parse(readFileSync(POLITIKA, 'utf8')) as {
 /* Tanığın ERİŞİM TABANI. Sıfır rota gezen bir tanık sıfır ayrışma
    bulur ve kapı yeşil yanar — "hiçbir şeye bakmadan temiz raporlamak"
    bu dosyada tam olarak böyle görünürdü. */
-const ROTA_TABANI = 55;
-const CUMLE_TABANI = 30;
+/* ── TABAN TESTİN İÇİNDE DEĞİL, `olcum-tabani.json` İÇİNDE (P2-3) ────
+   Deponun kendi kuralı: "testin içine sabit yazılmış bir taban, arada
+   sessiz bir daralma penceresi bırakır." Tanık 65 rota geziyordu ve
+   testteki sabit 55'ti: tanık on rotayı kaybetse kapı hâlâ yeşil
+   yanardı — ölçtüğü tam da "tanığın erişimi daralmadı" iddiasıydı.
+   Aynı kusur bu depoda politika tabanı için ÖLÇÜLMÜŞTÜ (131 ↔ 216). */
 
 describe('DOM tanığı · POPÜLASYON AYRIŞMASI [URN-TNK-001]', () => {
   it('TANIK ÇIKTISI VAR — yoksa CI kırmızı, yerelde "ölçülmedi" [URN-TNK-001]', () => {
@@ -82,16 +91,38 @@ describe('DOM tanığı · POPÜLASYON AYRIŞMASI [URN-TNK-001]', () => {
 
   it('TANIĞIN ERİŞİMİ DARALMADI — kör tanık sıfır ayrışma bulur [URN-TNK-001]', () => {
     if (!tanik) return;
-    expect(tanik.rota.length,
-      `tanık ${tanik.rota.length} rota gezdi, taban ${ROTA_TABANI}`)
-      .toBeGreaterThanOrEqual(ROTA_TABANI);
-    expect(tanik.politikaAdaylari.length,
-      `tanık ${tanik.politikaAdaylari.length} cümle gördü, taban ${CUMLE_TABANI}`)
-      .toBeGreaterThanOrEqual(CUMLE_TABANI);
+    const tabanlar = tabanOku().tabanlar;
+    for (const [anahtar, olculen] of [
+      ['tanik.rota', tanik.rota.length],
+      ['tanik.cumle', tanik.politikaAdaylari.length],
+      ['tanik.bosDurum', tanik.bosDurumlar.length],
+    ] as const) {
+      const hata = tabanKarari(anahtar, olculen, tabanlar);
+      expect(hata, hata ?? '').toBeNull();
+    }
     /* Atlanan rota SESSİZ olamaz: tanığın göremediği yer, ayrışmanın
        göremediği yerdir. */
-    expect(tanik.atlanan.map((a) => `${a.rota} — ${a.sebep}`), 'tanık rota atladı')
+    /* ── ATLAMA SESSİZ OLAMAZ, AMA SIFIR DA OLMAK ZORUNDA DEĞİL (P3-10) ─
+       Eski diş `atlanan` listesinin BOŞ olmasını istiyordu ve türetici
+       atlamaları listeye HİÇ yazmıyordu: iki kural birbirini besliyor,
+       tanık rota kaybettikçe kapı daha da mutlu oluyordu. Bugün atlama
+       işaretli girer; diş sebebin BİLİNEN bir sınıftan olmasını ve
+       sayının tavan altında kalmasını ister. */
+    const BILINEN = ['cok-parametreli', 'tohum-degeri-yok', 'HTTP'];
+    const yabanci = tanik.atlanan
+      .filter((a) => !BILINEN.some((b) => a.sebep.startsWith(b)))
+      .map((a) => `${a.rota} — ${a.sebep}`);
+    expect(yabanci, `tanık BEKLENMEYEN sebeple rota atladı:\n${yabanci.join('\n')}`)
       .toEqual([]);
+    /* Sayı da TAVANLIDIR ve tavan kütükte beyanlıdır: bugün ÖLÇÜLEN 0
+       (59 düz + 6 tek parametreli = 65 rota, atlanan yok). Sıfıra inmiş
+       bir tavan için "yalnız küçülür" yetmez — beyansız bir atlama
+       kapıyı kırmızı yakar. */
+    const tavan = tanikKutuk.tavanlar.atlananRota ?? 0;
+    expect(tanik.atlanan.length,
+      `tanık ${tanik.atlanan.length} rota atladı, beyan edilen tavan ${tavan}:\n`
+      + tanik.atlanan.map((a) => `  ${a.rota} — ${a.sebep}`).join('\n'))
+      .toBeLessThanOrEqual(tavan);
   });
 
   it('TANIĞIN ERİŞİM SINIRI ÖLÇÜLÜR ve BEYANLIDIR — "ayrışma 0" yetmez [URN-TNK-001]', () => {
@@ -190,16 +221,37 @@ describe('DOM tanığı · POPÜLASYON AYRIŞMASI [URN-TNK-001]', () => {
     let ham: string | null = null;
     if (tabandaVar) { try { ham = git(['show', YOL]); } catch { ham = null; } }
     const karar = tabanDalKarari(tabandaVar, ham);
-    if (karar.hal === 'taban_yok') return;      /* ilk tur: kütük yeni */
     if (karar.hal === 'olculemedi') {
       expect(process.env.CI ?? '', `TABAN DAL ÖLÇÜLEMEDİ (${karar.sebep})`).toBe('');
       return;
     }
-    const taban = karar.belge as { satirlar: { kod: string }[] };
+    /* ── SESSİZ `return` KALDIRILDI (düzeltme turu · tur 2 · P2-4) ─────
+       Bu kütük BU DALDA doğdu: taban dalda yok, yani `taban_yok` hâli
+       VARSAYIMSAL DEĞİL, tam da bu turun hâli. Eski satır sessizce
+       dönüyordu — yani tanık cırcırı, tanığı GETİREN turda hiçbir şey
+       ölçmüyordu ve kapı yeşil yanıyordu. Ölçüm aracının kendisi,
+       deponun adı konmuş kusurunu taşıyordu.
+
+       Taban yoksa tavan kütüğün ELLE beyan ettiği `ilkTurTavani`dir;
+       `tavanlar` alanı bu işi göremez, onu türetici yazar (kütük kendini
+       kendisiyle karşılaştırır ve her zaman geçer). Beyansızsa KIRMIZI. */
+    let tavan: number;
+    let kaynak: string;
+    if (karar.hal === 'taban_yok') {
+      const k = ilkTurTavani(tanikKutuk.ilkTurTavani?.satir, 'satır');
+      expect('hata' in k ? k.hata : null, 'hata' in k ? k.hata : '').toBeNull();
+      tavan = (k as { tavan: number }).tavan;
+      kaynak = 'kütüğün ELLE yazdığı ilk tur beyanı';
+    } else {
+      const taban = karar.belge as { satirlar: { kod: string }[] };
+      tavan = taban.satirlar.length;
+      kaynak = 'taban dal (origin/main)';
+    }
+    console.log(`tanık cırcırı · tavan ${tavan} (${kaynak}) · ölçülen ${tanikKutuk.satirlar.length}`);
     expect(tanikKutuk.satirlar.length,
-      `tanık kütüğü ${taban.satirlar.length} → ${tanikKutuk.satirlar.length} BÜYÜDÜ; `
+      `tanık kütüğü ${tavan} → ${tanikKutuk.satirlar.length} BÜYÜDÜ (tavan kaynağı: ${kaynak}); `
       + 'körlüğü kütüğe taşımak yerine türeticiyi genişletin')
-      .toBeLessThanOrEqual(taban.satirlar.length);
+      .toBeLessThanOrEqual(tavan);
   });
 });
 
@@ -254,7 +306,7 @@ describe('DOM tanığı · BOŞ DURUM ayrışması [URN-TNK-001]', () => {
        dışındadır ve muafiyeti KODDAN gelir, kütükten değil. */
     const eylemsiz = tanik.bosDurumlar
       .filter((b) => !b.eylem && !/\bbos\s+iyi\b|\biyi\b/.test(b.sinif))
-      .map((b) => `${b.rota} :: ${b.metin.slice(0, 80)}`);
+      .map((b) => `${b.rotalar.join(', ')} :: ${b.metin.slice(0, 80)}`);
     expect(eylemsiz, 'RENDER EDİLMİŞ ekranda eylemsiz boş durum:\n'
       + eylemsiz.join('\n')).toEqual([]);
   });

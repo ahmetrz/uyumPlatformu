@@ -249,7 +249,11 @@ describe('taban yazan her kapı gerekçeyi GEÇİRİYOR', () => {
          216'ydı — 85 satırlık sessiz daralma penceresi. Kendi kütüğünü
          yazan araç tabanını da yazmalı; elle güncellenen bir taban
          güncellenmez. */
-      ['bos-durum-kutugu.mjs', 'erisim-axe.mjs', 'gezinme-testi.mjs',
+      /* `dom-tanik.mjs` de düzeltme turunda eklendi (P2-3): tabanı
+         aracın İÇİNE sabit yazılmıştı (`ROTALAR.length < 30`) ve tanık
+         65 rota geziyordu — otuz beş rotalık sessiz daralma penceresi,
+         üstelik ölçtüğü iddia tam da "tanığın erişimi daralmadı"ydı. */
+      ['bos-durum-kutugu.mjs', 'dom-tanik.mjs', 'erisim-axe.mjs', 'gezinme-testi.mjs',
         'politika-kutugu.mjs', 'rota-duman.mjs', 'yatay-tasma.mjs']);
   });
 

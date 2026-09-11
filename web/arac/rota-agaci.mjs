@@ -91,10 +91,25 @@ export function rotaCozulur(yol, desenler) {
   const parcalar = y.split('/').filter(Boolean);
   for (const desen of desenler) {
     const d = desen === '/' ? [] : desen.split('/').filter(Boolean);
+    /* ── ZORUNLU ve İSTEĞE BAĞLI YAKALAYICI AYRIDIR (P3-12) ──────────
+       Next.js'te `[...yol]` EN AZ BİR segment ister; çıplak üst yol
+       (`/belge`) o desenle ÇÖZÜLMEZ. Yalnız `[[...yol]]` sıfır segmenti
+       kabul eder. Eski karşılaştırma (`parcalar.length < yakalayici`)
+       ikisini de aynı sayıyor, yani ölü bir `/belge` bağını CANLI
+       sayıyordu — ve testin kendisi bu yanlışı KİLİTLİYORDU
+       (`expect(rotaCozulur('/belge', D)).toBe(true)`).
+
+       Bu dal bugün ULAŞILMAZ: ağaçta yakalayıcı desen YOK (ölçüldü —
+       65 desen, yakalayıcı 0). Kural yine de doğrusuyla yazıldı: ilk
+       `[...x]` eklendiği gün sessizce yanlış cevap vermesin. */
     const yakalayici = d.findIndex((s) => s.startsWith('[...') || s.startsWith('[[...'));
     if (yakalayici === -1) {
       if (d.length !== parcalar.length) continue;
-    } else if (parcalar.length < yakalayici) continue;
+    } else {
+      const istegeBagli = d[yakalayici].startsWith('[[...');
+      const asgari = istegeBagli ? yakalayici : yakalayici + 1;
+      if (parcalar.length < asgari) continue;
+    }
     let uyar = true;
     for (let i = 0; i < d.length; i += 1) {
       if (d[i].startsWith('[...') || d[i].startsWith('[[...')) break;

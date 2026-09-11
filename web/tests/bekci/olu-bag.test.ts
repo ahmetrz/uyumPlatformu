@@ -112,9 +112,23 @@ describe('ÇÖZÜMLEYİCİ SAFTIR ve kaçamak DEĞİL [SIS-BAG-001]', () => {
     expect(rotaCozulur('/tesisler/cm123/uydurma', D)).toBe(false);
   });
 
-  it('YAKALAYICI desen kalan segmentleri yer [SIS-BAG-001]', () => {
+  it('YAKALAYICI desen kalan segmentleri yer; ZORUNLU olan çıplak üst yolu YEMEZ [SIS-BAG-001]', () => {
+    /* ── ÖLÇÜLEN KUSUR (düzeltme turu · tur 2 · P3-12) ────────────────
+       İlk yazım `/belge`yi ÇÖZÜLÜR sayıyordu ve TEST BUNU KİLİTLİYORDU.
+       Next.js'te `[...yol]` en az bir segment ister: `/belge` o desenle
+       eşleşmez ve o bağ ÖLÜDÜR. Yanlışı kilitleyen bir vaka, kuralı
+       düzeltmeyi kırmızı gösterir — kapının en sinsi hâli budur. */
     expect(rotaCozulur('/belge/a/b/c', D)).toBe(true);
-    expect(rotaCozulur('/belge', D)).toBe(true);
+    expect(rotaCozulur('/belge', D),
+      'ZORUNLU yakalayıcı çıplak üst yolu yedi — ölü bağ canlı sayılır').toBe(false);
+    /* İSTEĞE BAĞLI yakalayıcı (`[[...]]`) sıfır segmenti KABUL eder. */
+    const O = new Set(['/arsiv/[[...yol]]']);
+    expect(rotaCozulur('/arsiv', O)).toBe(true);
+    expect(rotaCozulur('/arsiv/2024/ocak', O)).toBe(true);
+    /* Bugün ağaçta yakalayıcı desen YOK (ölçüldü: 65 desen, 0 yakalayıcı);
+       vakalar kuralın kendisini ölçer, depoyu değil. */
+    expect([...DESENLER].filter((d) => d.includes('[...') || d.includes('[[...')).length,
+      'ağaca yakalayıcı desen eklendi — yorumdaki ölçüm bayatladı').toBe(0);
   });
 
   it('OLMAYAN rota ÇÖZÜLMEZ [SIS-BAG-001]', () => {

@@ -40,6 +40,8 @@ import { chromium } from 'playwright-core';
 import { writeFileSync } from 'node:fs';
 import path from 'node:path';
 import { KOK, WEB, girisYap, sayfaEnvanteri, tarayiciYolu, tohumDegeri } from './kosu-ortak.mjs';
+import { CUMLE_TABANI, CUMLE_TAVANI } from './politika-kutugu.mjs';
+import { sebepBayragi, tabanDogrula, tabanYaz } from './olcum-tabani.mjs';
 
 export const CIKTI = path.join(WEB, 'arac', 'dom-tanik.json');
 
@@ -60,7 +62,14 @@ const duz = (m) => String(m ?? '').replace(/\s+/g, ' ').trim();
    üzerinden yapılır (bkz. `cekirdek`, bekçi tarafında). */
 
 async function sayfaTopla(page) {
-  return page.evaluate(() => {
+  /* ── SINIRLAR TÜRETİCİDEN GELİR (düzeltme turu · tur 2 · P2-7) ──────
+     Tanık `25` ve `400`ü KENDİ İÇİNE yazıyordu. İki ayrı yerde iki ayrı
+     sayı tutmak, tanığın var oluş sebebini yok eder: türeticinin sınırı
+     değiştiği gün ayrışma GERÇEK bir körlüğü değil, iki sabitin
+     kaymasını gösterirdi — ve bu, tanığın yakaladığı dördüncü körlüğün
+     ta kendisiydi. Sayılar `page.evaluate`e argüman olarak geçer;
+     tarayıcı bağlamı modül kapsamını görmez. */
+  return page.evaluate(({ taban, tavan }) => {
     const cikan = { politika: [], bos: [] };
     const gorunur = (el) => {
       const r = el.getBoundingClientRect();
@@ -76,7 +85,7 @@ async function sayfaTopla(page) {
       if (el.querySelector('p, li, div, td, th, h1, h2, h3, h4, summary')) continue;
       if (!gorunur(el)) continue;
       const metin = (el.innerText || el.textContent || '').replace(/\s+/g, ' ').trim();
-      if (metin.length < 25 || metin.length > 400) continue;
+      if (metin.length < taban || metin.length > tavan) continue;
       cikan.politika.push(metin);
     }
     /* ── BOŞ DURUM · TANIĞIN KENDİ KUSURU DÜZELTİLDİ ──────────────────
@@ -112,27 +121,44 @@ async function sayfaTopla(page) {
     }
     for (const el of document.querySelectorAll('.bos')) ekle(el, 'satirIci');
     return cikan;
-  });
+  }, { taban: CUMLE_TABANI, tavan: CUMLE_TAVANI });
 }
 
 /** Gezilecek rota kümesi — envanterden TÜRETİLİR, elle liste yok. */
-function rotalar() {
+/* ── ATLANAN ROTA SESSİZ DÜŞMEZ (düzeltme turu · tur 2 · P3-10) ──────
+   Eski yazımda iki `continue` vardı ve birinin yorumu "atlanır, SAYILIR"
+   diyordu — ama sayılmıyordu: rota `atlanan`a hiç girmiyor, kütükte iz
+   bırakmıyordu. Bekçi de `atlanan` listesinin BOŞ olmasını istiyordu,
+   yani tanık rota kaybettikçe kapı daha da mutlu oluyordu. Tanığın
+   göremediği yer, ayrışmanın göremediği yerdir: körlük sıfır kusura
+   dönüşüyordu.
+
+   Bugün atlama İŞARETLİ: sebebiyle `atlanan`a girer ve bekçi sebebin
+   BİLİNEN bir sınıftan olmasını ve sayının tavan altında kalmasını
+   ister. Atlamanın kendisi meşru olabilir; SESSİZ olması olamaz. */
+function rotalar(atlananListesi) {
   const liste = [];
   for (const s of sayfaEnvanteri()) {
     if (s.dinamik.length === 0) { liste.push(s.rota); continue; }
-    if (s.dinamik.length > 1) continue;           // çok parametreli rota bu turda dışarıda
+    if (s.dinamik.length > 1) {
+      atlananListesi.push({ rota: s.rota, sebep: 'cok-parametreli' });
+      continue;
+    }
     const kalip = s.rota;
     const t = tohumDegeri(kalip);
-    if (t.hata || !t.degerler?.length) continue;  // değeri çözülemeyen rota atlanır, sayılır
+    if (t.hata || !t.degerler?.length) {
+      atlananListesi.push({ rota: kalip, sebep: `tohum-degeri-yok: ${t.hata ?? 'boş'}` });
+      continue;
+    }
     liste.push(kalip.replace(/\[[^\]]+\]/, t.degerler[0]));
   }
   return [...new Set(liste)].sort();
 }
 
-const ROTALAR = rotalar();
-const politikaAdaylari = new Map();   // metin → [rota]
-const bosDurumlar = new Map();        // metin → { rota, sinif, eylem }
 const atlanan = [];
+const ROTALAR = rotalar(atlanan);
+const politikaAdaylari = new Map();   // metin → [rota]
+const bosDurumlar = new Map();        // metin → { rotalar, sinif, eylem } · EN KÖTÜ hâl
 
 const browser = await chromium.launch({
   executablePath: tarayiciYolu(), headless: true, args: ['--no-sandbox'],
@@ -153,11 +179,23 @@ try {
         if (!politikaAdaylari.get(k).includes(rota)) politikaAdaylari.get(k).push(rota);
       }
       for (const b of bos) {
+        /* ── İLK GELEN DEĞİL, EN KÖTÜ HÂL KAZANIR (P3-11) ────────────
+           Eski yazım `if (!bosDurumlar.has(k))` diyordu: aynı metin iki
+           ekranda görünüyorsa yalnız İLKİNİN öznitelikleri saklanıyordu.
+           Birinci ekranda eylem varsa, ikincideki EYLEMSİZ hâl kütüğe
+           hiç girmiyordu — ve cırcırın tuttuğu sayı tam olarak
+           "eylemsiz 0"dı. İlk gelenin kazandığı bir ölçüm, ölçtüğü
+           kusuru saklar. */
         const k = duz(b.metin);
-        if (!bosDurumlar.has(k)) {
+        const varolan = bosDurumlar.get(k);
+        if (!varolan) {
           bosDurumlar.set(k, {
-            rota, tur: b.tur, sinif: b.sinif, iyiHaber: b.iyiHaber, eylem: b.eylem });
+            rotalar: [rota], tur: b.tur, sinif: b.sinif, iyiHaber: b.iyiHaber, eylem: b.eylem });
+          continue;
         }
+        if (!varolan.rotalar.includes(rota)) varolan.rotalar.push(rota);
+        varolan.eylem = varolan.eylem && b.eylem;          // eylemsiz hâl kazanır
+        varolan.iyiHaber = varolan.iyiHaber && b.iyiHaber; // muafiyet DARALIR
       }
     } catch (e) { atlanan.push({ rota, sebep: e.message.slice(0, 120) }); }
   }
@@ -179,10 +217,24 @@ console.log(`  politika adayı: ${kutuk.politikaAdaylari.length}`);
 console.log(`  boş durum: ${kutuk.bosDurumlar.length}`);
 for (const a of atlanan) console.log(`  atlandı ${a.rota} — ${a.sebep}`);
 
-/* ÖLÇÜM TABANI: sıfır rota gezen bir tanık, sıfır ayrışma bulur. */
-if (ROTALAR.length < 30) {
-  console.error(`\nÖLÇÜM YETERSİZ: ${ROTALAR.length} rota gezildi, taban 30.`);
-  process.exit(1);
+/* ── ÖLÇÜM TABANI · `olcum-tabani.json` (düzeltme turu · tur 2 · P2-3) ──
+   Sıfır rota gezen bir tanık sıfır ayrışma bulur; ama sabit `30`
+   ARACIN İÇİNE yazılıydı ve tanık 65 rota geziyordu — otuz beş rota
+   kaybedilse araç yine "yeterli" diyordu. Kendi kütüğünü yazan araç
+   tabanını da yazar: taban ancak `--taban-yaz --sebep="..."` ile ve
+   gerekçesi DOSYAYA işlenerek iner. */
+const TANIK_TABANLARI = [
+  ['tanik.rota', ROTALAR.length],
+  ['tanik.cumle', kutuk.politikaAdaylari.length],
+  ['tanik.bosDurum', kutuk.bosDurumlar.length],
+];
+if (process.argv.includes('--taban-yaz')) {
+  for (const [anahtar, olculen] of TANIK_TABANLARI) {
+    const { onceki, yeni } = tabanYaz(anahtar, olculen, { sebep: sebepBayragi(process.argv) });
+    console.log(`taban yazıldı: ${anahtar} ${onceki ?? '—'} → ${yeni}`);
+  }
+} else {
+  for (const [anahtar, olculen] of TANIK_TABANLARI) tabanDogrula(anahtar, olculen);
 }
 
 if (process.argv.includes('--yaz')) {

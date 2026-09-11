@@ -1,7 +1,7 @@
 'use client';
 import type { CSSProperties, KeyboardEvent, MouseEvent, ReactNode } from 'react';
 import Link from 'next/link';
-import { Im, Iskelet, type Durum } from './temel';
+import { BosFiltre, Im, Iskelet, type Durum } from './temel';
 
 /* ═══════════════════════════════════════════════════════════════════════
    TABLOLAR — A5 KÜTÜK arketipi (Faz 3)
@@ -72,7 +72,7 @@ function icEtkilesim(e: MouseEvent<HTMLElement>): boolean {
 }
 
 export function VeriTablosu<T extends { id: string }>({
-  etiket, kolonlar, satirlar, secili, sec, durum, sira, siraDegistir, bosCumle, bosEylem, sik, yukseklik,
+  etiket, kolonlar, satirlar, secili, sec, durum, sira, siraDegistir, bosCumle, bosEylem, bosTemizle, sik, yukseklik,
   kuyruk, dipNot, grup, acik, yukleniyor,
 }: {
   etiket: string;
@@ -88,6 +88,9 @@ export function VeriTablosu<T extends { id: string }>({
   bosCumle?: string | null;
   /** Boşluğun ÇIKIŞI — verilmezse çizilmez (uydurma eylem yok). */
   bosEylem?: ReactNode;
+  /** Süzgeci temizleyen geri çağrı. Verildiğinde boşluğun çıkışı
+      ÜRÜNÜN KENDİ arketipidir (`BosFiltre`) — ikinci bir uygulama değil. */
+  bosTemizle?: () => void;
   sik?: boolean;
   /** kaydırma kabı yüksekliği (CSS uzunluğu); verilmezse tablo akar */
   yukseklik?: string;
@@ -191,14 +194,36 @@ export function VeriTablosu<T extends { id: string }>({
        yüzey açıyordu. Çağıranın cümlesi bir `<span>` içinde gelir ve
        ÇAĞIRANIN yerinde ölçülür; `bosEylem` ise bir EYLEM YUVASIDIR:
        paylaşılan bileşen boşluğun çıkışını kendi uyduramaz. */
+    /* ── HOLLOW YUVA BULGUSU (bağımsız inceleme · tur 2 · P1-2) ───────
+       `bosEylem` bir EYLEM YUVASIYDI ve gerekçesi tutarlıydı: paylaşılan
+       bir bileşen boşluğun çıkışını kendi bilemez. Ama gerekçe
+       ÖLÇÜLMEMİŞTİ — TEK BİR ÇAĞIRAN BİLE yuvayı doldurmuyordu. Kütük
+       "bu boşluğun çıkışı var" diyor, ekranda çıkış olmuyordu.
+
+       Üstelik cümlenin KENDİSİ de bir varsayımdı: "Bu süzgeçte kayıt
+       yok" diyordu, oysa tablo SÜZGEÇSİZ de boş olabilir. Paylaşılan
+       bileşen boşluğun SEBEBİNİ bilmez — bilmediği bir sebebi söylemek,
+       R-G'nin düzeltmek istediği şeyin ta kendisidir.
+
+       Bugün üç yol var ve üçü de ÇAĞIRANIN bildiğine dayanır:
+         · `bosTemizle` → süzgeç boşluğudur; ürünün KENDİ arketipi
+           (`BosFiltre`) çizilir — sebep de çıkış da onda yazılı.
+         · `bosCumle` / `bosEylem` → çağıran kendi cümlesini ve çıkışını
+           verir.
+         · hiçbiri → HİÇBİR ŞEY çizilmez. İyi kurulmuş ekranlar zaten
+           tablonun ÜSTÜNDE kendi boş durumunu gösteriyor (`bulgular` ·
+           `olaylar` · `riskler`); bileşenin ikinci, sebebi uydurulmuş
+           bir boşluk çizmesi onları ikiye katlıyordu. */
+    if (bosTemizle) return <BosFiltre temizle={bosTemizle} />;
+    if (!bosCumle && !bosEylem) return null;
+    /* SINIF ADINDA `bos` YOK ve bu bilerek: bu kap artık bileşenin KENDİ
+       boş durumu değil, ÇAĞIRANIN cümlesinin kabıdır. `bos` sözcüğünü
+       taşısaydı boş durum türeticisi burayı bileşene ait bir boş durum
+       sayar ve içeriğini (bir prop) okuyamadığı için "eylemsiz" diye
+       kırmızı yakardı — oysa ölçülmesi gereken yer ÇAĞIRANIN yeridir. */
     return (
-      <p className="ab-vt-bos">
-        {bosCumle ? <span className="cagiran">{bosCumle}</span> : (
-          <>
-            Bu süzgeçte kayıt yok — süzgeci daraltan bir seçim var; tablo boş
-            değil, bu görünüm boş.
-          </>
-        )}
+      <p className="ab-vt-cagiran">
+        {bosCumle ? <span className="cagiran">{bosCumle}</span> : null}
         {bosEylem}
       </p>
     );

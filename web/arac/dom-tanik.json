@@ -1,5 +1,5 @@
 {
-  "uretilme": "2026-09-11T14:20:16.735Z",
+  "uretilme": "2026-09-11T15:43:13.962Z",
   "rota": [
     "/",
     "/aktivite",
@@ -136,6 +136,18 @@
       ]
     },
     {
+      "cumle": "Bu ürün ağa paket ATMAZ. Bütün keşif, kurumun zaten çalışan gözlem kaynaklarının çıktısını OKUMAYA dayanır; gerekçe teknik değil emniyettir.",
+      "rotalar": [
+        "/kesif"
+      ]
+    },
+    {
+      "cumle": "Bu ürün ICS-CERT, üretici PSIRT ya da NVD akışına BAĞLANMAZ. Duyurular elle indirilip buradan yüklenir; korelasyonu zafiyet korelasyon motoru hesaplar.",
+      "rotalar": [
+        "/tabanlar"
+      ]
+    },
+    {
       "cumle": "CSV/Excel kolonları varlık alanlarına eşlenir, önizleme doğrulanır, onay tek transaction içinde CMDB'ye yazar · Reddedilen kayıtlar →",
       "rotalar": [
         "/varlik-aktarim"
@@ -244,6 +256,12 @@
       ]
     },
     {
+      "cumle": "Kayıtlı taşınabilir medya yok. Kayıtsız medya, envanterin göremediği tek taşıyıcıdır. Ürün medyayı ENGELLEMEZ — engelleme uç nokta koruma ürününün işidir. Burada tutulan şey kayıttır: kayıtsız medya, envanterin göremediği tek taşıyıcıdır.",
+      "rotalar": [
+        "/tasinabilir-medya"
+      ]
+    },
+    {
       "cumle": "Keşif yalnız AĞDA GÖRÜNEN cihazı bulur; kapalı panodaki yedek bir kart hiçbir taramada çıkmaz. Sayım birinin gidip bakmasıdır. Sayım hiçbir varlığı silmez: \"bulunamadı\" bir ölçüm sonucudur, envanterden düşürme ayrı bir karardır.",
       "rotalar": [
         "/sayim"
@@ -313,7 +331,9 @@
   "bosDurumlar": [
     {
       "metin": "Bir varlık seçin; dört halka o varlıktan geçen yolu gösterir.İLK VARLIĞI AÇ",
-      "rota": "/envanter",
+      "rotalar": [
+        "/envanter"
+      ],
       "tur": "satirIci",
       "sinif": "bos",
       "iyiHaber": false,
@@ -321,7 +341,9 @@
     },
     {
       "metin": "BOŞ · İLK KURULUM Bu bulgu için aksiyon planlanmadı. Aksiyonsuz bir bulgu kapanamaz: kapanış yapılan işin kaydına dayanır, beyana değil. AKSİYON PLANLA",
-      "rota": "/bulgular/cmtw74cma021qu37daplgqao2",
+      "rotalar": [
+        "/bulgular/cmtw74cma021qu37daplgqao2"
+      ],
       "tur": "BosIlk",
       "sinif": "ab-blok",
       "iyiHaber": false,
@@ -329,7 +351,9 @@
     },
     {
       "metin": "BOŞ · İLK KURULUM Bu çerçeve için henüz değerlendirme başlatılmadı. Değerlendirme açılmadan maddelerin durumu “bilinmiyor”dur — “uyumlu” değil. KAPSAMI ÇALIŞTIR",
-      "rota": "/sistem/bilesenler",
+      "rotalar": [
+        "/sistem/bilesenler"
+      ],
       "tur": "BosIlk",
       "sinif": "ab-blok",
       "iyiHaber": false,
@@ -337,7 +361,9 @@
     },
     {
       "metin": "BOŞ · İLK KURULUM Bu sekmede (Kabul edilen) kayıt yok: size bu durumda bir varlık zimmetlenmemiş. Zimmet, envanterdeki bir varlığın sahibi değiştirildiğinde doğar. Envantere git",
-      "rota": "/zimmetlerim",
+      "rotalar": [
+        "/zimmetlerim"
+      ],
       "tur": "BosIlk",
       "sinif": "ab-blok",
       "iyiHaber": false,
@@ -345,7 +371,9 @@
     },
     {
       "metin": "BOŞ · İLK KURULUM Değerlendirme aktarımı kaydı yok. Bir kuru koşu, hiçbir değerlendirmeye dokunmadan ne olacağını hesaplar. UYUM MATRİSİNİ AÇ",
-      "rota": "/degerlendirme-aktarim",
+      "rotalar": [
+        "/degerlendirme-aktarim"
+      ],
       "tur": "BosIlk",
       "sinif": "ab-blok",
       "iyiHaber": false,
@@ -353,7 +381,9 @@
     },
     {
       "metin": "BOŞ · İLK KURULUM Hiç envanter sayımı açılmadı. Sayım, envanterin sahadaki gerçekle karşılaştırıldığı tek yerdir; sayımsız bir envanter yalnız kayıttır. SAYIM AÇ",
-      "rota": "/sayim",
+      "rotalar": [
+        "/sayim"
+      ],
       "tur": "BosIlk",
       "sinif": "ab-blok",
       "iyiHaber": false,
@@ -361,7 +391,9 @@
     },
     {
       "metin": "BOŞ · İLK KURULUM Hiç firmware tabanı tanımlanmamış. Taban olmadan hiçbir cihazın firmware kararı verilemez; ekran bunu \"uyumlu\" değil \"karar verilemedi\" sayar. TABAN TANIMLA",
-      "rota": "/tabanlar",
+      "rotalar": [
+        "/tabanlar"
+      ],
       "tur": "BosIlk",
       "sinif": "ab-blok",
       "iyiHaber": false,
@@ -369,7 +401,9 @@
     },
     {
       "metin": "BOŞ · İLK KURULUM Hiç imha kararı açılmadı. İmha bir insan kararıdır ve ürün onu kendiliğinden vermez; süresi dolan kayıt karar açılana kadar durur. İMHA KARARI AÇ",
-      "rota": "/saklama",
+      "rotalar": [
+        "/saklama"
+      ],
       "tur": "BosIlk",
       "sinif": "ab-blok",
       "iyiHaber": false,
@@ -377,7 +411,9 @@
     },
     {
       "metin": "BOŞ · İLK KURULUM Hiç yönetim gözden geçirmesi kaydı yok. Gözden geçirme, alınan kararların ve kapanan kalemlerin tek kütüğüdür; kayıt olmadan “yönetim gördü” denemez. TOPLANTI PLANLA",
-      "rota": "/gozden-gecirme",
+      "rotalar": [
+        "/gozden-gecirme"
+      ],
       "tur": "BosIlk",
       "sinif": "ab-blok",
       "iyiHaber": false,
@@ -385,7 +421,9 @@
     },
     {
       "metin": "BOŞ · İLK KURULUM Kayıtlı taşınabilir medya yok. Bu, “sahada taşınabilir medya kullanılmıyor” demek DEĞİLDİR: yalnız kayda geçmiş olanlar izlenebilir. MEDYA KAYDET",
-      "rota": "/tasinabilir-medya",
+      "rotalar": [
+        "/tasinabilir-medya"
+      ],
       "tur": "BosIlk",
       "sinif": "ab-blok",
       "iyiHaber": false,
@@ -393,7 +431,9 @@
     },
     {
       "metin": "BOŞ · İLK KURULUM Kayıtlı yedek parça yok. Yedek parça kaydı, ömrü dolan varlığın değişim süresini gösteren tek veridir; kayıtsız kalan varlık için süre bilinmez. PARÇA EKLE",
-      "rota": "/yedek-parca",
+      "rotalar": [
+        "/yedek-parca"
+      ],
       "tur": "BosIlk",
       "sinif": "ab-blok",
       "iyiHaber": false,
@@ -401,7 +441,9 @@
     },
     {
       "metin": "BOŞ · İLK KURULUM Tanımlı dış denetçi erişimi yok. Dış denetçi erişimi süreli ve kapsamlıdır; tanımlanmadan hiçbir dış hesap kayıt göremez. DENETÇİ DAVET ET",
-      "rota": "/denetci-erisimi",
+      "rotalar": [
+        "/denetci-erisimi"
+      ],
       "tur": "BosIlk",
       "sinif": "ab-blok",
       "iyiHaber": false,
@@ -409,7 +451,9 @@
     },
     {
       "metin": "BOŞ · İLK KURULUM Tanımlı eğitim yok. Eğitim tanımlanmadan katılım ve tazelik izlenemez; farkındalık kontrolleri kanıtsız kalır. EĞİTİM TANIMLA",
-      "rota": "/egitimler",
+      "rotalar": [
+        "/egitimler"
+      ],
       "tur": "BosIlk",
       "sinif": "ab-blok",
       "iyiHaber": false,
@@ -417,7 +461,9 @@
     },
     {
       "metin": "BOŞ · İLK KURULUM Tanımlı hukuki muhafaza yok. Muhafaza, saklama süresi dolan kaydın imhasını DURDURAN tek şeydir; tanımlanmadan imha kararları süreye göre işler. MUHAFAZA AÇ",
-      "rota": "/saklama",
+      "rotalar": [
+        "/saklama"
+      ],
       "tur": "BosIlk",
       "sinif": "ab-blok",
       "iyiHaber": false,
@@ -425,7 +471,9 @@
     },
     {
       "metin": "Kayıtlı üretim ünitesi yok — bu santral için hiç üretim ünitesi tanımlanmamış.ÜRETİM ÜNİTESİ TANIMLA",
-      "rota": "/tesisler/cmtw748is0007u37dfc00mdvk",
+      "rotalar": [
+        "/tesisler/cmtw748is0007u37dfc00mdvk"
+      ],
       "tur": "satirIci",
       "sinif": "bos",
       "iyiHaber": false,
@@ -433,7 +481,9 @@
     },
     {
       "metin": "SÜZGEÇ Bu süzgeçle kayıt yok; süzgeci temizleyince kapsamdaki tüm kayıtlar yeniden listelenir. SÜZGECİ TEMİZLE",
-      "rota": "/sistem/bilesenler",
+      "rotalar": [
+        "/sistem/bilesenler"
+      ],
       "tur": "BosFiltre",
       "sinif": "ab-blok",
       "iyiHaber": false,

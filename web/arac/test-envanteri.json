@@ -1,7 +1,7 @@
 {
-  "imza": "7f71e0209810fa3192e93927c56867ae",
+  "imza": "22617b527ce9123f60751674f00d9593",
   "dosya": 246,
-  "vaka": 4405,
+  "vaka": 4424,
   "atlanan": 1,
   "dosyalar": {
     "tests/adaptor-yetenekleri.test.ts": {
@@ -45,7 +45,7 @@
       "atlanan": 0
     },
     "tests/bekci/bos-durum.test.ts": {
-      "vaka": 23,
+      "vaka": 24,
       "atlanan": 0
     },
     "tests/bekci/cekirdek-taban.test.ts": {
@@ -109,7 +109,7 @@
       "atlanan": 0
     },
     "tests/bekci/politika-olcumu.test.ts": {
-      "vaka": 35,
+      "vaka": 45,
       "atlanan": 0
     },
     "tests/bekci/radar-agsiz.test.ts": {
@@ -421,7 +421,7 @@
       "atlanan": 0
     },
     "tests/kalite-kapilari.test.ts": {
-      "vaka": 85,
+      "vaka": 87,
       "atlanan": 0
     },
     "tests/kanit-kapsam.test.ts": {
@@ -749,7 +749,7 @@
       "atlanan": 0
     },
     "tests/politika-tanik-acilan.test.ts": {
-      "vaka": 24,
+      "vaka": 30,
       "atlanan": 0
     },
     "tests/politika-yetki-kapilari.test.ts": {

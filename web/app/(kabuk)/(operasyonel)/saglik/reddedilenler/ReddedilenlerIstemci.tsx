@@ -63,13 +63,25 @@ export default function ReddedilenlerIstemci({
     if (!yetkili) return <Yetkisiz rol="yönetim okuma" />;
     if (satirlar.length === 0) {
       return (
-        /* Kuyruğun boş olması ile kuyruğu görememek AYNI ŞEY DEĞİLDİR. */
-        <BosIlk iyiHaber={!kapsamli} cumle={kapsamli
-          ? `Kapsamınızdaki ${t('tesis', 'cogul')} için reddedilen kayıt yok: `
-            + 'bu kapsama düşen hiçbir connector kaydı elenmedi.'
-          : 'Reddedilen kayıt yok. Bir connector koşusunda düşen her '
-            + 'kayıt — şemadan, eşlemeden, doğrulamadan ya da kapsamdan — burada '
-            + 'ham hâliyle görünür.'} />
+        /* Kuyruğun boş olması ile kuyruğu görememek AYNI ŞEY DEĞİLDİR.
+
+           ── BAYRAK KOŞULLU, EYLEM DE KOŞULLU OLMALI (inceleme tur 2) ──
+           `iyiHaber={!kapsamli}` koşulludur: kapsamı KISITLI kullanıcı
+           için bu boşluk iyi haber DEĞİLDİR — kuyruğu görememektir ve
+           bir çıkışı olmalıdır. Türetici bayrağın yalnız VARLIĞINI
+           okuduğu için bu satır "eylemsiz 0" sayımının içinde
+           saklanıyordu. */
+        <BosIlk iyiHaber={!kapsamli}
+          cumle={kapsamli
+            ? `Kapsamınızdaki ${t('tesis', 'cogul')} için reddedilen kayıt yok: `
+              + 'bu kapsama düşen hiçbir connector kaydı elenmedi — başka '
+              + 'kapsamlarda elenmiş kayıt olabilir.'
+            : 'Reddedilen kayıt yok. Bir connector koşusunda düşen her '
+              + 'kayıt — şemadan, eşlemeden, doğrulamadan ya da kapsamdan — burada '
+              + 'ham hâliyle görünür.'}
+          eylem={kapsamli
+            ? <Link className="ab-dugme" href="/saglik">Platform sağlığını aç</Link>
+            : undefined} />
       );
     }
 

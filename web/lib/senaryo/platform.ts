@@ -1433,6 +1433,22 @@ export const PLATFORM_SENARYOLARI_6: Senaryo[] = [
     katmanlar: ['DOMAIN', 'MIGRATION'],
   },
   {
+    id: 'SIS-KAP-004', alan: 'Sistem', rota: '—', eksen: 'arayuz',
+    amac: 'Tarayıcılı kanıt kapılarında SABİT iddia bulunmaması',
+    rol: 'kapı bakımcısı', kapsam: 'kurum geneli',
+    onkosul: '`kaydet(...)` çağıran bir kanıt aracı var',
+    veriHali: 'yok',
+    eylem: 'Araçların kaynağı taranır',
+    beklenenSonuc: 'Hiçbir `kaydet` çağrısı sabit `true` geçmez; rapora '
+      + '"geçti" yazan her satır bir GÖZLEME dayanır. Sabit `false` '
+      + 'yasak değildir: bulunamama dalında ölçülen olumsuz sonucu yazar '
+      + 've olsa olsa yanlış alarm üretir.',
+    beklenenEkran: 'yok — kapı raporunda ölçülmüş iddia ile ölçülmemiş cümle ayrışır',
+    beklenenIz: 'yazma yok — ölçüm kaynağı okur',
+    beklenenBildirim: 'yok',
+    katmanlar: ['DOMAIN'],
+  },
+  {
     id: 'SIS-BSD-001', alan: 'Sistem', rota: '—', eksen: 'arayuz',
     amac: 'Boş durumun SEBEBİNİ söylemesi ve ÇÖZÜM EYLEMİNE işaret etmesi',
     rol: 'ilk kurulumdaki kullanıcı', kapsam: 'kurum geneli',

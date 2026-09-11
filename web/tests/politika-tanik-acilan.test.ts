@@ -1,5 +1,6 @@
 import { afterAll, beforeAll, describe, expect, it, vi } from 'vitest';
 import { execFileSync } from 'node:child_process';
+import { createHash } from 'node:crypto';
 import { copyFileSync, mkdtempSync, readFileSync } from 'node:fs';
 import { rm } from 'node:fs/promises';
 import { tmpdir } from 'node:os';
@@ -798,5 +799,218 @@ describe('POL-237 · reddedilen kayıt listesi KAPSAMLA daralır [SIS-POL-002]',
     expect(dar.kapsamli, 'kapsama kısıtlı rol için daraltma BİLDİRİLMİYOR').toBe(true);
     expect(dar.toplam, 'dar kapsam geniş kapsamdan çok kayıt gösteriyor')
       .toBeLessThanOrEqual(genis.toplam);
+  });
+});
+
+/* ═══ İNCELEME TUR 2'NİN AÇTIĞI SATIRLAR ═════════════════════════════
+   Bağımsız inceleme (tur 2 · P1-1) ÖZNE kalıbının hâlâ ASCII `\b`
+   kullandığını ölçtü: Türkçe harfle BAŞLAYAN bir alternatifte sözcük
+   sınırı hiç kurulmaz, yani `ürün` alternatifi TAMAMEN ÖLÜYDÜ. En ağır
+   sonucu şuydu — CLAUDE.md'nin S1'i TANIMLARKEN kullandığı arketip
+   ("ihlali … bir OT ağına paket yollar") ekranda YAZILIYDI ama kütükte
+   HİÇ YOKTU. "S1 tavanı 0 · yedinci diş" kilitlerinin hepsi onun
+   üstünden atlıyordu.
+
+   Kalıp düzeltildi (216 → 220) ve açılan on bir satır burada ölçülür. */
+
+describe('POL-241 · POL-243 · "Bu ürün ağa paket ATMAZ" [SIS-POL-002]', () => {
+  it('KEŞİF ve TOPOLOJİ yolları ağ ilkellerini HİÇ ÇAĞIRMAZ [SIS-POL-002]', async () => {
+    /* Bu iki cümle ürünün en pahalı vaadidir ("pasif önce, aktif tarama
+       yok") ve ölçümü `tests/politika-pasif-once.test.ts` içinde GERÇEK
+       yolla yapılır: ağ ilkelleri FIRLATAN sahtelerle değiştirilir ve
+       motorlar koşturulur. Burada ölçülen şey BAĞ: ekranda yazan cümle
+       ile o ölçümün aynı iddiayı konuştuğu. */
+    const kaynak = kaynakOku('tests/politika-pasif-once.test.ts');
+    expect(kaynak, 'pasif önce ölçümü ağ ilkellerini sahteyle değiştirmiyor')
+      .toMatch(/anlık görüntü motoru ağa HİÇ paket göndermez/);
+    /* Ve cümlenin KENDİSİ ekranda duruyor — ölü bir atıf değil. */
+    const ekran = kaynakOku('app/(kabuk)/(operasyonel)/kesif/KesifIstemci.tsx');
+    expect(ekran).toMatch(/ağa paket ATMAZ/);
+  });
+});
+
+describe('POL-242 · "ICS-CERT, PSIRT ya da NVD akışına BAĞLANMAZ" [SIS-POL-002]', () => {
+  it('DUYURU kaydı ELLE açılır; hiçbir motor akıştan duyuru yazmaz [SIS-POL-002]', async () => {
+    /* Yapısal ölçüm: duyuru tablosuna yazan bir MOTOR yoksa "akışa
+       bağlanmaz" kalıcıdır; ekran kararı değildir. */
+    const ara = (kalip: string, ...dizinler: string[]) => {
+      try {
+        return execFileSync('grep', ['-rn', '--include=*.ts', '-E', kalip, ...dizinler],
+          { encoding: 'utf8', stdio: ['ignore', 'pipe', 'ignore'] }).trim();
+      } catch (e) {
+        const h = e as { status?: number };
+        if (h.status === 1) return '';
+        throw e;
+      }
+    };
+    /* Karşı tanık: aracın çalıştığı ve modelin var olduğu ölçülür. */
+    expect(ara('advisory\\.(create|upsert)', 'lib'),
+      'grep hiç çalışmadı ya da model yok — vaka bir şey ölçmüyor').not.toBe('');
+    const motorYazimi = ara('advisory\\.(create|createMany|upsert)', 'lib/motorlar', 'lib/entegrasyon');
+    expect(motorYazimi, `motor katmanı duyuru yazıyor:\n${motorYazimi}`).toBe('');
+  }, 30_000);
+});
+
+describe('POL-247 · "Ürün dosyayı AÇMAZ, ayrıştırmaz ve çalıştırmaz" [SIS-POL-002]', () => {
+  it('KANIT dosyası BAYT olarak saklanır ve SHA-256 özeti alınır [SIS-POL-002]', async () => {
+    const { kanitDosyasiYukle } = await import('@/lib/eylemler2/kanit');
+    const kanit = await db.kanit.findFirst({ select: { id: true } });
+    expect(kanit, 'kanıt fikstürü yok').not.toBeNull();
+
+    const icerik = Buffer.from('KURGUSAL KANIT DOSYASI · yalnız testte yaşar');
+    const s = await kanitDosyasiYukle({
+      kanitId: kanit!.id,
+      dosyaAdi: `kurgusal-${damga}.txt`,
+      /* İçerik tipi İZİN LİSTESİNDEDİR — ürünün kendi kapısı; listede
+         olmayan tip reddedilir ve bu da bir politikadır. */
+      mimeTipi: 'text/plain',
+      icerik: icerik.toString('base64'),
+      gerekce: 'Tanık turunda açılan kanıt dosyası ölçümü',
+    });
+    expect(s.ok, `dosya yüklenemedi: ${s.ok ? '' : s.hata}`).toBe(true);
+
+    const sonra = await db.kanit.findUnique({
+      where: { id: kanit!.id }, select: { dosyaHash: true, dosyaAdi: true } });
+    /* SHA-256 alınmış: ürün dosyanın BAYTINI özetliyor. */
+    const beklenen = createHash('sha256').update(icerik).digest('hex');
+    expect(sonra!.dosyaHash, 'SHA-256 özeti kaydın baytıyla uyuşmuyor').toBe(beklenen);
+    /* AÇMIYOR: içerikten türetilmiş hiçbir alan yok — şemada yok ki olsun. */
+    const sema = readFileSync('prisma/schema.prisma', 'utf8');
+    const model = sema.slice(sema.indexOf('\nmodel Kanit {'));
+    const govde = model.slice(0, model.indexOf('\n}\n'));
+    for (const yasak of [/\bicerikMetni\s+String/, /\bayristirilan\s+/, /\bmetin\s+String/]) {
+      expect(govde, `Kanit modelinde AYRIŞTIRILMIŞ içerik alanı var: ${yasak}`)
+        .not.toMatch(yasak);
+    }
+    /* Karşı tanık: ÖZET alanı VAR — doğru modeli okuyoruz. */
+    expect(govde).toMatch(/\bdosyaHash\s+String\?/);
+  });
+});
+
+describe('POL-248 · "Ürün medyayı ENGELLEMEZ — burada tutulan KAYITTIR" [SIS-POL-002]', () => {
+  it('MEDYA kaydı bir ENGELLEME eylemi üretmez; yalnız kütük satırıdır [SIS-POL-002]', async () => {
+    const { medyaKaydet, medyaDurumu } = await import('@/lib/eylemler2/tasinabilirMedya');
+    const kod = `TNK-MED-${damga}`;
+    const tesis = await db.tesis.findFirst({ select: { id: true } });
+    const s = await medyaKaydet({
+      kod, ad: `Kurgusal medya ${damga}`, tip: 'usb_bellek',
+      seriNo: `SN-${damga}`, tesisId: tesis!.id,
+    });
+    expect(s.ok, `medya kaydedilemedi: ${s.ok ? '' : s.hata}`).toBe(true);
+
+    const kayit = await db.tasinabilirMedya.findFirst({
+      where: { kod }, select: { id: true, durum: true } });
+    expect(kayit, 'medya kaydı yazılmadı').not.toBeNull();
+
+    /* ── "ENGELLEMEZ" NE DEMEK, NE DEMEK DEĞİL ────────────────────────
+       İlk yazımda `karantina` sözcüğünü yasaklamıştım ve bu YANLIŞTI:
+       `karantina` bir KAYIT DURUMUDUR (`MEDYA_DURUMLARI`), bir zorlama
+       eylemi değil. Sözcük avlamak, iddianın kendisini ölçmez.
+
+       İddia şudur: ürün medyanın KULLANIMINA karışmaz — kütüğe yazar.
+       Bunun yapısal karşılığı, eylem katmanının ağa/uç noktaya HİÇBİR
+       çağrı yapmamasıdır; yaptığı tek şey veritabanı yazımıdır. */
+    const eylem = kaynakOku('lib/eylemler2/tasinabilirMedya.ts');
+    for (const yasak of [/\bfetch\s*\(/, /\bexec(Sync|File)?\s*\(/,
+      /child_process/, /\bnode:net\b/, /\baxios\b/]) {
+      expect(eylem, `medya eylemi üründen DIŞARI çıkıyor: ${yasak}`)
+        .not.toMatch(yasak);
+    }
+    /* Karşı tanık: dosya GERÇEKTEN veritabanına yazıyor — "hiçbir şey
+       yapmıyor" değil, "yalnız kayıt tutuyor". */
+    expect(eylem).toMatch(/db\.tasinabilirMedya\.(create|update|upsert)/);
+    /* Karşı tanık: durum GERÇEKTEN değişiyor — kayıt tutuluyor. */
+    expect((await medyaDurumu({
+      id: kayit!.id, durum: 'imha', gerekce: 'Kurgusal imha kararı · testte yaşar',
+    })).ok).toBe(true);
+    expect((await db.tasinabilirMedya.findUnique({
+      where: { id: kayit!.id }, select: { durum: true } }))!.durum).toBe('imha');
+  });
+});
+
+describe('POL-239 · "Aydınlatma metni ÜRETİLMEZ" [SIS-POL-002]', () => {
+  it('METİN ÜRETEN bir eylem ya da uç YOKTUR — beyan kurumundur [SIS-POL-002]', () => {
+    /* "Üretmez" bir EKRAN kararı değil, yapısal bir yokluk olmalı: metin
+       üreten bir sunucu eylemi ya da uç varsa yarın bir düğme onu çağırır.
+       Ölçüm eylem katmanının TAMAMINDA yapılır. */
+    const ara = (kalip: string, ...dizinler: string[]) => {
+      try {
+        return execFileSync('grep', ['-rn', '--include=*.ts', '--include=*.tsx',
+          '-E', kalip, ...dizinler],
+        { encoding: 'utf8', stdio: ['ignore', 'pipe', 'ignore'] }).trim();
+      } catch (e) {
+        const h = e as { status?: number };
+        if (h.status === 1) return '';
+        throw e;
+      }
+    };
+    /* Karşı tanık: "aydınlatma" sözcüğü kaynakta GEÇİYOR (ekran cümlesi),
+       yani araç çalışıyor ve doğru yere bakıyor. */
+    expect(ara('[Aa]ydınlatma', 'app', 'lib'),
+      'grep hiç çalışmadı — vaka bir şey ölçmüyor').not.toBe('');
+    const ureten = ara('(aydinlatmaMetni|aydinlatmaUret|aydınlatma metni üret)',
+      'app', 'lib');
+    expect(ureten, `aydınlatma metni ÜRETEN kod var:\n${ureten}`).toBe('');
+  }, 30_000);
+});
+
+describe('POL-245 · "Ürün envanteri kendiliğinden değiştirmez" [SIS-POL-002]', () => {
+  it('SAHADA GÖRÜLEN duruş, envanter kaydını YAZMAZ [SIS-POL-002]', async () => {
+    const varlik = await db.varlik.findFirst({
+      select: { id: true, etiket: true, hostname: true },
+    });
+    expect(varlik, 'varlık fikstürü yok').not.toBeNull();
+
+    const oncekiEtiket = varlik!.etiket;
+    const oncekiHost = varlik!.hostname;
+
+    /* Duruş GÖZLEMİ gerçekten yazılır ve envanterdekinden FARKLI bir
+       kimlik bildirir — çelişkinin ta kendisi kurulur. */
+    const gozlem = await db.varlikDurusGozlemi.create({ data: {
+      varlikId: varlik!.id,
+      kaynakSistem: `kurgusal-gozlem-${damga}`,
+      kaynakKayitId: `kayit-${damga}`,
+      hostname: `SAHADA-BASKA-AD-${damga}`,
+      alinma: new Date(),
+    } as never });
+
+    /* ENVANTER KAYDINA DOKUNULMAZ: ekranın cümlesi budur. */
+    const sonra = await db.varlik.findUnique({
+      where: { id: varlik!.id }, select: { etiket: true, hostname: true } });
+    expect(sonra!.etiket, 'duruş gözlemi envanterin etiketini değiştirdi')
+      .toBe(oncekiEtiket);
+    expect(sonra!.hostname, 'duruş gözlemi envanterin hostname alanını değiştirdi')
+      .toBe(oncekiHost);
+
+    /* KARŞI TANIK: gözlem GERÇEKTEN açıldı ve çelişen değeri TAŞIYOR —
+       "hiçbir şey olmadı" diye değil, "olan şey envantere dokunmadı"
+       diye yeşil. */
+    expect(gozlem.hostname).toBe(`SAHADA-BASKA-AD-${damga}`);
+    expect(gozlem.hostname).not.toBe(oncekiHost);
+
+    /* ── YAPISAL ÖLÇÜM DOĞRU YERE BAKAR ──────────────────────────────
+       İlk yazımda `lib/eylemler2/varlikDurusu.ts` dosyasının TAMAMINDA
+       `db.varlik.update` arıyordum ve bu YANLIŞTI: o dosya duruş dışında
+       başka varlık yönetişimi eylemleri de taşıyor (segment atama gibi)
+       ve onların envantere yazması DOĞRUDUR — insan kararıdır.
+
+       İddia "kendiliğinden" hakkındadır: GÖZLEM alma yolu envanteri
+       yazmamalıdır. Ölçüm bu yüzden gözlemi ALAN katmandadır. */
+    const ara = (kalip: string, ...dizinler: string[]) => {
+      try {
+        return execFileSync('grep', ['-rn', '--include=*.ts', '-E', kalip, ...dizinler],
+          { encoding: 'utf8', stdio: ['ignore', 'pipe', 'ignore'] }).trim();
+      } catch (e) {
+        const h = e as { status?: number };
+        if (h.status === 1) return '';
+        throw e;
+      }
+    };
+    /* Karşı tanık: gözlem katmanı GERÇEKTEN gözlem yazıyor. */
+    expect(ara('varlikDurusGozlemi\\.(create|createMany|upsert)', 'lib/api'),
+      'gözlem katmanı bulunamadı — vaka bir şey ölçmüyor').not.toBe('');
+    const envanterYazimi = ara('db\\.varlik\\.(update|updateMany|upsert)', 'lib/api/uclar');
+    expect(envanterYazimi,
+      `gözlem katmanı envanteri KENDİLİĞİNDEN yazıyor:\n${envanterYazimi}`).toBe('');
   });
 });

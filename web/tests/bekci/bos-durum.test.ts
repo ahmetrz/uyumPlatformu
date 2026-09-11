@@ -8,7 +8,7 @@ import {
   sinifTavanlari, turet,
 } from '../../arac/bos-durum-kutugu.mjs';
 import { tabanKarari, tabanOku } from '../../arac/olcum-tabani.mjs';
-import { tabanDalKarari } from '../../arac/taban-dal.mjs';
+import { ilkTurTavani, tabanDalKarari } from '../../arac/taban-dal.mjs';
 
 /* ═══════════════════════════════════════════════════════════════════════
    BOŞ DURUM İKİ ÖLÇÜTÜ KARŞILAR · BEKÇİ [SIS-BSD-001]
@@ -58,6 +58,10 @@ type Kutuk = {
     sahip?: string; kapanisAsamasi?: string;
   }[];
   istisnalar?: { yer: string; cumle: string; sebep: string; olcum: { dosya: string; vaka: string } }[];
+  /* ELLE yazılan ilk tur tavanları — taban dal yokken cırcırın tavanı.
+     Türeticinin yazdığı `tavanlar` bu işi göremez (P2-4). */
+  ilkTurTavani?: Record<string, number>;
+  ilkTurSinifTavanlari?: Record<string, SinifTavani>;
   satirlar: Satir[];
 };
 const kutuk = JSON.parse(readFileSync(KUTUK, 'utf8')) as Kutuk;
@@ -274,13 +278,33 @@ describe('İKİ ÖLÇÜT ve CIRCIR [SIS-BSD-001]', () => {
        ama okunamadı" hâli kurulamaz (kütüğü GETİREN dal), yani karar
        burada sınanamaz — sentetik vakaları aşağıda. */
     const karar = tabanDalKarari(tabandaVar, ham);
-    if (karar.hal === 'taban_yok') return;
     if (karar.hal === 'olculemedi') {
       expect(process.env.CI ?? '',
         `TABAN DAL ÖLÇÜLEMEDİ (${karar.sebep}) — cırcır koşmadı`).toBe('');
       return;
     }
-    const taban = karar.belge as Kutuk;
+    /* ── SESSİZ `return` KALDIRILDI (düzeltme turu · tur 2 · P2-4) ─────
+       Bu bir SAYI cırcırıdır: taban yoksa karşılaştırılacak bir sayı da
+       yoktur ve sessizce dönmek cırcırın HİÇ koşmaması demekti. Kütüğün
+       KENDİ `tavanlar` alanına düşmek çözüm DEĞİLDİR — onu türetici
+       yazar, yani kütük kendini kendisiyle karşılaştırır ve her zaman
+       geçer. Tavan ELLE beyan edilir (`ilkTurTavani`), beyansızsa
+       KIRMIZIDIR. Hâl bugün bu kütük için ULAŞILAMAZ (dosya taban dalda
+       VAR) ve kural yine de yazılıdır: dosyanın adı değiştiği gün
+       ulaşılır olur ve o gün sessizce yeşil yanmaz. */
+    const taban: Kutuk = karar.hal === 'taban_yok'
+      ? (() => {
+        const alanlar = ['nedensiz', 'eylemsiz'] as const;
+        const beyan = kutuk.ilkTurTavani ?? {};
+        const tavanlar = {} as Kutuk['tavanlar'];
+        for (const alan of alanlar) {
+          const k = ilkTurTavani((beyan as Record<string, number>)[alan], alan);
+          expect('hata' in k ? k.hata : null, 'hata' in k ? k.hata : '').toBeNull();
+          tavanlar[alan] = (k as { tavan: number }).tavan;
+        }
+        return { ...kutuk, tavanlar, sinifTavanlari: kutuk.ilkTurSinifTavanlari ?? {} } as Kutuk;
+      })()
+      : karar.belge as Kutuk;
     expect(nedensiz.length,
       `nedensiz ${taban.tavanlar.nedensiz} → ${nedensiz.length}: liste YALNIZ küçülebilir`)
       .toBeLessThanOrEqual(taban.tavanlar.nedensiz);
@@ -405,6 +429,29 @@ describe('ÖLÇÜTÜN KENDİ YÜRÜYÜŞÜ [SIS-BSD-001]', () => {
     expect(satirIciMetin(satirIciBul(hesap)[0].govde)).toBe('… kaydı yok.');
     const secim = '<p className="bos">{a ? \'X yok\' : \'Y yok\'}</p>';
     expect(satirIciMetin(satirIciBul(secim)[0].govde)).toBe('X yok Y yok');
+  });
+
+  it('TABAN YOKKEN SAYI CIRCIRI SESSİZCE GEÇMEZ — ilk tur tavanı ELLE beyanlıdır [SIS-TAB-002]', () => {
+    /* ── ÖLÇÜLEN KUSUR (düzeltme turu · tur 2 · P2-4) ─────────────────
+       Dört ayrı bekçi `taban_yok` hâlini tek satırla karşılıyordu:
+       `if (karar.hal === 'taban_yok') return;` — sessiz bir `return`,
+       cırcırın HİÇ KOŞMAMASIDIR. Hâl varsayımsal değildi:
+       `dom-tanik-kutugu.json` bu dalda DOĞDU, yani tanık cırcırı tam da
+       tanığı getiren turda hiçbir şey ölçmüyordu.
+
+       Beyanın ELLE olması kuralın kendisidir: türeticinin yazdığı
+       `tavanlar` alanına düşmek, kütüğü kendisiyle karşılaştırmak olurdu
+       ve HER ZAMAN geçerdi. */
+    const yok = ilkTurTavani(undefined, 'nedensiz');
+    expect('hata' in yok, 'beyansız ilk tur SESSİZCE geçti').toBe(true);
+    expect((yok as { hata: string }).hata).toMatch(/ilkTurTavani/);
+    /* Sayı olmayan ve negatif beyan da beyan değildir. */
+    for (const kotu of ['3', 3.5, -1, null, {}]) {
+      expect('hata' in ilkTurTavani(kotu, 'nedensiz'), `beyan kabul edildi: ${JSON.stringify(kotu)}`)
+        .toBe(true);
+    }
+    expect(ilkTurTavani(0, 'nedensiz')).toEqual({ tavan: 0 });
+    expect(ilkTurTavani(8, 'satır')).toEqual({ tavan: 8 });
   });
 
   it('TABAN DAL ÜÇ HÂLİ: yok · okundu · ÖLÇÜLEMEDİ [SIS-TAB-002]', () => {

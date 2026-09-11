@@ -8,7 +8,7 @@
     "BosIlk": {
       "nedensiz": 1,
       "eylemsiz": 0,
-      "iyiHaber": 14
+      "iyiHaber": 9
     },
     "BosFiltre": {
       "nedensiz": 0,
@@ -759,10 +759,10 @@
     },
     {
       "yer": "app/(kabuk)/(operasyonel)/saglik/reddedilenler/ReddedilenlerIstemci.tsx",
-      "satir": 67,
+      "satir": 74,
       "tur": "BosIlk",
-      "cumle": "Kapsamınızdaki ${t('tesis', 'cogul')} için reddedilen kayıt yok: bu kapsama düşen hiçbir connector kaydı elenmedi. Reddedilen kayıt yok. Bir connector koşusunda düşen her kayıt — şemadan, eşlemeden, doğrulamadan ya da kapsamdan — burada ham hâliyle görünür.",
-      "iyiHaber": true,
+      "cumle": "Kapsamınızdaki ${t('tesis', 'cogul')} için reddedilen kayıt yok: bu kapsama düşen hiçbir connector kaydı elenmedi — başka kapsamlarda elenmiş kayıt olabilir. Reddedilen kayıt yok. Bir connector koşusunda düşen her kayıt — şemadan, eşlemeden, doğrulamadan ya da kapsamdan — burada ham hâliyle görünür.",
+      "iyiHaber": false,
       "neden": true,
       "eylem": true
     },
@@ -1122,25 +1122,25 @@
       "satir": 336,
       "tur": "BosIlk",
       "cumle": "Aramayla eşleşen kayıt yok: aramayı temizleyince katalogdaki tüm kayıtlar geri gelir. Bu katalogda kayıt yok — motor koddaki varsayılanı okur.",
-      "iyiHaber": true,
+      "iyiHaber": false,
       "neden": true,
       "eylem": true
     },
     {
       "yer": "app/(kabuk)/(operasyonel)/yonetim-tezgahi/KonsolIstemci.tsx",
-      "satir": 366,
+      "satir": 369,
       "tur": "BosIlk",
       "cumle": "acik Açık talep yok: bu hedefte incelemeyi bekleyen bir değişiklik talebi bulunmuyor. Talep kaydı yok: bu hedef için hiç değişiklik talebi açılmamış — ayarlar doğrudan yazılmış olabilir.",
-      "iyiHaber": true,
+      "iyiHaber": false,
       "neden": true,
       "eylem": true
     },
     {
       "yer": "app/(kabuk)/(operasyonel)/yonetim-tezgahi/KonsolIstemci.tsx",
-      "satir": 390,
+      "satir": 397,
       "tur": "BosIlk",
       "cumle": "Aramayla eşleşen iz yok: aramayı temizleyince bu katalogdaki tüm iz satırları geri gelir. Bu katalogda iz kaydı yok: kayıtlar seed ile gelmiş ve henüz elle değiştirilmemiş olabilir.",
-      "iyiHaber": true,
+      "iyiHaber": false,
       "neden": true,
       "eylem": true
     },
@@ -1158,7 +1158,7 @@
       "satir": 153,
       "tur": "BosIlk",
       "cumle": "bekleyen Cevap bekleyen zimmetiniz yok. Size bir varlık atandığında burada görünür. Bu sekmede (${SEKMELER.find((x) => x.id === sekme)?.ad}) kayıt yok: size bu durumda bir varlık zimmetlenmemiş. Zimmet, envanterdeki bir varlığın sahibi değiştirildiğinde doğar.",
-      "iyiHaber": true,
+      "iyiHaber": false,
       "neden": true,
       "eylem": true
     },
@@ -1181,19 +1181,10 @@
       "eylem": true
     },
     {
-      "yer": "components/kabuk/tablo.tsx",
-      "satir": 195,
-      "tur": "satirIci",
-      "cumle": "{bosCumle ? … : ( Bu süzgeçte kayıt yok — süzgeci daraltan bir seçim var; tablo boş değil, bu görünüm boş. )} …",
-      "iyiHaber": false,
-      "neden": true,
-      "eylem": true
-    },
-    {
       "yer": "components/kabuk/temel.tsx",
       "satir": 248,
       "tur": "BosFiltre",
-      "cagri": 24,
+      "cagri": 25,
       "cumle": "Bu süzgeçle kayıt yok; süzgeci temizleyince kapsamdaki tüm kayıtlar yeniden listelenir.",
       "iyiHaber": false,
       "neden": true,

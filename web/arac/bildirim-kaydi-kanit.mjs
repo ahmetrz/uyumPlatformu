@@ -238,7 +238,7 @@ try {
     const acikVar = await satir.count() > 0;
     kaydet(bant.ad, 'gönderim düğmesi olan AÇIK kayıt var', acikVar,
       acikVar ? (await satir.innerText()).split('\n')[0].trim().slice(0, 60)
-        : 'açık kayıt yok — fikstür tüketilmiş olabilir: npm run db:hazirla');
+        : `açık kayıt yok — fikstür ${fikstur.yukumlulukKodu} ekranda görünmüyor`);
     if (!acikVar) { await context.close(); continue; }
 
     /* Satırın kimliği: ilk satırdaki yükümlülük kodu. Yeniden yüklemeden
@@ -249,7 +249,15 @@ try {
     await satir.getByRole('button', { name: /Gönderildi olarak işaretle/ }).first().click();
     const alan = satir.locator('input.ab-girdi').first();
     await alan.waitFor({ timeout: 5000 });
-    kaydet(bant.ad, 'referans alanı açıldı', true);
+    /* ── SABİT `true` BİR İDDİA DEĞİLDİR (düzeltme turu · tur 2 · P2-5) ─
+       Satır raporda "geçti" yazıyordu ve HİÇBİR ŞEY ölçmüyordu: üstündeki
+       `waitFor` düşerse koşum zaten patlar, düşmezse bu satır her hâlde
+       yeşil yanar. Yani rapora bakan insan, ölçülmüş bir iddia ile
+       ölçülmemiş bir cümleyi ayırt edemiyordu — deponun "hiçbir şey
+       ölçmeden yeşil yanan kapı" sınıfı. Bugün gözlem yazılır. */
+    kaydet(bant.ad, 'referans alanı açıldı',
+      await alan.isVisible() && await alan.isEditable(),
+      `görünür ${await alan.isVisible()} · yazılabilir ${await alan.isEditable()}`);
 
     /* Boş referansla gönder: sunucu REDDETMELİ ve kayıt DEĞİŞMEMELİ. */
     const gonder = satir.getByRole('button', { name: /Gönderildi olarak işaretle/ }).first();

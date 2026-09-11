@@ -437,14 +437,43 @@ export function satirIciMetin(govde) {
 
 /** Satır içi yüzeyde EYLEM: gövdede gerçek bir bağ ya da düğme var mı.
     Öznitelik yok, bu yüzden kod okunur — kütükten işaretlenemez. */
-export function satirIciEylem(govde) {
-  /* EYLEM YUVASI da eylemdir ve bu BEYANLI bir sınırdır. Paylaşılan bir
-     bileşen (`VeriTablosu`) boşluğun çıkışını KENDİ bilemez: süzgeç
-     çağıranın durumudur. Bileşen bir yuva (`bosEylem`) açar, çağıran
-     doldurur — ve çağıranın eylemi ÇAĞIRANIN yerinde ölçülür. Yuvayı
-     "eylemsiz" saymak, paylaşılan bileşeni olmayan bir eylemi uydurmaya
-     zorlardı; tam da bu turda ölü bağ üreten baskının kaynağı budur. */
-  return /<Link\b|<Dugme\b|\bhref=|\bonClick=|\{bosEylem\}/.test(govde);
+/* ── YUVA, DOLDURULDUĞU SÜRECE EYLEMDİR ───────────────────────────────
+   Eski yazım `{bosEylem}` yuvasını KOŞULSUZ eylem sayıyordu ve gerekçesi
+   tutarlıydı: paylaşılan bir bileşen (`VeriTablosu`) boşluğun çıkışını
+   kendi bilemez, çağıran doldurur.
+
+   Gerekçe tutarlıydı ama ÖLÇÜLMEMİŞTİ. Bağımsız inceleme (düzeltme turu ·
+   P1-2) tek bir çağıranın bile yuvayı doldurmadığını ölçtü: yani kütük
+   "bu boşluğun çıkışı var" diyordu, ekranda çıkış YOKTU ve satır
+   `eylemsiz 0` sayımının içinde duruyordu. Bir söz veren ama kimsenin
+   tutmadığı yuva, eylemsiz bir boş durumun üstüne örtülmüş bir yorumdur.
+
+   Bugün yuva ŞARTLI sayılır: en az bir çağıran onu GERÇEKTEN dolduruyorsa
+   eylemdir, doldurmuyorsa hollow'dur ve satır eylemsizdir. Karar saf
+   tutulur — doluluk dışarıdan verilir ki sentetik vakalarla sınanabilsin. */
+export const YUVA_ADI = 'bosEylem';
+
+/** Herhangi bir çağıran yuvayı dolduruyor mu? (`bosEylem={…}`) */
+export function yuvaDolduruldu(hepsi) {
+  const kalip = new RegExp(`\\b${YUVA_ADI}=\\s*\\{`);
+  return hepsi.some((d) => !/components\/kabuk\/tablo\.tsx$/.test(d.yer)
+    && kalip.test(d.kod));
+}
+
+export function satirIciEylem(govde, yuvaDolu = false) {
+  if (/<Link\b|<Dugme\b|\bhref=|\bonClick=/.test(govde)) return true;
+  return yuvaDolu && new RegExp(`\\{${YUVA_ADI}\\}`).test(govde);
+}
+
+/** Bayrak ÇIPLAK mı yoksa KOŞULLU mu? Yalnız çıplak/`{true}` iyi haberdir.
+
+    Koşullu bayrak (`iyiHaber={x}`) çalışma anında `false` olabilir ve o
+    hâlde satır sıradan bir boş durumdur — kendi eylemini vermek zorunda. */
+export function iyiHaberMi(govde) {
+  const m = /\biyiHaber\s*(=\s*(\{[^}]*\}|"[^"]*"|'[^']*'))?/.exec(String(govde));
+  if (!m) return false;
+  if (!m[2]) return true;                       /* çıplak öznitelik */
+  return /^\{\s*true\s*\}$/.test(m[2]);        /* yalnız sabit true */
 }
 
 /** `BosFiltre` bileşeninin TANIMI: cümlesi, eylemi ve çağrı sayısı. */
@@ -474,7 +503,9 @@ export function bosFiltreSatiri(hepsi) {
     cumle: cumle.slice(0, 300),
     iyiHaber: false,
     neden: nedenSoyluyor(cumle),
-    eylem: satirIciEylem(govde),
+    /* `BosFiltre`nin eylemi KENDİ gövdesindedir (`temizle` düğmesi);
+       yuva sorusu buraya girmez. */
+    eylem: satirIciEylem(govde, false),
   };
 }
 
@@ -504,9 +535,11 @@ export function cumleMi(metin) {
   return String(metin ?? '').trim().split(/\s+/).filter(Boolean).length >= 3;
 }
 
-export function satirIciKaydi(yer, satir, c) {
+export function satirIciKaydi(yer, satir, c, yuvaDolu = false) {
   const metin = satirIciMetin(c.govde);
   const okunamadi = !metin || metin === '…';
+  /* Satır içi yüzeyde bayrak SINIF ADINDADIR (`bos iyi`) ve koşullu
+     yazılamaz — bu yüzden burada varlık okuması doğrudur. */
   const iyiHaber = /\biyi\b/.test(c.sinif);
   return {
     yer,
@@ -517,13 +550,15 @@ export function satirIciKaydi(yer, satir, c) {
       : metin.slice(0, 300),
     iyiHaber,
     neden: okunamadi ? false : nedenSoyluyor(metin),
-    eylem: iyiHaber || satirIciEylem(c.govde),
+    eylem: iyiHaber || satirIciEylem(c.govde, yuvaDolu),
   };
 }
 
 export function turet() {
   const cikan = [];
   const hepsi = dosyalar();
+  /* Yuvanın DOLULUĞU bir kez ölçülür ve bütün satırlara aynı cevap gider. */
+  const YUVA_DOLU = yuvaDolduruldu(hepsi);
   const filtre = bosFiltreSatiri(hepsi);
   if (filtre) cikan.push(filtre);
   for (const { yer: rel, kod } of hepsi) {
@@ -534,7 +569,7 @@ export function turet() {
        çıkarsa körlük SIFIR KUSUR diye raporlanır — tur 2'nin bulduğu
        kusur tam olarak buydu. Karar `satirIciKaydi`de ve saf. */
     for (const c of satirIciBul(kod)) {
-      const kayit = satirIciKaydi(rel, kod.slice(0, c.konum).split('\n').length, c);
+      const kayit = satirIciKaydi(rel, kod.slice(0, c.konum).split('\n').length, c, YUVA_DOLU);
       /* Rozet/tik gibi GÖRSEL değiştiriciler kütüğe girmez — sınır
          `cumleMi` ile beyanlı ve sentetik vakayla ölçülü. Okunamayan
          gövde YİNE girer: körlüğü sıfır kusura çeviren şey düşürmedir. */
@@ -552,7 +587,7 @@ export function turet() {
         cumle: c.govde.slice(0, 300),
         iyiHaber: false,
         neden: nedenSoyluyor(c.govde),
-        eylem: satirIciEylem(kod.slice(c.konum, c.konum + 600)),
+        eylem: satirIciEylem(kod.slice(c.konum, c.konum + 600), YUVA_DOLU),
       });
     }
     if (!kod.includes('<BosIlk')) continue;
@@ -572,7 +607,22 @@ export function turet() {
            sokmaktır. Bayrak bileşenin kendi API'sinden gelir
            (`BosIlk iyiHaber`), bu kütükten değil — yani elle
            işaretlenemez. */
-        const iyiHaber = /\biyiHaber\b/.test(c.govde);
+        /* ── BAYRAĞIN VARLIĞI DEĞİL DEĞERİ (inceleme tur 2 · P1-2) ────
+           Eski yazım `/\biyiHaber\b/` ile bayrağın VARLIĞINI okuyordu.
+           Ama bayrak KOŞULLU yazılabilir — `iyiHaber={mercek === 'acik'}`
+           — ve çalışma anında `false` olabilir. Türetici yine de satırı
+           "iyi haber" sayıp `eylem`i otomatik `true` yapıyordu.
+
+           Ölçüldü: İKİ CANLI İHLAL bu yüzden görünmüyordu
+           (`yonetim-tezgahi/KonsolIstemci.tsx` · `saglik/reddedilenler`);
+           ikisinde de `eylem` özniteliği HİÇ YOK ve kullanıcı koşul
+           yanlışken eylemsiz bir boş durum görüyor. "EYLEMSİZ SIFIRDA
+           KİLİTLİ" dişi, bayrağı koşullu yazmakla açılıyordu.
+
+           Bugün yalnız ÇIPLAK öznitelik (`iyiHaber`) ya da `{true}`
+           iyi haberdir. Koşullu bayrak, satırı iyi haber YAPMAZ: o
+           satır kendi eylemini vermek zorundadır. */
+        const iyiHaber = iyiHaberMi(c.govde);
         cikan.push({
           yer: rel,
           satir: kod.slice(0, c.konum).split('\n').length,

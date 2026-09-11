@@ -550,27 +550,38 @@ describe('POL-048 · "Hover ve odakla açılır" [SIS-EKR-001]', () => {
 });
 
 describe('PAYLAŞILAN TABLO BOŞLUĞU · varsayılan cümle [SIS-EKR-001]', () => {
-  it('VARSAYILAN cümle SEBEBİ söyler ve EYLEM YUVASI taşır [SIS-EKR-001]', async () => {
-    /* ── NEDEN BU VAKA VAR ─────────────────────────────────────────────
-       `VeriTablosu` boşluğunun varsayılan cümlesi ekranda YAZILI DEĞİL,
-       bileşenin içinde bir koşulun dalında durur; boş durum türeticisi
-       JSX metin sabitini okur, koşullu dalı okuyamaz ve satırı
-       `«okunamadı»` işaretiyle kütüğe koyar. Sınır TÜRETİCİNİNDİR,
-       ekranın kusuru değil — ve ölçümü burada, adıyla beyanlıdır.
+  it('PAYLAŞILAN TABLO KENDİ boş durumunu YAZMAZ — ya arketip ya HİÇBİR ŞEY [SIS-EKR-001]', async () => {
+    /* ── ÖLÇÜLEN KUSUR (düzeltme turu · tur 2 · P1-2) ─────────────────
+       Bu vaka ÖNCE `VeriTablosu`nun varsayılan boşluk cümlesinin VAR
+       olmasını istiyordu ("Bu süzgeçte kayıt yok —  …" + `{bosEylem}`
+       yuvası). İki kusuru birden kilitliyordu:
 
-       Eski varsayılan "Bu süzgeçte kayıt yok." idi: tek tümce, sebepsiz,
-       çıkışsız — kuralın DOĞDUĞU cümlenin birebir aynısı (bağımsız
-       inceleme, Brief L · tur 1). */
+       (a) `bosEylem` bir YUVAYDI ve hiçbir çağıran onu DOLDURMUYORDU —
+           ölçüldü: sıfır çağrı. Doldurulmayan bir uzantı noktası sınır
+           değildir; üstünde yorum olan EYLEMSİZ bir boş durumdur.
+       (b) Paylaşılan bir tablo, boşluğun SEBEBİNİ bilmez: süzgeç mi
+           daralttı, kurulum mu yeni, yetki mi kesti? Bilmediği bir
+           boşluğa cümle uyduran bileşen, R-G'nin yasakladığı şeyi
+           merkezîleştirir.
+
+       Bugünkü sözleşme: `bosTemizle` verildiyse ürünün KENDİ arketipi
+       (`BosFiltre` — sebebi ve çıkışı onda yazılı), verilmediyse HİÇBİR
+       ŞEY. Ölçüm ayrıca boş durum kütüğünde de görünür: popülasyon
+       126 → 125'e indi ve düşüş gerekçesiyle `olcum-tabani.json`a
+       işlendi. */
     const kod = kaynakOku('components/kabuk/tablo.tsx');
-    const m = /Bu süzgeçte kayıt yok[^<]*/.exec(kod);
-    expect(m, 'varsayılan boşluk cümlesi kayboldu').not.toBeNull();
-    const cumle = m![0].replace(/\s+/g, ' ').trim();
-    /* İKİ ÖLÇÜT: sebep (en az iki yan tümce) ve eylem yuvası. */
-    expect(cumle.length, 'varsayılan cümle tek tümceye düştü — sebebi söylemiyor')
-      .toBeGreaterThan(40);
-    expect(cumle, 'cümle sebebini söylemiyor').toMatch(/—|;/);
-    expect(kod, 'boşluk EYLEM YUVASI taşımıyor — çağıran çıkışı veremez')
-      .toContain('{bosEylem}');
+    expect(/Bu süzgeçte kayıt yok/.test(kod),
+      'paylaşılan tablo yine KENDİ boşluk cümlesini yazıyor').toBe(false);
+    /* Süzgeç boşluğunda ürünün arketipi çizilir. */
+    expect(kod, 'süzgeç boşluğunda ürünün arketipi çizilmiyor')
+      .toContain('if (bosTemizle) return <BosFiltre temizle={bosTemizle} />;');
+    /* Çağıran hiçbir şey vermediyse tablo cümle UYDURMAZ. */
+    expect(kod, 'çağıran boş bıraktığında tablo yine bir şey çiziyor')
+      .toContain('if (!bosCumle && !bosEylem) return null;');
+    /* Kapsayıcı sınıfı ÇAĞIRANIN olduğunu söyler: `ab-vt-bos` adı,
+       bileşenin kendi boş durumu varmış gibi okunuyordu. */
+    expect(kod, 'kapsayıcı hâlâ bileşenin kendi boş durumu gibi adlandırılmış')
+      .not.toContain('ab-vt-bos');
   });
 });
 
@@ -746,9 +757,17 @@ describe('POL-166 · POL-167 · "boş DEĞİL, OKUNAMADI" [SIS-EKR-001]', () => 
     const toplam = await db.reddedilenKayit.count();
     expect(toplam, 'reddedilen kayıt evreni boş — vaka hiçbir şey ölçmezdi')
       .toBeGreaterThan(0);
-    /* Sayı yazılır, şart koşulmaz: hamsız kayıt OLABİLİR ve cümle tam da
-       o hâli anlatıyor. */
-    expect(hamsiz, 'ham kaydı olmayan satır sayısı okunamadı').toBeGreaterThanOrEqual(0);
+    /* ── HER ZAMAN GEÇEN İDDİA KALDIRILDI (düzeltme turu · P3-13) ────
+       `toBeGreaterThanOrEqual(0)` bir `count()` üzerinde HİÇBİR ZAMAN
+       düşmez: satır rapora "ölçüldü" yazıyor, ölçtüğü şey ise sayının
+       negatif olmadığıydı. "Sayı yazılır, şart koşulmaz" doğru bir
+       karardır — ama o zaman satır bir İDDİA değil bir GÖZLEMDİR ve
+       öyle yazılır. Ölçülebilir olan şudur: hamsız satır sayısı toplamı
+       AŞAMAZ ve sayı gerçekten okunmuştur. */
+    expect(Number.isInteger(hamsiz), 'hamsız satır sayısı okunamadı').toBe(true);
+    expect(hamsiz, 'hamsız satır sayısı toplamı aşıyor — sayım bozuk')
+      .toBeLessThanOrEqual(toplam);
+    console.log(`reddedilen kayıt: ${toplam} · ham kaydı olmayan: ${hamsiz}`);
   });
 
   it('SÖZLÜK OKUNAMAYINCA ekran "boş" demez, "okunamadı" der — demo ikizi gerçekten boş döner [SIS-EKR-001]', async () => {

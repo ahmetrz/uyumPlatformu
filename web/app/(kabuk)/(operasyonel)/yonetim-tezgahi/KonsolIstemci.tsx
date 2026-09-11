@@ -363,12 +363,19 @@ export default function KonsolIstemci({ veri }: { veri: KonsolVerisi }) {
                       placeholder="Hedef, kişi ya da gerekçede ara" aria-label="Talep ara" />
                   </div>
                   {talepSatirlari.length === 0
+                    /* Bayrak KOŞULLU: "Tümü" merceğinde bu boşluk iyi
+                       haber DEĞİLDİR ve çıkışını vermek zorundadır
+                       (inceleme tur 2 · P1-2). */
                     ? <BosIlk iyiHaber={talepMercek === 'acik'}
                       cumle={talepMercek === 'acik'
                         ? 'Açık talep yok: bu hedefte incelemeyi bekleyen bir '
                           + 'değişiklik talebi bulunmuyor.'
                         : 'Talep kaydı yok: bu hedef için hiç değişiklik talebi '
-                          + 'açılmamış — ayarlar doğrudan yazılmış olabilir.'} />
+                          + 'açılmamış — ayarlar doğrudan yazılmış olabilir.'}
+                      eylem={talepMercek === 'acik' ? undefined
+                        : <Dugme onClick={() => setTalepMercek('acik')}>
+                          Açık taleplere dön
+                        </Dugme>} />
                     : <Tablo kolonlar={TALEP_KOLONLARI} satirlar={talepSatirlari} konuBasligi="Talep" sik
                       secili={secili} sec={(id) => setSecili((s) => (s === id ? null : id))} />}
                 </>

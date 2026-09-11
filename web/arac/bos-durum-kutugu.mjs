@@ -177,6 +177,56 @@ export function cumleMetni(ifade) {
   return (parcalar.length > 0 ? parcalar.join(' ') : ifade).replace(/\s+/g, ' ').trim();
 }
 
+
+/* ── ALTINCI KÖRLÜK · KOŞULLU `cumle` (DOM tanığı bulgusu) ────────────
+   `cumleMetni` bir ifadedeki BÜTÜN dize sabitlerini boşlukla birleştirir.
+   Üçlü ifadede bu, İKİ AYRI boş durumu TEK metne indirir ve sebebini
+   söyleyen dal, söylemeyen dalı ÖRTER:
+
+     cumle={x ? 'Cevap bekleyen zimmetiniz yok. Size bir varlık
+                 atandığında burada görünür.'
+              : 'Bu bölümde kayıt yok.'}
+
+   Birleşik metin iki yan tümce taşıdığı için "neden var" sayılıyordu;
+   kullanıcı ise ekranda yalnız "Bu bölümde kayıt yok." okuyordu.
+   Kaynak türeticisi `eylemsiz 0 · nedensiz 1` diyordu; kusuru RENDER
+   EDİLMİŞ tarafı gezen ikinci tanık buldu (`/zimmetlerim`).
+
+   Bugün her dal AYRI değerlendirilir: bir dal bile sebebini
+   söylemiyorsa satır nedensizdir. */
+export function cumleDallari(ifade) {
+  if (ifade === null) return [];
+  const parcalar = [...String(ifade).matchAll(/'([^'\\]*)'|"([^"\\]*)"|`([^`\\]*)`/g)]
+    .map((m) => m[1] ?? m[2] ?? m[3]);
+  if (parcalar.length === 0) return [cumleMetni(ifade)];
+  /* Üçlü ifade YOKSA tek daldır: bitişik dizeler (`'a' + 'b'`) bir
+     cümlenin parçalarıdır ve ayrılırsa her parça "nedensiz" görünürdü. */
+  if (!/\?/.test(String(ifade)) || !/:/.test(String(ifade))) {
+    return [parcalar.join(' ').replace(/\s+/g, ' ').trim()];
+  }
+  /* Dal sınırı: `?` ve `:` işleçleri. Dize İÇİNDEKİ `?`/`:` sayılmaz —
+     bu yüzden bölme, dizeler çıkarıldıktan SONRAKİ iskelet üzerinde
+     yapılır. */
+  const iskelet = String(ifade)
+    .replace(/'([^'\\]*)'|"([^"\\]*)"|`([^`\\]*)`/g, (m, a, b, c) => `\u0000${parcalar.indexOf(a ?? b ?? c)}\u0000`);
+  /* KOŞUL BİR DAL DEĞİLDİR. `sekme === 'bekleyen' ? … : …` ifadesinde
+     koşulun kendi dizesi (`'bekleyen'`) bir boş durum cümlesi değildir;
+     ilk yazım onu dal sayıyor ve her koşullu cümleyi "nedensiz" diye
+     kırmızı yakıyordu (ölçüldü: 1 → 16 satır, çoğu yanlış pozitif).
+     Ayrım işlecin YÖNÜNDEDİR: ardından `?` GELEN parça koşuldur. */
+  const parcalarVeIsler = iskelet.split(/([?:])/);
+  const dallar = [];
+  for (let i = 0; i < parcalarVeIsler.length; i += 2) {
+    const kisim = parcalarVeIsler[i];
+    if (parcalarVeIsler[i + 1] === '?') continue;          /* koşul */
+    const indisler = [...kisim.matchAll(/\u0000(\d+)\u0000/g)].map((m) => Number(m[1]));
+    if (indisler.length === 0) continue;
+    const metin = indisler.map((x) => parcalar[x]).join(' ').replace(/\s+/g, ' ').trim();
+    if (metin) dallar.push(metin);
+  }
+  return dallar.length > 0 ? dallar : [cumleMetni(ifade)];
+}
+
 /**
  * a · NEDEN ölçütü: cümle en az İKİ yan tümce taşıyor mu?
  *
@@ -508,8 +558,13 @@ export function turet() {
     if (!kod.includes('<BosIlk')) continue;
     {
       for (const c of cagrilariBul(kod)) {
-        const metin = cumleMetni(ozellik(c.govde, 'cumle'));
+        const ifade = ozellik(c.govde, 'cumle');
+        const metin = cumleMetni(ifade);
         if (!metin) continue;
+        /* HER DAL ayrı ölçülür: sebebini söyleyen dal, söylemeyeni
+           örtemez (altıncı körlük — DOM tanığı bulgusu). */
+        const dallar = cumleDallari(ifade);
+        const nedenli = dallar.length > 0 && dallar.every((d) => nedenSoyluyor(d));
         /* İYİ HABER boş durumu EYLEM İSTEMEZ ve bu bir kaçış kapısı
            değil, ölçütün kendisidir: "Elenen satır yok — tüm satırlar
            doğrulamayı geçti" cümlesinin işaret edeceği bir çözüm yoktur.
@@ -524,7 +579,7 @@ export function turet() {
           tur: 'BosIlk',
           cumle: metin.slice(0, 300),
           iyiHaber,
-          neden: nedenSoyluyor(metin),
+          neden: nedenli,
           eylem: iyiHaber || ozellik(c.govde, 'eylem') !== null,
         });
       }

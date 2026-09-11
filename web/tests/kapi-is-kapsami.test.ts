@@ -143,6 +143,17 @@ const EKLENEN_KAPILAR = [
      ve TOHUMA DOKUNMAZ. Dokunduğu an ölçtüğü şey müşterinin birinci
      günü olmaktan çıkar. */
   'npm run kapi:bos-kurulum',
+  /* İKİNCİ BAĞIMSIZ POPÜLASYON TANIĞI (düzeltme turu). Kütüklerin
+     paydası TEK bir düzenli ifadeden türüyordu ve "tavan sıfır" dişi
+     yalnız TÜRETİCİNİN GÖRDÜĞÜNÜ koruyordu: politika evreni
+     131→184→213→215, boş durum 74→…→126 diye genişledi ve her
+     genişleme, bir önceki "ölçülmeyen 0" oranının KÖR bir payda
+     üzerinde hesaplandığını gösterdi. Bu iki adım, popülasyonu kaynağa
+     HİÇ BAKMADAN — gerçek tarayıcıda, render edilmiş DOM'dan —
+     yeniden türetir ve kütükle karşılaştırır. İlk koşusunda dokuz
+     satırlık görünmeyen borç ve bir R-G ihlali açtı. */
+  'npm run tanik:dom',
+  'npm run kapi:dom-tanik',
 ];
 
 describe('kapı kümesi bölünmeyle değişmez', () => {
@@ -179,7 +190,9 @@ describe('kapı kümesi bölünmeyle değişmez', () => {
        ölçüsü kapı sayısı değil, kapıların KENDİ İŞİNDEKİ yaşam
        döngüsüne göre doğru sınıflanması. */
     const tarayicili = kapiAdimlari(AKIS).filter((a) => a.sunucuIster);
-    expect(tarayicili).toHaveLength(10);
+    /* 10 → 12: DOM tanığı ve onun ayrışma bekçisi de canlı sunucu
+       ister ve `kapi-rota` işinde koşar. */
+    expect(tarayicili).toHaveLength(12);
     expect(new Set(tarayicili.map((a) => a.is)).size).toBe(4);
   });
 

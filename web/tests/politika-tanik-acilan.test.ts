@@ -698,3 +698,105 @@ describe('POL-229 · resmî kaynak takibi BAĞLI DEĞİL [SIS-POL-002]', () => {
       where: { kod: `TNK-KYN-${damga}` }, data: { etkin: false } });
   });
 });
+
+/* ═══ POL-235 · "Kapanış bir DOĞRULAMA kapısıdır" ════════════════════
+   ── BU SATIRI TANIK AÇTI ──────────────────────────────────────────────
+   Cümle `/yardim` ekranında duruyordu ve türetici onu HİÇ GÖRMEMİŞTİ:
+   dize tarayıcısı düzenli ifadeydi ve açgözlü alternatifler bölgeyi
+   yutuyordu. DOM tanığı ekranda gördü, kütükte bulamadı.            */
+
+describe('POL-235 · bulgu kapanışı DOĞRULAMA kapısıdır [SIS-POL-002]', () => {
+  it('UYUM ONAY YETKİSİ olmayan kapatamaz; açık aksiyon da kapanışı durdurur [SIS-POL-002]', async () => {
+    const { bulguGuncelle } = await import('@/lib/eylemler');
+
+    const md = await db.maddeDurumu.findFirst({
+      select: { id: true, kapsamOgesiId: true },
+    });
+    expect(md, 'madde durumu fikstürü yok').not.toBeNull();
+    const bulgu = await db.bulgu.create({ data: {
+      maddeDurumuId: md!.id, baslik: `Kurgusal kapanış bulgusu ${damga}`,
+      aciklama: 'Tanık turunda açıldı', onemDerecesi: 'dusuk', durum: 'acik',
+    } });
+
+    const onceki = oturum.yetkiler;
+    try {
+      /* (a) YAZMA var, ONAY yok → kapatamaz. `bt_yoneticisi` uyum
+         modülünde okuma+yazma taşır, onay TAŞIMAZ: ret "hiç yetkisi
+         yok"tan değil, DOĞRULAMA yetkisinin eksikliğinden gelir. */
+      oturum.yetkiler = rol('bt_yoneticisi');
+      const ret = await bulguGuncelle({ id: bulgu.id, durum: 'kapali' });
+      expect(ret.ok, 'onay yetkisi olmayan bulguyu kapattı').toBe(false);
+      expect((await db.bulgu.findUnique({
+        where: { id: bulgu.id }, select: { durum: true } }))!.durum).toBe('acik');
+
+      /* (b) ONAY var ama AÇIK AKSİYON var → yine kapanmaz. */
+      oturum.yetkiler = rol('yonetici');
+      const aksiyon = await db.aksiyon.create({ data: {
+        bulguId: bulgu.id, baslik: `Kurgusal açık aksiyon ${damga}`,
+        durum: 'planlandi', hedef: new Date(Date.now() + 30 * 86_400_000),
+      } });
+      const ret2 = await bulguGuncelle({ id: bulgu.id, durum: 'kapali' });
+      expect(ret2.ok, 'açık aksiyon varken bulgu kapandı').toBe(false);
+
+      /* KARŞI TANIK: aksiyon kapanınca AYNI çağrı geçer — iki ret de
+         kendi sebebindendi, "her kapanış reddediliyor"dan değil. */
+      await db.aksiyon.update({
+        where: { id: aksiyon.id }, data: { durum: 'iptal' } });
+      expect((await bulguGuncelle({ id: bulgu.id, durum: 'kapali' })).ok).toBe(true);
+      expect((await db.bulgu.findUnique({
+        where: { id: bulgu.id }, select: { durum: true } }))!.durum).toBe('kapali');
+    } finally { oturum.yetkiler = onceki; }
+  });
+});
+
+/* ═══ POL-236 · POL-237 · BOŞ DURUM SEBEBİNİN KENDİSİ BİR İDDİADIR ═══
+   R-G "sebebini söyle" der; sebebi söyleyen cümle bir ÜRÜN DAVRANIŞI
+   iddia eder ve o iddia da R-F kapsamına girer. İki kural birbirini
+   besliyor: boş durumu düzeltmek yeni politika cümlesi DOĞURUR. Bu
+   iki satır tam olarak böyle doğdu ve burada ölçülüyor.            */
+
+describe('POL-236 · harita YALNIZ aktif kayıtları çizer [SIS-POL-002]', () => {
+  it('PASİF kayıt haritanın verisine GİRMEZ; aktif girer [SIS-POL-002]', async () => {
+    const { portfoyEkranVerisi } = await import('@/app/(tam)/portfoy/veri');
+    const tesis = await db.tesis.findFirst({
+      where: { durum: 'aktif' }, select: { id: true, durum: true },
+    });
+    expect(tesis, 'aktif tesis fikstürü yok').not.toBeNull();
+
+    const once = await portfoyEkranVerisi({ ...oturum, yetkiler: rol('yonetici') } as never);
+    const varMi = (v: { satirlar: { id: string }[] }) =>
+      v.satirlar.some((t) => t.id === tesis!.id);
+    expect(varMi(once as never), 'aktif tesis haritanın verisinde yok').toBe(true);
+
+    /* Kaydı PASİFE çekince düşmeli — ekranın cümlesi bunu söylüyor. */
+    await db.tesis.update({ where: { id: tesis!.id }, data: { durum: 'pasif' } });
+    try {
+      const sonra = await portfoyEkranVerisi({ ...oturum, yetkiler: rol('yonetici') } as never);
+      expect(varMi(sonra as never), 'pasif kayıt haritada çizilmeye devam ediyor').toBe(false);
+    } finally {
+      await db.tesis.update({ where: { id: tesis!.id }, data: { durum: tesis!.durum } });
+    }
+  });
+});
+
+describe('POL-237 · reddedilen kayıt listesi KAPSAMLA daralır [SIS-POL-002]', () => {
+  it('KAPSAMA KISITLI rol yalnız kendi kapsamının kayıtlarını görür [SIS-POL-002]', async () => {
+    const { reddedilenlerVerisi } = await import(
+      '@/app/(kabuk)/(operasyonel)/saglik/reddedilenler/veri');
+
+    const oge = await db.kapsamOgesi.findFirst({
+      where: { tesisId: { not: null } }, select: { id: true, tesisId: true } });
+    expect(oge, 'tesise köprülü kapsam ögesi yok').not.toBeNull();
+
+    const genis = await reddedilenlerVerisi(
+      { ...oturum, yetkiler: rol('yonetici') } as never);
+    expect(genis.kapsamli, 'kapsamsız rol için kapsam daraltılmış görünüyor').toBe(false);
+
+    const dar = await reddedilenlerVerisi({ ...oturum, yetkiler: [{
+      rol: 'yonetici', modul: null, kapsamOgesiId: oge!.id,
+      tesisId: oge!.tesisId, surecId: null, regulasyonId: null }] } as never);
+    expect(dar.kapsamli, 'kapsama kısıtlı rol için daraltma BİLDİRİLMİYOR').toBe(true);
+    expect(dar.toplam, 'dar kapsam geniş kapsamdan çok kayıt gösteriyor')
+      .toBeLessThanOrEqual(genis.toplam);
+  });
+});

@@ -1,5 +1,6 @@
 'use client';
 import { useMemo, useState } from 'react';
+import Link from 'next/link';
 import { Alan, BosIlk, Dugme } from '@/components/kabuk/temel';
 import { EkranBasligi } from '@/components/kabuk/ekran';
 import { Tablo, type Satir } from '@/components/kabuk/tablo';
@@ -138,9 +139,25 @@ export default function ZimmetlerimIstemci({
       </div>
 
       {gorunen.length === 0 ? (
-        <BosIlk iyiHaber={sekme === 'bekleyen'} cumle={sekme === 'bekleyen'
-          ? 'Cevap bekleyen zimmetiniz yok. Size bir varlık atandığında burada görünür.'
-          : 'Bu bölümde kayıt yok.'} />
+        /* ── R-G · DOM TANIĞININ BULDUĞU İHLAL ──────────────────────────
+           "Bu bölümde kayıt yok." SEBEBİNİ söylemiyor ve hiçbir çözüme
+           işaret etmiyordu — R-G'nin iki ölçütünü de kaçırıyordu. Kaynak
+           türeticisi bunu GÖREMEMİŞTİ: `cumle` bir üçlü ifadeden geliyor
+           ve türetici yalnız düz dize değerlerini okuyordu. Kusuru
+           RENDER EDİLMİŞ tarafı gezen ikinci tanık buldu.
+
+           "Bekleyen" sekmesi İYİ HABERdir (cevap bekleyen yok = iyi) ve
+           eylemsiz kalabilir; diğer üçü değil: kayıt yoksa sebebi
+           zimmet akışının hiç işlememiş olmasıdır ve kullanıcının
+           gidebileceği yer envanterdir. */
+        <BosIlk iyiHaber={sekme === 'bekleyen'}
+          cumle={sekme === 'bekleyen'
+            ? 'Cevap bekleyen zimmetiniz yok. Size bir varlık atandığında burada görünür.'
+            : `Bu sekmede (${SEKMELER.find((x) => x.id === sekme)?.ad}) kayıt yok: `
+              + 'size bu durumda bir varlık zimmetlenmemiş. Zimmet, envanterdeki '
+              + 'bir varlığın sahibi değiştirildiğinde doğar.'}
+          eylem={sekme === 'bekleyen' ? undefined
+            : <Link className="ab-bag" href="/envanter">Envantere git</Link>} />
       ) : (
         <Tablo kolonlar={KOLONLAR} satirlar={tablo} />
       )}

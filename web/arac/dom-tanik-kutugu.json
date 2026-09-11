@@ -1,0 +1,78 @@
+{
+  "not": "DOM TANIĞININ AÇTIĞI SATIRLAR. Bu cümleler kaynakta TEK bir dize olarak durmaz: ekranda ÇALIŞMA ANINDA, birkaç parçadan (sabit + hesaplanan değer + kardeş bağ) birleşir. Kütük metne göre anahtarlandığı için ana kütük onları TAŞIYAMAZ — ama kullanıcı onları okur, dolayısıyla R-F onları kapsar. Satırlar elle DEĞİL, `node arac/dom-tanik.mjs --yaz` çıktısındaki ayrışmadan gelir; her satır ölçümünü taşımak ZORUNDADIR (ölçülmeyen tavanı sıfırdır, istisna yoktur).",
+  "tavanlar": { "olculmeyen": 0 },
+  "satirlar": [
+    {
+      "kod": "DOM-001",
+      "rota": "/saglik/reddedilenler",
+      "cekirdek": "kayıt yok sayıldı — kaynaktaki sorun çözüldü anlamına gelmez",
+      "sinif": "POLITIKA",
+      "sonucSinifi": "S2",
+      "gerekce": "Ekran cümlesi `notlar.push(...)` ile parça parça kuruluyor; kaynakta bütün cümle hiçbir yerde durmuyor.",
+      "olcum": { "dosya": "tests/saglik-reddedilen.test.ts", "vaka": "yok sayılan kayıt YEŞİL işaretlenmez" }
+    },
+    {
+      "kod": "DOM-002",
+      "rota": "/kesif",
+      "cekirdek": "çakışma çözülmeden diğer kararlar güvenilir değil",
+      "sinif": "POLITIKA",
+      "sonucSinifi": "S2",
+      "gerekce": "Cümle `lib/varlik/pasifKesif.ts` içinde dize birleştirmesiyle doğuyor ve sayıyla tamamlanıyor.",
+      "olcum": { "dosya": "tests/pasif-kesif.test.ts", "vaka": "özet cümlesi ÖNCE en acil grubu söyler" }
+    },
+    {
+      "kod": "DOM-003",
+      "rota": "/ayarlar",
+      "cekirdek": "MFA anahtarı tanımlı değil. MFA_ANAHTAR_REFERANSI ortam değişkenine bir sır REFERANSI",
+      "sinif": "POLITIKA",
+      "sonucSinifi": "S1",
+      "gerekce": "Cümle sağlayıcı durumundan ve anahtar notundan birleşiyor; sabit metin kaynakta bütün hâlde yok.",
+      "olcum": { "dosya": "tests/kimlik-mfa-zincir.test.ts", "vaka": "anahtar referansı tanımsızken kayıt açılmaz [SIS-KML-004]" }
+    },
+    {
+      "kod": "DOM-004",
+      "rota": "/varlik-aktarim",
+      "cekirdek": "onay tek transaction içinde CMDB'ye yazar",
+      "sinif": "POLITIKA",
+      "sonucSinifi": "S2",
+      "gerekce": "`not=` özniteliği ile kardeş bağ metni ekranda tek cümle gibi okunuyor; parçalar ayrı ayrı politika sayılmıyor.",
+      "olcum": { "dosya": "tests/varlik-aktarim.test.ts", "vaka": "onay yeni varlık açar, kökeni guven=null ile yazar, izi bırakır" }
+    },
+    {
+      "kod": "DOM-005",
+      "rota": "/saklama",
+      "cekirdek": "DEĞİŞMEZ aile, imha edilemez",
+      "sinif": "POLITIKA",
+      "sonucSinifi": "S2",
+      "gerekce": "Aile adı ile değişmezlik sözü ekranda birleşiyor; kaynakta aile kataloğu ve söz ayrı duruyor.",
+      "olcum": { "dosya": "tests/faz-f-saklama-denetci.test.ts", "vaka": "değişmez aileye imha ÖNERİSİ bile açılamaz" }
+    },
+    {
+      "kod": "DOM-006",
+      "rota": "/ayarlar",
+      "cekirdek": "bildirim kanalı bağlayıcısı bu ortamda tanımlı değil",
+      "sinif": "POLITIKA",
+      "sonucSinifi": "S3",
+      "gerekce": "Sağlayıcı adı ile `bagliDegilkenDavranis` ekranda birleşiyor.",
+      "olcum": { "dosya": "tests/faz-d-uyum.test.ts", "vaka": "her sağlayıcı NE GEREKTİĞİNİ ve bağlı değilken ne YAPTIĞINI yazar" }
+    },
+    {
+      "kod": "DOM-007",
+      "rota": "/ice-aktarim",
+      "cekirdek": "onaydan sonra maddeler regülasyon kütüğüne yazılır",
+      "sinif": "POLITIKA",
+      "sonucSinifi": "S2",
+      "gerekce": "`not=` özniteliği ile kardeş bağ metni ekranda tek cümle gibi okunuyor.",
+      "olcum": { "dosya": "tests/varlik-aktarim.test.ts", "vaka": "davranış korunur: maddeler ve üst-alt bağı aynı transaction içinde kurulur" }
+    },
+    {
+      "kod": "DOM-008",
+      "rota": "/sistem/bilesenler",
+      "cekirdek": "SCADA tarihçe bağlayıcısı bu ortamda tanımlı değil",
+      "sinif": "POLITIKA",
+      "sonucSinifi": "S3",
+      "gerekce": "Sağlayıcı adı ile `bagliDegilkenDavranis` ekranda birleşiyor.",
+      "olcum": { "dosya": "tests/faz-d-uyum.test.ts", "vaka": "hiçbir sağlayıcı BAĞLI DEĞİL ve bu gizlenmez" }
+    }
+  ]
+}

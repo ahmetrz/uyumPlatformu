@@ -68,12 +68,18 @@ function KosuListesi({ kosular }: { kosular: Kosu[] }) {
     <div className="ab-panel-blok" style={{ marginTop: 'var(--s24)' }}>
       <p className="etiket" style={{ margin: '0 0 var(--s10)' }}>Son koşular</p>
       {kosular.length === 0 ? (
-        /* NE YAPMALIYIM: motorun koşu kaydı yoksa çıkış İŞ KOŞULARI
-           kütüğüdür — kullanıcı "neden hiç koşmadı"yı orada görür. */
+        /* NE YAPMALIYIM: "neden hiç koşmadı" sorusunun cevabı motorun
+           ETKİN olup olmadığıdır ve o ayar yönetim tezgâhındadır.
+
+           ── ÖLÜ BAĞ DÜZELTİLDİ ─────────────────────────────────────────
+           Burada `/isler` yazıyordu ve BÖYLE BİR ROTA YOK: kullanıcı
+           404 görüyordu. R-G'nin kendi kendini yiyen hâli — "eylemsiz
+           boş durum yasak" kuralı, olmayan bir eylem uydurma baskısı
+           yaratıyor. Kuralı `tests/bekci/olu-bag.test.ts` yakaladı. */
         <p className="ab-panel-dip bos" style={{ margin: 0 }}>
           Bu motor hiç koşmadı — sağlıklı olduğu anlamına GELMEZ; koşmamış
           bir motorun bulgusu da yoktur.{' '}
-          <Link href="/isler">İş koşularını aç</Link>
+          <Link href="/yonetim-tezgahi">Motor ayarlarını aç</Link>
         </p>
       ) : (
         <div style={{ display: 'grid', gap: 'var(--s10)' }}>

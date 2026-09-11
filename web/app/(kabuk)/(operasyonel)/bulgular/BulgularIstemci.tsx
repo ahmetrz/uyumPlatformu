@@ -311,8 +311,10 @@ export default function BulgularIstemci({
               /* "Açık bulgu yok" ile "kapsamınızda bulgu yok" AYNI ŞEY
                  DEĞİLDİR: ilki iyi haber, ikincisi yetki sınırıdır. */
               cumle={kapsamli && bulgular.length === 0
-                ? 'Kapsamınızda bulgu kaydı yok.'
-                : 'Açık bulgu yok.'}
+                ? 'Kapsamınızda bulgu kaydı yok: yetkiniz olan kapsamda hiç '
+                  + 'bulgu açılmamış — başka kapsamlarda kayıt olabilir.'
+                : 'Açık bulgu yok — denetim ve değerlendirmelerden bu kapsama '
+                  + 'düşen hiçbir açık kayıt kalmadı.'}
               eylem={kapaliSayisi > 0
                 ? <Dugme tur="ikincil" onClick={() => setMercek('hepsi')}>
                   Kapanmış {kapaliSayisi} kayıt

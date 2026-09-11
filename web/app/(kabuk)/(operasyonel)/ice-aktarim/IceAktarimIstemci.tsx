@@ -155,7 +155,8 @@ export default function IceAktarimIstemci({
             <BosIlk
               cumle={yukleyebilir
                 ? 'Henüz dosya yüklenmedi. Regülasyonu seçip Excel/CSV yükleyin; satırlar doğrulanır, onaydan sonra maddeler yayına girer.'
-                : 'Henüz dosya yüklenmedi.'}
+                : 'Henüz dosya yüklenmedi ve yükleme yetkiniz yok: '
+                  + 'regülasyon kataloğuna madde eklemek tanımlar onayı ister.'}
               eylem={yukleyebilir
                 ? <Dugme onClick={sablonIndir}>Şablonu indir</Dugme>
                 : undefined}

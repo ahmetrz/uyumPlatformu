@@ -208,8 +208,10 @@ export default function KanitlarIstemci({
                   ? `Kapsamınızda kanıt kaydı yok. ${kapsamDisi} kanıt `
                     + `${t('tesis')} kapsamınız dışında (bağlantısız ya da `
                     + `başka ${t('tesis', 'yonelme')} bağlı).`
-                  : 'Kapsamınızda kanıt kaydı yok.'
-                : 'Kanıt kaydı yok.'}
+                  : 'Kapsamınızda kanıt kaydı yok: yetkiniz olan kapsamda '
+                    + 'hiçbir kontrole kanıt bağlanmamış.'
+                : 'Kanıt kaydı yok: kütüphane boş, hiçbir kontrol kanıtla '
+                  + 'desteklenmiyor.'}
               eylem={yazabilir && !formAcik
                 ? <Dugme tur="ikincil" onClick={() => setFormAcik(true)}>Kanıt kaydı ekle</Dugme>
                 : undefined}

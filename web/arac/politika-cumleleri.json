@@ -612,6 +612,17 @@
       "sonucSinifi": "S1"
     },
     {
+      "kod": "POL-234",
+      "cumle": "Bu kurulumda MFA ZORUNLU.",
+      "yer": "app/(kabuk)/(operasyonel)/ayarlar/MfaKarti.tsx",
+      "sinif": "POLITIKA",
+      "sonucSinifi": "S1",
+      "olcum": {
+        "dosya": "tests/kimlik-giris-mfa.test.ts",
+        "vaka": "politika ZORUNLU ise parola doğru olsa da GİREMEZ [SIS-KML-005]"
+      }
+    },
+    {
       "kod": "POL-023",
       "cumle": "Bu kutu yalnız SİZE yazılan bildirimleri gösterir.",
       "yer": "app/(kabuk)/(operasyonel)/bildirimler/BildirimlerIstemci.tsx",
@@ -645,14 +656,14 @@
       }
     },
     {
-      "kod": "POL-212",
-      "cumle": "Bu motor hiç koşmadı — sağlıklı olduğu anlamına GELMEZ; koşmamış bir motorun bulgusu da yoktur. İş koşularını aç",
+      "kod": "POL-238",
+      "cumle": "Bu motor hiç koşmadı — sağlıklı olduğu anlamına GELMEZ; koşmamış bir motorun bulgusu da yoktur. Motor ayarlarını aç",
       "yer": "app/(kabuk)/(operasyonel)/saglik/Cekmeceler.tsx",
       "sinif": "POLITIKA",
       "sonucSinifi": "S2",
       "olcum": {
         "dosya": "tests/politika-s2-degismez.test.ts",
-        "vaka": "KOŞUSUZ motor \"ok\" GÖRÜNMEZ — işaret \"unk\", söz \"Hiç koşmadı\""
+        "vaka": "KOŞUSUZ motor \"ok\" GÖRÜNMEZ — işaret \"unk\", söz \"Hiç koşmadı\" [SIS-DGM-003]"
       }
     },
     {
@@ -1213,6 +1224,17 @@
       }
     },
     {
+      "kod": "POL-236",
+      "cumle": "harita yalnız aktif kayıtları çizer, pasif olanlar gösterilmez.",
+      "yer": "app/(tam)/harita/HaritaIstemci.tsx",
+      "sinif": "POLITIKA",
+      "sonucSinifi": "S3",
+      "olcum": {
+        "dosya": "tests/politika-tanik-acilan.test.ts",
+        "vaka": "PASİF kayıt haritanın verisine GİRMEZ; aktif girer [SIS-POL-002]"
+      }
+    },
+    {
       "kod": "POL-041",
       "cumle": "Hayır. Platform bilinmeyeni sıfırdan ayırır: ölçülmemiş, bağlanmamış ya da kaydedilmemiş bir değer boş çizilir, 0 yazılmaz. Örneğin hiçbir bağlayıcı koşmadıysa veri kesiti damgası \"—\"dır; sistem saati damga diye gösterilmez.",
       "yer": "app/(kabuk)/(operasyonel)/yardim/page.tsx",
@@ -1389,6 +1411,17 @@
       "sonucSinifi": "S2"
     },
     {
+      "kod": "POL-235",
+      "cumle": "Kapanış bir DOĞRULAMA kapısıdır: bulguyu yalnız uyum onay yetkisi olan kişi (denetim sorumlusu ya da yönetici) kapatabilir ve bulguya bağlı açık aksiyon (planlandı / devam ediyor) kalmamış olmalıdır. Kapanışta doğrulayan kişi ve zaman kayda yazılır; aksiyonlar bitmeden kapatma denemesi kaç aksiyonun açık olduğunu söyleyerek reddedilir.",
+      "yer": "app/(kabuk)/(operasyonel)/yardim/page.tsx",
+      "sinif": "POLITIKA",
+      "sonucSinifi": "S1",
+      "olcum": {
+        "dosya": "tests/politika-tanik-acilan.test.ts",
+        "vaka": "UYUM ONAY YETKİSİ olmayan kapatamaz; açık aksiyon da kapanışı durdurur [SIS-POL-002]"
+      }
+    },
+    {
       "kod": "POL-119",
       "cumle": "Kapanmış bir bildirimin taslağı değiştirilemez — gönderilen metin ile kayıttaki metin ayrışırsa kayıt kanıt olmaktan çıkar; kapanış zamanı da kaymış olur.",
       "yer": "lib/eylemler2/bildirimKaydi.ts",
@@ -1477,11 +1510,15 @@
       }
     },
     {
-      "kod": "POL-052",
-      "cumle": "Kapsamınızdaki ${t('tesis', 'cogul')} için reddedilen kayıt yok.",
+      "kod": "POL-237",
+      "cumle": "Kapsamınızdaki ${t('tesis', 'cogul')} için reddedilen kayıt yok:",
       "yer": "app/(kabuk)/(operasyonel)/saglik/reddedilenler/ReddedilenlerIstemci.tsx",
-      "sinif": "IDDIA_DEGIL",
-      "gerekce": "boş hâl cümlesi — kapsamda kayıt yok"
+      "sinif": "POLITIKA",
+      "sonucSinifi": "S1",
+      "olcum": {
+        "dosya": "tests/politika-tanik-acilan.test.ts",
+        "vaka": "KAPSAMA KISITLI rol yalnız kendi kapsamının kayıtlarını görür [SIS-POL-002]"
+      }
     },
     {
       "kod": "POL-053",

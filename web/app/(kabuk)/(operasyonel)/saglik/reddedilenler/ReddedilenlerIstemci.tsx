@@ -65,7 +65,8 @@ export default function ReddedilenlerIstemci({
       return (
         /* Kuyruğun boş olması ile kuyruğu görememek AYNI ŞEY DEĞİLDİR. */
         <BosIlk iyiHaber={!kapsamli} cumle={kapsamli
-          ? `Kapsamınızdaki ${t('tesis', 'cogul')} için reddedilen kayıt yok.`
+          ? `Kapsamınızdaki ${t('tesis', 'cogul')} için reddedilen kayıt yok: `
+            + 'bu kapsama düşen hiçbir connector kaydı elenmedi.'
           : 'Reddedilen kayıt yok. Bir connector koşusunda düşen her '
             + 'kayıt — şemadan, eşlemeden, doğrulamadan ya da kapsamdan — burada '
             + 'ham hâliyle görünür.'} />

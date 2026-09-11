@@ -671,8 +671,10 @@ function BosDurum({ hicKayitYok, kapsamli, aktifFiltre, kapaliyaGec, temizle, ye
     return (
       <div style={{ marginTop: 'var(--s26)' }}>
         <BosIlk cumle={kapsamli
-          ? 'Kapsamınızda risk kaydı yok.'
-          : 'Risk kütüğünde kayıt yok.'}
+          ? 'Kapsamınızda risk kaydı yok: yetkiniz olan kapsamda hiç risk '
+            + 'açılmamış — başka kapsamlarda kayıt olabilir.'
+          : 'Risk kütüğünde kayıt yok: hiçbir bulgu, zafiyet ya da denetim '
+            + 'sonucu risk kaydına dönüştürülmemiş.'}
           eylem={<Dugme tur="birincil" onClick={yeni}>Risk oluştur</Dugme>} />
       </div>
     );

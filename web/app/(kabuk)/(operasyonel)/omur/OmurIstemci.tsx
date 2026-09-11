@@ -180,7 +180,8 @@ export default function OmurIstemci({
           {/* "EOL kaydı yok" ile "kapsamınızda kayıt yok" AYNI ŞEY DEĞİLDİR. */}
           <BosIlk iyiHaber
             cumle={kapsamli
-              ? 'Kapsamınızda ömrü yaklaşan varlık yok.'
+              ? 'Kapsamınızda ömrü yaklaşan varlık yok: yetkiniz olan '
+                + 'kapsamda EOL/EOS tarihi eşiğe yaklaşan cihaz bulunmuyor.'
               : 'Ömrü yaklaşan varlık yok — EOL/EOS tarihi girilmiş hiçbir cihaz eşiğe yaklaşmadı.'} />
         </div>
       </main>

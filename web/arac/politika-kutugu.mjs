@@ -26,6 +26,7 @@
 
 import { readdirSync, readFileSync, writeFileSync } from 'node:fs';
 import path from 'node:path';
+import { sebepBayragi, tabanDogrula, tabanYaz } from './olcum-tabani.mjs';
 
 const KOK = process.cwd();
 /* ── NE TARANIR, NE TARANMAZ · BEYANLI SINIR ──────────────────────────
@@ -53,6 +54,60 @@ const KOK = process.cwd();
    sormayı imkânsız kılar. Ölçüldü: `components/kabuk/temel.tsx`te ekrana
    çıkan "`…` bağlayıcısı bu ortamda tanımlı değil; … bu yüzden
    gösterilmez" cümlesi ne taranıyor ne sayılıyordu. */
+/* Cümle uzunluk sınırları TEK YERDE. İki ayrı yerde iki ayrı sayı
+   tutmak, DOM tanığının yakaladığı dördüncü körlüğü üretmişti. */
+export const CUMLE_TABANI = 25;
+export const CUMLE_TAVANI = 400;
+/* ── DİZE SABİTLERİ REGEXLE DEĞİL, TARAYICIYLA OKUNUR ────────────────
+   Eski kalıp `'([^'\\\n]{25,300})'|"..."|\`...\`` idi ve ÖRTÜŞME
+   TEHLİKESİ taşıyordu: alternatifler açgözlüdür, bir eşleşme kendinden
+   sonraki tırnakları YUTAR ve yutulan bölgedeki dize hiç görünmez.
+   Tehlike ölçüldü — tavan 300'den 400'e çıkarılınca POL-062
+   (`eyebrow="Platform sağlığı · reddedilen kayıtlar"`) kütükten SESSİZCE
+   düştü: daha uzun bir eşleşme onun bölgesini kapsamıştı. Yani tavanı
+   YÜKSELTMEK, ölçülen popülasyonu KÜÇÜLTÜYORDU.
+
+   Bugün dizeler bir sözcük çözümleyicisinin yapacağı gibi okunur:
+   açılış tırnağından KAPANIŞ tırnağına kadar, kaçış karakterleri
+   atlanarak; tarama kapanıştan SONRA devam eder. Sınır değiştiğinde
+   hangi dizelerin görüldüğü DEĞİŞMEZ — yalnız hangilerinin elendiği
+   değişir. */
+export function kaynakDizeleri(kod, taban = CUMLE_TABANI, tavan = CUMLE_TAVANI) {
+  const cikan = [];
+  for (let i = 0; i < kod.length; i += 1) {
+    const q = kod[i];
+    if (q !== "'" && q !== '"' && q !== '`') continue;
+    let j = i + 1;
+    let kapandi = false;
+    while (j < kod.length) {
+      const c = kod[j];
+      if (c === '\\') { j += 2; continue; }
+      if (c === q) { kapandi = true; break; }
+      if (c === '\n' && q !== '`') break;   // tek/çift tırnak satır aşmaz
+      j += 1;
+    }
+    if (!kapandi) continue;                 // kapanmayan tırnak: atla, yutma
+    const govde = kod.slice(i + 1, j);
+    if (govde.length >= taban && govde.length <= tavan) cikan.push(govde);
+    i = j;                                  // tarama KAPANIŞTAN sonra sürer
+  }
+  return cikan;
+}
+
+/* ── TARANAN KÖKLER · BEYANLI SINIR ───────────────────────────────────
+   Kök listesi bir sınırdır ve sınır olduğu BURADA yazılıdır: ekran
+   bileşenleri (`app`, `components`) ve kullanıcıya dönen sunucu ret
+   gerekçeleri (`lib/eylemler2`). `lib`in tamamını taramak denendi ve
+   GERİ ALINDI: popülasyon 213 → 418'e çıkıyordu ve gelen satırların
+   ezici çoğunluğunu tanık hiçbir ekranda GÖRMEMİŞTİ — yani ölçüt
+   "ekranın politika cümlesi" değil "kaynakta politika gibi duran her
+   dize" hâline geliyordu. Bir turda 205 satırı aceleyle ölçmek, bu
+   deponun kaçındığı şeyin ta kendisidir.
+
+   SINIRIN BEKÇİSİ TÜRETİCİ DEĞİL, TANIKTIR: `lib` içindeki bir cümle
+   gerçekten ekrana çıkıyorsa DOM tanığı onu görür ve kütükte
+   bulamayınca `tests/bekci/dom-tanik.test.ts` KIRMIZI yanar. Kapsamı
+   varsayımla değil ÖLÇÜMLE genişletmenin yolu budur. */
 const TARANAN = ['app', 'components', 'lib/eylemler2'];
 const KUTUK = path.join(KOK, 'arac', 'politika-cumleleri.json');
 
@@ -214,7 +269,7 @@ export function jsxMetinleri(kod) {
       .replace(/<[^>]*>/g, ' ')
       .replace(/\s+/g, ' ')
       .trim();
-    if (cumle.length < 25 || cumle.length > 400) continue;
+    if (cumle.length < CUMLE_TABANI || cumle.length > CUMLE_TAVANI) continue;
     cikan.push(cumle);
   }
   return cikan;
@@ -232,8 +287,19 @@ export function turet() {
       if (!/\.(tsx|ts)$/.test(f) || /\.test\.tsx?$/.test(f)) continue;
       const rel = `${kok}/${f}`;
       const kod = bitisikleriBirlestir(yorumsuz(readFileSync(path.join(KOK, rel), 'utf8')));
-      for (const m of kod.matchAll(/'([^'\\\n]{25,300})'|"([^"\\\n]{25,300})"|`([^`\\]{25,300})`/g)) {
-        const cumle = (m[1] ?? m[2] ?? m[3]).trim();
+      /* ── DÖRDÜNCÜ KÖRLÜK (DOM tanığı bulgusu) ────────────────────────
+         Tavan 300 karakterdi ve bu bir ÖLÇÜ DEĞİL, bir varsayımdı:
+         "politika cümlesi uzun olmaz". `/yardim` ekranının 337
+         karakterlik "Kapanış bir DOĞRULAMA kapısıdır…" cevabı
+         `politikaMi`den GEÇİYOR ama tavana takılıp hiç türetilmiyordu —
+         ekranda duran, kullanıcının okuduğu bir yetki iddiası.
+         Tanık onu DOM'da gördü, kütükte bulamadı.
+
+         Tavan `CUMLE_TAVANI`ye bağlandı; `jsxMetinleri` zaten aynı
+         sayıyı kullanıyor ve iki yerde iki farklı sayı olması bu
+         körlüğü ilk etapta üreten şeydi. */
+      for (const ham of kaynakDizeleri(kod)) {
+        const cumle = ham.trim();
         if (!politikaMi(cumle)) continue;
         if (!cikan.some((c) => c.cumle === cumle)) cikan.push({ yer: rel, cumle });
       }
@@ -347,6 +413,22 @@ export function yeniSatirKusurlari(satirlar, tabanCumleleri) {
 /* Doğrudan koşulduğunda: türet ve raporla. */
 if (import.meta.url === `file://${process.argv[1]}`) {
   const bulunan = turet();
+  /* ── ÖLÇÜM TABANI · P1-4 ──────────────────────────────────────────────
+     Taban 131'de KALMIŞTI; ölçülen 215'ti. Aradaki 84 satırlık pencere,
+     türeticinin sessizce daralması için açık bir kapıydı: kütük yarıya
+     inse bile taban "geçti" derdi. Kapının kendi kütüğünü yazan aracı,
+     tabanı da yazmalı — yoksa taban ancak elle güncellenir ve elle
+     güncellenen bir taban güncellenmez.
+
+     Taban bu araçtan İNDİRİLEMEZ de: `yazimKarari` düşüş için 40
+     karakterlik bir gerekçe ister ve gerekçe DOSYAYA yazılır. */
+  if (process.argv.includes('--taban-yaz')) {
+    const { onceki, yeni } = tabanYaz('politika.cumle', bulunan.length,
+      { sebep: sebepBayragi(process.argv) });
+    console.log(`taban yazıldı: politika.cumle ${onceki ?? '—'} → ${yeni}`);
+  } else {
+    tabanDogrula('politika.cumle', bulunan.length);
+  }
   const yaz = process.argv.includes('--yaz');
   if (yaz) {
     const eski = (() => { try { return kutuguOku(); } catch { return { satirlar: [] }; } })();

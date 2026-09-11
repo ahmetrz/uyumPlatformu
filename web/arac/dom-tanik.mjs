@@ -79,19 +79,38 @@ async function sayfaTopla(page) {
       if (metin.length < 25 || metin.length > 400) continue;
       cikan.politika.push(metin);
     }
-    /* BOŞ DURUM: ürünün kendi işaretleri. Kütükle AYNI işaretler okunur
-       (`className="bos"` ailesi); tanık burada "boş durum nedir"i yeniden
-       tanımlamaz, aynı sözleşmeyi RENDER EDİLMİŞ tarafta okur. */
-    for (const el of document.querySelectorAll('[class*="bos"]')) {
-      if (!gorunur(el)) continue;
+    /* ── BOŞ DURUM · TANIĞIN KENDİ KUSURU DÜZELTİLDİ ──────────────────
+       İlk yazım `[class*="bos"]` kullanıyordu ve bu İKİ YÖNDE de yanlıştı:
+
+       (a) YANLIŞ POZİTİF: alt dize eşleşmesi `ab-dok-bosluk` ve
+           `ab-harita-bos` gibi YERLEŞİM sınıflarını da yakalıyordu.
+           `/topoloji`nin "22 kapsam · 4 temeli onaylı" ÖZET paneli boş
+           durum sanılıp "eylemsiz" diye kırmızı yakmıştı.
+       (b) YANLIŞ NEGATİF: ürünün asıl boş durum bileşeni `BosIlk`
+           `bos` sınıfını HİÇ basmıyor — `div.ab-blok` + `span.etiket`
+           ("Boş · ilk kurulum") basıyor. Yani tanık, aradığı şeyi hiç
+           göremiyordu.
+
+       Bugün ürünün KENDİ sözleşmesi okunur: bileşenin etiket metni ve
+       satır içi `bos` SINIF ADI (alt dize değil, tam belirteç). */
+    const ETIKETLER = { 'Boş · ilk kurulum': 'BosIlk', 'Beklenen durum': 'BosIlk-iyi', 'Süzgeç': 'BosFiltre' };
+    const ekle = (el, tur) => {
+      if (!gorunur(el)) return;
       const metin = (el.innerText || el.textContent || '').replace(/\s+/g, ' ').trim();
-      if (metin.length < 3) continue;
+      if (metin.length < 3) return;
       cikan.bos.push({
         metin,
+        tur,
         sinif: el.getAttribute('class') || '',
+        iyiHaber: tur === 'BosIlk-iyi' || el.classList.contains('iyi'),
         eylem: !!el.querySelector('a[href], button'),
       });
+    };
+    for (const el of document.querySelectorAll('div.ab-blok > span.etiket')) {
+      const tur = ETIKETLER[(el.textContent || '').replace(/\s+/g, ' ').trim()];
+      if (tur) ekle(el.parentElement, tur);
     }
+    for (const el of document.querySelectorAll('.bos')) ekle(el, 'satirIci');
     return cikan;
   });
 }
@@ -135,7 +154,10 @@ try {
       }
       for (const b of bos) {
         const k = duz(b.metin);
-        if (!bosDurumlar.has(k)) bosDurumlar.set(k, { rota, sinif: b.sinif, eylem: b.eylem });
+        if (!bosDurumlar.has(k)) {
+          bosDurumlar.set(k, {
+            rota, tur: b.tur, sinif: b.sinif, iyiHaber: b.iyiHaber, eylem: b.eylem });
+        }
       }
     } catch (e) { atlanan.push({ rota, sebep: e.message.slice(0, 120) }); }
   }

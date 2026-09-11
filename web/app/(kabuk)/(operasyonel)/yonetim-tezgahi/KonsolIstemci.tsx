@@ -336,7 +336,8 @@ export default function KonsolIstemci({ veri }: { veri: KonsolVerisi }) {
                     <BosIlk
                       iyiHaber={!arama}
                       cumle={arama
-                        ? 'Aramayla eşleşen kayıt yok.'
+                        ? 'Aramayla eşleşen kayıt yok: aramayı temizleyince '
+                          + 'katalogdaki tüm kayıtlar geri gelir.'
                         : 'Bu katalogda kayıt yok — motor koddaki varsayılanı okur.'}
                       eylem={arama
                         ? <Dugme onClick={() => setArama('')}>Aramayı temizle</Dugme>
@@ -363,7 +364,11 @@ export default function KonsolIstemci({ veri }: { veri: KonsolVerisi }) {
                   </div>
                   {talepSatirlari.length === 0
                     ? <BosIlk iyiHaber={talepMercek === 'acik'}
-                      cumle={talepMercek === 'acik' ? 'Açık talep yok.' : 'Talep kaydı yok.'} />
+                      cumle={talepMercek === 'acik'
+                        ? 'Açık talep yok: bu hedefte incelemeyi bekleyen bir '
+                          + 'değişiklik talebi bulunmuyor.'
+                        : 'Talep kaydı yok: bu hedef için hiç değişiklik talebi '
+                          + 'açılmamış — ayarlar doğrudan yazılmış olabilir.'} />
                     : <Tablo kolonlar={TALEP_KOLONLARI} satirlar={talepSatirlari} konuBasligi="Talep" sik
                       secili={secili} sec={(id) => setSecili((s) => (s === id ? null : id))} />}
                 </>
@@ -384,7 +389,11 @@ export default function KonsolIstemci({ veri }: { veri: KonsolVerisi }) {
                     ? (
                       <BosIlk
                         iyiHaber={!arama}
-                        cumle={arama ? 'Aramayla eşleşen iz yok.' : 'Bu katalogda iz kaydı yok.'}
+                        cumle={arama
+                          ? 'Aramayla eşleşen iz yok: aramayı temizleyince bu '
+                            + 'katalogdaki tüm iz satırları geri gelir.'
+                          : 'Bu katalogda iz kaydı yok: kayıtlar seed ile gelmiş '
+                            + 've henüz elle değiştirilmemiş olabilir.'}
                         eylem={arama
                           ? <Dugme onClick={() => setArama('')}>Aramayı temizle</Dugme>
                           : undefined} />

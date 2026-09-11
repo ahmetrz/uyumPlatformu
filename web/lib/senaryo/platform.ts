@@ -1700,14 +1700,48 @@ export const PLATFORM_SENARYOLARI_6: Senaryo[] = [
     id: 'SIS-BAG-001', alan: 'Sistem', rota: '—', eksen: 'arayuz',
     amac: 'Ekranın gösterdiği ÇIKIŞIN gerçek bir rotaya çözülmesi',
     rol: 'herhangi bir kullanıcı', kapsam: 'kurum geneli',
-    onkosul: 'Rota envanteri (`arac/rotalar.json`) taze', veriHali: 'normal',
-    eylem: 'Kaynakta yazılı her SABİT iç bağ envantere karşı çözümlenir; '
-      + 'çözümleyici ayrıca sentetik kütüklerle sınanır',
-    beklenenSonuc: 'Olmayan rotaya giden bağ YOKTUR; dinamik bağlar beyanlı '
-      + 'sınırın dışındadır',
+    onkosul: '`app/` rota ağacı okunabiliyor', veriHali: 'normal',
+    eylem: 'Rota desenleri `app/` AĞACINDAN türetilir; kaynaktaki her iç bağ '
+      + '(href düz/ifade · router.push · redirect · revalidatePath) o desenlere '
+      + 'karşı segment segment çözümlenir; çözümleyici ayrıca sentetik '
+      + 'desenlerle sınanır',
+    beklenenSonuc: 'Olmayan rotaya giden bağ YOKTUR; üst yola yaslanan gevşek '
+      + 'eşleşme KABUL EDİLMEZ',
     beklenenEkran: 'Boş durumun önerdiği çıkış 404 vermez',
     beklenenIz: 'yazma yok', beklenenBildirim: 'yok',
     katmanlar: ['UI', 'DOMAIN'],
+  },
+  {
+    id: 'URN-TNK-001', alan: 'Sistem', rota: '—', eksen: 'arayuz',
+    amac: 'Kütük popülasyonunun İKİNCİ BİR MEKANİZMAYLA doğrulanması',
+    rol: 'kalite kapısı', kapsam: 'kurum geneli',
+    onkosul: 'Ürün canlı sunucuda ayakta; DOM tanığı koştu',
+    veriHali: 'tohumlanmış kurulum',
+    eylem: 'Tanık kaynağı HİÇ OKUMADAN ürünü gerçek tarayıcıda gezer ve '
+      + 'kullanıcıya görünen politika cümlelerini ve boş durumları toplar; '
+      + 'kütükle karşılaştırılır',
+    beklenenSonuc: 'Ekranda okunan her cümle bir kütükte AÇIKLANIR; ölü tanık '
+      + 'satırı yoktur; tanığın erişimi (rota ve cümle sayısı) tabanın altına '
+      + 'düşmez',
+    beklenenEkran: 'Render edilmiş ekranda eylemsiz boş durum yoktur',
+    beklenenIz: 'yazma yok', beklenenBildirim: 'yok',
+    katmanlar: ['UI', 'DOMAIN'],
+  },
+  {
+    id: 'SIS-POL-002', alan: 'Sistem', rota: '—', eksen: 'arayuz',
+    amac: 'Türetici genişleyince AÇILAN politika cümlelerinin gerçek yolla '
+      + 'ölçülmesi',
+    rol: 'kalite kapısı', kapsam: 'kurum geneli',
+    onkosul: 'Politika kütüğü türetildi', veriHali: 'tohumlanmış kurulum',
+    eylem: 'Her cümle, iddiayı UYGULAYAN kodun gerçek yolunu süren bir vaka '
+      + 'ile ölçülür; vakaların çoğu KARŞI TANIK taşır',
+    beklenenSonuc: 'Kapsamsız davet reddedilir · çok bağlı kanıt her kapsamda '
+      + 'yetki ister · kararsız gözden geçirme "yapıldı" olmaz · uygulanmış '
+      + 'talep ikinci kez uygulanmaz · aday yalnız kritik sapmadan doğar',
+    beklenenEkran: 'Ekranın cümlesi ile sunucunun davranışı AYNI',
+    beklenenIz: 'reddedilen denemede iz YOK; geçen işlemde iz VAR',
+    beklenenBildirim: 'yok',
+    katmanlar: ['UI', 'SERVER', 'DOMAIN'],
   },
   {
     id: 'SIS-SNG-001', alan: 'Sistem', rota: '/giris', eksen: 'arayuz',

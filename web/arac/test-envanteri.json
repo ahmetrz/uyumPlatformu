@@ -1,7 +1,7 @@
 {
-  "imza": "dc2a6fa8a1d072812750f0a17bb301ed",
-  "dosya": 244,
-  "vaka": 4358,
+  "imza": "d5033db8aea8ec8bed2e77b4a7f29b56",
+  "dosya": 246,
+  "vaka": 4404,
   "atlanan": 1,
   "dosyalar": {
     "tests/adaptor-yetenekleri.test.ts": {
@@ -60,6 +60,10 @@
       "vaka": 10,
       "atlanan": 0
     },
+    "tests/bekci/dom-tanik.test.ts": {
+      "vaka": 14,
+      "atlanan": 0
+    },
     "tests/bekci/ek-eklemesi.test.ts": {
       "vaka": 4,
       "atlanan": 0
@@ -93,7 +97,7 @@
       "atlanan": 0
     },
     "tests/bekci/olu-bag.test.ts": {
-      "vaka": 3,
+      "vaka": 10,
       "atlanan": 0
     },
     "tests/bekci/ortam-semasi.test.ts": {
@@ -105,7 +109,7 @@
       "atlanan": 0
     },
     "tests/bekci/politika-olcumu.test.ts": {
-      "vaka": 34,
+      "vaka": 35,
       "atlanan": 0
     },
     "tests/bekci/radar-agsiz.test.ts": {
@@ -742,6 +746,10 @@
     },
     "tests/politika-s3-eylem.test.ts": {
       "vaka": 15,
+      "atlanan": 0
+    },
+    "tests/politika-tanik-acilan.test.ts": {
+      "vaka": 24,
       "atlanan": 0
     },
     "tests/politika-yetki-kapilari.test.ts": {

@@ -261,8 +261,10 @@ fonksiyondadır (`yeniSatirKusurlari`) ve sentetik kütüklerle sınanır —
 sabotaj kuralı sabote eder, ölçüm ortamını değil.
 
 **BUGÜN İSTİSNA YOLU KAPALIDIR — borç SIFIRDA KİLİTLİ (R-F eki 2).**
-11 Eylül 2026'da borcun üçü de sıfırlandı: **175 politika cümlesinin
-175'i** gerçek yolla ölçülüyor (S1 0 · S2 0 · S3 0). Sıfıra inen bir
+11 Eylül 2026'da borcun üçü de sıfırlandı: ölçüldü **216 kütük satırı ·
+208'i POLITIKA (S1 85 · S2 60 · S3 63) · ölçülmeyen 0 ·
+SINIFLANDIRILMADI 0**; sekiz satır `IDDIA_DEGIL` olarak gerekçesiyle
+beyanlı ve o kaçış kapısı da cırcırdadır. Sıfıra inen bir
 borç için "yalnız küçülür" YETMEZ — yarın eklenen ölçüsüz bir cümle
 tavanı 0'dan 1'e çıkarır ve öbür dişler bunu "tavan ölçülene eşit" diye
 GEÇİRİR. Yedinci diş bu yüzden mutlaktır: `olculmedi` taşıyan tek bir
@@ -272,13 +274,29 @@ iyi yazılmış olursa olsun, kapıyı KIRMIZI yakar
 iki koşullu istisna yolu TARİHTİR; kilidi gevşetmek o dişi SİLMEYİ
 gerektirir — bir sayıyı sessizce büyütmeyi değil.
 
-Gerekçe ölçüldü (Brief L · bağımsız inceleme tur 1): türetici yalnız
-tırnaklı dize sabitlerini tarıyordu ve düz JSX metnini HİÇ görmüyordu;
-genişletilince kütük **131 → 184 cümleye** çıktı ve "123/123 ölçüldü"
-oranının paydası kör çıktı. Körlük düzeltilince açılan 52 cümlelik borç
-(S1 18 · S2 23 · S3 11) bu partide eritildi. Payda kör olduğunda oran
-her zaman iyi görünür; kilidin sayıyı değil KÜMEYİ ölçmesi bu yüzden
-gerekiyor.
+Gerekçe DÖRT KEZ ölçüldü ve her seferinde PAYDA kör çıktı:
+
+| Tur | Bulan | Körlük | Payda |
+| --- | --- | --- | --- |
+| 1 | bağımsız inceleme | tırnaksız JSX metni hiç görülmüyordu | 131 → 184 |
+| 2 | inceleme (P1-1) | metin düğümünde tek bir `{…}` varsa TÜM düğüm düşüyordu | 184 → 213 |
+| 3 | DOM tanığı | dize kalıbı açgözlüydü, eşleşme sonraki tırnakları YUTUYORDU | 213 → 215 |
+| 4 | kendi düzeltmesi | boş duruma sebep yazmak yeni politika cümlesi DOĞURDU | 215 → 216 |
+
+Üçüncü tur kuralın kendisini de gösterdi: tavan 300'den 400'e
+çıkarılınca POL-062 kütükten SESSİZCE DÜŞTÜ — tavanı YÜKSELTMEK
+popülasyonu KÜÇÜLTÜYORDU. Düzenli ifade, sözcük çözümleyicisi gibi
+çalışan bir tarayıcıyla değiştirildi.
+
+Payda kör olduğunda oran HER ZAMAN iyi görünür. Bu yüzden bugün payda
+tek bir türeticiden değil, İKİ BAĞIMSIZ MEKANİZMADAN gelir: kaynağı
+okuyan türetici ve kaynağı HİÇ OKUMAYAN **DOM tanığı** — ürünü gerçek
+tarayıcıda gezip kullanıcıya görüneni toplar (`web/arac/dom-tanik.mjs`).
+Ayrışma kırmızıdır (`web/tests/bekci/dom-tanik.test.ts`, URN-TNK-001).
+Tanığın ekranda görüp kütükte bulamadığı, çalışma anında birleşen
+cümleler ayrı bir kütükte ölçümleriyle durur
+(`web/arac/dom-tanik-kutugu.json`) ve o kütük taban dala göre
+BÜYÜYEMEZ: körlüğü kütüğe taşımak yerine türetici genişletilir.
 
 **Boş durum SEBEBİNİ söyler ve ÇÖZÜME işaret eder (R-G).** Ekranın boş
 hâli, sistemin elindeki bilgiyi kullanmak zorundadır. Ölçüldü (kurulum
@@ -325,7 +343,7 @@ içine sabit yazılmış bir taban, arada sessiz bir daralma penceresi
 bırakır.
 
 **ÜÇ SINIFTA DA EYLEMSİZ SAYISI SIFIRDA KİLİTLİ (R-G eki).** 11 Eylül
-2026'da `satirIci` borcu da kapandı: ölçüldü **100 boş durum · 99'u iki
+2026'da `satirIci` borcu da kapandı: ölçüldü **126 boş durum · 125'i iki
 ölçütü de karşılıyor · eylemsiz 0 · nedensiz 1** (tek nedensiz satır
 hesaplanan bir cümledir ve ölçümünü adıyla beyan ederek istisna
 listesinde durur). `satirIci` için yazılı olan "sahibi ile kapanış

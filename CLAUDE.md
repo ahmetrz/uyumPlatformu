@@ -250,15 +250,35 @@ depoya ölçülmemiş yeni bir iddia girdi. Bugün yeni satır AYRI
 yargılanır: taban dalda (`origin/main`) olmayan her `POLITIKA` satırı
 ölçümünü taşımak zorundadır.
 
-Gerekçeli istisna mümkündür, iki koşulla: gerekçe KUSURU anlatır
+Gerekçeli istisna mümkündü, iki koşulla: gerekçe KUSURU anlatır
 (maliyeti değil) ve HANGİ AŞAMADA kapanacağını yazar. **Aşamasız
-gerekçe kabul edilmez** — "süresiz beyan yoktur" kuralının bu kütükteki
-karşılığıdır. **S1'de istisna HİÇ yoktur**: ihlali veri sızdıran bir
-cümle, gerekçesi ne olursa olsun ölçülmeden depoya giremez (R-C ile
-aynı sertlik). Sınıf kütükten değil CÜMLEDEN türetilir; elle "S3"
-yazarak en sıkı daldan kaçılamaz. Kural saf bir fonksiyondadır
-(`yeniSatirKusurlari`) ve sentetik kütüklerle sınanır — sabotaj kuralı
-sabote eder, ölçüm ortamını değil.
+gerekçe kabul edilmezdi** — "süresiz beyan yoktur" kuralının bu
+kütükteki karşılığıdır. **S1'de istisna HİÇ yoktu**: ihlali veri
+sızdıran bir cümle, gerekçesi ne olursa olsun ölçülmeden depoya
+giremezdi (R-C ile aynı sertlik). Sınıf kütükten değil CÜMLEDEN
+türetilir; elle "S3" yazarak en sıkı daldan kaçılamaz. Kural saf bir
+fonksiyondadır (`yeniSatirKusurlari`) ve sentetik kütüklerle sınanır —
+sabotaj kuralı sabote eder, ölçüm ortamını değil.
+
+**BUGÜN İSTİSNA YOLU KAPALIDIR — borç SIFIRDA KİLİTLİ (R-F eki 2).**
+11 Eylül 2026'da borcun üçü de sıfırlandı: **175 politika cümlesinin
+175'i** gerçek yolla ölçülüyor (S1 0 · S2 0 · S3 0). Sıfıra inen bir
+borç için "yalnız küçülür" YETMEZ — yarın eklenen ölçüsüz bir cümle
+tavanı 0'dan 1'e çıkarır ve öbür dişler bunu "tavan ölçülene eşit" diye
+GEÇİRİR. Yedinci diş bu yüzden mutlaktır: `olculmedi` taşıyan tek bir
+`POLITIKA` satırı bile, sınıfı ne olursa olsun ve gerekçesi ne kadar
+iyi yazılmış olursa olsun, kapıyı KIRMIZI yakar
+(`web/tests/bekci/politika-olcumu.test.ts` · YEDİNCİ DİŞ). Yukarıdaki
+iki koşullu istisna yolu TARİHTİR; kilidi gevşetmek o dişi SİLMEYİ
+gerektirir — bir sayıyı sessizce büyütmeyi değil.
+
+Gerekçe ölçüldü (Brief L · bağımsız inceleme tur 1): türetici yalnız
+tırnaklı dize sabitlerini tarıyordu ve düz JSX metnini HİÇ görmüyordu;
+genişletilince kütük **131 → 184 cümleye** çıktı ve "123/123 ölçüldü"
+oranının paydası kör çıktı. Körlük düzeltilince açılan 52 cümlelik borç
+(S1 18 · S2 23 · S3 11) bu partide eritildi. Payda kör olduğunda oran
+her zaman iyi görünür; kilidin sayıyı değil KÜMEYİ ölçmesi bu yüzden
+gerekiyor.
 
 **Boş durum SEBEBİNİ söyler ve ÇÖZÜME işaret eder (R-G).** Ekranın boş
 hâli, sistemin elindeki bilgiyi kullanmak zorundadır. Ölçüldü (kurulum
@@ -299,10 +319,23 @@ Tek toplam tavan yetmez — sıkı bir sınıfın borcunu gevşek bir sınıfın
 düzelmesiyle takas ettirir. Bugün her sınıfın kendi tavanı vardır:
 **ilk kurulum boşluğunda (`BosIlk` · `BosFiltre`) eylemsiz tavanı
 SIFIRDIR ve gerekçeli istisna kabul edilmez**; dolu bir ekranın içindeki
-bölüm notu (`satirIci`) ayrı bir sınıftır, tavanı ölçülendir ve **sahibi
-ile kapanış aşaması yazılmadan duramaz**. Popülasyonun kendisi de bir
-ölçüm tabanı taşır (`bos.durum`); testin içine sabit yazılmış bir taban,
-arada sessiz bir daralma penceresi bırakır.
+bölüm notu (`satirIci`) ayrı bir sınıftır ve tavanı ölçülendir.
+Popülasyonun kendisi de bir ölçüm tabanı taşır (`bos.durum`); testin
+içine sabit yazılmış bir taban, arada sessiz bir daralma penceresi
+bırakır.
+
+**ÜÇ SINIFTA DA EYLEMSİZ SAYISI SIFIRDA KİLİTLİ (R-G eki).** 11 Eylül
+2026'da `satirIci` borcu da kapandı: ölçüldü **100 boş durum · 99'u iki
+ölçütü de karşılıyor · eylemsiz 0 · nedensiz 1** (tek nedensiz satır
+hesaplanan bir cümledir ve ölçümünü adıyla beyan ederek istisna
+listesinde durur). `satirIci` için yazılı olan "sahibi ile kapanış
+aşaması" yolu artık TARİHTİR: borç sıfırlandığı için kütükte sahipli
+bir erteleme satırı yoktur ve yenisi açılamaz — eylemsiz bir boş durum,
+sınıfı ne olursa olsun kapıyı KIRMIZI yakar
+(`web/tests/bekci/bos-durum.test.ts` · EYLEMSİZ SIFIRDA KİLİTLİ).
+İYİ HABER boş durumu (17 satır) bu dişin dışındadır ve muafiyeti
+KODDAN gelir (`BosIlk iyiHaber` · `className="bos iyi"`), kütükten
+değil: işaret edeceği bir çözüm yoktur.
 
 Nedensiz olanlar cırcırdadır ve liste yalnız küçülür; türeticinin
 okuyamadığı hesaplanan cümle (fonksiyondan dönen metin) ancak

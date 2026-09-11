@@ -72,7 +72,7 @@ function icEtkilesim(e: MouseEvent<HTMLElement>): boolean {
 }
 
 export function VeriTablosu<T extends { id: string }>({
-  etiket, kolonlar, satirlar, secili, sec, durum, sira, siraDegistir, bosCumle, sik, yukseklik,
+  etiket, kolonlar, satirlar, secili, sec, durum, sira, siraDegistir, bosCumle, bosEylem, sik, yukseklik,
   kuyruk, dipNot, grup, acik, yukleniyor,
 }: {
   etiket: string;
@@ -86,6 +86,8 @@ export function VeriTablosu<T extends { id: string }>({
   siraDegistir?: (sira: VtSira | null) => void;
   /** `null`: boş kümede hiçbir şey çizme (rota kendi boş hâlini gösterir) */
   bosCumle?: string | null;
+  /** Boşluğun ÇIKIŞI — verilmezse çizilmez (uydurma eylem yok). */
+  bosEylem?: ReactNode;
   sik?: boolean;
   /** kaydırma kabı yüksekliği (CSS uzunluğu); verilmezse tablo akar */
   yukseklik?: string;
@@ -173,7 +175,33 @@ export function VeriTablosu<T extends { id: string }>({
 
   if (satirlar.length === 0 && !kuyruk) {
     if (bosCumle === null) return null;
-    return <p className="ab-vt-bos">{bosCumle ?? 'Bu süzgeçte kayıt yok.'}</p>;
+    /* ── ARKETİP: PAYLAŞILAN TABLO BOŞLUĞU (R-G) ──────────────────────
+       Varsayılan cümle "Bu süzgeçte kayıt yok." idi: tek tümce, sebebi
+       söylemiyor, çıkışı yok. Bağımsız inceleme (Brief L · tur 1) bunu
+       kuralın DOĞDUĞU cümlenin birebir aynısı olarak işaretledi —
+       türetici yüzeyi hiç görmediği için de yıllarca kütük dışında
+       kalmıştı.
+
+       Varsayılan bugün hem SEBEBİ söyler hem ÇIKIŞI gösterir; çıkış
+       yerindedir (süzgeç kullanıcının kendi kararıdır) ve `bosEylem`
+       verilmediğinde hiç çizilmez — olmayan bir eylem uydurmak
+       kullanıcıyı gereksiz bir yola sokar. */
+    /* TEK YÜZEY, OKUNABİLİR CÜMLE: varsayılan metin düz JSX olarak burada
+       durur — iki ayrı `<p>` yazmak türeticiye okuyamadığı ikinci bir
+       yüzey açıyordu. Çağıranın cümlesi bir `<span>` içinde gelir ve
+       ÇAĞIRANIN yerinde ölçülür; `bosEylem` ise bir EYLEM YUVASIDIR:
+       paylaşılan bileşen boşluğun çıkışını kendi uyduramaz. */
+    return (
+      <p className="ab-vt-bos">
+        {bosCumle ? <span className="cagiran">{bosCumle}</span> : (
+          <>
+            Bu süzgeçte kayıt yok — süzgeci daraltan bir seçim var; tablo boş
+            değil, bu görünüm boş.
+          </>
+        )}
+        {bosEylem}
+      </p>
+    );
   }
 
   /* Grup başlığı: satırın grubu bir öncekinden farklıysa başlık satırı

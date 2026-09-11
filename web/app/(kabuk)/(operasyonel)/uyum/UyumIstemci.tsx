@@ -411,9 +411,18 @@ function EgilimSeridi({ noktalar, surecVar, bugun }: {
       </div>
 
       {!surecVar ? (
-        <p className="cumle bos">Bu çerçevenin yürüyen uyum süreci yok — eğilim tutulmuyor.</p>
+        <p className="cumle bos">
+          Bu çerçevenin yürüyen uyum süreci yok — eğilim tutulmuyor.
+          {/* Eğilim SÜREÇTEN doğar; süreç `/surecler`de açılır. */}
+          <Link href="/surecler" className="ab-dugme satir">Uyum süreci aç</Link>
+        </p>
       ) : noktalar.length === 0 ? (
-        <p className="cumle bos">Henüz anlık görüntü yok — ilk anlık motor çalışınca düşer.</p>
+        <p className="cumle bos">
+          Henüz anlık görüntü yok — ilk anlık motor çalışınca düşer.
+          {/* Anlığı MOTOR üretir, bu ekran değil. Çıkış motor yüzeyine gider;
+              "motor önerir, insan karar verir" — burada tetikleme yok. */}
+          <Link href="/saglik" className="ab-dugme satir">Motor durumunu gör</Link>
+        </p>
       ) : (
         <figure className="cizim">
           <svg

@@ -177,6 +177,14 @@ export default function HaritaIstemci({
               <p className="cumle">
                 Bir işarete tıklayın: künye, koordinat kaynağı ve açık kayıt
                 sayıları burada açılır.
+                {/* Sistem işaret listesini ZATEN elinde tutuyor: "tıklayın"
+                    deyip seçtirmemek, kullanıcıyı haritada aramaya bırakır. */}
+                {isaretler.length > 0 && (
+                  <button type="button" className="ab-dugme satir"
+                    onClick={() => setSecili(isaretler[0].id)}>
+                    İlk {terim('tesis')} künyesini aç
+                  </button>
+                )}
               </p>
             </div>
           )}

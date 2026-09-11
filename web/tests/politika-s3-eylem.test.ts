@@ -300,3 +300,93 @@ describe('POL-095 · "çok adımlı doğrulama zorunlu — kaydınızı kaldıra
       .not.toContain('kaydınızı kaldıramazsınız');
   });
 });
+
+/* ═══ EK · GENİŞLETİLEN TÜRETİCİNİN AÇTIĞI RET CÜMLELERİ ════════════
+   Bağımsız inceleme (Brief L · tur 1) türeticinin düz JSX metnini hiç
+   görmediğini ölçtü; genişletmeden sonra aşağıdaki üç ret cümlesi de
+   kütüğe girdi. Ölçüt değişmedi: gerekçe EKRANDAKİ cümle olmalı ve
+   kayıt değişmemeli. */
+
+describe('POL-197 · "Taban en az bir boyuta bağlanmalı" [SIS-DGM-002]', () => {
+  it('BOYUTSUZ taban REDDEDİLİR — her cihaza uyan taban doğmaz [SIS-DGM-002]', async () => {
+    const { firmwareTemeliKaydet } = await import('@/lib/eylemler2/varlikDurusu');
+    const oncekiTaban = await db.firmwareTemeli.count();
+    const oncekiIz = await izSayisi();
+
+    const s = await firmwareTemeliKaydet({
+      turId: null, uretici: null, model: null, onayliSurum: '1.0.0',
+    } as never);
+
+    expect(gerekce(s), 'ret boyut kuralından değil')
+      .toContain('Taban en az bir boyuta bağlanmalı');
+    expect(await db.firmwareTemeli.count(), 'reddetti ama taban satırı doğdu')
+      .toBe(oncekiTaban);
+    expect(await izSayisi(), 'reddetti ama denetim izine satır düştü').toBe(oncekiIz);
+  });
+
+  it('KARŞI TANIK · TEK boyutu olan taban KABUL edilir [SIS-DGM-002]', async () => {
+    const { firmwareTemeliKaydet } = await import('@/lib/eylemler2/varlikDurusu');
+    const s = await firmwareTemeliKaydet({
+      turId: null, uretici: `KurgusalUretici-${damga}`, model: null, onayliSurum: '1.0.0',
+    } as never) as { ok: boolean; hata?: string };
+    expect(s.ok, `tek boyutlu taban da reddedildi: ${s.hata ?? ''}`).toBe(true);
+  });
+});
+
+describe('POL-156 · "Bu sapmadan kayıt açılmış; ikinci kez açılamaz" [SIS-DGM-002]', () => {
+  it('AYNI sapmadan İKİNCİ risk açılamaz — ikinci kayıt doğmaz [SIS-DGM-002]', async () => {
+    const { sapmadanRiskAc } = await import('@/lib/eylemler2/topoloji');
+    const sapma = await db.topolojiSapmasi.findFirst({
+      where: { uretilenRiskId: null }, select: { id: true },
+    });
+    expect(sapma, 'risk açılmamış sapma fikstürü yok — vaka kurulamıyor').not.toBeNull();
+
+    const ilk = await sapmadanRiskAc({
+      sapmaId: sapma!.id, kod: `RSK-S3-${damga}`, baslik: 'Kurgusal sapma riski',
+      gerekce: 'Kurgusal risk gerekçesi',
+    }) as { ok: boolean; hata?: string };
+    expect(ilk.ok, `ilk risk açılamadı: ${ilk.hata ?? ''}`).toBe(true);
+
+    const onceRisk = await db.risk.count();
+    const oncekiIz = await izSayisi();
+    const ikinci = await sapmadanRiskAc({
+      sapmaId: sapma!.id, kod: `RSK-S3B-${damga}`, baslik: 'Kurgusal ikinci risk',
+      gerekce: 'Kurgusal ikinci gerekçe',
+    });
+
+    expect(gerekce(ikinci), 'ret tekrar kuralından değil')
+      .toContain('zaten bir risk kaydı açılmış');
+    expect(await db.risk.count(), 'reddetti ama İKİNCİ risk satırı doğdu').toBe(onceRisk);
+    expect(await izSayisi(), 'reddetti ama denetim izine satır düştü').toBe(oncekiIz);
+  });
+});
+
+describe('POL-148 · "Bağlı kayıt varken silinemez — önce bağları çözün" [SIS-DGM-002]', () => {
+  it('BAĞLI kayıt varken tanım SİLİNMEZ ve satır DURUR [SIS-DGM-002]', async () => {
+    const { tanimSil } = await import('@/lib/eylemler');
+    /* Bağlı kaydı OLAN bir tesis tipi koddan bulunur — elle id yazılsaydı
+       tohum değişince vaka sessizce ölürdü. */
+    const tip = await db.tesisTipi.findFirst({
+      where: { tesisler: { some: {} } }, select: { id: true },
+    });
+    expect(tip, 'bağlı kaydı olan tesis tipi yok — vaka kurulamıyor').not.toBeNull();
+    const onceTip = await db.tesisTipi.count();
+
+    const s = await tanimSil({ tur: 'tesisTipi', id: tip!.id });
+    expect(gerekce(s), 'ret bağlılık kuralından değil').toMatch(/Tipe bağlı/);
+    expect(await db.tesisTipi.count(), 'reddetti ama tanım SİLİNDİ').toBe(onceTip);
+    expect(await db.tesisTipi.findUnique({ where: { id: tip!.id } }),
+      'reddetti ama satır kayboldu').not.toBeNull();
+
+    /* KARŞI TANIK · BAĞSIZ tanım gerçekten silinir. Silinmeseydi üstteki
+       ret, bağlılıktan değil "silme hiç çalışmıyor"dan gelirdi. */
+    const bagsiz = await db.tesisTipi.create({ data: {
+      kod: `KURGU-TIP-${damga}`, ad: 'Kurgusal bağsız tip',
+      sektorId: (await db.sektor.findFirstOrThrow({ select: { id: true } })).id,
+    } });
+    const b = await tanimSil({ tur: 'tesisTipi', id: bagsiz.id }) as { ok: boolean; hata?: string };
+    expect(b.ok, `bağsız tanım da silinemedi: ${b.hata ?? ''}`).toBe(true);
+    expect(await db.tesisTipi.findUnique({ where: { id: bagsiz.id } }),
+      'bağsız tanım silinmedi — vaka boşa koştu').toBeNull();
+  });
+});

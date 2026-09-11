@@ -124,7 +124,7 @@
     },
     {
       "yer": "app/(kabuk)/(flagship)/tesisler/[id]/Tesis360.tsx",
-      "satir": 357,
+      "satir": 359,
       "tur": "satirIci",
       "cumle": "Açık bulgu yok; bu … için kapatılmamış denetim bulgusu bulunmuyor.",
       "iyiHaber": true,
@@ -297,14 +297,14 @@
       "yer": "app/(kabuk)/(operasyonel)/envanter/EnvanterIstemci.tsx",
       "satir": 549,
       "tur": "satirIci",
-      "cumle": "Seçili varlığa bağlı kayıt yok; bu halka boş. Kayıt yok; bir varlık seçilmedi. … {secili ? ( Bağları düzenle ) : ilkSecilebilir ? ( İlk varlığı aç ) : null}",
+      "cumle": "Seçili varlığa bağlı kayıt yok; bu halka boş. Kayıt yok; bir varlık seçilmedi. … {secili ? ( /* `?sec=` bu ekranın KENDİ adres durumudur (`useUrlDurumuBos`) ve gerçekten okunur. İlk yazımda `/varliklar/ ` yazılmıştı ve öyle bir rota yok — bağımsız inceleme yakaladı. */ Bağları düzenle ) : ilkSecileb",
       "iyiHaber": false,
       "neden": true,
       "eylem": true
     },
     {
       "yer": "app/(kabuk)/(operasyonel)/envanter/EnvanterIstemci.tsx",
-      "satir": 595,
+      "satir": 598,
       "tur": "satirIci",
       "cumle": "Bir varlık seçin; dört halka o varlıktan geçen yolu gösterir. {ilkSecilebilir && ( İlk varlığı aç )}",
       "iyiHaber": false,
@@ -313,7 +313,7 @@
     },
     {
       "yer": "app/(kabuk)/(operasyonel)/envanter/EnvanterIstemci.tsx",
-      "satir": 781,
+      "satir": 784,
       "tur": "satirIci",
       "cumle": "Açık zafiyet kaydı yok; bu varlık için kapatılmamış zafiyet bulunmuyor.",
       "iyiHaber": true,
@@ -322,7 +322,7 @@
     },
     {
       "yer": "app/(kabuk)/(operasyonel)/envanter/EnvanterIstemci.tsx",
-      "satir": 792,
+      "satir": 795,
       "tur": "satirIci",
       "cumle": "Bu varlık bir risk ya da projeye bağlı değil; bağ kurulduğunda yönetişim izi burada görünür. … Risk ya da projeye bağla",
       "iyiHaber": false,
@@ -601,7 +601,16 @@
     },
     {
       "yer": "app/(kabuk)/(operasyonel)/riskler/RisklerIstemci.tsx",
-      "satir": 666,
+      "satir": 408,
+      "tur": "satirIci",
+      "cumle": "Bu süzgeçte olasılığı ve etkisi bilinen risk yok — harita çizilmedi. … Süzgeci temizle",
+      "iyiHaber": false,
+      "neden": true,
+      "eylem": true
+    },
+    {
+      "yer": "app/(kabuk)/(operasyonel)/riskler/RisklerIstemci.tsx",
+      "satir": 673,
       "tur": "BosIlk",
       "cumle": "Kapsamınızda risk kaydı yok. Risk kütüğünde kayıt yok.",
       "iyiHaber": false,
@@ -762,6 +771,24 @@
       "eylem": true
     },
     {
+      "yer": "app/(kabuk)/(operasyonel)/uyum/UyumIstemci.tsx",
+      "satir": 414,
+      "tur": "satirIci",
+      "cumle": "Bu çerçevenin yürüyen uyum süreci yok — eğilim tutulmuyor. … Uyum süreci aç",
+      "iyiHaber": false,
+      "neden": true,
+      "eylem": true
+    },
+    {
+      "yer": "app/(kabuk)/(operasyonel)/uyum/UyumIstemci.tsx",
+      "satir": 420,
+      "tur": "satirIci",
+      "cumle": "Henüz anlık görüntü yok — ilk anlık motor çalışınca düşer. … Motor durumunu gör",
+      "iyiHaber": false,
+      "neden": true,
+      "eylem": true
+    },
+    {
       "yer": "app/(kabuk)/(operasyonel)/varlik-aktarim/VarlikAktarimIstemci.tsx",
       "satir": 182,
       "tur": "BosIlk",
@@ -901,6 +928,24 @@
       "satir": 54,
       "tur": "BosIlk",
       "cumle": "${tBas('tesis')} kapsamınız boş; harita gösterilecek kayıt bulamadı. ${tBas('portfoy', 'bulunma')} aktif ${terim('tesis')} yok.",
+      "iyiHaber": false,
+      "neden": true,
+      "eylem": true
+    },
+    {
+      "yer": "app/(tam)/harita/HaritaIstemci.tsx",
+      "satir": 175,
+      "tur": "satirIci",
+      "cumle": "Seçili … Bir işarete tıklayın: künye, koordinat kaynağı ve açık kayıt sayıları burada açılır. … {isaretler.length > 0 && ( İlk … künyesini aç )}",
+      "iyiHaber": false,
+      "neden": true,
+      "eylem": true
+    },
+    {
+      "yer": "components/kabuk/tablo.tsx",
+      "satir": 195,
+      "tur": "satirIci",
+      "cumle": "{bosCumle ? … : ( Bu süzgeçte kayıt yok — süzgeci daraltan bir seçim var; tablo boş değil, bu görünüm boş. )} …",
       "iyiHaber": false,
       "neden": true,
       "eylem": true

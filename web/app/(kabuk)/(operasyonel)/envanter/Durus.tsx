@@ -93,7 +93,7 @@ function KayitYok({ ne }: { ne: string }) {
   return (
     <p className="bos">
       {ne} kaydı yok — ölçülmedi; bilinmeyen sıfır sayılmaz.
-      <Link href="/entegrasyonlar" className="ab-dugme satir">Kaynak bağla</Link>
+      <Link href="/saglik" className="ab-dugme satir">Kaynak bağla</Link>
     </p>
   );
 }
@@ -252,7 +252,7 @@ function CanliBlogu({ v, simdi, ayar }: {
       {kaynaklar.length === 0 ? (
         <p className="bos">
           Bu varlığı besleyen kaynak sistem yok — duruş ölçülmedi.
-          <Link href="/entegrasyonlar" className="ab-dugme satir">Kaynak bağla</Link>
+          <Link href="/saglik" className="ab-dugme satir">Kaynak bağla</Link>
         </p>
       ) : (
         <>

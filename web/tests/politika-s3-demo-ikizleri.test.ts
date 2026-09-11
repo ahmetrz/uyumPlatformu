@@ -204,7 +204,9 @@ describe('DEMO İKİZİ · sessiz başarı yok [SIS-DEM-003]', () => {
       .toBeGreaterThan(50);
     expect(sessizBasari, `demo ikizi SESSİZCE BAŞARI döndü: ${sessizBasari.join(', ')}`)
       .toEqual([]);
-    // eslint-disable-next-line no-console
+    /* Sayı HER KOŞUMDA yazılır: "bilinmeyen ≠ sıfır"ın kapsam tarafı.
+       (`no-console` test dosyalarında zaten kapalı; gereksiz bir
+       `eslint-disable` yönergesi `--max-warnings=0` ile kırmızı yakar.) */
     console.log(`POL-098 · POL-100…111 kapsamı: ${MODULLER.length}/${MODULLER.length} `
       + `demo ikizi gerçek yolla sürüldü · ${cagrilan} ihraç çağrıldı · `
       + `${reddeden} ret ölçüldü`);

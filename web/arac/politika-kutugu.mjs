@@ -129,8 +129,39 @@ export function politikaMi(s) {
 
    Sıra bağlayıcıdır: bir cümle hem yetki hem değişmez işareti
    taşıyorsa S1 kazanır — sınıflandırma GÜVENLİ TARAFA yanılır. */
-export const S1_KALIBI = /\byetki\w*|\bkapsam\w*|\byalnız SİZE\b|\bsır\b|\bMFA\b|dört göz|onaylayamaz|ağa .*paket|\btara(maz|nmaz|mıyor)\b|salt okunur|\bgöremez\b|\bgiremez\b|\bokuyucu\b|\bdemo hesab/iu;
-export const S2_KALIBI = /\bsilinmez\b|\bsilmez\b|\bdeğiştirilemez\b|\bdeğiştirmez\b|\bmotor\b|\bsunucu\b|aktifleştir\w*|uydur\w*|\barşiv\w*|\bdokunmaz\b|\byazmaz\b|\byazılmaz\b|\byazılamaz\b|\bkaydedilmez\b|\bgüncellenmez\b|\bkesmez\b|\büretmez\b|geri alınamaz|\bgizlenmez\b|\breddeder\b/iu;
+/* ── `\b` ASCII'DİR — SINIF KALIPLARINDA DA (bağımsız inceleme · tur 1) ──
+   Dosyanın üst kısmında YUKLEM için bir kez ölçülüp düzeltilen kusur,
+   SINIF kalıplarına uygulanmamıştı: `\bsır\b` "sırrının" içindeki `sır`ı
+   tutmaz (ardından `r` gelir, ASCII sözcük sınırı oluşmaz) ve
+   `\bgöremez\b` "görünmez"i hiç görmez. Ölçüldü: POL-118 — "İstemci
+   sırrının DEĞERİ hiçbir ekranda görünmez" — bir SIR SIZINTISI iddiası
+   olduğu hâlde S3 sayılıyordu; yani S1'in sıfır tavanı ve "S1'de istisna
+   yok" dişi onun üzerinden ATLIYORDU. Sınıflandırmanın GÜVENLİ TARAFA
+   yanıldığı iddiası bu hâliyle yanlıştı.
+
+   Sözcük sınırı bugün Unicode harf sınıfıyla kurulur; Türkçe ekler
+   (sır-rının · gör-ünmez) artık kalıbın dışında kalmaz. */
+const H = '(?<![\\p{L}])';   /* sol Unicode sözcük sınırı */
+const S = '(?![\\p{L}])';    /* sağ Unicode sözcük sınırı */
+export const S1_KALIBI = new RegExp(
+  `${H}yetki|${H}kapsam|${H}yalnız SİZE${S}|${H}sır|${H}MFA${S}|dört göz`
+  + `|onaylayama|ağa .*paket|${H}tara(maz|nmaz|mıyor)|salt okunur`
+  + `|${H}gör(emez|ünmez|ünemez)|${H}gir(emez|ilemez)|${H}okuyucu${S}`
+  + `|${H}demo hesab|${H}loglanmaz|${H}tutulmaz${S}`
+  /* SIR AİLESİ: token · parola · kimlik bilgisi de sır DEĞERİDİR ve
+     sızıntısı S1'dir. Kalıpta yoklardı — "Token hiçbir yanıtta geri
+     dönmez." S3 sayılıyordu (bağımsız inceleme · tur 1). */
+  + `|${H}token|${H}parola|${H}kimlik bilgisi`,
+  'iu',
+);
+export const S2_KALIBI = new RegExp(
+  `${H}silinmez${S}|${H}silmez${S}|${H}değiştirilemez${S}|${H}değiştirmez${S}`
+  + `|${H}motor|${H}sunucu|aktifleştir|uydur|${H}arşiv|${H}dokunmaz${S}`
+  + `|${H}yazmaz${S}|${H}yazılmaz${S}|${H}yazılamaz${S}|${H}kaydedilmez${S}`
+  + `|${H}güncellenmez${S}|${H}kesmez${S}|${H}üretmez${S}|geri alınamaz`
+  + `|${H}gizlenmez${S}|${H}reddeder${S}`,
+  'iu',
+);
 
 export function sonucSinifi(cumle) {
   if (S1_KALIBI.test(cumle)) return 'S1';
@@ -152,6 +183,22 @@ export function turet() {
       const kod = bitisikleriBirlestir(yorumsuz(readFileSync(path.join(KOK, rel), 'utf8')));
       for (const m of kod.matchAll(/'([^'\\\n]{25,300})'|"([^"\\\n]{25,300})"|`([^`\\]{25,300})`/g)) {
         const cumle = (m[1] ?? m[2] ?? m[3]).trim();
+        if (!politikaMi(cumle)) continue;
+        if (!cikan.some((c) => c.cumle === cumle)) cikan.push({ yer: rel, cumle });
+      }
+      /* ── DÜZ JSX METNİ DE TARANIR (bağımsız inceleme · Brief L tur 1) ──
+         Tırnaklı dize sabitleri evrenin TAMAMI değildi: ekranda duran
+         `<p>Kullanıcı oluşturmak erişim vermez: yetki ayrı verilir…</p>`
+         gibi TIRNAKSIZ metin düğümleri türeticinin görüş alanının
+         dışındaydı. Payda kör olunca "123/123 ölçüldü" oranı da kör olur;
+         bu, körlük düzeltilirken açılan ikinci körlüğün (boş durum
+         türeticisinde iki kez ölçüldü) politika tarafındaki eşidir.
+
+         Metin düğümü: bir etiketin `>`si ile bir sonraki `<` arasındaki
+         gövde. Süslü ifade içeren parçalar atılır — değerleri çalışma
+         anında doğar ve statik okuma onları bilemez (beyanlı sınır). */
+      for (const m of kod.matchAll(/>([^<>{}]{25,300})</g)) {
+        const cumle = m[1].replace(/\s+/g, ' ').trim();
         if (!politikaMi(cumle)) continue;
         if (!cikan.some((c) => c.cumle === cumle)) cikan.push({ yer: rel, cumle });
       }

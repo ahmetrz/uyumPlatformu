@@ -1659,6 +1659,57 @@ export const PLATFORM_SENARYOLARI_6: Senaryo[] = [
     katmanlar: ['RBAC', 'SCOPE', 'SERVER'],
   },
   {
+    id: 'SIS-YTK-012', alan: 'Sistem', rota: '—', eksen: 'yetki',
+    amac: 'Düz JSX metninde duran YETKİ ve SIR iddialarının (S1) gerçek '
+      + 'yolla ölçülmesi',
+    rol: 'güvenlik denetçisi', kapsam: 'kurum geneli',
+    onkosul: 'Okuyucu, katkıcı ve yönetici roller kurulu; API anahtarı, '
+      + 'köken kuyruğu, görev ve dış denetçi erişimi fikstürleri hazır',
+    veriHali: 'normal',
+    eylem: 'Her yetki iddiası GERÇEK sunucu eylemiyle sürülür; sır '
+      + 'iddiaları yapısal olarak (şemada alan YOK) ölçülür',
+    beklenenSonuc: 'Yetkisiz rol REDDEDİLİR, kayıt DEĞİŞMEZ ve iz DÜŞMEZ; '
+      + 'sır DEĞERİ için hiçbir kolon yoktur; iptal edilmiş anahtar 401 '
+      + 'döner; kapsam değişimi token\'ı değiştirmez',
+    beklenenEkran: 'Ekranın yetki ve sır cümlesi, onu uygulayan kodun '
+      + 'davranışıyla aynıdır',
+    beklenenIz: 'reddedilen denemede yazma yok — delta ile ölçülür',
+    beklenenBildirim: 'yok',
+    katmanlar: ['RBAC', 'SCOPE', 'SERVER', 'DOMAIN'],
+  },
+  {
+    id: 'SIS-DGM-003', alan: 'Sistem', rota: '—', eksen: 'veri',
+    amac: 'Ürün DEĞİŞMEZLERİNİN (S2) gerçek yolla ölçülmesi: kuru koşu '
+      + 'yazmaz · kayıt silinmez · motor önerir, insan karar verir',
+    rol: 'uyum sorumlusu', kapsam: 'kurum geneli',
+    onkosul: 'Madde durumu, hukuki muhafaza, imha politikası, kurulu paket, '
+      + 'topoloji sapması, tedarikçi oturumu ve konfig yedeği fikstürleri kurulu',
+    veriHali: 'normal',
+    eylem: 'Her değişmez, onu uygulayan GERÇEK eylemle ya da motorla sürülür; '
+      + 'çoğu vaka bir KARŞI TANIK taşır',
+    beklenenSonuc: 'Kuru koşu hiçbir değerlendirmeye dokunmaz · kaldırılan '
+      + 'hold ve arşivlenen paket SİLİNMEZ · onaydan sonra konan hold imhayı '
+      + 'durdurur · motor kuyruk boşaltmaz, bulgu susturmaz, skor uydurmaz',
+    beklenenEkran: 'Ekranın değişmez cümlesi, onu uygulayan kodun '
+      + 'davranışıyla aynıdır',
+    beklenenIz: 'her kayıt KENDİ iz satırını bırakır; reddedilen denemede yok',
+    beklenenBildirim: 'sorumlusu olmayan kayıt için bildirim ÜRETİLMEZ',
+    katmanlar: ['SERVER', 'DOMAIN', 'ENGINE'],
+  },
+  {
+    id: 'SIS-BAG-001', alan: 'Sistem', rota: '—', eksen: 'arayuz',
+    amac: 'Ekranın gösterdiği ÇIKIŞIN gerçek bir rotaya çözülmesi',
+    rol: 'herhangi bir kullanıcı', kapsam: 'kurum geneli',
+    onkosul: 'Rota envanteri (`arac/rotalar.json`) taze', veriHali: 'normal',
+    eylem: 'Kaynakta yazılı her SABİT iç bağ envantere karşı çözümlenir; '
+      + 'çözümleyici ayrıca sentetik kütüklerle sınanır',
+    beklenenSonuc: 'Olmayan rotaya giden bağ YOKTUR; dinamik bağlar beyanlı '
+      + 'sınırın dışındadır',
+    beklenenEkran: 'Boş durumun önerdiği çıkış 404 vermez',
+    beklenenIz: 'yazma yok', beklenenBildirim: 'yok',
+    katmanlar: ['UI', 'DOMAIN'],
+  },
+  {
     id: 'SIS-SNG-001', alan: 'Sistem', rota: '/giris', eksen: 'arayuz',
     amac: 'Giriş sahnesinin kaydırma konumuna bağlı ve tersinir kalması',
     rol: 'ilk kez gelen ziyaretçi', kapsam: 'giriş deneyimi',

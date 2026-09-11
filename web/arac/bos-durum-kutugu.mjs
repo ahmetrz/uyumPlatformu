@@ -238,11 +238,32 @@ export function dosyalar() {
     düşmez (körlük sıfır kusur diye raporlanmaz). */
 export function satirIciBul(kod) {
   const cikan = [];
-  const kalip = /<(p|span)\b[^>]*?\bclassName="bos([^"]*)"[^>]*?>/g;
+  /* ── ÜÇÜNCÜ KÖRLÜK KAPANDI (bağımsız inceleme · Brief L tur 1) ──────
+     Kalıp iki yerden dardı ve ikisi de sessizce satır DÜŞÜRÜYORDU:
+
+       · ETİKET: yalnız `<p>` ve `<span>`. `<div className="bos">` ya da
+         `<li className="bos">` kütüğe hiç girmiyordu.
+       · SINIF KONUMU: sınıf dizesinin `bos` ile BAŞLAMASI şart koşuluyordu.
+         `className="cumle bos"` hiç eşleşmiyordu — depoda ÜÇ canlı örnek
+         vardı (`riskler` · `uyum` ×2) ve üçü de gerçek boş durumdu.
+
+     Körlük düzeltilirken açılan ikinci körlük, ilkinden sessizdir: kapı
+     GÖRDÜĞÜ kadarını "sıfır kusur" diye raporlar. Bugün etiket ve konum
+     serbest, `bos` ise SÖZCÜK olarak aranır (`bosluk` eşleşmez). */
+  const kalip = /<([a-zA-Z][\w.]*)\b[^>]*?\bclassName="([^"]*\bbos\b[^"]*)"[^>]*?>/g;
+  /* SVG İLKELLERİ BOŞ DURUM DEĞİLDİR ve bu BEYANLI bir sınırdır: bir
+     `<line className="tik bos">` değeri olmayan bir eksen tikidir,
+     ekranın yerine geçen bir cümle değil. Çizim ilkelinin `<title>`ı
+     erişilebilirlik metnidir; ona "ne yapmalıyım" eylemi koymak bir
+     eksen çizgisine düğme takmak olurdu. */
+  const SVG_ILKELLERI = new Set([
+    'line', 'rect', 'circle', 'path', 'polyline', 'polygon', 'ellipse', 'g',
+  ]);
   let m;
   while ((m = kalip.exec(kod)) !== null) {
     if (m[0].endsWith('/>')) continue;            /* kendi kendini kapatan açılış */
     const etiket = m[1];
+    if (SVG_ILKELLERI.has(etiket)) continue;      /* çizim ilkeli — cümle değil */
     /* Kendi kendini kapatan aynı etiket DERİNLİK SAYMAZ. */
     const ac = new RegExp(`<${etiket}\\b[^>]*?>`, 'g');
     const kapa = new RegExp(`</${etiket}>`, 'g');
@@ -262,7 +283,7 @@ export function satirIciBul(kod) {
     }
     cikan.push({
       konum: m.index,
-      sinif: `bos${m[2]}`,
+      sinif: m[2],
       kapanissiz,
       govde: kapanissiz ? '' : kod.slice(m.index + m[0].length, i),
     });
@@ -315,7 +336,13 @@ export function satirIciMetin(govde) {
 /** Satır içi yüzeyde EYLEM: gövdede gerçek bir bağ ya da düğme var mı.
     Öznitelik yok, bu yüzden kod okunur — kütükten işaretlenemez. */
 export function satirIciEylem(govde) {
-  return /<Link\b|<Dugme\b|\bhref=|\bonClick=/.test(govde);
+  /* EYLEM YUVASI da eylemdir ve bu BEYANLI bir sınırdır. Paylaşılan bir
+     bileşen (`VeriTablosu`) boşluğun çıkışını KENDİ bilemez: süzgeç
+     çağıranın durumudur. Bileşen bir yuva (`bosEylem`) açar, çağıran
+     doldurur — ve çağıranın eylemi ÇAĞIRANIN yerinde ölçülür. Yuvayı
+     "eylemsiz" saymak, paylaşılan bileşeni olmayan bir eylemi uydurmaya
+     zorlardı; tam da bu turda ölü bağ üreten baskının kaynağı budur. */
+  return /<Link\b|<Dugme\b|\bhref=|\bonClick=|\{bosEylem\}/.test(govde);
 }
 
 /** `BosFiltre` bileşeninin TANIMI: cümlesi, eylemi ve çağrı sayısı. */
@@ -355,6 +382,26 @@ export function bosFiltreSatiri(hepsi) {
     bir örneği yok (`ifadeSecim` düzeltildikten sonra her gövde okunuyor),
     yani sabotaj kırmızı yakamıyordu. Güvence GELECEK bir hâle karşıdır
     ve ancak sentetik bir vakayla ölçülebilir. */
+/** Boş durum bir CÜMLEDİR — rozet etiketi değil.
+ *
+ * ── SINIR BEYANLI VE ÖLÇÜLÜ (bağımsız inceleme · Brief L tur 1) ────────
+ * Kalıp etiket ve konum bağımsız yapılınca `bos` sınıfının İKİNCİ bir
+ * kullanımı ortaya çıktı: GÖRSEL DEĞİŞTİRİCİ.
+ * `<span className="ab-b-yigin bos">değerlendirilmemiş</span>` bir yığın
+ * çubuğunun boş hâli, `<line className="tik bos">` ise değeri olmayan bir
+ * eksen tikidir. İkisi de "ekranın yerine geçen boşluk" DEĞİLDİR; birine
+ * eylem koymak bir çubuğa düğme takmak olurdu.
+ *
+ * Ayrım SÖZCÜK SAYISIYLA yapılır ve bu bir KARARDIR: üç sözcükten kısa
+ * bir metin cümle değil ETİKETTİR. Sınır dar tutuldu — "Aktif risk yok"
+ * (3) ve "Bu süzgeçte kayıt yok." (4) İÇERİDE kalır, tek sözcüklük
+ * rozetler dışarıda. Daha akıllı bir ayrım (rol/bileşen tabanlı) ancak
+ * gerçek bir ayrıştırıcıyla gelir; o gelene kadar sınır YAZILI ve
+ * sentetik vakayla ölçülü. */
+export function cumleMi(metin) {
+  return String(metin ?? '').trim().split(/\s+/).filter(Boolean).length >= 3;
+}
+
 export function satirIciKaydi(yer, satir, c) {
   const metin = satirIciMetin(c.govde);
   const okunamadi = !metin || metin === '…';
@@ -385,7 +432,11 @@ export function turet() {
        çıkarsa körlük SIFIR KUSUR diye raporlanır — tur 2'nin bulduğu
        kusur tam olarak buydu. Karar `satirIciKaydi`de ve saf. */
     for (const c of satirIciBul(kod)) {
-      cikan.push(satirIciKaydi(rel, kod.slice(0, c.konum).split('\n').length, c));
+      const kayit = satirIciKaydi(rel, kod.slice(0, c.konum).split('\n').length, c);
+      /* Rozet/tik gibi GÖRSEL değiştiriciler kütüğe girmez — sınır
+         `cumleMi` ile beyanlı ve sentetik vakayla ölçülü. Okunamayan
+         gövde YİNE girer: körlüğü sıfır kusura çeviren şey düşürmedir. */
+      if (kayit.cumle.startsWith('«okunamadı»') || cumleMi(kayit.cumle)) cikan.push(kayit);
     }
     if (!kod.includes('<BosIlk')) continue;
     {

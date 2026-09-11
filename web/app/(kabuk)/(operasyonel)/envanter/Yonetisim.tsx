@@ -419,10 +419,11 @@ function AdimBlogu({ v }: { v: V }) {
         <p className="bos">
           Bu varlık hiçbir proses adımına bağlanmadı — durduğunda hangi işin
           etkileneceği bilinmiyor.
-          {/* Proses adımı kataloğu yönetim tezgâhında yaşar; bağ oradan
-              kurulur. Çıkış varlığı yanında TAŞIR ki kullanıcı hangi
-              kayıt için geldiğini orada ikinci kez aramasın. */}
-          <Link href={`/yonetim-tezgahi?katalog=proses&varlik=${v.id}`}
+          {/* Proses adımı kataloğu `/prosesler` ekranındadır ve bağ oradan
+              kurulur. İlk yazımda tezgâha `?katalog=proses&varlik=` ile
+              gidiliyordu; ne böyle bir katalog ne de okunan bir parametre
+              vardı (bağımsız inceleme). */}
+          <Link href="/prosesler"
             className="ab-dugme satir">
             Proses adımına bağla
           </Link>

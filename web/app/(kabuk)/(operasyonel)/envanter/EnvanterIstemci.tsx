@@ -555,7 +555,10 @@ function Zincir({ zincir, secili, sec }: {
                     kullanıcının tek eksiği bir seçimdir ve onu burada
                     yapabilir. */}
                 {secili ? (
-                  <Link href={`/varliklar/${secili.id}`} className="ab-dugme satir">
+                  /* `?sec=` bu ekranın KENDİ adres durumudur (`useUrlDurumuBos`)
+                     ve gerçekten okunur. İlk yazımda `/varliklar/<id>` yazılmıştı
+                     ve öyle bir rota yok — bağımsız inceleme yakaladı. */
+                  <Link href={`/envanter?sec=${secili.id}`} className="ab-dugme satir">
                     Bağları düzenle
                   </Link>
                 ) : ilkSecilebilir ? (
@@ -793,10 +796,11 @@ function Ozet({ v, simdi }: { v: V; simdi: number }) {
             Bu varlık bir risk ya da projeye bağlı değil; bağ kurulduğunda
             yönetişim izi burada görünür.
             {/* Bağ BU varlıktan kurulmaz — riskin ya da projenin kendi
-                kaydından kurulur. Çıkış o yüzden yönetişim yüzeyine
-                gider ve varlığı yanında TAŞIR: kullanıcı hangi varlık
-                için geldiğini orada ikinci kez aramaz. */}
-            <Link href={`/riskler?varlik=${v.id}`} className="ab-dugme satir">
+                kaydından kurulur; çıkış o yüzden yönetişim yüzeyine gider.
+                BAĞLAM TAŞINMIYOR ve bu BİLEREK böyle: `/riskler` bugün
+                `?varlik=` okumuyor, okumayan bir parametre yazmak kodun
+                yapmadığı bir şeyi iddia etmek olurdu (bağımsız inceleme). */}
+            <Link href="/riskler" className="ab-dugme satir">
               Risk ya da projeye bağla
             </Link>
           </p>

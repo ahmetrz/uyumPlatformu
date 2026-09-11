@@ -316,10 +316,12 @@ export default function Tesis360({ veri, tesisler, sozluk }: {
             <p className="bos">
               Kayıtlı {t(sozluk, 'birim')} yok — bu {t(sozluk, 'tesis')} için
               hiç {t(sozluk, 'birim')} tanımlanmamış.
-              {/* Birim kataloğu yönetim tezgâhında yaşar. Çıkış, kullanıcının
-                  BULUNDUĞU tesisi yanında taşır: hangi kayıt için geldiğini
-                  orada ikinci kez seçtirmek gereksiz bir adım olurdu. */}
-              <Link href={`/yonetim-tezgahi?katalog=birim&tesis=${veri.id}`}
+              {/* Birim kataloğu yönetim tezgâhının TANIMLAR kipinde yaşar.
+                  Adreste yalnız `?bolum=` okunur (`yonetim-tezgahi/page.tsx`);
+                  ilk yazımdaki `?katalog=birim&tesis=` hiçbir yerde okunmuyordu
+                  ve "bağlamı taşır" iddiası yalandı — bağımsız inceleme
+                  yakaladı. Bugün gerçekten okunan parametre veriliyor. */}
+              <Link href="/yonetim-tezgahi?bolum=tanim"
                 className="ab-dugme satir">
                 {tBas(sozluk, 'birim', 'tekil')} tanımla
               </Link>

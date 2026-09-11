@@ -430,7 +430,7 @@ export async function imhaKarariniUygula(girdi: { id: string }): Promise<Sonuc> 
   } catch (e) { return hata(e); }
 }
 
-/** Gerçek silme. Yalnız `imhaKarariniUygula` çağırır. *//** Gerçek silme. Yalnız `imhaKarariniUygula` çağırır. */
+/** Gerçek silme. Yalnız `imhaKarariniUygula` çağırır. */
 async function sil(varlikTipi: string, esik: Date): Promise<number> {
   const where = imhaKosulu(varlikTipi, esik);
   switch (varlikTipi) {

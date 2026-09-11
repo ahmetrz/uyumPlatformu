@@ -220,6 +220,17 @@
       }
     },
     {
+      "kod": "POL-148",
+      "cumle": "Bağlı kayıt varken silinemez — önce bağları çözün.",
+      "yer": "app/(kabuk)/(operasyonel)/yonetim-tezgahi/Formlar.tsx",
+      "sinif": "POLITIKA",
+      "sonucSinifi": "S3",
+      "olcum": {
+        "dosya": "tests/politika-s3-eylem.test.ts",
+        "vaka": "BAĞLI kayıt varken tanım SİLİNMEZ ve satır DURUR"
+      }
+    },
+    {
       "kod": "POL-083",
       "cumle": "bağlı olmayan (grup geneli) kayıtlar yalnız sınırsız kapsamda görünür. Göremediğiniz kayıt yok değildir; kapsam dışıdır.",
       "yer": "app/(kabuk)/(operasyonel)/yardim/page.tsx",
@@ -275,10 +286,21 @@
       "cumle": "bildirimi yalnız kaydın SORUMLUSUNA yazar, sorumlusu olmayan kayıt için görev açar ama bildirim üretmez.",
       "yer": "app/(kabuk)/(operasyonel)/bildirimler/BildirimlerIstemci.tsx",
       "sinif": "POLITIKA",
-      "sonucSinifi": "S3",
+      "sonucSinifi": "S2",
       "olcum": {
         "dosya": "tests/politika-s3-ekran.test.ts",
         "vaka": "SORUMLUSUZ kayıt için bildirim ÜRETİLMEZ — görev açılır"
+      }
+    },
+    {
+      "kod": "POL-149",
+      "cumle": "Bir aktarım seçin. Kuru koşu kayıtları hiçbir değerlendirmeye dokunmaz; uygulama kaydı kendi kuru koşusuna kökenle bağlıdır.",
+      "yer": "app/(kabuk)/(operasyonel)/degerlendirme-aktarim/DegerlendirmeAktarimIstemci.tsx",
+      "sinif": "POLITIKA",
+      "sonucSinifi": "S2",
+      "olcum": {
+        "dosya": "tests/politika-s2-degismez.test.ts",
+        "vaka": "KURU KOŞU madde durumlarını DEĞİŞTİRMEZ; uygulama kaydı kuru koşuya BAĞLIDIR"
       }
     },
     {
@@ -326,6 +348,28 @@
       }
     },
     {
+      "kod": "POL-150",
+      "cumle": "Bu cihazın envanterde olması gerekip gerekmediğine henüz kimse bakmadı. Eşleşmiş olması onu yetkili yapmaz.",
+      "yer": "app/(kabuk)/(operasyonel)/kesif/Karar.tsx",
+      "sinif": "POLITIKA",
+      "sonucSinifi": "S1",
+      "olcum": {
+        "dosya": "tests/politika-s1-ekran.test.ts",
+        "vaka": "EŞLEŞME DURUMU ile YETKİ DURUMU ayrı alanlardır — karıştırılamaz"
+      }
+    },
+    {
+      "kod": "POL-151",
+      "cumle": "Bu çerçeve için uygulanabilirlik kuralı tanımlı değil; kapsam yalnız uyum sürecinin tesis listesinden geliyor.",
+      "yer": "app/(kabuk)/(operasyonel)/uyum/[cerceve]/CerceveIstemci.tsx",
+      "sinif": "POLITIKA",
+      "sonucSinifi": "S1",
+      "olcum": {
+        "dosya": "tests/politika-s1-ekran.test.ts",
+        "vaka": "KURALSIZ çerçevede kapsam SÜREÇTEN gelir, uydurulmaz"
+      }
+    },
+    {
       "kod": "POL-087",
       "cumle": "Bu dönem kapandı. Kayıt SİLİNMEZ; denetim izinde kimin, ne zaman kapattığı durur.",
       "yer": "app/(kabuk)/(operasyonel)/raporlar/takvim/TakvimIstemci.tsx",
@@ -334,6 +378,17 @@
       "olcum": {
         "dosya": "tests/politika-s3-ekran.test.ts",
         "vaka": "SUNUCU EYLEMİ KATMANINDA silme YOK — \"silinmez\" yapısal olarak tutuluyor"
+      }
+    },
+    {
+      "kod": "POL-152",
+      "cumle": "Bu görevi yalnız sorumlusu ya da uyum onay yetkisi olan değiştirebilir.",
+      "yer": "app/(kabuk)/(operasyonel)/yonetim-tezgahi/Formlar.tsx",
+      "sinif": "POLITIKA",
+      "sonucSinifi": "S1",
+      "olcum": {
+        "dosya": "tests/politika-s1-ekran.test.ts",
+        "vaka": "YABANCI YAZAR görevin durumunu DEĞİŞTİREMEZ — kayıt ve iz durur"
       }
     },
     {
@@ -407,7 +462,7 @@
       "cumle": "Bu koordinat Türkiye çerçevesinin dışında; kayıt edilir ama haritada gösterilmez. Enlem/boylam sırasını karıştırmış olabilirsiniz.",
       "yer": "app/(tam)/harita/mantik.ts",
       "sinif": "POLITIKA",
-      "sonucSinifi": "S3",
+      "sonucSinifi": "S1",
       "olcum": {
         "dosya": "tests/politika-s3-ekran.test.ts",
         "vaka": "ÇERÇEVE DIŞI koordinat UYARIR ama ENGELLEMEZ — iki ayrı fonksiyon"
@@ -447,6 +502,17 @@
       }
     },
     {
+      "kod": "POL-153",
+      "cumle": "Bu liste kurumdan İSTENECEK bilgileri sayar; hiçbir gerçek adres, kimlik ya da örnek kurum verisi içermez ve ürünle gelmez. &quot;Sır&quot; işaretli kalemin değeri veritabanına hiç yazılmaz.",
+      "yer": "app/(kabuk)/(operasyonel)/saglik/SaglikIstemci.tsx",
+      "sinif": "POLITIKA",
+      "sonucSinifi": "S1",
+      "olcum": {
+        "dosya": "tests/politika-s1-ekran.test.ts",
+        "vaka": "KURULUM İSTEK LİSTESİ yalnız ALAN ADI sayar, DEĞER taşımaz"
+      }
+    },
+    {
       "kod": "POL-096",
       "cumle": "Bu motor entegrasyon zincirinden koşar; elle tetiklenmez ama koşuları burada görünür.",
       "yer": "app/(kabuk)/(operasyonel)/saglik/Eylemler.tsx",
@@ -458,6 +524,50 @@
       }
     },
     {
+      "kod": "POL-154",
+      "cumle": "Bu motor hiç koşmadı — sağlıklı olduğu anlamına gelmez.",
+      "yer": "app/(kabuk)/(operasyonel)/saglik/Cekmeceler.tsx",
+      "sinif": "POLITIKA",
+      "sonucSinifi": "S2",
+      "olcum": {
+        "dosya": "tests/politika-s2-degismez.test.ts",
+        "vaka": "KOŞUSUZ motor \"ok\" GÖRÜNMEZ — işaret \"unk\", söz \"Hiç koşmadı\""
+      }
+    },
+    {
+      "kod": "POL-155",
+      "cumle": "Bu prova hiçbir şey YAZMAZ ve hiçbir dış sisteme BAĞLANMAZ. Girdi sizin yapıştırdığınız örnek kayıttır; çıktı &ldquo;bu kural bu kayda ne yapardı&rdquo; raporudur. Tek nesne ya da nesne dizisi (en çok 50) verin.",
+      "yer": "app/(kabuk)/(operasyonel)/esleme/Duzenleyici.tsx",
+      "sinif": "POLITIKA",
+      "sonucSinifi": "S2",
+      "olcum": {
+        "dosya": "tests/politika-s2-degismez.test.ts",
+        "vaka": "EŞLEME PROVASI hiçbir tabloya yazmaz ve ağa çıkmaz"
+      }
+    },
+    {
+      "kod": "POL-156",
+      "cumle": "Bu sapmadan kayıt açılmış; ikinci kez açılamaz.",
+      "yer": "app/(kabuk)/(operasyonel)/topoloji/Karar.tsx",
+      "sinif": "POLITIKA",
+      "sonucSinifi": "S3",
+      "olcum": {
+        "dosya": "tests/politika-s3-eylem.test.ts",
+        "vaka": "AYNI sapmadan İKİNCİ risk açılamaz — ikinci kayıt doğmaz"
+      }
+    },
+    {
+      "kod": "POL-157",
+      "cumle": "Bu sayfa hiçbir kayıt okumaz; ekran görüntüsü paylaşırken kapsam bilgisi içermez.",
+      "yer": "app/(kabuk)/(operasyonel)/yardim/page.tsx",
+      "sinif": "POLITIKA",
+      "sonucSinifi": "S1",
+      "olcum": {
+        "dosya": "tests/politika-s1-ekran.test.ts",
+        "vaka": "YARDIM sayfası veritabanına HİÇ dokunmaz — yapısal"
+      }
+    },
+    {
       "kod": "POL-024",
       "cumle": "Bu tipin kayıt evreni bilinmiyor — kökeni olmayan kayıt sayısı çıkarılamaz.",
       "yer": "app/(kabuk)/(operasyonel)/saglik/mantik.ts",
@@ -466,6 +576,17 @@
       "olcum": {
         "dosya": "tests/politika-s3-ekran.test.ts",
         "vaka": "BİLİNMEYEN EVREN sıfır YAZILMAZ ve satır \"ok\" GÖRÜNMEZ"
+      }
+    },
+    {
+      "kod": "POL-158",
+      "cumle": "Bulgu bir madde durumuna bağlıdır; hangi maddeye bağlanacağını motor bilemez — seçimi insan yapar.",
+      "yer": "app/(kabuk)/(operasyonel)/topoloji/Karar.tsx",
+      "sinif": "POLITIKA",
+      "sonucSinifi": "S2",
+      "olcum": {
+        "dosya": "tests/politika-s2-degismez.test.ts",
+        "vaka": "SAPMADAN BULGU madde durumu OLMADAN açılamaz — motor maddeyi seçemez"
       }
     },
     {
@@ -671,7 +792,7 @@
       "cumle": "Demo sürümü: varlık yedek detayı sunucudan okunur, bu ortamda ölçülemez.",
       "yer": "lib/eylemler2/konfigYedek.demo.ts",
       "sinif": "POLITIKA",
-      "sonucSinifi": "S3",
+      "sonucSinifi": "S2",
       "olcum": {
         "dosya": "tests/politika-s3-demo-ikizleri.test.ts",
         "vaka": "HER ikizin HER ihracı çağrılır: `{ ok: true }` dönen YOKTUR"
@@ -719,6 +840,28 @@
       "olcum": {
         "dosya": "tests/politika-bos-durum-iddialari.test.ts",
         "vaka": "DENETİM açılmadan kanıt talebi kayda GEÇMEZ"
+      }
+    },
+    {
+      "kod": "POL-159",
+      "cumle": "Devir geri alınamaz ve her kayıt için AYRI denetim izi bırakır. &quot;Sahipsiz bırak&quot; seçeneği bilinçli bir karardır: varlıklar sahipsiz görünür ve envanterde açık borç olarak listelenir — pasif bir kişinin üstünde saklanmaz.",
+      "yer": "app/(kabuk)/(operasyonel)/yetkiler/Formlar.tsx",
+      "sinif": "POLITIKA",
+      "sonucSinifi": "S2",
+      "olcum": {
+        "dosya": "tests/politika-s2-degismez.test.ts",
+        "vaka": "SAHİPSİZ BIRAKMA her kayıt için AYRI iz yazar; PASİF kişiye devir REDDEDİLİR"
+      }
+    },
+    {
+      "kod": "POL-160",
+      "cumle": "Doğrulama insanın işidir: hiçbir motor bu kuyruğu boşaltamaz. Reddedilen kayıt silinmez — reddin kendisi de saklanan bir bilgidir.",
+      "yer": "app/(kabuk)/(operasyonel)/saglik/KokenCekmeceleri.tsx",
+      "sinif": "POLITIKA",
+      "sonucSinifi": "S2",
+      "olcum": {
+        "dosya": "tests/politika-s2-degismez.test.ts",
+        "vaka": "MOTORLARIN HİÇBİRİ köken kuyruğunu boşaltmaz"
       }
     },
     {
@@ -777,6 +920,17 @@
       }
     },
     {
+      "kod": "POL-161",
+      "cumle": "ekranında, sürümün farkı görülerek verilir. Kaldırma arşivdir: hiçbir satır silinmez.",
+      "yer": "app/(kabuk)/(operasyonel)/paketler/PaketlerIstemci.tsx",
+      "sinif": "POLITIKA",
+      "sonucSinifi": "S2",
+      "olcum": {
+        "dosya": "tests/politika-s2-degismez.test.ts",
+        "vaka": "PAKET KALDIRMA arşivler — kurulum satırı DURUR, durumu değişir"
+      }
+    },
+    {
       "kod": "POL-033",
       "cumle": "El ile değiştirilmiş — motor dokunmaz",
       "yer": "app/(kabuk)/(operasyonel)/uyum/[cerceve]/CerceveIstemci.tsx",
@@ -785,6 +939,17 @@
       "olcum": {
         "dosya": "tests/politika-s2-eylem.test.ts",
         "vaka": "MOTOR el ile değiştirilmiş uygulanabilirlik kararını EZMEZ"
+      }
+    },
+    {
+      "kod": "POL-162",
+      "cumle": "Elle açılan görev motor görevlerinden ayrışır. Son tarihi girilmeyen görevin gecikmesi ölçülemez — kuyrukta bilinmeyen kalır.",
+      "yer": "app/(kabuk)/(operasyonel)/yonetim-tezgahi/Formlar.tsx",
+      "sinif": "POLITIKA",
+      "sonucSinifi": "S2",
+      "olcum": {
+        "dosya": "tests/politika-s2-degismez.test.ts",
+        "vaka": "ELLE AÇILAN görev motor görevinden AYRIŞIR; son tarihsizin gecikmesi BİLİNMEZ"
       }
     },
     {
@@ -815,6 +980,17 @@
       "yer": "app/(kabuk)/(operasyonel)/kesif/Karar.tsx",
       "sinif": "IDDIA_DEGIL",
       "gerekce": "eylem listesi — hangi düğmelerin açık olduğunu söyler"
+    },
+    {
+      "kod": "POL-163",
+      "cumle": "Etki doğrulama yönetim onay yetkisi ister. Öneri okunabilir, etki alanına yazılamaz.",
+      "yer": "app/(kabuk)/(operasyonel)/olaylar/Eylemler.tsx",
+      "sinif": "POLITIKA",
+      "sonucSinifi": "S1",
+      "olcum": {
+        "dosya": "tests/politika-s1-ekran.test.ts",
+        "vaka": "ONAYSIZ rol etki alanına YAZAMAZ ve kayıt DEĞİŞMEZ"
+      }
     },
     {
       "kod": "POL-037",
@@ -850,14 +1026,47 @@
       }
     },
     {
+      "kod": "POL-164",
+      "cumle": "Geri alınamaz. Hukuki muhafaza uygulama anında YENİDEN sorulur: onaydan sonra hold konmuşsa imha durur. Silinen kayıt sayısı yeniden ölçülür ve karara yazılır; denetim izi silinmez.",
+      "yer": "app/(kabuk)/(operasyonel)/saklama/SaklamaIstemci.tsx",
+      "sinif": "POLITIKA",
+      "sonucSinifi": "S2",
+      "olcum": {
+        "dosya": "tests/politika-s2-degismez.test.ts",
+        "vaka": "ONAYDAN SONRA konan hold imhayı DURDURUR — hiçbir kayıt silinmez"
+      }
+    },
+    {
+      "kod": "POL-165",
+      "cumle": "getirir; bu ekran hiçbir çerçeveyi aktifleştirmez. Aktifleştirme",
+      "yer": "app/(kabuk)/(operasyonel)/paketler/PaketlerIstemci.tsx",
+      "sinif": "POLITIKA",
+      "sonucSinifi": "S2",
+      "olcum": {
+        "dosya": "tests/politika-s2-degismez.test.ts",
+        "vaka": "PAKET KURULUMU hiçbir çerçeve sürümünü AKTİF yapmaz"
+      }
+    },
+    {
       "kod": "POL-039",
       "cumle": "gizlenmez ve hiçbir koşulda “doğrulanmış” görünmez.",
       "yer": "app/(kabuk)/(operasyonel)/saglik/SaglikIstemci.tsx",
       "sinif": "POLITIKA",
-      "sonucSinifi": "S2",
+      "sonucSinifi": "S1",
       "olcum": {
         "dosya": "tests/politika-s2-eylem.test.ts",
         "vaka": "KÖKENSİZ kayıt taşıyan satır ASLA \"ok\" olmaz"
+      }
+    },
+    {
+      "kod": "POL-166",
+      "cumle": "Ham kayıt saklanmamış — bu bir kayıt boşluğudur, kaydın neden düştüğü yalnız sebep metninden okunabilir.",
+      "yer": "app/(kabuk)/(operasyonel)/saglik/reddedilenler/ReddedilenlerIstemci.tsx",
+      "sinif": "POLITIKA",
+      "sonucSinifi": "S3",
+      "olcum": {
+        "dosya": "tests/politika-s3-ekran.test.ts",
+        "vaka": "HAM KAYIT saklanmamışsa bile SEBEP daima okunur — kayıt boşluğu sessiz değil"
       }
     },
     {
@@ -869,6 +1078,17 @@
       "olcum": {
         "dosya": "tests/politika-s2-eylem.test.ts",
         "vaka": "veri kesiti damgası NULL — sistem saati değil"
+      }
+    },
+    {
+      "kod": "POL-167",
+      "cumle": "Hedef alan sözlüğü okunamadı — bu ortamda eşleme tezgâhı çalışmaz. Aşağıdaki liste BOŞ olduğu için değil, OKUNAMADIĞI için boştur.",
+      "yer": "app/(kabuk)/(operasyonel)/esleme/Duzenleyici.tsx",
+      "sinif": "POLITIKA",
+      "sonucSinifi": "S3",
+      "olcum": {
+        "dosya": "tests/politika-s3-ekran.test.ts",
+        "vaka": "SÖZLÜK OKUNAMAYINCA ekran \"boş\" demez, \"okunamadı\" der"
       }
     },
     {
@@ -945,7 +1165,7 @@
       "sonucSinifi": "S3",
       "olcum": {
         "dosya": "tests/politika-s3-ekran.test.ts",
-        "vaka": "TABANSIZ cihaz \"uyumlu\" SAYILMAZ — işaret \"unk\" olur"
+        "vaka": "TABANSIZ cihaz \"uyumlu\" SAYILMAZ — karar GERÇEK motordan okunur"
       }
     },
     {
@@ -953,7 +1173,7 @@
       "cumle": "hiçbir koşulda \"doğrulanmış\" görünmez.",
       "yer": "app/(kabuk)/(operasyonel)/saglik/mantik.ts",
       "sinif": "POLITIKA",
-      "sonucSinifi": "S3",
+      "sonucSinifi": "S1",
       "olcum": {
         "dosya": "tests/politika-s3-ekran.test.ts",
         "vaka": "KÖKENİ OLMAYAN kayıt hiçbir sayımda \"doğrulanmış\" tarafa geçmez"
@@ -982,11 +1202,22 @@
       }
     },
     {
+      "kod": "POL-168",
+      "cumle": "İptal anında geçerlidir: anahtar bundan sonra her istekte 401 döner. Gerekçe denetim izine yazılır; token izin hiçbir yerine girmez.",
+      "yer": "app/(kabuk)/(operasyonel)/yonetim-tezgahi/Formlar.tsx",
+      "sinif": "POLITIKA",
+      "sonucSinifi": "S1",
+      "olcum": {
+        "dosya": "tests/politika-s1-ekran.test.ts",
+        "vaka": "POL-168 · İPTAL ANINDA GEÇERLİDİR — aynı token GERÇEK kimlik yolunda 401"
+      }
+    },
+    {
       "kod": "POL-118",
       "cumle": "İstemci sırrının DEĞERİ hiçbir ekranda görünmez — yalnız sırra giden adres.",
       "yer": "app/(kabuk)/(operasyonel)/ayarlar/kimlik/KimlikAyarlariIstemci.tsx",
       "sinif": "POLITIKA",
-      "sonucSinifi": "S3",
+      "sonucSinifi": "S1",
       "olcum": {
         "dosya": "arac/kimlik-kanit.mjs",
         "vaka": "SIR DEĞERİ sayfada YOK"
@@ -1026,6 +1257,39 @@
       }
     },
     {
+      "kod": "POL-169",
+      "cumle": "Kapsam açılış anında DONAR: sonradan envantere eklenen varlık bu sayımın paydasını değiştirmez, yoksa oran her gün başka bir şey söylerdi.",
+      "yer": "app/(kabuk)/(operasyonel)/sayim/SayimIstemci.tsx",
+      "sinif": "POLITIKA",
+      "sonucSinifi": "S1",
+      "olcum": {
+        "dosya": "tests/politika-s1-ekran.test.ts",
+        "vaka": "SAYIM paydası açılıştaki kapsamdan gelir — sonradan eklenen varlık değiştirmez"
+      }
+    },
+    {
+      "kod": "POL-170",
+      "cumle": "Kapsam connector&apos;ın YAZABİLECEĞİ tesisleri sınırlar: kapsam dışı tesis adına gelen kayıt reddedilir, koşu sayacında görünür ve tek satır bile yazılmaz. Hiçbir tesis seçmemek sınırı KALDIRIR.",
+      "yer": "app/(kabuk)/(operasyonel)/saglik/Yapilandirma.tsx",
+      "sinif": "POLITIKA",
+      "sonucSinifi": "S1",
+      "olcum": {
+        "dosya": "tests/politika-s1-ekran.test.ts",
+        "vaka": "KAPSAM DIŞI tesis adına gelen kayıt REDDEDİLİR ve sayaçta görünür"
+      }
+    },
+    {
+      "kod": "POL-171",
+      "cumle": "Kapsam token&apos;ı değiştirmez: aynı anahtar çalışmaya devam eder, yalnız erişebildiği uçlar kısılır. Değişiklik denetim izine yazılır.",
+      "yer": "app/(kabuk)/(operasyonel)/yonetim-tezgahi/Formlar.tsx",
+      "sinif": "POLITIKA",
+      "sonucSinifi": "S1",
+      "olcum": {
+        "dosya": "tests/politika-s1-ekran.test.ts",
+        "vaka": "POL-171 · KAPSAM DEĞİŞİMİ TOKENI DEĞİŞTİRMEZ — aynı anahtar çalışır, uçlar kısılır"
+      }
+    },
+    {
       "kod": "POL-051",
       "cumle": "Kapsamın onaylı temeli yok — karşılaştırma yapılamaz, sapma HESAPLANMAZ.",
       "yer": "app/(kabuk)/(operasyonel)/topoloji/Karar.tsx",
@@ -1048,6 +1312,17 @@
       }
     },
     {
+      "kod": "POL-172",
+      "cumle": "Kapsamınızda kanıt bağlanacak madde durumu yok; kanıt kaydı bir madde durumu olmadan açılmaz.",
+      "yer": "app/(kabuk)/(operasyonel)/kanitlar/KanitlarIstemci.tsx",
+      "sinif": "POLITIKA",
+      "sonucSinifi": "S1",
+      "olcum": {
+        "dosya": "tests/politika-s1-ekran.test.ts",
+        "vaka": "MADDE DURUMU OLMADAN kanıt açılamaz — satır doğmaz"
+      }
+    },
+    {
       "kod": "POL-052",
       "cumle": "Kapsamınızdaki ${t('tesis', 'cogul')} için reddedilen kayıt yok.",
       "yer": "app/(kabuk)/(operasyonel)/saglik/reddedilenler/ReddedilenlerIstemci.tsx",
@@ -1063,6 +1338,17 @@
       "olcum": {
         "dosya": "tests/politika-s2-eylem.test.ts",
         "vaka": "KAPANMIŞ bulgu ikinci kez karara BAĞLANAMAZ"
+      }
+    },
+    {
+      "kod": "POL-173",
+      "cumle": "Karar kaynak kaydı otomatik değiştirmez; uygulama ilgili modülün sorumluluğundadır. Her karar denetim izine yazılır.",
+      "yer": "app/(kabuk)/(operasyonel)/yonetim-tezgahi/Formlar.tsx",
+      "sinif": "POLITIKA",
+      "sonucSinifi": "S2",
+      "olcum": {
+        "dosya": "tests/politika-s2-degismez.test.ts",
+        "vaka": "ONAY KARARI kaynak kaydına DOKUNMAZ ve İZE yazılır"
       }
     },
     {
@@ -1110,6 +1396,28 @@
       }
     },
     {
+      "kod": "POL-174",
+      "cumle": "Kayıt silinmez, durumu değişir ve `dis_denetci` yetki satırları kaldırılır. Bir dış denetçinin ne zaman girip ne zaman çıktığı denetimin kendisi kadar kayda değerdir.",
+      "yer": "app/(kabuk)/(operasyonel)/denetci-erisimi/DenetciErisimiIstemci.tsx",
+      "sinif": "POLITIKA",
+      "sonucSinifi": "S1",
+      "olcum": {
+        "dosya": "tests/politika-s1-ekran.test.ts",
+        "vaka": "DIŞ DENETÇİ erişimi kapatıldığında KAYIT DURUR, yetki satırı kalkar"
+      }
+    },
+    {
+      "kod": "POL-175",
+      "cumle": "Kayıt silinmez, durumu değişir: bir muhafazanın ne zaman konduğu ve ne zaman kalktığı denetimin sorusudur.",
+      "yer": "app/(kabuk)/(operasyonel)/saklama/SaklamaIstemci.tsx",
+      "sinif": "POLITIKA",
+      "sonucSinifi": "S2",
+      "olcum": {
+        "dosya": "tests/politika-s2-degismez.test.ts",
+        "vaka": "KALDIRILAN hold SİLİNMEZ — ne zaman konduğu ve kalktığı kayıtta DURUR"
+      }
+    },
+    {
       "kod": "POL-123",
       "cumle": "Kayıt silinmez. “Yok sayıldı” da bir karardır ve saklanır; notsuz kapatılamaz.",
       "yer": "app/(kabuk)/(operasyonel)/saglik/reddedilenler/ReddedilenlerIstemci.tsx",
@@ -1118,6 +1426,61 @@
       "olcum": {
         "dosya": "tests/politika-s2-eylem.test.ts",
         "vaka": "bir KARARDIR: satır SİLİNMEZ, durumu ve notu SAKLANIR"
+      }
+    },
+    {
+      "kod": "POL-176",
+      "cumle": "Kayıt son koşuya asılır ve denetim izine düşer. Platform geri yükleme BAŞLATMAZ — testi saha yapar, sonucunu burası taşır.",
+      "yer": "app/(kabuk)/(operasyonel)/yedekleme/Eylemler.tsx",
+      "sinif": "POLITIKA",
+      "sonucSinifi": "S3",
+      "olcum": {
+        "dosya": "tests/politika-s3-ekran.test.ts",
+        "vaka": "GERİ YÜKLEME TESTİ kaydı son koşuya asılır, izi düşer; platform geri yükleme BAŞLATMAZ"
+      }
+    },
+    {
+      "kod": "POL-177",
+      "cumle": "Kayıtlar tek tek çekmeceden eklendi. Her biri kendi denetim izi satırını bırakır; biri başarısız olursa diğerleri geri alınmaz.",
+      "yer": "app/(kabuk)/(operasyonel)/kesif/Karar.tsx",
+      "sinif": "POLITIKA",
+      "sonucSinifi": "S3",
+      "olcum": {
+        "dosya": "tests/politika-s3-ekran.test.ts",
+        "vaka": "TOPLU KEŞİF KARARI kayıt başına AYRI iz yazar; biri düşerse diğerleri DURUR"
+      }
+    },
+    {
+      "kod": "POL-178",
+      "cumle": "Kaynak bağlamı olmayan kayıt hiçbir ekranda &quot;doğrulanmış&quot; görünmez; elle girilmiş sayılır ve doğrulama kuyruğuna da girmez — doğrulanacak bir kaynak yoktur.",
+      "yer": "app/(kabuk)/(operasyonel)/saglik/KokenCekmeceleri.tsx",
+      "sinif": "POLITIKA",
+      "sonucSinifi": "S1",
+      "olcum": {
+        "dosya": "tests/politika-s1-ekran.test.ts",
+        "vaka": "KÖKENSİZ kayıt ne \"doğrulanmış\" görünür ne kuyruğa girer"
+      }
+    },
+    {
+      "kod": "POL-179",
+      "cumle": "Keşif yalnız AĞDA GÖRÜNEN cihazı bulur; kapalı panodaki yedek bir kart hiçbir taramada çıkmaz. Sayım birinin gidip bakmasıdır. Sayım hiçbir varlığı silmez: &quot;bulunamadı&quot; bir ölçüm sonucudur, envanterden düşürme ayrı bir karardır.",
+      "yer": "app/(kabuk)/(operasyonel)/sayim/SayimIstemci.tsx",
+      "sinif": "POLITIKA",
+      "sonucSinifi": "S2",
+      "olcum": {
+        "dosya": "tests/politika-s2-degismez.test.ts",
+        "vaka": "BULUNAMADI işareti varlığı envanterden DÜŞÜRMEZ — kayıt durur"
+      }
+    },
+    {
+      "kod": "POL-180",
+      "cumle": "Köken doğrulamak envanter onay yetkisi ister. Kuyruğu görebilirsiniz, karar veremezsiniz.",
+      "yer": "app/(kabuk)/(operasyonel)/saglik/KokenCekmeceleri.tsx",
+      "sinif": "POLITIKA",
+      "sonucSinifi": "S1",
+      "olcum": {
+        "dosya": "tests/politika-s1-ekran.test.ts",
+        "vaka": "ONAYSIZ rol kuyruğu GÖRÜR, karar VEREMEZ — kayıt ve iz durur"
       }
     },
     {
@@ -1143,6 +1506,39 @@
       }
     },
     {
+      "kod": "POL-181",
+      "cumle": "Kullanıcı oluşturmak erişim vermez: yetki ayrı verilir ve denetim izine yazılır.",
+      "yer": "app/(kabuk)/(operasyonel)/yetkiler/Formlar.tsx",
+      "sinif": "POLITIKA",
+      "sonucSinifi": "S1",
+      "olcum": {
+        "dosya": "tests/politika-s1-ekran.test.ts",
+        "vaka": "YENİ kullanıcı YETKİSİZ doğar — hesap açmak erişim vermez"
+      }
+    },
+    {
+      "kod": "POL-182",
+      "cumle": "Kuru koş · hiçbir şey yazmaz",
+      "yer": "app/(kabuk)/(operasyonel)/saglik/Yapilandirma.tsx",
+      "sinif": "POLITIKA",
+      "sonucSinifi": "S2",
+      "olcum": {
+        "dosya": "tests/entegrasyon-kuru-kosu.test.ts",
+        "vaka": "KANIT: kuru koşu ilgili tabloların TEK BİR SATIRINI bile değiştirmez"
+      }
+    },
+    {
+      "kod": "POL-183",
+      "cumle": "Kuru koşu hiçbir kayıt yazmaz ve imleci ilerletmez; bu yüzden GERÇEK koşu sayılmaz. Yalnız kuru koşmuş bir connector hâlâ &quot;hiç koşmadı&quot; ve verisi &quot;tazeliği bilinmiyor&quot; görünür.",
+      "yer": "app/(kabuk)/(operasyonel)/saglik/Cekmeceler.tsx",
+      "sinif": "POLITIKA",
+      "sonucSinifi": "S2",
+      "olcum": {
+        "dosya": "tests/entegrasyon-kuru-kosu.test.ts",
+        "vaka": "SAĞLIK: kuru koşu \"son başarılı koşu\" sayılmaz"
+      }
+    },
+    {
       "kod": "POL-125",
       "cumle": "Kurulu paketlerde takvim tetikli bir bildirim yükümlülüğü yok. Bu ekran periyodik raporlama yükümlülüklerini gösterir; yükümlülükler sektör paketinden gelir, ürün bir takvim UYDURMAZ.",
       "yer": "app/(kabuk)/(operasyonel)/raporlar/takvim/TakvimIstemci.tsx",
@@ -1151,6 +1547,28 @@
       "olcum": {
         "dosya": "tests/politika-s2-eylem.test.ts",
         "vaka": "YÜKÜMLÜLÜK YOKSA satır da YOK — ürün takvim üretmez"
+      }
+    },
+    {
+      "kod": "POL-184",
+      "cumle": "Kurum hesabıyla giriş, bu kurulumda hesabınız TANIMLIYSA çalışır; kimlik sağlayıcıda hesabınızın olması tek başına yetmez.",
+      "yer": "app/(giris)/giris/page.tsx",
+      "sinif": "POLITIKA",
+      "sonucSinifi": "S3",
+      "olcum": {
+        "dosya": "tests/politika-s3-ekran.test.ts",
+        "vaka": "JIT KAPALI · tanınmayan kurum hesabı REDDEDİLİR, hesap AÇILMAZ"
+      }
+    },
+    {
+      "kod": "POL-185",
+      "cumle": "Künye değişikliği SÜRÜM AÇMAZ — sürüm yalnız dosya içeriği değişince açılır. Kabul durumu değişikliği kendi denetim izi satırını alır.",
+      "yer": "app/(kabuk)/(operasyonel)/kanitlar/KanitlarIstemci.tsx",
+      "sinif": "POLITIKA",
+      "sonucSinifi": "S3",
+      "olcum": {
+        "dosya": "tests/politika-s3-ekran.test.ts",
+        "vaka": "KÜNYE güncellemesi kanıt SÜRÜMÜNÜ artırmaz ve sürüm satırı doğmaz"
       }
     },
     {
@@ -1163,6 +1581,17 @@
         "vaka": "denetim izini koruyan tetikleyiciler göçlerde tanımlıdır"
       },
       "sonucSinifi": "S2"
+    },
+    {
+      "kod": "POL-186",
+      "cumle": "Motor bulguyu kendisi kapatamaz; koşul gerçekten düzelirse bir sonraki koşuda çözülür. &quot;Yok sayma&quot; kararı insanındır ve gerekçesi izde durur.",
+      "yer": "app/(kabuk)/(operasyonel)/yedekleme/YedeklemeIstemci.tsx",
+      "sinif": "POLITIKA",
+      "sonucSinifi": "S2",
+      "olcum": {
+        "dosya": "tests/politika-s2-degismez.test.ts",
+        "vaka": "MOTOR bulguyu SUSTURAMAZ — hiçbir koşu \"yok sayıldı\" yazmaz"
+      }
     },
     {
       "kod": "POL-140",
@@ -1198,6 +1627,28 @@
       }
     },
     {
+      "kod": "POL-187",
+      "cumle": "Onay cihaza dokunmaz; yalnız &quot;karşılaştırma bundan sonra buna göre yapılsın&quot; der. Mevcut açık sapmalar bir sonraki motor koşusunda yeni tabana göre yeniden değerlendirilir.",
+      "yer": "app/(kabuk)/(operasyonel)/yedekleme/Eylemler.tsx",
+      "sinif": "POLITIKA",
+      "sonucSinifi": "S2",
+      "olcum": {
+        "dosya": "tests/politika-s2-degismez.test.ts",
+        "vaka": "KONFİG TEMELİ ONAYI cihaz kaydını DEĞİŞTİRMEZ"
+      }
+    },
+    {
+      "kod": "POL-188",
+      "cumle": "Onay tek transaction içinde yürür: bir satır patlarsa hiçbir satır yazılmaz ve dosya “geri alındı” durumuna düşer. Yarım aktarım oluşmaz.",
+      "yer": "app/(kabuk)/(operasyonel)/varlik-aktarim/VarlikAktarimIstemci.tsx",
+      "sinif": "POLITIKA",
+      "sonucSinifi": "S2",
+      "olcum": {
+        "dosya": "tests/varlik-aktarim.test.ts",
+        "vaka": "ortada patlayan satır TÜM aktarımı geri alır; hiçbir satır yazılmaz"
+      }
+    },
+    {
       "kod": "POL-061",
       "cumle": "Onay ve ret denetim izine düşer. Onay tek transaction içinde yürür; bir satır patlarsa hiçbir satır yazılmaz.",
       "yer": "app/(kabuk)/(operasyonel)/varlik-aktarim/VarlikAktarimIstemci.tsx",
@@ -1206,6 +1657,39 @@
       "olcum": {
         "dosya": "tests/politika-s2-eylem.test.ts",
         "vaka": "RET hiçbir varlık YAZMAZ ve kararı denetim izine DÜŞÜRÜR"
+      }
+    },
+    {
+      "kod": "POL-189",
+      "cumle": "Otomatik hesap açma (JIT). KAPALI önerilir: tanınmayan bir kimlik reddedilir ve hesap açılmaz. Açıksa bile açılan hesap YETKİSİZ doğar.",
+      "yer": "app/(kabuk)/(operasyonel)/ayarlar/kimlik/KimlikAyarlariIstemci.tsx",
+      "sinif": "POLITIKA",
+      "sonucSinifi": "S3",
+      "olcum": {
+        "dosya": "tests/politika-s3-ekran.test.ts",
+        "vaka": "JIT AÇIK · açılan hesap YETKİSİZ doğar — kimlik sağlayıcı yetki vermez"
+      }
+    },
+    {
+      "kod": "POL-190",
+      "cumle": "Öneri hiçbir şey silmez: kapsanan kayıt sayısı ÖLÇÜLÜR ve karara yazılır. Silme, başka biri onayladıktan sonra ayrı bir adımdır.",
+      "yer": "app/(kabuk)/(operasyonel)/saklama/SaklamaIstemci.tsx",
+      "sinif": "POLITIKA",
+      "sonucSinifi": "S2",
+      "olcum": {
+        "dosya": "tests/politika-s2-degismez.test.ts",
+        "vaka": "İMHA ÖNERİSİ hiçbir kaydı silmez; sayıyı ÖLÇER ve karara yazar"
+      }
+    },
+    {
+      "kod": "POL-191",
+      "cumle": "Pasif — kayıt durur, karar üretmez",
+      "yer": "app/(kabuk)/(operasyonel)/tabanlar/TabanlarIstemci.tsx",
+      "sinif": "POLITIKA",
+      "sonucSinifi": "S2",
+      "olcum": {
+        "dosya": "tests/politika-s2-degismez.test.ts",
+        "vaka": "PASİF taban hiçbir cihaz için karar ÜRETMEZ; kaydı DURUR"
       }
     },
     {
@@ -1225,6 +1709,17 @@
       "yer": "app/(kabuk)/(operasyonel)/saglik/reddedilenler/ReddedilenlerIstemci.tsx",
       "sinif": "IDDIA_DEGIL",
       "gerekce": "ekran başlığı — hangi listede olduğunu söyler, kural iddia etmez"
+    },
+    {
+      "kod": "POL-192",
+      "cumle": "Politika kaydı bir yedekleme İŞİ başlatmaz; platform yedek almaz. Kayıt yalnız &quot;bu tesis için neyi, ne sıklıkta, ne kadar saklamayı taahhüt ettik&quot; sorusunu cevaplar.",
+      "yer": "app/(kabuk)/(operasyonel)/yedekleme/Eylemler.tsx",
+      "sinif": "POLITIKA",
+      "sonucSinifi": "S3",
+      "olcum": {
+        "dosya": "tests/politika-s3-ekran.test.ts",
+        "vaka": "YEDEKLEME POLİTİKASI hiçbir İŞ başlatmaz ve ağa çıkmaz"
+      }
     },
     {
       "kod": "POL-129",
@@ -1264,6 +1759,35 @@
       "olcum": {
         "dosya": "tests/politika-eylem-kapsami.test.ts",
         "vaka": "reddedilen kaydın ham gövdesi DEĞİŞMEDEN durur"
+      }
+    },
+    {
+      "kod": "POL-193",
+      "cumle": "Regülasyon maddeleri, tesis kapsamı, bulgu ve kanıt zinciri ile değişmez denetim izi.",
+      "yer": "app/(giris)/giris/page.tsx",
+      "sinif": "IDDIA_DEGIL",
+      "gerekce": "Giriş ekranının ÜRÜN TANITIM satırı: ürünün neyi kapsadığını sayan bir liste parçası, sisteme bağlanan bir taahhüt değil. Öznesi yok — \"şunu yapmaz\" ya da \"şu yetki ister\" demiyor, ürünün içeriğini listeliyor."
+    },
+    {
+      "kod": "POL-194",
+      "cumle": "Risk kaydı skorsuz açılır: olasılık ve etki ÖLÇÜLMEDİ, otomatik sayı uydurulmaz. Skoru risk kütüğünde insan verir.",
+      "yer": "app/(kabuk)/(operasyonel)/topoloji/Karar.tsx",
+      "sinif": "POLITIKA",
+      "sonucSinifi": "S2",
+      "olcum": {
+        "dosya": "tests/politika-s2-degismez.test.ts",
+        "vaka": "SAPMADAN AÇILAN RİSK SKORSUZ doğar — otomatik sayı uydurulmaz"
+      }
+    },
+    {
+      "kod": "POL-195",
+      "cumle": "Sırrın DEĞERİ hiçbir sağlayıcıdan bu ekrana inmez; yalnız adresi ve sağlayıcının bağlı olup olmadığı görünür.",
+      "yer": "app/(kabuk)/(operasyonel)/saglik/SaglikIstemci.tsx",
+      "sinif": "POLITIKA",
+      "sonucSinifi": "S1",
+      "olcum": {
+        "dosya": "tests/politika-s1-ekran.test.ts",
+        "vaka": "ŞEMADA sır DEĞERİ için alan YOKTUR — olmayan alan doldurulamaz"
       }
     },
     {
@@ -1311,6 +1835,28 @@
       }
     },
     {
+      "kod": "POL-196",
+      "cumle": "Şiddet kademesi A→D · A en yüksek · elmas işaretli değerler motor ÖNERİSİdir, doğrulanana kadar etki sayılmaz",
+      "yer": "app/(kabuk)/(operasyonel)/olaylar/OlaylarIstemci.tsx",
+      "sinif": "POLITIKA",
+      "sonucSinifi": "S2",
+      "olcum": {
+        "dosya": "tests/politika-s3-ekran.test.ts",
+        "vaka": "MOTOR ÖNERİSİ etki alanlarını KENDİLİĞİNDEN doldurmaz"
+      }
+    },
+    {
+      "kod": "POL-197",
+      "cumle": "Taban en az bir boyuta bağlanmalı: tür, üretici ya da model. Boyutu olmayan taban her cihaza uyar ve hiçbir şey söylemez.",
+      "yer": "app/(kabuk)/(operasyonel)/tabanlar/TabanlarIstemci.tsx",
+      "sinif": "POLITIKA",
+      "sonucSinifi": "S3",
+      "olcum": {
+        "dosya": "tests/politika-s3-eylem.test.ts",
+        "vaka": "BOYUTSUZ taban REDDEDİLİR — her cihaza uyan taban doğmaz"
+      }
+    },
+    {
       "kod": "POL-147",
       "cumle": "Tanımlı dış denetçi erişimi yok. Dış denetçi erişimi süreli ve kapsamlıdır; tanımlanmadan hiçbir dış hesap kayıt göremez.",
       "yer": "app/(kabuk)/(operasyonel)/denetci-erisimi/DenetciErisimiIstemci.tsx",
@@ -1319,6 +1865,17 @@
       "olcum": {
         "dosya": "tests/politika-bos-durum-iddialari.test.ts",
         "vaka": "DIŞ DENETÇİ erişimi TANIMSIZ olamaz"
+      }
+    },
+    {
+      "kod": "POL-198",
+      "cumle": "Tanımlı yetki yok — hesap giriş yapar, hiçbir ekranı açamaz.",
+      "yer": "app/(kabuk)/(operasyonel)/yetkiler/YetkilerIstemci.tsx",
+      "sinif": "POLITIKA",
+      "sonucSinifi": "S1",
+      "olcum": {
+        "dosya": "tests/politika-s1-ekran.test.ts",
+        "vaka": "YETKİSİZ hesap HİÇBİR modülü okuyamaz — liste türetilir"
       }
     },
     {
@@ -1341,6 +1898,17 @@
       "olcum": {
         "dosya": "tests/politika-s2-eylem.test.ts",
         "vaka": "TOPOLOJİ SAPMA motoru topoloji kayıtlarını DEĞİŞTİRMEZ"
+      }
+    },
+    {
+      "kod": "POL-199",
+      "cumle": "Uyumsuz oturum bir ÖNERİdir. Bu ekran oturumu kapatmaz, erişimi kesmez; karar insanındır ve gerekçesiyle birlikte denetim izine yazılır.",
+      "yer": "app/(kabuk)/(operasyonel)/tedarikciler/Eylemler.tsx",
+      "sinif": "POLITIKA",
+      "sonucSinifi": "S2",
+      "olcum": {
+        "dosya": "tests/politika-s2-degismez.test.ts",
+        "vaka": "KAPATMA TALEBİ oturumu KAPATMAZ — görev açar, iz gerekçeyle düşer"
       }
     },
     {
@@ -1374,6 +1942,17 @@
       "olcum": {
         "dosya": "tests/politika-s3-ekran.test.ts",
         "vaka": "MOTOR ÖNERİSİ etki alanlarını KENDİLİĞİNDEN doldurmaz"
+      }
+    },
+    {
+      "kod": "POL-200",
+      "cumle": "Yalnız sırra giden adres gösterilir. Kimlik bilgisinin kendisi veritabanında tutulmaz, loglanmaz ve bu ekrana hiçbir koşulda gelmez.",
+      "yer": "app/(kabuk)/(operasyonel)/saglik/Cekmeceler.tsx",
+      "sinif": "POLITIKA",
+      "sonucSinifi": "S1",
+      "olcum": {
+        "dosya": "tests/politika-s1-ekran.test.ts",
+        "vaka": "SAĞLAYICI KAYDI sır değeri KABUL ETMEZ — eylem yolunda da alan yok"
       }
     },
     {

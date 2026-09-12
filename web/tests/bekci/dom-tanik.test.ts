@@ -85,6 +85,8 @@ const tanikKutuk = JSON.parse(readFileSync(TANIK_KUTUK, 'utf8')) as {
   /* ELLE yazılan ilk tur tavanı — taban dal yokken cırcırın tavanı. */
   ilkTurTavani?: { satir?: number };
   beyan?: { bosYuzey?: number; gerekce?: string };
+  /* Taban dalda OLMAYAN bir tavanın ilk kez konması da gerekçe ister. */
+  tavanGerekceleri?: { alan: string; eski?: number; yeni?: number; gerekce: string }[];
   satirlar: TanikSatiri[];
 };
 const politika = JSON.parse(readFileSync(POLITIKA, 'utf8')) as {
@@ -258,25 +260,36 @@ describe('DOM tanığı · POPÜLASYON AYRIŞMASI [URN-TNK-001]', () => {
         + `%${(bugunku * 100).toFixed(1)} (kütük büyümedi: `
         + `${tk.satirlar.length} → ${politika.satirlar.length})`)
         .toBeGreaterThanOrEqual(tabanOran);
-    } else {
-      /* ── SAYI DEĞİL KİMLİK (Codex · P2) ──────────────────────────────
-         Salt sayı karşılaştırması bir satırın KAYBINI, başka bir yeni
-         satırın kazanılmasıyla takas ettiriyordu: tanık eski kapsamında
-         daralsa bile toplam korunabiliyordu. Bugün TABANDA GÖRÜLEN
-         cümlelerin bugün de görülüyor olması istenir. */
-      const bugunGorulen = new Set(
-        politika.satirlar.map((x) => x.cumle)
-          .filter((c) => !ayrisma(tanik.politikaAdaylari.map((a) => a.cumle), [c])
-            .domdaGorulmeyen.length),
-      );
-      const tabanGorulenler = tk.satirlar.map((x) => x.cumle)
-        .filter((c) => !tabanGorulmeyen.includes(c));
-      const kaybolan = tabanGorulenler.filter((c) => !bugunGorulen.has(c));
-      expect(kaybolan,
-        `TANIK DARALDI: tabanda GÖRÜLEN ${kaybolan.length} cümle bugün görülmüyor:\n`
-        + kaybolan.slice(0, 5).join('\n'))
-        .toEqual([]);
     }
+    /* ── SAYI DEĞİL KİMLİK · HER BOYDA (Codex · P2, iki turda) ────────
+       Salt sayı karşılaştırması bir satırın KAYBINI, başka bir satırın
+       kazanılmasıyla takas ettiriyordu: tanık eski kapsamında daralsa
+       bile toplam korunabiliyordu. İlk düzeltme bu ölçümü YALNIZ
+       "kütük büyüdü" dalına koydu ve delik öbür dalda açık kaldı:
+       kütük KÜÇÜLÜRSE (görülen bir satır + yeterince görülmeyen satır
+       silinirse) pay gerçek kapsam kaybederken küçülen payda oranı
+       AYNI ya da DAHA YÜKSEK tutar ve kapı geçerdi. Kimlik ölçümü
+       bugün kütüğün boyundan BAĞIMSIZ koşar; oran dişi ona EK bir
+       koşuldur, alternatifi değil.
+
+       Tabanda görülen bir cümlenin bugün KÜTÜKTE OLMAMASI ayrı bir
+       şeydir (cümle silinmiş olabilir) ve bu dişin konusu değil —
+       ölçülen şey "hâlâ kütükte ama artık GÖRÜLMÜYOR"dur. */
+    const bugunGorulen = new Set(
+      politika.satirlar.map((x) => x.cumle)
+        .filter((c) => !ayrisma(tanik.politikaAdaylari.map((a) => a.cumle), [c])
+          .domdaGorulmeyen.length),
+    );
+    const bugunkuKume = new Set(politika.satirlar.map((x) => x.cumle));
+    const tabanGorulenler = tk.satirlar.map((x) => x.cumle)
+      .filter((c) => !tabanGorulmeyen.includes(c));
+    const kaybolan = tabanGorulenler
+      .filter((c) => bugunkuKume.has(c))          /* hâlâ kütükte */
+      .filter((c) => !bugunGorulen.has(c));       /* ama artık görülmüyor */
+    expect(kaybolan,
+      `TANIK DARALDI: tabanda GÖRÜLEN ${kaybolan.length} cümle bugün görülmüyor:\n`
+      + kaybolan.slice(0, 5).join('\n'))
+      .toEqual([]);
   });
 
   it('ULAŞILAMAYAN her satır KATEGORİSİYLE beyanlı — kategorisiz "ulaşılamadı" yok [URN-TNK-001]', () => {
@@ -442,6 +455,61 @@ describe('DOM tanığı · POPÜLASYON AYRIŞMASI [URN-TNK-001]', () => {
     expect(bosTanik.atlanan.length,
       `boş koşumda ${bosTanik.atlanan.length} rota atlandı, beyan edilen tavan ${tavan}`)
       .toBeLessThanOrEqual(tavan);
+
+    /* ── TAVANIN KENDİSİ DE CIRCIRDA (Codex · P2) ────────────────────
+       Yukarıdaki diş tavanı, İNCELENEN dosyanın kendisinden okuyordu:
+       tanık yedinci bir rotayı düşürmeye başlarsa tavanı 6'dan 7'ye
+       çekmek vakayı geçiriyor ve rota kapsamı SESSİZCE daralıyordu.
+       Politika tavanlarında kapatılan aynı delik burada açıktı.
+       Tavan taban dala göre BÜYÜYEMEZ; büyümesi gerekiyorsa bu bir
+       karardır ve kütükteki gerekçesiyle birlikte verilir. */
+    const git = (a: string[]) => execFileSync('git', a,
+      { cwd: KOK, encoding: 'utf8', stdio: ['ignore', 'pipe', 'ignore'] });
+    let tabanDalVar = true;
+    try { git(['rev-parse', '--verify', 'origin/main']); } catch { tabanDalVar = false; }
+    if (!tabanDalVar) {
+      expect(process.env.CI ?? '', "CI'da taban dal okunamadı").toBe('');
+      return;
+    }
+    let ham: string | null = null;
+    let varMi = true;
+    try { git(['cat-file', '-e', 'origin/main:web/arac/dom-tanik-kutugu.json']); }
+    catch { varMi = false; }
+    if (varMi) {
+      try { ham = git(['show', 'origin/main:web/arac/dom-tanik-kutugu.json']); }
+      catch { ham = null; }
+    }
+    const karar = tabanDalKarari(varMi, ham);
+    if (karar.hal === 'olculemedi') {
+      expect(process.env.CI ?? '', `TABAN DAL ÖLÇÜLEMEDİ (${karar.sebep})`).toBe('');
+      return;
+    }
+    const tabanTavan = karar.hal === 'taban_yok' ? undefined
+      : (karar.belge as { tavanlar?: { bosAtlananRota?: number } })
+        .tavanlar?.bosAtlananRota;
+    if (typeof tabanTavan === 'number') {
+      expect(tavan,
+        `ATLANAN ROTA TAVANI YÜKSELTİLDİ: ${tabanTavan} → ${tavan}. Tanığın rota `
+        + 'kapsamı sessizce daralamaz; yükseltme bir karardır ve gerekçesiyle verilir.')
+        .toBeLessThanOrEqual(tabanTavan);
+      return;
+    }
+    /* ── TAVANIN İLK KEZ KONMASI DA SESSİZ OLAMAZ ────────────────────
+       Taban dalda bu anahtar yoksa karşılaştıracak bir şey yoktur ve
+       diş burada SUSARDI — yani bir tavanın DOĞDUĞU tur, onu istediği
+       yere koyabileceğin tek turdur. Politika kütüğünde aynı durum
+       `tavanGerekceleri` ile çözüldü; burada da gerekçe İSTENİR.
+       Gerekçe kusuru anlatır: neden altı rota atlanıyor ve bu neden
+       kusur DEĞİL. */
+    const gerekce = tanikKutuk.tavanGerekceleri?.find((g) => g.alan === 'bosAtlananRota');
+    expect(gerekce,
+      'ATLANAN ROTA TAVANI GEREKÇESİZ: taban dalda bu tavan yok, yani bu tur onu '
+      + 'serbestçe koyabilir. `dom-tanik-kutugu.json` → `tavanGerekceleri` altında '
+      + '`bosAtlananRota` için gerekçe yazılmalı.')
+      .toBeTruthy();
+    expect((gerekce?.gerekce ?? '').length,
+      'ATLANAN ROTA TAVANI GEREKÇESİ ÇOK KISA — kusurun neden kusur OLMADIĞINI anlatmalı.')
+      .toBeGreaterThanOrEqual(120);
   });
 
   it('DİŞİN POPÜLASYONU ÖLÇÜLÜR — sıfır yüzey tarayan diş sıfır kusur bulur [URN-TNK-001]', () => {

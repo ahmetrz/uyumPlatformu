@@ -1,0 +1,1 @@
+self.__SSG_MANIFEST=new Set(["\u002Fbulgular\u002F[id]","\u002Fdenetimler\u002F[id]","\u002Friskler\u002F[id]","\u002Fsurecler\u002F[id]","\u002Ftesisler\u002F[id]","\u002Fuyum\u002F[cerceve]"]);self.__SSG_MANIFEST_CB&&self.__SSG_MANIFEST_CB()

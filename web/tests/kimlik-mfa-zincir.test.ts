@@ -71,6 +71,20 @@ afterAll(async () => {
 describe('MFA kaydı: kur → doğrula → kullan [SIS-KML-004]', () => {
   let sir = '';
   let kurtarma: string[] = [];
+  /* ── ZAMAN PİNLENİR, YOKSA VAKA ADIM SINIRINDA YARIŞIR ─────────────
+     Ölçüldü (yayın koşumu, 12 Eyl 2026): vaka kodu `Date.now()` ile
+     üretiyor, sonucu BAŞKA bir `Date.now()` ile karşılaştırıyordu.
+     Otuz saniyelik TOTP penceresi ikisinin ARASINDA dönerse
+     `sonAdim` bir eksik çıkar (59640889 ≠ 59640890) ve hemen ardından
+     "aynı kod ikinci kez geçmez" vakası da düşer — çünkü o da yeni bir
+     `Date.now()` ile BAŞKA bir adımın kodunu üretir, o kod gerçekten
+     geçerlidir ve ürün doğru davranır. Kusur ÜRÜNDE değil VAKADAYDI:
+     ölçüm kendi zamanını sabitlemiyordu. Bugün kod ve beklenti TEK bir
+     damgadan türer; zincirin sonraki halkası aynı kodu ve aynı damgayı
+     kullanır. Bu bir gevşetme değildir — ürünün vaadi "kabul edilen
+     KODUN adımı kaydedilir"dir ve ölçülen tam olarak odur. */
+  let ilkKod = '';
+  let ilkDamga = 0;
 
   it('kayıt AÇILIR ama DOĞRULANMAMIŞ doğar [SIS-KML-004]', async () => {
     const s = await mfaKur();
@@ -107,7 +121,9 @@ describe('MFA kaydı: kur → doğrula → kullan [SIS-KML-004]', () => {
   });
 
   it('DOĞRU kod kaydı kurar ve kurtarma kodları BİR KEZ döner [SIS-KML-004]', async () => {
-    const s = await mfaDogrula({ kod: totp(sir, Date.now())! });
+    ilkDamga = Date.now();
+    ilkKod = totp(sir, ilkDamga)!;
+    const s = await mfaDogrula({ kod: ilkKod });
     expect(s.ok).toBe(true);
     if (!s.ok) return;
     kurtarma = s.kurtarmaKodlari;
@@ -117,7 +133,7 @@ describe('MFA kaydı: kur → doğrula → kullan [SIS-KML-004]', () => {
       where: { kullaniciId }, include: { kurtarmaKodlari: true },
     });
     expect(kayit.dogrulandi).toBe(true);
-    expect(kayit.sonAdim).toBe(adimNo(Date.now()));
+    expect(kayit.sonAdim).toBe(adimNo(ilkDamga));
     expect(kayit.kurtarmaKodlari).toHaveLength(10);
     /* KOD DEĞİL ÖZET: hiçbir satır düz kodu taşımaz. */
     for (const k of kayit.kurtarmaKodlari) {
@@ -127,10 +143,11 @@ describe('MFA kaydı: kur → doğrula → kullan [SIS-KML-004]', () => {
   });
 
   it('AYNI kod ikinci kez giriş DOĞRULAMAZ [SIS-KML-004]', async () => {
-    const kod = totp(sir, Date.now())!;
-    /* İlk kullanım kaydın `sonAdim`ını ilerletti; aynı adımın kodu artık
-       geçmemeli. */
-    const s = await mfaGirisDogrula({ kullaniciId, kod });
+    /* İlk kullanım kaydın `sonAdim`ını ilerletti; AYNI adımın AYNI kodu
+       artık geçmemeli. Kod da damga da bir önceki vakadan gelir —
+       yeniden üretmek, adım dönmüşse BAŞKA bir adımın kodunu sınamak
+       olurdu ve vaka ölçtüğünü sandığı şeyi ölçmezdi. */
+    const s = await mfaGirisDogrula({ kullaniciId, kod: ilkKod, simdiMs: ilkDamga });
     expect(s.ok).toBe(false);
   });
 

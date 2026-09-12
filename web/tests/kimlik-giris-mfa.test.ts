@@ -112,6 +112,10 @@ describe('MFA KURULU DEĞİLKEN [SIS-KML-005]', () => {
 });
 
 describe('MFA KURULUYKEN [SIS-KML-005]', () => {
+  /* Başarılı girişte kullanılan kod ve damgası; sonraki vaka AYNISINI
+     sınar (yeniden üretmek adım sınırında yarışır). */
+  let kullanilanKod = '';
+
   beforeAll(async () => {
     const k = await mfaKur();
     if (!k.ok) throw new Error(k.hata);
@@ -157,8 +161,16 @@ describe('MFA KURULUYKEN [SIS-KML-005]', () => {
           Test kotayı açıkça temizler; ürün başarılı girişte kendisi
           temizler. */
     await girisKotasiniAkla(EPOSTA);
-    const ileri = Date.now() + ADIM_SANIYE * 1000;
-    const s = await giris({ kod: totp(sir, ileri)! });
+    /* ── DAMGA SAKLANIR (kardeş vakanın yarışı) ────────────────────
+       Kod burada üretilip AŞAĞIDAKİ vakada yeniden üretiliyordu. İki
+       vaka arasında otuz saniyelik pencere dönerse aşağıdaki `+1 adım`
+       BAŞKA bir adıma denk gelir (N+2), o adım HİÇ kullanılmamıştır ve
+       kabul penceresinin içindedir — yani ürün doğru davranıp kodu
+       KABUL eder, vaka ise "geçmemeli" der ve kırmızı yanar. Kusur
+       vakada: ölçüm kendi zamanını sabitlemiyordu. Aynı sınıf kardeş
+       dosyada yayını blokladı; burada henüz patlamamıştı. */
+    kullanilanKod = totp(sir, Date.now() + ADIM_SANIYE * 1000)!;
+    const s = await giris({ kod: kullanilanKod });
     expect(s.ok).toBe(true);
   });
 
@@ -173,9 +185,10 @@ describe('MFA KURULUYKEN [SIS-KML-005]', () => {
 
   it('AYNI kod ikinci girişte GEÇMEZ [SIS-KML-005]', async () => {
     await girisKotasiniAkla(EPOSTA);
-    /* Bir önceki test tam bu adımı tüketti; `sonAdim` ilerledi. */
-    const kod = totp(sir, Date.now() + ADIM_SANIYE * 1000)!;
-    const s = await giris({ kod });
+    /* Bir önceki test tam bu adımı tüketti; `sonAdim` ilerledi. Kod
+       YENİDEN ÜRETİLMEZ — aynı kod sınanır, yoksa ölçtüğünü sandığı
+       şeyi ölçmez. */
+    const s = await giris({ kod: kullanilanKod });
     expect(s.ok).toBe(false);
   });
 });

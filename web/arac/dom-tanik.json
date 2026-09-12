@@ -1,5 +1,5 @@
 {
-  "uretilme": "2026-09-12T13:47:15.656Z",
+  "uretilme": "2026-09-12T14:24:44.995Z",
   "rota": [
     "/",
     "/aktivite",
@@ -493,5 +493,10 @@
   "veriYuzeyi": 56,
   "bosYuzeySayisi": 0,
   "oncul": null,
-  "cumlesizYuzeyler": []
+  "cumlesizYuzeyler": [],
+  "ozDenetim": {
+    "veriYuzeyi": 4,
+    "bosYuzey": 4,
+    "cumlesiz": 3
+  }
 }

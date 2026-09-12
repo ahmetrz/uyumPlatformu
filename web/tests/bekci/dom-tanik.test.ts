@@ -61,6 +61,8 @@ type TanikCiktisi = {
   /* Boş kurulum öncülü: veritabanı GERÇEKTEN boş muydu (P1-3). */
   oncul?: { kullanici: number | null; tesis: number | null; madde: number | null;
     sunucuOturum?: boolean | null } | null;
+  /* Dişin POZİTİF KONTROLÜ — ürünün dışında, bilinen bir sentetik sayfada. */
+  ozDenetim?: { veriYuzeyi: number; bosYuzey: number; cumlesiz: number } | null;
 };
 type TanikSatiri = {
   kod: string; rota: string; cekirdek: string; sinif: string;
@@ -483,6 +485,43 @@ describe('DOM tanığı · POPÜLASYON AYRIŞMASI [URN-TNK-001]', () => {
       + 'paylaşılan tabloyu cümlesiz boş bırakmaya başlamış olabilir; sayıyı '
       + '`dom-tanik-kutugu.json` → `beyan.bosYuzey` altında GEREKÇESİYLE yenileyin.')
       .toBe(beyan);
+  });
+
+  it('POZİTİF KONTROL — sıfır popülasyonlu diş SENTETİK sayfada kanıtlanır [URN-TNK-001]', () => {
+    /* ── SIFIR POPÜLASYON, SIFIR KUSUR — İKİSİ AYNI GÖRÜNÜR (Codex · P2)
+       Yukarıdaki beyan `bosYuzey = 0` diyor ve bu ürünün LEHİNE bir
+       sayı: her ekran tablodan önce kendi boş durumunu çiziyor. Ama
+       sıfır popülasyonlu bir eşitlik, toplayıcı TAMAMEN BOZUKKEN de
+       geçer — işaret taraması kapatılsa, yükseklik koşulu geri konsa ya
+       da kapsam yargısı ölse bile `bosYuzeySayisi` 0 kalır, `cumlesiz`
+       boş kalır ve kapı "0 kusur" der. `veriYuzeyi` tabanı bunu
+       savunamaz: o sayı DOLU tablo/listeleri de sayar (ölçüldü, S-M2).
+
+       Bu yüzden toplayıcı, ürünün DIŞINDA, bilinen bir sentetik sayfada
+       da koşar ve sonucu kütüğe yazar. Beklenen sayı BURADA sabittir,
+       araçta değil: aracı sabote eden biri beklentiyi de değiştiremez.
+
+       Fikstür: cümlesi OLAN bir yüzey (aklanmalı) · cümlesi OLMAYAN bir
+       yüzey (yakalanmalı) · cümlesiz bir İŞARET (yakalanmalı). */
+    /* Dört kart: cümlesi olan tablo (aklanmalı) · cümlesiz tablo
+       (yakalanmalı) · cümlesiz İŞARET (yakalanmalı) · cümlesiz BOŞ
+       LİSTE (yakalanmalı — yüksekliği tanımı gereği sıfırdır, dişin
+       ilk ölçülmüş körlüğünün ekseni budur; S-M10 bu kart eklenmeden
+       YAKMIYORDU). */
+    const BEKLENEN = { veriYuzeyi: 4, bosYuzey: 4, cumlesiz: 3 };
+    for (const [ad, k] of [['tohumlu', tanik], ['boş kurulum', bosTanik]] as const) {
+      if (!k) continue;   /* yokluğu ayrı vaka kırmızı yakar */
+      const oz = k.ozDenetim;
+      expect(oz, `${ad} koşumunda POZİTİF KONTROL YOK: toplayıcı sentetik sayfada `
+        + 'hiç koşmamış. Sıfır popülasyonlu bir dişin tek canlılık kanıtı budur.')
+        .toBeTruthy();
+      console.log(`öz denetim · ${ad}: ${JSON.stringify(oz)}`);
+      expect(oz,
+        `POZİTİF KONTROL AYRIŞTI (${ad}): beklenen ${JSON.stringify(BEKLENEN)} → `
+        + `ölçülen ${JSON.stringify(oz)}. Toplayıcının bir yolu körleşmiş olabilir; `
+        + 'ürün hiç değişmeden bu sayı düşerse diş ÖLMÜŞ demektir.')
+        .toEqual(BEKLENEN);
+    }
   });
 
   it('TANIK KÜTÜĞÜ CIRCIRDADIR — taban dala göre BÜYÜYEMEZ [URN-TNK-001]', () => {

@@ -199,10 +199,28 @@ async function sayfaTopla(page) {
        kapsamdaki boş yüzey sayısından azsa fark kadar yüzey
        cümlesizdir. Kapsamı daraltmak yetmedi; bölüm gerçekten iki
        yüzey taşıyabiliyor. */
+    /* ── AKLAYAN ŞEY BİR BOŞ DURUM CÜMLESİ OLMALI (Codex · P2) ──────
+       `div.ab-blok > span.etiket` yalnız boş durumlara ait değil: aynı
+       kalıbı `Hata` · `Ölçülmedi` · `Bağlantı yok` · `Bakımda` da
+       kullanıyor. `.bos` ise bazı yerlerde GÖRSEL bir değiştirici
+       (`.ab-b-yigin.bos`). İkisi de cümle sayılırsa gerçekten cümlesiz
+       bir yüzey aklanır. Bugün etiket ÜRÜNÜN kendi boş durum
+       sözleşmesinden (`ETIKETLER`) gelmek zorunda, `.bos` ise görünür
+       ve en az `CUMLE_ASGARI` karakterlik metin taşımak zorunda. */
+    const CUMLE_ASGARI = 12;
     const cumleSayisi = (kapsam) => {
       let n = 0;
       for (const el of kapsam.querySelectorAll(`${ISARET}, div.ab-blok > span.etiket`)) {
-        if (gorunur(el)) n += 1;
+        if (!gorunur(el)) continue;
+        if (el.matches('div.ab-blok > span.etiket')) {
+          const ad = (el.textContent || '').replace(/\s+/g, ' ').trim();
+          if (!ETIKETLER[ad]) continue;
+          n += 1;
+          continue;
+        }
+        const metin = (el.innerText || el.textContent || '').replace(/\s+/g, ' ').trim();
+        if (metin.length < CUMLE_ASGARI) continue;
+        n += 1;
       }
       return n;
     };
@@ -231,10 +249,21 @@ async function sayfaTopla(page) {
        aradığı şeyin tanımı gereği eleniyordu. Diş "0 kusur" diyordu ve
        hiçbir şeye bakmamıştı — bu turun kovaladığı kusurun ta kendisi,
        bu kez kendi dişimde. Burada yalnız GİZLENMİŞ olma sorulur. */
+    /* ── ATALARIN HESAPLANAN BİÇİMİ DE SORULUR (Codex · P2) ─────────
+       `getComputedStyle(el)` yalnız DÜĞÜMÜN KENDİ `display`ini söyler:
+       CSS ile gizlenmiş bir ATA (kapalı `details`, gizleyen bir sınıf)
+       altındaki boş yüzey GÖRÜNÜR sayılıyordu — ama aynı atanın
+       altındaki CÜMLESİ `gorunur()` süzgecinden düşüyordu. Yani kapı,
+       kullanıcının hiç görmediği bir yüzey için YANLIŞ bir kusur
+       raporlayabilirdi. Ata zinciri yürünür. */
     const gizli = (el) => {
-      const st = getComputedStyle(el);
-      return st.display === 'none' || st.visibility === 'hidden'
-        || !el.isConnected || !!el.closest('[hidden], [aria-hidden="true"]');
+      if (!el.isConnected) return true;
+      if (el.closest('[hidden], [aria-hidden="true"]')) return true;
+      for (let a = el; a && a.nodeType === 1; a = a.parentElement) {
+        const st = getComputedStyle(a);
+        if (st.display === 'none' || st.visibility === 'hidden') return true;
+      }
+      return false;
     };
     /* ── ÜRÜNÜN BEYAN ETTİĞİ BOŞ VERİ YÜZEYİ ─────────────────────────
        Paylaşılan tablo sıfır satırda HİÇBİR ŞEY çizmiyor; ortada bir
@@ -314,6 +343,54 @@ async function sayfaTopla(page) {
   }, { taban: CUMLE_TABANI, tavan: CUMLE_TAVANI });
 }
 
+/* ══ DİŞİN POZİTİF KONTROLÜ (Codex · P2) ═══════════════════════════════
+   Ürün bugün SIFIR SATIRLI hiçbir veri yüzeyi çizmiyor: her ekran
+   tablodan ÖNCE kendi boş durumunu basıyor. Popülasyon bu yüzden meşru
+   olarak 0 — ama SIFIR popülasyonlu bir diş, TAMAMEN BOZUKKEN de
+   "0 kusur" der ve ikisi dışarıdan AYNI görünür. `veriYuzeyi` tabanı
+   bunu savunamaz: o sayı DOLU tablo/listeleri de sayar, yani sıfır
+   satırlı yol hiç yürünmese bile yerinde kalır (ölçüldü, S-M2).
+
+   Bugün toplayıcı, ürünün DIŞINDA, bilinen bir sentetik sayfada da
+   koşar: cümlesi OLAN bir yüzey (aklanmalı), cümlesi OLMAYAN bir yüzey
+   (yakalanmalı) ve cümlesiz bir İŞARET (yakalanmalı). Beklenen sayılar
+   kütüğe yazılır, bekçi birebir tutar. Toplayıcının herhangi bir yolu
+   körleşirse bu sayılar düşer ve kapı KIRMIZI yanar — ürün hiç
+   değişmeden. Fikstür ÜRÜNE girmez; yalnız tanığın belleğindedir.
+
+   ── DÖRDÜNCÜ KART: YÜKSEKLİK EKSENİ (S-M10 · YAKMAYAN sabotaj) ──────
+   İlk fikstürde üç kart vardı ve boş yüzeylerin ikisi de `<thead>`
+   taşıyan bir tabloydu — yani YÜKSEKLİĞİ SIFIR DEĞİLDİ. Sabotaj turunda
+   sıfır satırlı yol için `gorunur()` koşulu geri kondu (dişin ilk
+   ölçülmüş körlüğü) ve pozitif kontrol KIRMIZI YANMADI: fikstür tam da
+   o ekseni hiç sınamıyordu. Bu bir BULGUDUR ve fikstürün kusuruydu.
+   Dördüncü kart cümlesiz ve BOŞ bir `<ul>` taşır; boş bir listenin
+   yüksekliği tanımı gereği sıfırdır, yani körlüğün ESKİ hâli bu kartı
+   anında düşürür ve kontrol kırmızı yanar. */
+const OZ_DENETIM_HTML = `<main>
+  <div class="ab-kart">
+    <div class="ab-blok"><span class="etiket">Boş · ilk kurulum</span>
+      <p class="cumle">Kapsamınızda kayıt yok; ilk kaydı yönetim tezgâhında açarsınız.</p></div>
+    <table><thead><tr><th>Ad</th></tr></thead><tbody></tbody></table>
+  </div>
+  <div class="ab-kart">
+    <table><thead><tr><th>Ad</th></tr></thead><tbody></tbody></table>
+  </div>
+  <div class="ab-kart"><span data-bos-yuzey="tablo" aria-hidden="true"></span></div>
+  <div class="ab-kart"><ul></ul></div>
+</main>`;
+
+async function ozDenetim(baglam) {
+  const sayfa = await baglam.newPage();
+  try {
+    await sayfa.setContent(OZ_DENETIM_HTML, { waitUntil: 'load' });
+    const { cumlesiz, bosYuzeySayisi, veriYuzeyi } = await sayfaTopla(sayfa);
+    return { veriYuzeyi, bosYuzey: bosYuzeySayisi, cumlesiz: cumlesiz.length };
+  } finally {
+    await sayfa.close();
+  }
+}
+
 /** Gezilecek rota kümesi — envanterden TÜRETİLİR, elle liste yok. */
 /* ── ATLANAN ROTA SESSİZ DÜŞMEZ (düzeltme turu · tur 2 · P3-10) ──────
    Eski yazımda iki `continue` vardı ve birinin yorumu "atlanır, SAYILIR"
@@ -356,6 +433,14 @@ const BOS_KOSUM = process.argv.includes('--bos');
 const BOS_GIRIS = { eposta: 'kurgusal.kurucu@bos.local', parola: 'BosKurulumKurgusalParola-2026' };
 let bosDbYolu = null;
 let bosSunucu = null;
+/* ── KISMÎ FİKSTÜR DE SİLİNİR (Codex · P2) ───────────────────────────
+   Dizin `bosKurulumKur()` DÖNMEDEN önce oluşuyor; kurulum (göç, kurucu
+   hesap, sunucu) ortada atarsa `fikstur` null kalıyor ve temizlik
+   dizini `f`den türettiği için onu HİÇ silmiyordu — üstelik hemen
+   ardından "veritabanı SİLİNMEDİ" diye atıp ASIL hatayı maskeliyordu.
+   Dizin bugün modül düzeyinde tutulur: yarım kurulum da temizlenir. */
+let bosDizin = null;
+let ozDenetimSonucu = null;
 /* Boş kurulum öncülü — kütüğe yazılır ve bekçi okur (P1-3). */
 const ONCUL = { kullanici: null, tesis: null, madde: null, sunucuOturum: null };
 
@@ -371,6 +456,7 @@ async function bosKurulumKur() {
   const yuva = path.join(WEB, '.parti');
   mkdirSync(yuva, { recursive: true });
   const dizin = mkdtempSync(path.join(yuva, 'dom-tanik-bos-'));
+  bosDizin = dizin;
   bosDbYolu = path.join(dizin, 'bos.db');
   const url = `file:${bosDbYolu}`;
   /* ── GÖÇ HEDEFİ `DATABASE_URL` DEĞİL, AYAR DOSYASIDIR ─────────────
@@ -504,7 +590,7 @@ async function bosTemizle(f) {
     if (!kapandi) throw new Error(`boş kurulum sunucusu KAPANMADI: ${f.kok} `
       + '(bağlantı reddi görülmedi — süreç hâlâ dinliyor olabilir)');
   }
-  const dizin = f ? f.dizin : null;
+  const dizin = (f && f.dizin) || bosDizin;
   if (dizin && existsSync(dizin)) rmSync(dizin, { recursive: true, force: true });
   if (bosDbYolu && existsSync(bosDbYolu)) {
     throw new Error(`boş kurulum veritabanı SİLİNMEDİ: ${bosDbYolu}`);
@@ -594,6 +680,7 @@ try {
       }
     } catch (e) { atlanan.push({ rota, sebep: e.message.slice(0, 120) }); }
   }
+  ozDenetimSonucu = await ozDenetim(context);
   await context.close();
 } finally {
   await browser.close();
@@ -624,6 +711,8 @@ const kutuk = {
   /* Sıfır satırlı ama kapsamında CÜMLE OLMAYAN yüzeyler (Brief M · FAZ 1). */
   cumlesizYuzeyler: cumlesizYuzeyler
     .sort((a, b) => `${a.rota}${a.baslik}`.localeCompare(`${b.rota}${b.baslik}`)),
+  /* Dişin POZİTİF KONTROLÜ — ürünün dışında, bilinen bir sayfada. */
+  ozDenetim: ozDenetimSonucu,
 };
 
 console.log(`DOM tanığı${BOS_KOSUM ? ' · BOŞ KURULUM' : ''}: ${ROTALAR.length} rota gezildi · atlanan ${atlanan.length}`);
@@ -632,6 +721,9 @@ console.log(`  boş durum: ${kutuk.bosDurumlar.length}`);
 console.log(`  taranan veri yüzeyi (tablo/liste): ${veriYuzeyiPopulasyonu}`);
 console.log(`  sıfır satırlı düğüm: ${bosYuzeyPopulasyonu}`);
 console.log(`  CÜMLESİZ boş yüzey: ${kutuk.cumlesizYuzeyler.length}`);
+console.log('  öz denetim (sentetik sayfa · dişin pozitif kontrolü): '
+  + `taranan ${ozDenetimSonucu?.veriYuzeyi ?? '—'} · sıfır satırlı `
+  + `${ozDenetimSonucu?.bosYuzey ?? '—'} · cümlesiz ${ozDenetimSonucu?.cumlesiz ?? '—'}`);
 for (const c of kutuk.cumlesizYuzeyler) {
   console.log(`    ${c.rota} · <${c.etiket}> · kapsam "${c.kapsam}" · başlık "${c.baslik}"`);
 }

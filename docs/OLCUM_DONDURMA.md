@@ -50,9 +50,9 @@ Her birinin sahibi, gerekçesi ve BÜYÜYEMEYEN bir tavanı var.
 | | |
 | --- | --- |
 | **Ne ölçülmüyor** | Özneleri çekim ekiyle yazan politika cümleleri ("kütüğün…", "kaydı…", "ürünün…"). `OZNE` kalıbı özneyi YALIN hâliyle arar. |
-| **Ölçülen büyüklük** | Sınırın TAMAMI **382** aday (`korToplamSayisi()`: yüklemi olup YALIN öznesi olmayan). Bunun **51**'i bilinen bir gövdenin çekimli hâlini taşır (`korGovdeSayisi()`) — yani `OZNE`yi gövdeye çevirmenin fiyatı 51, sınırın kendisi 382. |
+| **Ölçülen büyüklük** | Sınırın TAMAMI **357** aday (`korToplamSayisi()`: yüklemi olup YALIN öznesi olmayan). Bunun **51**'i bilinen bir gövdenin çekimli hâlini taşır (`korGovdeSayisi()`) — yani `OZNE`yi gövdeye çevirmenin fiyatı 51, sınırın kendisi 357. Sayı **382'den 357'ye İNDİ** (inceleme bulgusu): aday süzgeci `politikaMi()` ile aynı değildi — "en az dört sözcük" ve "JSX/biçem parçası değil" dişleri yoktu, bu yüzden sınıra bir ithal yolu, bir JSX parçası ve kısa dizeler giriyordu. Bir ithal adının değişmesi dondurulmuş sınırı oynatıyordu; tavan bir MAYINDI. |
 | **Neden kapatılmadı** | Kalıbı gövdeye çevirmek 51 satırlık yeni bir borç açar; bu kütüğün yedinci dişi SIFIRDA KİLİTLİ, yani her satır gerçek yol ölçümüyle gelmek zorunda. Yüz satırı bir turda aceleyle ölçmek, bu deponun kaçındığı şeyin ta kendisidir. |
-| **Tavan** | `politika-cumleleri.json` → `tavanlar.korToplam = 382` **ve** `tavanlar.korGovde = 51`. İkisi de **büyüyemez**: türeticinin görmediği yeni bir politika adayı kapıyı kırmızı yakar. İlk yazım yalnız 51'i donduruyordu — bağımsız inceleme sınırın sekizde birinin dondurulduğunu ölçtü (P2-14) ve tavan sınırın tamamına genişletildi. |
+| **Tavan** | `politika-cumleleri.json` → `tavanlar.korToplam = 357` **ve** `tavanlar.korGovde = 51`. İkisi de **büyüyemez**: türeticinin görmediği yeni bir politika adayı kapıyı kırmızı yakar. İlk yazım yalnız 51'i donduruyordu — bağımsız inceleme sınırın sekizde birinin dondurulduğunu ölçtü (P2-14) ve tavan sınırın tamamına genişletildi. |
 | **İkinci bekçi** | DOM tanığı — çekimli özneli bir cümle gerçekten ekrana çıkıyorsa tanık onu görür ve kütükte bulamayınca kırmızı yanar. |
 | **Sahip / kapanış** | KODLAYAN / P3 · mesaj kataloğu (arayüz metni sözlük anahtarına geçtiğinde tarama metinden ANAHTARA döner ve gövde sorunu ortadan kalkar) |
 
@@ -96,7 +96,7 @@ yok.
 | **Ne ölçülmüyor** | Hiçbir şey ölçülmüyor değil — ama dişin baktığı **sıfır satırlı yüzey sayısı boş kurulumda 0**. Sebebi ürünün lehine: altı çağıranın altısı da tablodan ÖNCE kendi boş durumunu çiziyor, yani paylaşılan tablo boş kurulumda hiç render edilmiyor. |
 | **Ölçülen büyüklük** | sıfır satırlı yüzey **0** (`dom-tanik-kutugu.json` → `beyan.bosYuzey`, gerekçesiyle) · taranan veri yüzeyi **17** (`tanik.veriYuzeyi` tabanı) |
 | **Neden ayrı yazılıyor** | İlk yazımda diş tek bir sayıya (`veriYuzeyi`) taban koyuyordu ve bu YANILTICIYDI: bütün tablolar dolsa bile gezinme listeleri sayesinde o sayı yerinde kalır, diş hiçbir boş yüzeye BAKMAMIŞ olur ve kapı yine "0 kusur" derdi (bağımsız inceleme · P2-1). Bugün iki sayı da ölçülür: taranan yüzey bir TABAN, sıfır satırlı yüzey bir BEYAN taşır. Sıfır bir taban olamaz — deponun kendi kuralı "sıfır ölçüm bir ölçüm değildir" der ve `olcum-tabani.json` bunu bir kapıyla zorluyor; ölçüldü, taban olarak yazma denemesi kırmızı yandı. |
-| **Sınır** | Dişin bugün koruduğu şey bir SAYI değil bir SÖZLEŞMEDİR: yarın bir çağıran tabloyu cümlesiz boş bırakırsa işaret basılır, popülasyon 0'dan 1'e çıkar ve cümlesiz tavanı (0) kırmızı yanar. Sabotajla ölçüldü. **Yargı kapsam başınadır** (Codex turu): aynı bölümü paylaşan iki boş yüzeyden birinin cümlesi öbürünü AKLAMAZ — kapsamdaki görünür cümle sayısı boş yüzey sayısından azsa fark kadar yüzey cümlesizdir; S-M8 ile ölçüldü. |
+| **Sınır** | Dişin bugün koruduğu şey bir SAYI değil bir SÖZLEŞMEDİR: yarın bir çağıran tabloyu cümlesiz boş bırakırsa işaret basılır, popülasyon 0'dan 1'e çıkar ve cümlesiz tavanı (0) kırmızı yanar. Sabotajla ölçüldü. **Yargı kapsam başınadır** (Codex turu): aynı bölümü paylaşan iki boş yüzeyden birinin cümlesi öbürünü AKLAMAZ — kapsamdaki görünür cümle sayısı boş yüzey sayısından azsa fark kadar yüzey cümlesizdir; S-M8 ile ölçüldü. **Sıfır popülasyonun kendisi de savunulur:** sıfır popülasyonlu bir eşitlik, toplayıcı TAMAMEN BOZUKKEN de geçer ve ikisi dışarıdan aynı görünür. Bu yüzden toplayıcı ürünün DIŞINDA, bilinen bir sentetik sayfada da koşar (dört kart: cümleli yüzey · cümlesiz yüzey · cümlesiz işaret · cümlesiz BOŞ LİSTE) ve sonucu **4/4/3** olarak kütüğe yazar; beklenen sayı araçta değil KAPIDA sabittir. Ürün hiç değişmeden bu sayı düşerse diş ölmüştür. |
 | **Sahip / kapanış** | KODLAYAN / bir müşteri ihtiyacı doğurursa |
 
 ### 4 · `kapi-compose` yerel ölçümü
@@ -155,12 +155,13 @@ bağlı ve üçü de sabotajla kanıtlandı:
 
 | Kalem | Kapı | Sabotaj |
 | --- | --- | --- |
-| R0-23 · sınır 382 (alt küme 51) | `tests/bekci/politika-olcumu.test.ts` | çekimli özneli cümle eklendi → 51 → 52 → kırmızı; sınırın tamamı da ayrı tavanlı |
+| R0-23 · sınır 357 (alt küme 51) | `tests/bekci/politika-olcumu.test.ts` | çekimli özneli cümle eklendi → 51 → 52 → kırmızı; sınırın tamamı da ayrı tavanlı |
 | Tanık kapsamı %15,9 | `tests/bekci/dom-tanik.test.ts` | tanık cümlelerinin yarısı düşürüldü → dört diş birden kırmızı |
 | Cümlesiz boş yüzey 0 | `tests/bekci/dom-tanik.test.ts` | bir ekranın boş durumu kaldırıldı → tanık yüzeyi gördü → kırmızı |
 | Cümlesiz boş yüzey 0 · **kapsam paylaşan ikinci yüzey** | `tests/bekci/dom-tanik.test.ts` | S-M8: bir `.ab-kart` içine `BosIlk` + İKİ boş tablo kondu → YENİ ölçütte sıfır satırlı 2 · cümlesiz 1 · iki diş birden kırmızı (tavan VE popülasyon beyanı); AYNI girdide ESKİ ölçüt (kapsamda bir cümle varsa hepsi aklanır) cümlesiz **0** verip sessiz yeşil kalıyordu |
 | Kategori bölüntüsü · siniflanmadi 0 | `tests/bekci/dom-tanik.test.ts` | kurala varsayılan dal geri kondu → tautoloji; kaldırıldı, sınıflanamayan satır artık `null` döner ve kapı yanar |
 | Boş kurulum öncülü | `tests/bekci/dom-tanik.test.ts` | `Kullanici 1 · Tesis 0 · Madde 0` ölçülüyor; tohumlu bir veritabanı ölçülürse kapı yanar |
+| **Dişin CANLILIĞI** · pozitif kontrol 4/4/3 | `tests/bekci/dom-tanik.test.ts` | S-M9: işaret taraması körleştirildi → sentetik sayfada 4/4/3 → **3/3/2** → kırmızı (ürün hiç değişmedi). S-M10: sıfır satırlı yol için yükseklik koşulu geri kondu → **YAKMADI**, çünkü fikstürün üç kartı da `<thead>` taşıyordu; bu bir BULGUDUR ve fikstürün kusuruydu — boş bir `<ul>` taşıyan dördüncü kart eklendi, S-M10b **kırmızı** |
 
 Dördüncü kalem (`kapi-compose`) yerelde ölçülemediği için sabotajı da
 yerelde koşulamaz; otoritesi CI'dır ve orada yeşildir.

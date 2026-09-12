@@ -241,6 +241,18 @@ function korAdaylar() {
       for (const ham of adaylar) {
         const cumle = String(ham).trim();
         if (cumle.length < CUMLE_TABANI || cumle.length > CUMLE_TAVANI) continue;
+        /* ── ADAY SÜZGECİ POLİTİKAYLA AYNI OLMALI (Codex · P2) ───────
+           `korAdaylar` yalnız uzunluk + yüklem soruyordu; `politikaMi`nin
+           "en az dört sözcük" ve "JSX/biçem parçası değil" dişleri
+           yoktu. Sonuç ölçüldü: sınıra ithal yolu
+           (`@/lib/eylemler2/reddedilenKayit`), JSX parçası
+           (`karar('reddedildi') > Reddet`) ve dört sözcükten kısa
+           dizeler giriyordu. Bir ithal adının değişmesi DONDURULMUŞ
+           sınırı oynatıp yanıltıcı bir "politika sınırı" gerekçesi
+           istiyordu — tavan bir MAYINA dönüşüyordu. Süzgeç bugün
+           politikanınkiyle aynı; fark YALNIZ öznededir. */
+        if (cumle.split(/\s+/).length < 4) continue;
+        if (/[<>]|style=\{|className=|var\(--/.test(cumle)) continue;
         if (!YUKLEM.test(cumle)) continue;
         if (OZNE.test(cumle)) continue;            /* zaten görülüyor */
         kor.add(cumle);

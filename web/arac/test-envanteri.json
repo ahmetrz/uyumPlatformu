@@ -1,7 +1,7 @@
 {
-  "imza": "514c45240123a41fada8fd457dada9e9",
+  "imza": "14d14c49c2f961a807171f6fb5bba150",
   "dosya": 246,
-  "vaka": 4433,
+  "vaka": 4434,
   "atlanan": 1,
   "dosyalar": {
     "tests/adaptor-yetenekleri.test.ts": {
@@ -61,7 +61,7 @@
       "atlanan": 0
     },
     "tests/bekci/dom-tanik.test.ts": {
-      "vaka": 21,
+      "vaka": 22,
       "atlanan": 0
     },
     "tests/bekci/ek-eklemesi.test.ts": {

@@ -89,7 +89,7 @@ async function sayfaTopla(page) {
      ta kendisiydi. Sayılar `page.evaluate`e argüman olarak geçer;
      tarayıcı bağlamı modül kapsamını görmez. */
   return page.evaluate(({ taban, tavan }) => {
-    const cikan = { politika: [], bos: [], cumlesiz: [], bosYuzeySayisi: 0, veriYuzeyi: 0, kapsayiciBos: [] };
+    const cikan = { politika: [], bos: [], cumlesiz: [], bosYuzeySayisi: 0, veriYuzeyi: 0 };
     const gorunur = (el) => {
       const r = el.getBoundingClientRect();
       const s = getComputedStyle(el);
@@ -168,7 +168,14 @@ async function sayfaTopla(page) {
        yerindeki bir boş durum işareti, BAŞKA bir bölümdeki cümlesiz
        tabloyu aklıyordu — ölçüt o zaman "sayfada bir yerde cümle var"
        olur ve dişin ölçtüğü şey kaybolur. */
-    const BOLUM = 'section, article, .ab-blok, .ab-panel, .ab-kutu, .ab-kart';
+    /* ── KAPSAM GERÇEKTEN DAR OLMALI (bağımsız inceleme · P2-4) ──────
+       `section` bazı ekranlarda EKRANIN TAMAMIDIR
+       (`section.ab-ekran-govde`): o bölümde tek bir `.bos` varsa aynı
+       bölümdeki BÜTÜN cümlesiz tablolar aklanıyordu — ölçütün kaçındığı
+       "sayfada bir yerde cümle var" hâli, bir seviye aşağıda aynen.
+       Ekran gövdesi artık kapsam SAYILMAZ; o düğüme düşen bir yüzeyin
+       cümlesi kendi yakınında olmak zorunda. */
+    const BOLUM = 'section:not(.ab-ekran-govde), article, .ab-blok, .ab-panel, .ab-kutu, .ab-kart';
     /* Ürünün KENDİ boş durum sözleşmesi. Genel metin yedeği DENENDİ ve
        GERİ ALINDI (ölçüldü: diş 0 buldu, çünkü her kapsayıcıda başlık,
        süzgeç etiketi ya da düğme metni var — yedek "cümle" diye onları
@@ -177,12 +184,37 @@ async function sayfaTopla(page) {
        kütüğüne girmez. Ölçülen şey tam olarak budur — sözleşmeye
        girmeyen bir boşluk, kütüğün göremediği bir boşluktur. */
     const ISARET = '.bos, .ab-vt-cagiran, .ab-bos';
+    /* ── AKLAYAN CÜMLE GÖRÜNÜR OLMALI (bağımsız inceleme · P2-3) ─────
+       İlk yazım yalnız `querySelector` yapıyordu: `display:none` bir
+       `.bos`, gizli bir sekme panelindeki `BosIlk` ya da medya
+       sorgusuyla saklanmış bir boş durum, GÖRÜNÜR cümlesiz bir tabloyu
+       AKLIYORDU. Kütük "bu boşluğun cümlesi var" der, ekranda cümle
+       yoktur — dişin kovaladığı kusurun kendi aklama tarafındaki
+       hâli. */
+    const cumleGorunur = (kapsam) => {
+      for (const el of kapsam.querySelectorAll(`${ISARET}, div.ab-blok > span.etiket`)) {
+        if (gorunur(el)) return true;
+      }
+      return false;
+    };
+    /* ── VERİ SATIRI ≠ HER `tr` (bağımsız inceleme · P1-1) ───────────
+       `tbody` içinde veri OLMAYAN satırlar var: kuyruk satırı
+       (`tr.kuyruk`) ve grup başlığı (`th[scope="colgroup"]` taşıyan
+       satır). Bunları saymak dişi EN OLASI canlı hâlinde kör ediyordu:
+       `bosCumle={null}` geçen beş çağıranın BEŞİ DE `kuyruk={…}`
+       kalıbında; süzgeç tabloyu boşalttığında sıfır veri satırı + bir
+       kuyruk satırı kalıyor, `sayi > 0` diye eleniyor ve ne işaret ne
+       cümle aranıyordu. */
     const veriSatiri = (t) => {
-      /* `tbody` yoksa tarayıcı onu kendisi kurar; yine de savunmalı. */
-      const govde = t.tBodies && t.tBodies.length ? t.tBodies[0] : null;
-      if (!govde) return t.querySelectorAll('tr').length
-        - t.querySelectorAll('thead tr').length;
-      return govde.querySelectorAll('tr').length;
+      const govde = t.tBodies && t.tBodies.length ? t.tBodies[0] : t;
+      let n = 0;
+      for (const tr of govde.querySelectorAll('tr')) {
+        if (tr.closest('thead')) continue;
+        if (tr.classList.contains('kuyruk')) continue;
+        if (tr.querySelector('th[scope="colgroup"]')) continue;
+        n += 1;
+      }
+      return n;
     };
     /* ── `gorunur` BURADA KULLANILAMAZ (ölçülmüş kusur) ──────────────
        İlk yazım `gorunur(dugum)` istiyordu ve diş POPÜLASYONU SIFIRA
@@ -201,13 +233,14 @@ async function sayfaTopla(page) {
        Bileşen bu yüzden görünmez bir işaret basıyor
        (`[data-bos-yuzey]`) ve tanık sözleşmeyi buradan okur. */
     for (const isaret of document.querySelectorAll('[data-bos-yuzey]')) {
+      /* Gizli bir sekme panelindeki işaret cümle TALEP ETMEZ (P3-5):
+         iki döngünün ölçütü ayrışmasın. */
+      if (gizli(isaret)) continue;
       cikan.veriYuzeyi += 1;
       cikan.bosYuzeySayisi += 1;
       const kapsam = isaret.closest(BOLUM) || isaret.parentElement;
       if (!kapsam) continue;
-      const cumleVar = !!kapsam.querySelector(ISARET)
-        || !!kapsam.querySelector('div.ab-blok > span.etiket');
-      if (cumleVar) continue;
+      if (cumleGorunur(kapsam)) continue;
       cikan.cumlesiz.push({
         etiket: isaret.getAttribute('data-bos-yuzey'),
         kapsam: (kapsam.getAttribute('class') || kapsam.tagName).slice(0, 60),
@@ -217,20 +250,19 @@ async function sayfaTopla(page) {
     }
     for (const dugum of document.querySelectorAll('table, ul, ol')) {
       if (gizli(dugum) || YUKLENIYOR(dugum)) continue;
-      cikan.veriYuzeyi += 1;   /* TARANAN yüzey: taban buradan gelir */
       /* İç içe liste/tablo iki kez sayılmasın: en dıştaki boş olan alınır. */
       if (dugum.parentElement && dugum.parentElement.closest('table, ul, ol')) continue;
+      /* Sayım İÇ İÇE ELEMEDEN SONRA (P2-1): taranmayan düğüm tabanı
+         beslememeli. */
+      cikan.veriYuzeyi += 1;
       const sayi = dugum.tagName === 'TABLE'
         ? veriSatiri(dugum)
         : dugum.querySelectorAll(':scope > li').length;
       if (sayi > 0) continue;
       const kapsam = dugum.closest(BOLUM) || dugum.parentElement;
       if (!kapsam) continue;
-      /* Ürünün KENDİ boş durum işareti kapsamda mı? */
-      let cumleVar = !!kapsam.querySelector(ISARET)
-        || !!kapsam.querySelector('div.ab-blok > span.etiket');
       cikan.bosYuzeySayisi += 1;   /* POPÜLASYON: kaç sıfır satırlı düğüme bakıldı */
-      if (cumleVar) continue;
+      if (cumleGorunur(kapsam)) continue;
       cikan.cumlesiz.push({
         etiket: dugum.tagName.toLowerCase(),
         kapsam: (kapsam.getAttribute('class') || kapsam.tagName).slice(0, 60),
@@ -238,20 +270,14 @@ async function sayfaTopla(page) {
           .replace(/\s+/g, ' ').trim().slice(0, 80),
       });
     }
-    /* İKİNCİ ŞEKİL: tablo HİÇ RENDER EDİLMEMİŞ olabilir. `VeriTablosu`
-       sıfır satırda `null` döndürüyor — yani ortada bir `<table>` bile
-       yok ve yukarıdaki tarama onu göremez. O yüzden görünür ama
-       METNİ OLMAYAN bölüm kapsayıcıları da sayılır. */
-    for (const k of document.querySelectorAll(BOLUM)) {
-      if (!gorunur(k) || YUKLENIYOR(k)) continue;
-      if (k.querySelector(BOLUM)) continue;          // yalnız YAPRAK bölüm
-      const metin = (k.innerText || k.textContent || '').replace(/\s+/g, ' ').trim();
-      if (metin.length >= 12) continue;
-      cikan.kapsayiciBos.push({
-        kapsam: (k.getAttribute('class') || k.tagName).slice(0, 60),
-        metin: metin.slice(0, 40),
-      });
-    }
+    /* ── "İKİNCİ ŞEKİL" TARAMASI KALDIRILDI (bağımsız inceleme · P2-2) ─
+       Görünür ama metinsiz yaprak bölümleri sayan bir tarama yazılmıştı;
+       hesaplanıyor, konsola basılıyor, KÜTÜĞE YAZILMIYOR ve hiçbir vaka
+       okumuyordu — yani hiçbir girdide kırmızı yanamayan ölü bir ölçüm.
+       Üstelik `gorunur()` kullanıyordu: bu dosyanın kendi uyarısının
+       tersi (boş bir bölümün yüksekliği de sıfırdır), yani aradığı şeyi
+       tanımı gereği eliyordu. Tablonun hiç render edilmediği hâli zaten
+       ürünün BEYAN ETTİĞİ işaret yakalıyor. */
     return cikan;
   }, { taban: CUMLE_TABANI, tavan: CUMLE_TAVANI });
 }
@@ -298,6 +324,8 @@ const BOS_KOSUM = process.argv.includes('--bos');
 const BOS_GIRIS = { eposta: 'kurgusal.kurucu@bos.local', parola: 'BosKurulumKurgusalParola-2026' };
 let bosDbYolu = null;
 let bosSunucu = null;
+/* Boş kurulum öncülü — kütüğe yazılır ve bekçi okur (P1-3). */
+const ONCUL = { kullanici: null, tesis: null, madde: null };
 
 async function bosKurulumKur() {
   const { mkdtempSync, mkdirSync, rmSync } = await import('node:fs');
@@ -344,35 +372,118 @@ async function bosKurulumKur() {
     `--eposta=${BOS_GIRIS.eposta}`, '--ad=Kurgusal Kurucu'],
   { cwd: WEB, env: { ...process.env, DATABASE_URL: url },
     input: BOS_GIRIS.parola, stdio: ['pipe', 'pipe', 'pipe'] });
-  /* Sunucu AYRI portta: tohumlu koşumun sunucusu ayakta kalabilir. */
+
+  /* ── "VERİTABANI BOŞ" ÖNCÜLÜ ÖLÇÜLÜR (bağımsız inceleme · P1-3) ────
+     Koşumun BÜTÜN anlamı "veri yok" hâli; ama hiçbir adım bunu
+     doğrulamıyordu. `lib/db.ts` `DATABASE_URL` yoksa TOHUMLU
+     `prisma/dev.db`ye düşer — env aktarımı bir gün bozulursa koşum
+     tohumlu veriyi ölçer, tablolar dolu olur ve cümlesiz yüzey DOĞASI
+     GEREĞİ 0 çıkar. Bu, bu dosyanın kendi yazdığı cümlenin gerçekleşmiş
+     hâli olurdu. Öncül artık ölçülüyor ve kütüğe YAZILIYOR. */
+  const { default: Database } = await import('better-sqlite3');
+  const db = new Database(bosDbYolu, { readonly: true });
+  const say = (t) => db.prepare(`select count(*) c from "${t}"`).get().c;
+  ONCUL.kullanici = say('Kullanici');
+  ONCUL.tesis = say('Tesis');
+  ONCUL.madde = say('Madde');
+  db.close();
+  if (ONCUL.kullanici !== 1 || ONCUL.tesis !== 0 || ONCUL.madde !== 0) {
+    throw new Error('BOŞ KURULUM ÖNCÜLÜ TUTMADI: '
+      + `Kullanici ${ONCUL.kullanici} (1 bekleniyor) · Tesis ${ONCUL.tesis} (0) · `
+      + `Madde ${ONCUL.madde} (0). Tanık TOHUMLU bir veritabanını ölçüyor olabilir.`);
+  }
+  /* ── ÖNCE PORT BOŞ MU (bağımsız inceleme · P1-2) ──────────────────
+     Tek kontrol "3211 yanıt veriyor mu" idi. O portta BAŞKA bir süreç
+     dinliyorsa (önceki koşumun zombisi, paralel bir iş, geliştiricinin
+     TOHUMLU sunucusu) `next start` EADDRINUSE ile ölür, `fetch` yabancı
+     sunucudan 200 alır ve tanık BAŞKA BİR KURULUMU "boş kurulum" diye
+     ölçer — tohumlu bir sunucuya rastlarsa cümlesiz yüzey doğal olarak
+     0 çıkar ve kapı YANLIŞ SEBEPLE yeşil yanar. */
   const port = Number(process.env.BOS_PORT ?? 3211);
+  const kok = `http://127.0.0.1:${port}`;
+  try {
+    await fetch(`${kok}/giris`, { signal: AbortSignal.timeout(1500) });
+    throw new Error(`PORT ${port} ZATEN DOLU: boş kurulum sunucusu kurulamaz. `
+      + 'Orada dinleyen süreci durdurun — tanık başka bir kurulumu ölçmemeli.');
+  } catch (e) {
+    if (String(e.message).startsWith('PORT ')) throw e;   /* bizim attığımız */
+  }
   bosSunucu = spawn('npx', ['next', 'start', '-p', String(port)], {
     cwd: WEB, env: { ...process.env, DATABASE_URL: url, PORT: String(port) },
     stdio: 'pipe', detached: true,
   });
-  const kok = `http://127.0.0.1:${port}`;
+  /* Süreç ÖLDÜYSE bekleme döngüsü boşuna dönmesin. */
+  let sunucuOldu = null;
+  bosSunucu.on('exit', (kod) => { sunucuOldu = kod; });
+  bosSunucu.on('error', (hata) => { sunucuOldu = hata.message; });
   for (let i = 0; i < 60; i += 1) {
+    if (sunucuOldu !== null) {
+      throw new Error(`boş kurulum sunucusu ÖLDÜ (${sunucuOldu}) — `
+        + 'port çakışması ya da derleme çıktısı eksik olabilir');
+    }
     try {
       const y = await fetch(`${kok}/giris`, { signal: AbortSignal.timeout(2000) });
-      if (y.ok) return { kok, dizin, rmSync };
+      if (y.ok) return { kok, dizin, rmSync, port };
     } catch { /* henüz kalkmadı */ }
     await new Promise((r) => { setTimeout(r, 1000); });
   }
   throw new Error(`boş kurulum sunucusu ${port} portunda kalkmadı`);
 }
 
+/* ── TEMİZLİK TEK YERDE ve SON KOŞULUNU DOĞRULAR ─────────────────────
+   ZAMAN AŞIMI "KAPANDI" DEĞİLDİR (bağımsız inceleme · P3-2): ilk yazım
+   `fetch(..., timeout(1000))` atınca `kapandi = true` diyordu — YAVAŞ
+   ama AYAKTA bir sunucu `AbortError` atar ve temizlik "doğrulandı"
+   sayılırdı. Bugün yalnız BAĞLANTI REDDİ kapanma sayılır; zaman aşımı
+   tekrar denenir ve süre dolarsa KIRMIZIDIR. */
+async function bosTemizle(f) {
+  const { existsSync, rmSync } = await import('node:fs');
+  if (bosSunucu && bosSunucu.pid) {
+    try { process.kill(-bosSunucu.pid, 'SIGTERM'); } catch { /* zaten gitti */ }
+  }
+  if (f) {
+    let kapandi = false;
+    for (let i = 0; i < 30; i += 1) {
+      try {
+        await fetch(`${f.kok}/giris`, { signal: AbortSignal.timeout(1000) });
+      } catch (e) {
+        /* `AbortError` = zaman aşımı → sunucu AYAKTA olabilir, sayma. */
+        if (e.name !== 'AbortError' && e.name !== 'TimeoutError') { kapandi = true; break; }
+      }
+      await new Promise((r) => { setTimeout(r, 500); });
+    }
+    if (!kapandi) throw new Error(`boş kurulum sunucusu KAPANMADI: ${f.kok} `
+      + '(bağlantı reddi görülmedi — süreç hâlâ dinliyor olabilir)');
+  }
+  const dizin = f ? f.dizin : null;
+  if (dizin && existsSync(dizin)) rmSync(dizin, { recursive: true, force: true });
+  if (bosDbYolu && existsSync(bosDbYolu)) {
+    throw new Error(`boş kurulum veritabanı SİLİNMEDİ: ${bosDbYolu}`);
+  }
+}
+
 const atlanan = [];
 const cumlesizYuzeyler = [];   // sıfır satırlı ama cümlesiz tablo/liste
 let bosYuzeyPopulasyonu = 0;   // BAKILAN sıfır satırlı düğüm sayısı
 let veriYuzeyiPopulasyonu = 0; // TARANAN tablo/liste sayısı (taban)
-const bosKapsayicilar = [];    // görünür ama metinsiz bölüm kapsayıcısı
 const ROTALAR = rotalar(atlanan);
 const politikaAdaylari = new Map();   // metin → [rota]
 const bosDurumlar = new Map();        // metin → { rotalar, sinif, eylem } · EN KÖTÜ hâl
 
 /* Boş koşumda kök ve kimlik FİKSTÜRDEN gelir; tohumlu koşumda aynen
    eski davranış. */
-const fikstur = BOS_KOSUM ? await bosKurulumKur() : null;
+/* ── KURULUM ATARSA DA TEMİZLİK KOŞAR (bağımsız inceleme · P3-1) ─────
+   Fikstür `try` bloğunun DIŞINDA kuruluyordu: göç/kurucu/sunucu
+   adımlarından biri atarsa çalışma dizini ve — spawn edildiyse —
+   sunucu süreci kalıyordu. Bir sonraki koşumun port çakışması tam
+   buradan doğar. */
+let fikstur = null;
+try {
+  fikstur = BOS_KOSUM ? await bosKurulumKur() : null;
+} catch (hata) {
+  await bosTemizle(null);
+  throw hata;
+}
 const SUNUCU = fikstur ? fikstur.kok : KOK;
 const OTURUM = BOS_KOSUM ? BOS_GIRIS : undefined;
 
@@ -387,11 +498,10 @@ try {
     try {
       const yanit = await page.goto(`${SUNUCU}${rota}`, { waitUntil: 'networkidle', timeout: 30_000 });
       if (!yanit || yanit.status() >= 400) { atlanan.push({ rota, sebep: `HTTP ${yanit?.status() ?? '—'}` }); continue; }
-      const { politika, bos, cumlesiz, bosYuzeySayisi, veriYuzeyi, kapsayiciBos } = await sayfaTopla(page);
+      const { politika, bos, cumlesiz, bosYuzeySayisi, veriYuzeyi } = await sayfaTopla(page);
       veriYuzeyiPopulasyonu += veriYuzeyi;
       for (const c of cumlesiz) cumlesizYuzeyler.push({ rota, ...c });
       bosYuzeyPopulasyonu += bosYuzeySayisi;
-      for (const k of kapsayiciBos) bosKapsayicilar.push({ rota, ...k });
       for (const m of politika) {
         if (!politikaMi(m)) continue;
         const k = duz(m);
@@ -425,20 +535,7 @@ try {
   /* TEMİZLİK SON KOŞULUNU DOĞRULAR: "durdurdum · sildim" diyen adım
      dediğini yaptığını ÖLÇER. Öldüren sinyal, doğrulayan `fetch` —
      tek araca bakan kontrol, o araç yoksa kandırılır. */
-  if (fikstur) {
-    try { process.kill(-bosSunucu.pid, 'SIGTERM'); } catch { /* zaten gitti */ }
-    let kapandi = false;
-    for (let i = 0; i < 20; i += 1) {
-      try {
-        await fetch(`${fikstur.kok}/giris`, { signal: AbortSignal.timeout(1000) });
-      } catch { kapandi = true; break; }
-      await new Promise((r) => { setTimeout(r, 500); });
-    }
-    if (!kapandi) throw new Error(`boş kurulum sunucusu KAPANMADI: ${fikstur.kok}`);
-    fikstur.rmSync(fikstur.dizin, { recursive: true, force: true });
-    const { existsSync } = await import('node:fs');
-    if (existsSync(bosDbYolu)) throw new Error(`boş kurulum veritabanı SİLİNMEDİ: ${bosDbYolu}`);
-  }
+  if (fikstur) await bosTemizle(fikstur);
 }
 
 const kutuk = {
@@ -449,10 +546,16 @@ const kutuk = {
     .map(([cumle, rotalar]) => ({ cumle, rotalar })).sort((a, b) => a.cumle.localeCompare(b.cumle)),
   bosDurumlar: [...bosDurumlar.entries()]
     .map(([metin, d]) => ({ metin, ...d })).sort((a, b) => a.metin.localeCompare(b.metin)),
-  /* DİŞİN POPÜLASYONU: kaç tablo/liste/işaret tarandı. Sayı YAZILMAZSA
-     kapı onu 0 okur ve "sıfır ölçümle kusur yok" hâline döner — ölçüldü,
-     ilk yazımda alan kütüğe hiç girmiyordu. */
+  /* DİŞİN POPÜLASYONU İKİ SAYIDIR ve İKİSİ DE YAZILIR (bağımsız
+     inceleme · P2-1). İlk yazımda `veriYuzeyi` tek başına taban
+     tutuyordu; oysa o TARANAN yüzey sayısıdır — bütün tablolar dolsa
+     (yani diş hiçbir boş yüzeye BAKMASA) gezinme listeleri sayesinde
+     yerinde kalır ve kapı "0 kusur" diyerek geçerdi. `bosYuzeySayisi`
+     dişin GERÇEK popülasyonudur: kaç sıfır satırlı yüzeye bakıldı. */
   veriYuzeyi: veriYuzeyiPopulasyonu,
+  bosYuzeySayisi: bosYuzeyPopulasyonu,
+  /* Boş kurulum öncülü — bekçi bunu okur (P1-3). */
+  oncul: BOS_KOSUM ? { ...ONCUL } : null,
   /* Sıfır satırlı ama kapsamında CÜMLE OLMAYAN yüzeyler (Brief M · FAZ 1). */
   cumlesizYuzeyler: cumlesizYuzeyler
     .sort((a, b) => `${a.rota}${a.baslik}`.localeCompare(`${b.rota}${b.baslik}`)),
@@ -463,7 +566,6 @@ console.log(`  politika adayı: ${kutuk.politikaAdaylari.length}`);
 console.log(`  boş durum: ${kutuk.bosDurumlar.length}`);
 console.log(`  taranan veri yüzeyi (tablo/liste): ${veriYuzeyiPopulasyonu}`);
 console.log(`  sıfır satırlı düğüm: ${bosYuzeyPopulasyonu}`);
-console.log(`  METİNSİZ bölüm kapsayıcısı: ${bosKapsayicilar.length}`);
 console.log(`  CÜMLESİZ boş yüzey: ${kutuk.cumlesizYuzeyler.length}`);
 for (const c of kutuk.cumlesizYuzeyler) {
   console.log(`    ${c.rota} · <${c.etiket}> · kapsam "${c.kapsam}" · başlık "${c.baslik}"`);

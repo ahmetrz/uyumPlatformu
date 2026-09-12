@@ -3,8 +3,8 @@ import { execFileSync } from 'node:child_process';
 import { existsSync, readFileSync } from 'node:fs';
 import path from 'node:path';
 import {
-  GEREKCE_ASGARI, kacisKapisiKusurlari, kaynakDizeleri, korGovdeSayisi, politikaMi,
-  sonucSinifi, turet, yeniSatirKusurlari, yorumsuz,
+  GEREKCE_ASGARI, kacisKapisiKusurlari, kaynakDizeleri, korGovdeSayisi,
+  korToplamSayisi, politikaMi, sonucSinifi, turet, yeniSatirKusurlari, yorumsuz,
 } from '../../arac/politika-kutugu.mjs';
 import { tabanKarari, tabanOku } from '../../arac/olcum-tabani.mjs';
 import { tabanDalKarari } from '../../arac/taban-dal.mjs';
@@ -40,7 +40,8 @@ import { tabanDalKarari } from '../../arac/taban-dal.mjs';
 const KUTUK = path.join(process.cwd(), 'arac', 'politika-cumleleri.json');
 const kutuk = JSON.parse(readFileSync(KUTUK, 'utf8')) as {
   not?: string;
-  tavanlar: { olculmeyen: number; sinif: Record<string, number>; korGovde?: number };
+  tavanlar: { olculmeyen: number; sinif: Record<string, number>;
+    korGovde?: number; korToplam?: number };
   tavanGerekceleri?: { alan: string; eski: number; yeni: number; gerekce: string }[];
   satirlar: {
     kod: string; cumle: string; yer: string; sinif: string; gerekce?: string;
@@ -712,14 +713,31 @@ describe('KALIBIN KENDİ YÜRÜYÜŞÜ [URN-POL-001]', () => {
    yanar; yazan kişi ya kalıbın gördüğü bir hâl kullanır ya da kalıbı
    genişletip borcu üstlenir. Sınırın ikinci bekçisi DOM tanığıdır. */
 describe('R0-23 · ÇEKİMLİ ÖZNE SINIRI BÜYÜYEMEZ [URN-POL-001]', () => {
-  it('kör satır sayısı beyan edilen tavanı AŞMIYOR [URN-POL-001]', () => {
+  it('SINIRIN TAMAMI tavanlı — 51 değil 382 (bağımsız inceleme · P2-14) [URN-POL-001]', () => {
+    /* İlk yazım yalnız `korGovde`yi (51) donduruyor ve buna "beyanlı
+       sınır donduruldu" diyordu. Ölçüldü: yüklemi olup YALIN öznesi
+       olmayan aday sayısı 382 — tavan sınırın sekizde birini
+       kapsıyordu. Öznesi hiç olmayan yeni bir cümle ("Onay olmadan
+       yayımlanmaz.") kör kümeyi büyütür ve hiçbir kapı yanmazdı. */
+    const toplam = korToplamSayisi();
+    const tavan = kutuk.tavanlar.korToplam ?? 0;
+    console.log(`R0-23 · sınırın TAMAMI: ${toplam} aday (tavan ${tavan})`);
+    expect(toplam,
+      `BEYANLI SINIR BÜYÜDÜ: ${tavan} → ${toplam}. Türeticinin GÖRMEDİĞİ yeni bir `
+      + 'politika adayı eklendi. Ya kalıbın gördüğü bir özne hâli kullanın, ya '
+      + '`OZNE`yi genişletip açılan borcu bu partide eritin, ya da tavanı '
+      + '`tavanGerekceleri` altında gerekçesiyle yükseltin.')
+      .toBeLessThanOrEqual(tavan);
+  });
+
+  it('ÇEKİMLİ GÖVDE alt kümesi de tavanlı [URN-POL-001]', () => {
+    /* Alt küme AYRI tutulur: `OZNE`yi gövdeye çevirmenin maliyeti tam
+       olarak bu sayıdır (51), sınırın tamamı (382) değil. İki sayıyı
+       birbirine karıştırmak, genişletme kararını yanlış fiyatlar. */
     const kor = korGovdeSayisi();
     const tavan = kutuk.tavanlar.korGovde ?? 0;
-    console.log(`R0-23 · çekimli özne yüzünden görülmeyen cümle: ${kor} (tavan ${tavan})`);
-    expect(kor,
-      `BEYANLI SINIR BÜYÜDÜ: ${tavan} → ${kor}. Çekimli özneli yeni bir politika `
-      + 'cümlesi eklendi ve türetici onu GÖRMÜYOR. Ya kalıbın gördüğü bir özne '
-      + 'hâli kullanın ya da `OZNE`yi genişletip açılan borcu bu partide eritin.')
+    console.log(`R0-23 · çekimli gövde taşıyan alt küme: ${kor} (tavan ${tavan})`);
+    expect(kor, `ÇEKİMLİ GÖVDE ALT KÜMESİ BÜYÜDÜ: ${tavan} → ${kor}`)
       .toBeLessThanOrEqual(tavan);
   });
 

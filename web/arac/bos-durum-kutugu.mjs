@@ -623,9 +623,18 @@ export function satirIciKaydi(yer, satir, c, yuvaDolu = false) {
     iyiHaber,
     /* HER VARYANT ayrı ölçülür: sebebini söyleyen dal, söylemeyeni
        örtemez. `BosIlk` için Brief L'de yapılmıştı; bu sınıf açıktı. */
+    /* ── SESSİZ GERİ DÜŞÜŞ KALDIRILDI (bağımsız inceleme · P2-13) ────
+       İlk yazım varyant üretilemediğinde ESKİ BİRLEŞİK ölçüte geri
+       düşüyordu (`nedenSoyluyor(metin)`) — yani dal başına ölçümün
+       düzeltmek için yazıldığı körlüğe, sessizce. Üstelik geri düşülen
+       metin iç içe süs taşıyan gövdelerde ham kod parçası taşıyor ve o
+       parça ölçütü geçirebiliyordu. Bugün varyant üretilemeyen satır
+       `okunamadi` gibi ele alınır: `neden` FALSE sayılır ve satır
+       cırcıra dâhil olur — türeticinin okuyamadığı bir yüzey, kütükte
+       işaretli durur. */
     neden: okunamadi ? false : (() => {
       const varyantlar = satirIciDallari(c.govde);
-      if (varyantlar.length === 0) return nedenSoyluyor(metin);
+      if (varyantlar.length === 0) return false;
       return varyantlar.every((v) => nedenSoyluyor(v));
     })(),
     eylem: iyiHaber || satirIciEylem(c.govde, yuvaDolu),

@@ -136,23 +136,68 @@ export function dosyaRotasi(yer) {
  * @param {Set<string>} gezilen tanığın GEZDİĞİ rotalar
  * @returns {'sunucu-eylemi'|'rota-gezilmedi'|'acilista-yok'}
  */
+/** Desen yolu GEZİLEN somut bir yola uyuyor mu.
+
+    ── ÖLÇÜLEN KUSUR (bağımsız inceleme · P2-6) ─────────────────────────
+    `dosyaRotasi` ŞABLON üretir (`/uyum/[cerceve]`), `gezilen` ise SOMUT
+    yolları tutar (`/uyum/CBDDO`). Düz `gezilen.has(...)` hiçbir dinamik
+    rotada doğru olmaz ve o satırlar "rota gezilmedi" diye etiketlenirdi.
+    Ölçüldü: bu etiketi taşıyan iki satırın ikisi de `/uyum/[cerceve]`
+    dosyasındaydı ve tanık `/uyum/CBDDO`yu GEZMİŞTİ. Yanlış etiket
+    "rotayı ekleyin" der; gerçek sebep cümlenin koşullu olmasıdır. */
+export function rotaGezildi(desen, gezilen) {
+  if (gezilen.has(desen)) return true;
+  const d = desen.split('/').filter(Boolean);
+  for (const somut of gezilen) {
+    const p = somut.split('/').filter(Boolean);
+    if (p.length !== d.length) continue;
+    let uyar = true;
+    for (let i = 0; i < d.length; i += 1) {
+      if (/^\[.*\]$/.test(d[i])) continue;      /* dinamik segment */
+      if (d[i] !== p[i]) { uyar = false; break; }
+    }
+    if (uyar) return true;
+  }
+  return false;
+}
+
+/** Kategoriler — kapalı küme. `null` = SINIFLANAMADI ve KIRMIZIDIR. */
+export const ERISIM_KATEGORILERI = ['sunucu-eylemi', 'rota-gezilmedi', 'acilista-yok'];
+
 export function erisimKategorisi(satir, gezilen) {
   const yer = String(satir?.yer ?? '');
+  /* ── VARSAYILAN DAL KALDIRILDI (bağımsız inceleme · P2-5) ───────────
+     İlk yazım sonunda koşulsuz `return 'acilista-yok'` yapıyordu; bu
+     yüzden bölüntü dişi (`toplam === ulasilamayan.length`) hiçbir
+     girdide yanlış olamıyordu — TAUTOLOJİ, yani ölü kural. Bugün
+     sınıflanamayan satır `null` döner ve kapı kırmızı yanar. */
+  if (!yer) return null;
   /* 1 · Sunucu eyleminin ret gerekçesi: ilk DOM'da HİÇ bulunmaz, ancak
      kullanıcı bir işlem denediğinde görünür. Tanık işlem denemiyor. */
-  if (!yer.startsWith('app/')) return 'sunucu-eylemi';
+  if (yer.startsWith('lib/')) return 'sunucu-eylemi';
+  if (!yer.startsWith('app/')) {
+    /* `components/**` bir EKRAN yüzeyidir, sunucu eylemi değil (P3-4):
+       hangi rotada göründüğü dosyadan çıkarılamaz, ama açılışta
+       görünmediği kesindir. */
+    return yer.startsWith('components/') ? 'acilista-yok' : null;
+  }
   const rota = dosyaRotasi(yer);
+  if (!rota) return null;
   /* 2 · Rota hiç gezilmedi (dinamik segment çözülemedi, HTTP hata,
      çok parametreli rota). Tanığın `atlanan` listesi bunu adıyla yazar. */
-  if (rota && !gezilen.has(rota)) return 'rota-gezilmedi';
+  if (!rotaGezildi(rota, gezilen)) return 'rota-gezilmedi';
   /* 3 · Rota gezildi ama cümle AÇILIŞ hâlinde yok: çekmece, sekme,
      form, onay kutusu ya da koşullu bir durumun arkasında. */
   return 'acilista-yok';
 }
 
-/** Ulaşılamayan satırların kategori dağılımı. */
+/** Ulaşılamayan satırların kategori dağılımı; `siniflanmadi` AYRI sayılır. */
 export function erisimDagilimi(ulasilamayan, gezilen) {
-  const sayim = { 'sunucu-eylemi': 0, 'rota-gezilmedi': 0, 'acilista-yok': 0 };
-  for (const s of ulasilamayan) sayim[erisimKategorisi(s, gezilen)] += 1;
+  const sayim = { 'sunucu-eylemi': 0, 'rota-gezilmedi': 0, 'acilista-yok': 0, siniflanmadi: 0 };
+  for (const s of ulasilamayan) {
+    const k = erisimKategorisi(s, gezilen);
+    if (k === null) sayim.siniflanmadi += 1;
+    else sayim[k] += 1;
+  }
   return sayim;
 }

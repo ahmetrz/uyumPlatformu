@@ -55,8 +55,11 @@ type TanikCiktisi = {
     iyiHaber?: boolean; eylem: boolean }[];
   /* Sıfır satırlı ama kapsamında CÜMLE OLMAYAN yüzeyler (Brief M · FAZ 1). */
   cumlesizYuzeyler?: { rota: string; etiket: string; kapsam: string; baslik: string }[];
-  /* Taranan tablo/liste/işaret sayısı — dişin POPÜLASYONU. */
+  /* Taranan tablo/liste/işaret sayısı ve dişin GERÇEK popülasyonu. */
   veriYuzeyi?: number;
+  bosYuzeySayisi?: number;
+  /* Boş kurulum öncülü: veritabanı GERÇEKTEN boş muydu (P1-3). */
+  oncul?: { kullanici: number | null; tesis: number | null; madde: number | null } | null;
 };
 type TanikSatiri = {
   kod: string; rota: string; cekirdek: string; sinif: string;
@@ -75,9 +78,10 @@ const bosVar = existsSync(TANIK_BOS);
 const bosTanik: TanikCiktisi | null = bosVar
   ? JSON.parse(readFileSync(TANIK_BOS, 'utf8')) as TanikCiktisi : null;
 const tanikKutuk = JSON.parse(readFileSync(TANIK_KUTUK, 'utf8')) as {
-  tavanlar: { olculmeyen: number; atlananRota?: number };
+  tavanlar: { olculmeyen: number; atlananRota?: number; bosAtlananRota?: number };
   /* ELLE yazılan ilk tur tavanı — taban dal yokken cırcırın tavanı. */
   ilkTurTavani?: { satir?: number };
+  beyan?: { bosYuzey?: number; gerekce?: string };
   satirlar: TanikSatiri[];
 };
 const politika = JSON.parse(readFileSync(POLITIKA, 'utf8')) as {
@@ -205,13 +209,14 @@ describe('DOM tanığı · POPÜLASYON AYRIŞMASI [URN-TNK-001]', () => {
         return;
       }
     }
-    const bugunku = (() => {
+    const gorulenBugun = (() => {
       const { domdaGorulmeyen } = ayrisma(
         tanik.politikaAdaylari.map((a) => a.cumle),
         politika.satirlar.map((s) => s.cumle),
       );
-      return (politika.satirlar.length - domdaGorulmeyen.length) / politika.satirlar.length;
+      return politika.satirlar.length - domdaGorulmeyen.length;
     })();
+    const bugunku = gorulenBugun / politika.satirlar.length;
     if (tabanTanik.hal === 'taban_yok' || tabanKutuk.hal === 'taban_yok') {
       /* İlk tur: kütükler bu dalda doğdu. Oran yine de ÖLÇÜLÜR ve
          `olcum-tabani.json`daki sayı tabanıyla korunur (yukarıdaki vaka). */
@@ -227,13 +232,36 @@ describe('DOM tanığı · POPÜLASYON AYRIŞMASI [URN-TNK-001]', () => {
     const tabanOran = (tk.satirlar.length - tabanGorulmeyen.length) / tk.satirlar.length;
     console.log(`tanık kapsam oranı · taban %${(tabanOran * 100).toFixed(1)} `
       + `→ bugün %${(bugunku * 100).toFixed(1)}`);
-    /* Yuvarlama payı yok: oran DÜŞEMEZ. Kütük büyüdüyse tanık da
-       büyümek zorunda — "kapsam zaten dardı" bir gerekçe değildir. */
-    expect(bugunku,
-      `TANIK KAPSAMI DARALDI: %${(tabanOran * 100).toFixed(1)} → `
-      + `%${(bugunku * 100).toFixed(1)}. Kütük büyürken tanık sabit kalırsa `
-      + '"ayrışma 0" giderek daha az şey söyler.')
-      .toBeGreaterThanOrEqual(tabanOran);
+    /* ── MAYIN DİŞ DÜZELTİLDİ (bağımsız inceleme · P2-8) ─────────────
+       İlk yazım "yuvarlama payı yok, oran DÜŞEMEZ" diyordu. Ölçüldü:
+       kütüğün %84'ü zaten açılış hâlinde görünmüyor (çekmece · sekme ·
+       form), yani tanığın göremediği SIRADAN bir politika cümlesi
+       eklemek oranı 35/220'den 35/221'e düşürür ve kapı kırmızı yanardı.
+       Bu bir kapı değil MAYINDIR: her temiz dalı kırmızı yakar ve tek
+       çıkışları cümleyi yanlış yere taşımak, payı yapay büyütmek ya da
+       cırcırı gevşetmektir — üçü de bu deponun kaçındığı şey. Bu depo
+       aynı sınıfı bir kez daha yaşadı (`yeniler.length > 0` dişi).
+
+       Ölçülmek istenen şey "oran hiç düşmesin" değil, TANIĞIN
+       DARALMAMASI. İkisi kütük büyümediğinde aynı şeydir; büyüdüğünde
+       ayrışır ve ayrım burada yazılıdır:
+         · kütük BÜYÜMEDİYSE → oran düşemez (tanık daraldı demektir),
+         · kütük BÜYÜDÜYSE   → PAY düşemez (tanık aynı satırları hâlâ
+           görüyor; yeni satırın açılışta görünmesi beklenemez).
+       İkisi de türetilmiş; uydurulmuş bir tolerans katsayısı yok. */
+    const tabanGorulen = tk.satirlar.length - tabanGorulmeyen.length;
+    if (politika.satirlar.length <= tk.satirlar.length) {
+      expect(bugunku,
+        `TANIK KAPSAMI DARALDI: %${(tabanOran * 100).toFixed(1)} → `
+        + `%${(bugunku * 100).toFixed(1)} (kütük büyümedi: `
+        + `${tk.satirlar.length} → ${politika.satirlar.length})`)
+        .toBeGreaterThanOrEqual(tabanOran);
+    } else {
+      expect(gorulenBugun,
+        `TANIK DARALDI: gördüğü satır ${tabanGorulen} → ${gorulenBugun}. `
+        + 'Kütük büyüdü, ama tanığın ZATEN gördüğü satırlar da azaldı.')
+        .toBeGreaterThanOrEqual(tabanGorulen);
+    }
   });
 
   it('ULAŞILAMAYAN her satır KATEGORİSİYLE beyanlı — kategorisiz "ulaşılamadı" yok [URN-TNK-001]', () => {
@@ -251,17 +279,21 @@ describe('DOM tanığı · POPÜLASYON AYRIŞMASI [URN-TNK-001]', () => {
     const ulasilamayan = politika.satirlar.filter((s) => gorulmeyen.has(s.cumle));
     const gezilen = new Set(tanik.rota);
     const dagilim = erisimDagilimi(ulasilamayan, gezilen);
-    const toplam = Object.values(dagilim).reduce((a, b) => a + b, 0);
     console.log(`ulaşılamayan ${ulasilamayan.length} satır · ${JSON.stringify(dagilim)}`);
-    expect(toplam,
-      `KATEGORİSİZ SATIR: ${ulasilamayan.length} ulaşılamayan satırın ${toplam}'i `
-      + 'sınıflandı — dördüncü bir hâl doğmuş olabilir')
+    /* ── DİŞ FALSİFİYE EDİLEBİLİR OLMALI (bağımsız inceleme · P2-5) ───
+       İlk yazım `toplam === ulasilamayan.length` diyordu ve kural
+       sonunda KOŞULSUZ bir `return 'acilista-yok'` taşıdığı için bu
+       eşitlik HİÇBİR GİRDİDE yanlış olamıyordu — tautoloji, yani ölü
+       kural. Bugün sınıflanamayan satır `siniflanmadi` altında AYRI
+       sayılır ve sıfır olmak zorundadır: dördüncü bir hâl doğduğunda
+       (yeni bir kök, tanınmayan bir yol) kapı kırmızı yanar. */
+    expect(dagilim.siniflanmadi,
+      `SINIFLANAMAYAN ${dagilim.siniflanmadi} satır — kategorisiz "ulaşılamadı" `
+      + 'kabul edilmez; `erisimKategorisi` yeni hâli tanımıyor')
+      .toBe(0);
+    const toplam = Object.values(dagilim).reduce((a, b) => a + b, 0);
+    expect(toplam, 'dağılım toplamı ulaşılamayan sayısını tutmuyor')
       .toBe(ulasilamayan.length);
-    /* Her kategori GERÇEKTEN kullanılıyor mu: hiç kullanılmayan bir
-       kategori, ölü bir etikettir ve sınıflamayı süsler. */
-    for (const [ad, sayi] of Object.entries(dagilim)) {
-      expect(Number.isInteger(sayi), `${ad} sayısı okunamadı`).toBe(true);
-    }
   });
 
   it('EKRANDA GÖRÜLEN her cümle bir kütükte AÇIKLANIYOR [URN-TNK-001]', () => {
@@ -343,6 +375,45 @@ describe('DOM tanığı · POPÜLASYON AYRIŞMASI [URN-TNK-001]', () => {
       .toEqual([]);
   });
 
+  it('BOŞ KOŞUMUN ÖNCÜLÜ ÖLÇÜLÜ — veritabanı gerçekten BOŞTU [URN-TNK-001]', () => {
+    /* ── ÖLÇÜLEN RİSK (bağımsız inceleme · P1-3) ─────────────────────
+       Koşumun bütün anlamı "veri yok" hâli, ama hiçbir adım bunu
+       doğrulamıyordu. `lib/db.ts` `DATABASE_URL` yoksa TOHUMLU
+       `prisma/dev.db`ye düşer: env aktarımı bir gün bozulursa tanık
+       tohumlu veriyi ölçer, tablolar dolu olur ve cümlesiz yüzey DOĞASI
+       GEREĞİ 0 çıkar. Kapının yeşilliği o zaman bir ölçüm değil, bir
+       yan etki olurdu. Öncül artık kütüğe yazılır ve BURADA okunur. */
+    if (!bosTanik) return;
+    const o = bosTanik.oncul;
+    expect(o, 'boş koşum ÖNCÜLÜNÜ yazmamış — veritabanının boş olduğu ölçülmedi')
+      .toBeTruthy();
+    console.log(`boş kurulum öncülü · Kullanici ${o!.kullanici} · `
+      + `Tesis ${o!.tesis} · Madde ${o!.madde}`);
+    expect(o!.kullanici, 'kurucu hesap tek değil — fikstür beklendiği gibi kurulmamış').toBe(1);
+    expect(o!.tesis, 'Tesis tablosu DOLU — tanık tohumlu bir kurulumu ölçmüş').toBe(0);
+    expect(o!.madde, 'Madde tablosu DOLU — tanık tohumlu bir kurulumu ölçmüş').toBe(0);
+  });
+
+  it('BOŞ KOŞUMDA atlanan rota da BEYANLI — sessiz daralma yok [URN-TNK-001]', () => {
+    /* Bağımsız inceleme (P2-9): `atlanan` tavanı yalnız tohumlu koşumda
+       denetleniyordu. Boş koşum bugün ALTI rota atlıyor (tohum kimlikli
+       detay rotaları boş kurulumda 404 verir — beklenen ve doğru) ve
+       bunun ne tavanı ne beyanı vardı; yarın otuz rota düşse koşum
+       sessizce daralırdı. */
+    if (!bosTanik) return;
+    const BILINEN = ['cok-parametreli', 'tohum-degeri-yok', 'HTTP'];
+    const yabanci = bosTanik.atlanan
+      .filter((a) => !BILINEN.some((b) => a.sebep.startsWith(b)))
+      .map((a) => `${a.rota} — ${a.sebep}`);
+    expect(yabanci, `boş koşum BEKLENMEYEN sebeple rota atladı:\n${yabanci.join('\n')}`)
+      .toEqual([]);
+    const tavan = tanikKutuk.tavanlar.bosAtlananRota ?? 0;
+    console.log(`boş koşum · atlanan rota: ${bosTanik.atlanan.length} (tavan ${tavan})`);
+    expect(bosTanik.atlanan.length,
+      `boş koşumda ${bosTanik.atlanan.length} rota atlandı, beyan edilen tavan ${tavan}`)
+      .toBeLessThanOrEqual(tavan);
+  });
+
   it('DİŞİN POPÜLASYONU ÖLÇÜLÜR — sıfır yüzey tarayan diş sıfır kusur bulur [URN-TNK-001]', () => {
     /* ── DİŞİN KENDİ KUSURU, AYNI TURDA ÖLÇÜLDÜ ─────────────────────
        İlk yazım sıfır satırlı düğümü ararken `gorunur()` istiyordu —
@@ -354,10 +425,36 @@ describe('DOM tanığı · POPÜLASYON AYRIŞMASI [URN-TNK-001]', () => {
        Bugün taranan yüzey sayısı YAZILIR ve bir TABAN taşır. Kusur
        sayısı sıfır olabilir; ölçüm sayısı olamaz. */
     if (!bosTanik) return;   /* yokluğu yukarıdaki vaka kırmızı yakar */
+    /* ── İKİ SAYI, İKİ TABAN (bağımsız inceleme · P2-1) ──────────────
+       `veriYuzeyi` TARANAN yüzey sayısıdır; tek başına taban tutunca
+       bütün tablolar dolsa bile (yani diş hiçbir BOŞ yüzeye bakmasa)
+       gezinme listeleri sayesinde yerinde kalıyor ve kapı "0 kusur"
+       diyerek geçiyordu. Dişin GERÇEK popülasyonu `bosYuzeySayisi`:
+       kaç sıfır satırlı yüzeye bakıldı. İkisi de ölçülür ve ikisi de
+       tabanlıdır. */
     const olculen = bosTanik.veriYuzeyi ?? 0;
     console.log(`cümlesiz yüzey dişi · taranan veri yüzeyi: ${olculen}`);
     const hata = tabanKarari('tanik.veriYuzeyi', olculen, tabanOku().tabanlar);
     expect(hata, hata ?? '').toBeNull();
+
+    /* ── DİŞİN GERÇEK POPÜLASYONU: TABAN DEĞİL, BEYAN ────────────────
+       `bosYuzeySayisi` dişin baktığı sıfır satırlı yüzey sayısıdır ve
+       bugün SIFIR — çünkü altı çağıranın altısı da tablodan ÖNCE kendi
+       boş durumunu çiziyor. Sıfır bir TABAN olamaz (deponun kendi
+       kuralı: "sıfır ölçüm bir ölçüm değildir") ama sessiz de
+       bırakılamaz: `veriYuzeyi` tek başına taban tutunca bütün tablolar
+       dolsa bile sayı yerinde kalıyor ve kapı "0 kusur" diyordu
+       (bağımsız inceleme · P2-1). Bugün sayı BEYANLIDIR: değişirse bir
+       çağıran tabloyu cümlesiz boş bırakmaya başlamış demektir ve bu
+       bilerek yeniden beyan edilmelidir. */
+    const beyan = tanikKutuk.beyan?.bosYuzey;
+    const gercek = bosTanik.bosYuzeySayisi ?? 0;
+    console.log(`cümlesiz yüzey dişi · sıfır satırlı yüzey: ${gercek} (beyan ${beyan})`);
+    expect(gercek,
+      `DİŞİN POPÜLASYONU DEĞİŞTİ: beyan ${beyan} → ölçülen ${gercek}. Bir çağıran `
+      + 'paylaşılan tabloyu cümlesiz boş bırakmaya başlamış olabilir; sayıyı '
+      + '`dom-tanik-kutugu.json` → `beyan.bosYuzey` altında GEREKÇESİYLE yenileyin.')
+      .toBe(beyan);
   });
 
   it('TANIK KÜTÜĞÜ CIRCIRDADIR — taban dala göre BÜYÜYEMEZ [URN-TNK-001]', () => {

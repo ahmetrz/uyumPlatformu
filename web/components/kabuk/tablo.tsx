@@ -86,8 +86,12 @@ function icEtkilesim(e: MouseEvent<HTMLElement>): boolean {
    Ürünün kendi sözleşmesini beyan etmesi bu depoda zaten kullanılan
    kalıp: `BosIlk` de kendini `div.ab-blok > span.etiket` ile bildiriyor
    ve tanık onu o sözleşmeden okuyor. */
+/* Sınıf adı YOK ve bu bilerek (bağımsız inceleme · P3-6): `.ab-bos-yuzey`
+   CSS'te hiç tanımlı değildi ve hiçbir okuyucusu yoktu — yük taşıyan tek
+   şey `data-bos-yuzey`. İkinci, ölü bir sözleşme bırakmak, bir gün
+   silinip kimsenin fark etmemesi demektir. */
 const BosYuzeyIsareti = () => (
-  <span className="ab-bos-yuzey" data-bos-yuzey="tablo" aria-hidden="true" />
+  <span data-bos-yuzey="tablo" aria-hidden="true" />
 );
 
 export function VeriTablosu<T extends { id: string }>({

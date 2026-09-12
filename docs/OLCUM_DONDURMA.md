@@ -21,7 +21,7 @@ Sınır burada çizildi.
 | `web/arac/politika-cumleleri.json` | **220** · POLITIKA **213** (S1 82 · S2 63 · S3 68) · `IDDIA_DEGIL` 7 · **ölçülmeyen 0** | kaynak türetici (`politika-kutugu.mjs`) — dize tarayıcısı + JSX metni | DOM tanığı: kütüğün **35/220**'ini (%15,9) render edilmiş ekranda görüyor |
 | `web/arac/bos-durumlar.json` | **125** · iki ölçütü karşılayan **124** · nedensiz **1** (beyanlı hesaplanan cümle) · **eylemsiz 0** · iyi haber 17 | kaynak türetici (`bos-durum-kutugu.mjs`) — üç yüzey, **dal başına** ölçüm | DOM tanığı: tohumlu koşumda 16, **boş kurulumda 51** boş durum |
 | `web/arac/dom-tanik.json` (tohumlu) | 65 rota · atlanan **0** · 43 cümle · 16 boş durum · taranan veri yüzeyi **56** · cümlesiz **0** | gerçek tarayıcı, kaynağı HİÇ OKUMAZ | kaynak türeticisinin kendisi |
-| `web/arac/dom-tanik-bos.json` (boş kurulum) | 65 rota · atlanan **6** · 37 cümle · 51 boş durum · taranan veri yüzeyi **17** · cümlesiz **0** | aynı tanık, KENDİ kurduğu boş veritabanı + kendi kurucu hesabı + kendi sunucusu | — |
+| `web/arac/dom-tanik-bos.json` (boş kurulum) | 65 rota · atlanan **6** (tavanlı) · 37 cümle · 51 boş durum · taranan veri yüzeyi **17** · **sıfır satırlı yüzey 0** · cümlesiz **0** · öncül `Kullanici 1 · Tesis 0 · Madde 0` | aynı tanık, KENDİ kurduğu boş veritabanı + kendi kurucu hesabı + kendi sunucusu; "veritabanı boş" öncülü ÖLÇÜLÜR ve kütüğe yazılır | — |
 | `web/arac/dom-tanik-kutugu.json` | **8** satır (çalışma anında birleşen cümleler) · ölçümsüz tavanı **0** | elle sınıflanmış, ölçümü adıyla beyanlı | kütükte olmayan cümle kırmızı, kodda olmayan satır da kırmızı |
 
 **Ölçüm tabanları** (`web/arac/olcum-tabani.json`) — her biri yalnız
@@ -50,9 +50,9 @@ Her birinin sahibi, gerekçesi ve BÜYÜYEMEYEN bir tavanı var.
 | | |
 | --- | --- |
 | **Ne ölçülmüyor** | Özneleri çekim ekiyle yazan politika cümleleri ("kütüğün…", "kaydı…", "ürünün…"). `OZNE` kalıbı özneyi YALIN hâliyle arar. |
-| **Ölçülen büyüklük** | **51** cümle (`korGovdeSayisi()`) |
+| **Ölçülen büyüklük** | Sınırın TAMAMI **382** aday (`korToplamSayisi()`: yüklemi olup YALIN öznesi olmayan). Bunun **51**'i bilinen bir gövdenin çekimli hâlini taşır (`korGovdeSayisi()`) — yani `OZNE`yi gövdeye çevirmenin fiyatı 51, sınırın kendisi 382. |
 | **Neden kapatılmadı** | Kalıbı gövdeye çevirmek 51 satırlık yeni bir borç açar; bu kütüğün yedinci dişi SIFIRDA KİLİTLİ, yani her satır gerçek yol ölçümüyle gelmek zorunda. Yüz satırı bir turda aceleyle ölçmek, bu deponun kaçındığı şeyin ta kendisidir. |
-| **Tavan** | `politika-cumleleri.json` → `tavanlar.korGovde = 51`. **Büyüyemez**: çekimli özneli yeni bir cümle kapıyı kırmızı yakar. |
+| **Tavan** | `politika-cumleleri.json` → `tavanlar.korToplam = 382` **ve** `tavanlar.korGovde = 51`. İkisi de **büyüyemez**: türeticinin görmediği yeni bir politika adayı kapıyı kırmızı yakar. İlk yazım yalnız 51'i donduruyordu — bağımsız inceleme sınırın sekizde birinin dondurulduğunu ölçtü (P2-14) ve tavan sınırın tamamına genişletildi. |
 | **İkinci bekçi** | DOM tanığı — çekimli özneli bir cümle gerçekten ekrana çıkıyorsa tanık onu görür ve kütükte bulamayınca kırmızı yanar. |
 | **Sahip / kapanış** | KODLAYAN / P3 · mesaj kataloğu (arayüz metni sözlük anahtarına geçtiğinde tarama metinden ANAHTARA döner ve gövde sorunu ortadan kalkar) |
 
@@ -65,16 +65,41 @@ dördüncü bir hâl doğarsa toplam tutmaz ve kapı kırmızı yanar.
 
 | Kategori | Satır | Ne demek |
 | --- | --- | --- |
-| `acilista-yok` | **151** | Rota gezildi ama cümle AÇILIŞ hâlinde yok: çekmece, sekme, form ya da koşullu bir durumun arkasında. Tanık etkileşim sürmüyor. |
-| `sunucu-eylemi` | **32** | Sunucu eyleminin ret gerekçesi (`lib/eylemler2/**`): ilk DOM'da hiç bulunmaz, ancak kullanıcı bir işlem denediğinde görünür. |
-| `rota-gezilmedi` | **2** | Dinamik segmentin tohum değeri çözülemedi ya da HTTP hata döndü. Tanığın `atlanan` listesi sebebi adıyla yazar. |
+| `acilista-yok` | **153** | Rota gezildi ama cümle AÇILIŞ hâlinde yok: çekmece, sekme, form ya da koşullu bir durumun arkasında. Tanık etkileşim sürmüyor. |
+| `sunucu-eylemi` | **32** | Sunucu eyleminin ret gerekçesi (`lib/**`): ilk DOM'da hiç bulunmaz, ancak kullanıcı bir işlem denediğinde görünür. |
+| `rota-gezilmedi` | **0** | Rota hiç gezilmedi. |
+| `siniflanmadi` | **0** | **Sıfır olmak ZORUNDA.** Kural sınıflayamadığı satıra `null` döner ve kapı kırmızı yanar. |
 
-**Tavan:** kapsama ORANI taban dala göre **düşemez**. Salt sayıya bakan
-bir taban yetmez — kütük büyürken tanık sabit kalırsa sayı korunur, oran
-düşer ve "ayrışma 0" giderek daha az şey söyler.
+> İlk yazımda `rota-gezilmedi` **2** görünüyordu ve ikisi de YANLIŞ etiketti:
+> kural şablon yolu (`/uyum/[cerceve]`) üretiyor, gezilen liste somut yolu
+> (`/uyum/CBDDO`) tutuyordu ve dinamik rotalı hiçbir satır eşleşemiyordu.
+> Bağımsız inceleme ölçtü (P2-6); eşleme segment segment yapıldı.
+>
+> Bölüntü dişi de ilk yazımda **tautolojiydi** (P2-5): kural sonunda
+> koşulsuz bir varsayılan döndürdüğü için "toplam tutuyor mu" sorusu
+> hiçbir girdide yanlış olamıyordu. Varsayılan kaldırıldı.
+
+**Tavan:** kütük BÜYÜMEDİYSE oran düşemez; kütük BÜYÜDÜYSE tanığın
+gördüğü SATIR SAYISI düşemez. Ayrım bağımsız incelemenin ölçümüyle
+kondu (P2-8): tek koşullu "oran hiç düşemez" kuralı bir kapı değil bir
+MAYINDI — kütüğün %84'ü zaten açılışta görünmediği için tanığın
+göremediği SIRADAN bir cümle eklemek her temiz dalı kırmızı yakardı ve
+tek çıkışlar cümleyi yanlış yere taşımak, payı yapay büyütmek ya da
+cırcırı gevşetmekti. İkisi de türetilmiş; uydurulmuş tolerans katsayısı
+yok.
 **Sahip:** KODLAYAN. **Kapanış:** bir müşteri ihtiyacı doğurursa.
 
-### 3 · `kapi-compose` yerel ölçümü
+### 3 · Cümlesiz boş yüzey dişinin popülasyonu BUGÜN SIFIR
+
+| | |
+| --- | --- |
+| **Ne ölçülmüyor** | Hiçbir şey ölçülmüyor değil — ama dişin baktığı **sıfır satırlı yüzey sayısı boş kurulumda 0**. Sebebi ürünün lehine: altı çağıranın altısı da tablodan ÖNCE kendi boş durumunu çiziyor, yani paylaşılan tablo boş kurulumda hiç render edilmiyor. |
+| **Ölçülen büyüklük** | sıfır satırlı yüzey **0** (`dom-tanik-kutugu.json` → `beyan.bosYuzey`, gerekçesiyle) · taranan veri yüzeyi **17** (`tanik.veriYuzeyi` tabanı) |
+| **Neden ayrı yazılıyor** | İlk yazımda diş tek bir sayıya (`veriYuzeyi`) taban koyuyordu ve bu YANILTICIYDI: bütün tablolar dolsa bile gezinme listeleri sayesinde o sayı yerinde kalır, diş hiçbir boş yüzeye BAKMAMIŞ olur ve kapı yine "0 kusur" derdi (bağımsız inceleme · P2-1). Bugün iki sayı da ölçülür: taranan yüzey bir TABAN, sıfır satırlı yüzey bir BEYAN taşır. Sıfır bir taban olamaz — deponun kendi kuralı "sıfır ölçüm bir ölçüm değildir" der ve `olcum-tabani.json` bunu bir kapıyla zorluyor; ölçüldü, taban olarak yazma denemesi kırmızı yandı. |
+| **Sınır** | Dişin bugün koruduğu şey bir SAYI değil bir SÖZLEŞMEDİR: yarın bir çağıran tabloyu cümlesiz boş bırakırsa işaret basılır, popülasyon 0'dan 1'e çıkar ve cümlesiz tavanı (0) kırmızı yanar. Sabotajla ölçüldü. |
+| **Sahip / kapanış** | KODLAYAN / bir müşteri ihtiyacı doğurursa |
+
+### 4 · `kapi-compose` yerel ölçümü
 
 | | |
 | --- | --- |
@@ -84,7 +109,7 @@ düşer ve "ayrışma 0" giderek daha az şey söyler.
 | **Tavan** | Yerel parti bunu "geçti" diye YAZMAZ, "ÖLÇÜLMEDİ" diye yazar ve parti kapanışı kırmızı olur. |
 | **Sahip / kapanış** | Gözden geçirenin kararı — `dockerd` kapsam dışı. |
 
-### 4 · Kapının ölçtüğü şeyin sınırı (R-D · R-F · R-G ile aynı, kabul edilmiş)
+### 5 · Kapının ölçtüğü şeyin sınırı (R-D · R-F · R-G ile aynı, kabul edilmiş)
 
 Kapılar **beyanın VARLIĞINI** ölçer, **DOĞRULUĞUNU** değil:
 
@@ -130,9 +155,11 @@ bağlı ve üçü de sabotajla kanıtlandı:
 
 | Kalem | Kapı | Sabotaj |
 | --- | --- | --- |
-| R0-23 · 51 kör cümle | `tests/bekci/politika-olcumu.test.ts` | çekimli özneli cümle eklendi → 51 → 52 → kırmızı |
+| R0-23 · sınır 382 (alt küme 51) | `tests/bekci/politika-olcumu.test.ts` | çekimli özneli cümle eklendi → 51 → 52 → kırmızı; sınırın tamamı da ayrı tavanlı |
 | Tanık kapsamı %15,9 | `tests/bekci/dom-tanik.test.ts` | tanık cümlelerinin yarısı düşürüldü → dört diş birden kırmızı |
 | Cümlesiz boş yüzey 0 | `tests/bekci/dom-tanik.test.ts` | bir ekranın boş durumu kaldırıldı → tanık yüzeyi gördü → kırmızı |
+| Kategori bölüntüsü · siniflanmadi 0 | `tests/bekci/dom-tanik.test.ts` | kurala varsayılan dal geri kondu → tautoloji; kaldırıldı, sınıflanamayan satır artık `null` döner ve kapı yanar |
+| Boş kurulum öncülü | `tests/bekci/dom-tanik.test.ts` | `Kullanici 1 · Tesis 0 · Madde 0` ölçülüyor; tohumlu bir veritabanı ölçülürse kapı yanar |
 
 Dördüncü kalem (`kapi-compose`) yerelde ölçülemediği için sabotajı da
 yerelde koşulamaz; otoritesi CI'dır ve orada yeşildir.

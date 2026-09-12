@@ -96,7 +96,7 @@ yok.
 | **Ne ölçülmüyor** | Hiçbir şey ölçülmüyor değil — ama dişin baktığı **sıfır satırlı yüzey sayısı boş kurulumda 0**. Sebebi ürünün lehine: altı çağıranın altısı da tablodan ÖNCE kendi boş durumunu çiziyor, yani paylaşılan tablo boş kurulumda hiç render edilmiyor. |
 | **Ölçülen büyüklük** | sıfır satırlı yüzey **0** (`dom-tanik-kutugu.json` → `beyan.bosYuzey`, gerekçesiyle) · taranan veri yüzeyi **17** (`tanik.veriYuzeyi` tabanı) |
 | **Neden ayrı yazılıyor** | İlk yazımda diş tek bir sayıya (`veriYuzeyi`) taban koyuyordu ve bu YANILTICIYDI: bütün tablolar dolsa bile gezinme listeleri sayesinde o sayı yerinde kalır, diş hiçbir boş yüzeye BAKMAMIŞ olur ve kapı yine "0 kusur" derdi (bağımsız inceleme · P2-1). Bugün iki sayı da ölçülür: taranan yüzey bir TABAN, sıfır satırlı yüzey bir BEYAN taşır. Sıfır bir taban olamaz — deponun kendi kuralı "sıfır ölçüm bir ölçüm değildir" der ve `olcum-tabani.json` bunu bir kapıyla zorluyor; ölçüldü, taban olarak yazma denemesi kırmızı yandı. |
-| **Sınır** | Dişin bugün koruduğu şey bir SAYI değil bir SÖZLEŞMEDİR: yarın bir çağıran tabloyu cümlesiz boş bırakırsa işaret basılır, popülasyon 0'dan 1'e çıkar ve cümlesiz tavanı (0) kırmızı yanar. Sabotajla ölçüldü. |
+| **Sınır** | Dişin bugün koruduğu şey bir SAYI değil bir SÖZLEŞMEDİR: yarın bir çağıran tabloyu cümlesiz boş bırakırsa işaret basılır, popülasyon 0'dan 1'e çıkar ve cümlesiz tavanı (0) kırmızı yanar. Sabotajla ölçüldü. **Yargı kapsam başınadır** (Codex turu): aynı bölümü paylaşan iki boş yüzeyden birinin cümlesi öbürünü AKLAMAZ — kapsamdaki görünür cümle sayısı boş yüzey sayısından azsa fark kadar yüzey cümlesizdir; S-M8 ile ölçüldü. |
 | **Sahip / kapanış** | KODLAYAN / bir müşteri ihtiyacı doğurursa |
 
 ### 4 · `kapi-compose` yerel ölçümü
@@ -158,6 +158,7 @@ bağlı ve üçü de sabotajla kanıtlandı:
 | R0-23 · sınır 382 (alt küme 51) | `tests/bekci/politika-olcumu.test.ts` | çekimli özneli cümle eklendi → 51 → 52 → kırmızı; sınırın tamamı da ayrı tavanlı |
 | Tanık kapsamı %15,9 | `tests/bekci/dom-tanik.test.ts` | tanık cümlelerinin yarısı düşürüldü → dört diş birden kırmızı |
 | Cümlesiz boş yüzey 0 | `tests/bekci/dom-tanik.test.ts` | bir ekranın boş durumu kaldırıldı → tanık yüzeyi gördü → kırmızı |
+| Cümlesiz boş yüzey 0 · **kapsam paylaşan ikinci yüzey** | `tests/bekci/dom-tanik.test.ts` | S-M8: bir `.ab-kart` içine `BosIlk` + İKİ boş tablo kondu → YENİ ölçütte sıfır satırlı 2 · cümlesiz 1 · iki diş birden kırmızı (tavan VE popülasyon beyanı); AYNI girdide ESKİ ölçüt (kapsamda bir cümle varsa hepsi aklanır) cümlesiz **0** verip sessiz yeşil kalıyordu |
 | Kategori bölüntüsü · siniflanmadi 0 | `tests/bekci/dom-tanik.test.ts` | kurala varsayılan dal geri kondu → tautoloji; kaldırıldı, sınıflanamayan satır artık `null` döner ve kapı yanar |
 | Boş kurulum öncülü | `tests/bekci/dom-tanik.test.ts` | `Kullanici 1 · Tesis 0 · Madde 0` ölçülüyor; tohumlu bir veritabanı ölçülürse kapı yanar |
 

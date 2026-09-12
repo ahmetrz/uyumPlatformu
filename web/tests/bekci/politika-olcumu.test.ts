@@ -788,14 +788,29 @@ describe('R0-23 · ÇEKİMLİ ÖZNE SINIRI BÜYÜYEMEZ [URN-POL-001]', () => {
       .toBeLessThanOrEqual(tavan);
   });
 
-  it('ALT KÜME TAVAN DEĞİL — kütükte tavanı BULUNMAMALI [URN-POL-001]', () => {
-    /* Uzlaştırma kararının kendisi ölçülür: `korGovde` bir tavan olarak
-       geri gelirse yukarıdaki mayın da geri gelmiş olur. Alt küme
-       bilgidir ve yalnız kayıt satırında görünür. */
+  it('ALT KÜMENİN SAYI TAVANI YOK — mayın geri gelmesin [URN-POL-001]', () => {
+    /* Uzlaştırma kararının kendisi ölçülür: alt kümenin SAYI TAVANI geri
+       gelirse yukarıdaki mayın da geri gelmiş olur (körlüğü hiç
+       değiştirmeyen bir yeniden yazım temiz dalı kırmızı yakar).
+
+       ── NE YASAKLANIYOR, NE YASAKLANMIYOR (inceleme · P2) ───────────
+       Yasaklanan şey `tavanlar.korGovde` adındaki SAYI TAVANIDIR.
+       Alt kümeyi izlemenin kendisi yasak değildir: tabandaki alt küme
+       cümlelerinin KİMLİĞİNİ karşılaştıran bir mekanizma bu dişin
+       kapsamı dışındadır ve bu vaka onu engellemez — çünkü böyle bir
+       mekanizmanın kütükte bir sayı tavanına ihtiyacı yoktur.
+
+       ── SAYI TAVANININ KABUL EDİLMİŞ SINIRI ─────────────────────────
+       Bire bir TAKAS görünmez: bir kör aday silinip yerine başka bir
+       kör aday eklenirse toplam 357'de kalır ve kapı susar. Bu her SAYI
+       tavanının doğasıdır — `korToplam` için de böyleydi ve bu turda
+       açılmadı. Beyanlıdır (`docs/OLCUM_DONDURMA.md` → R0-23); kısmî
+       ikinci bekçi DOM tanığıdır. */
     expect('korGovde' in kutuk.tavanlar,
-      'ALT KÜME YENİDEN TAVAN OLMUŞ: `tavanlar.korGovde` geri gelmiş. Kilit sayı '
-      + 'TEKTİR (aday popülasyon); alt küme tavanı, körlüğü hiç değiştirmeyen bir '
-      + 'yeniden yazımda temiz dalı kırmızı yakar.')
+      'ALT KÜMENİN SAYI TAVANI GERİ GELMİŞ: `tavanlar.korGovde`. Kilit sayı TEKTİR '
+      + '(aday popülasyon); alt kümenin SAYI tavanı, körlüğü hiç değiştirmeyen bir '
+      + 'yeniden yazımda temiz dalı kırmızı yakar. Alt kümeyi KİMLİKLE izlemek '
+      + 'isterseniz o başka bir mekanizmadır ve bu vaka onu engellemez.')
       .toBe(false);
   });
 

@@ -233,9 +233,14 @@ async function sayfaTopla(page) {
        Bileşen bu yüzden görünmez bir işaret basıyor
        (`[data-bos-yuzey]`) ve tanık sözleşmeyi buradan okur. */
     for (const isaret of document.querySelectorAll('[data-bos-yuzey]')) {
-      /* Gizli bir sekme panelindeki işaret cümle TALEP ETMEZ (P3-5):
-         iki döngünün ölçütü ayrışmasın. */
-      if (gizli(isaret)) continue;
+      /* ── İŞARETİN KENDİ `aria-hidden`I ONU ELEMEZ (Codex · P1) ────
+         Önceki düzeltme "gizli bir sekme panelindeki işaret cümle talep
+         etmez" diye `gizli(isaret)` koydu. Ama işaretin KENDİSİ
+         `aria-hidden="true"` taşıyor ve `closest()` elemanın kendisini
+         de sayar: HER işaret eleniyordu, yani işaret yolu hiç
+         çalışmıyordu. Düzeltmenin kendisi dişi öldürmüştü. Bugün
+         yalnız ATANIN gizliliği sorulur. */
+      if (gizli(isaret.parentElement ?? isaret)) continue;
       cikan.veriYuzeyi += 1;
       cikan.bosYuzeySayisi += 1;
       const kapsam = isaret.closest(BOLUM) || isaret.parentElement;
@@ -325,7 +330,7 @@ const BOS_GIRIS = { eposta: 'kurgusal.kurucu@bos.local', parola: 'BosKurulumKurg
 let bosDbYolu = null;
 let bosSunucu = null;
 /* Boş kurulum öncülü — kütüğe yazılır ve bekçi okur (P1-3). */
-const ONCUL = { kullanici: null, tesis: null, madde: null };
+const ONCUL = { kullanici: null, tesis: null, madde: null, sunucuOturum: null };
 
 async function bosKurulumKur() {
   const { mkdtempSync, mkdirSync, rmSync } = await import('node:fs');
@@ -392,6 +397,16 @@ async function bosKurulumKur() {
       + `Kullanici ${ONCUL.kullanici} (1 bekleniyor) · Tesis ${ONCUL.tesis} (0) · `
       + `Madde ${ONCUL.madde} (0). Tanık TOHUMLU bir veritabanını ölçüyor olabilir.`);
   }
+  /* ── ÖNCÜLÜN İKİNCİ TANIĞI: GİRİŞİN KENDİSİ (Codex · P2) ──────────
+     Yukarıdaki sayım DOSYAYI okur, sunucuyu değil: çocuk süreç
+     `DATABASE_URL`i yitirip TOHUMLU `dev.db`ye düşerse fikstür dosyası
+     yine boştur ve öncül "tuttu" der.
+
+     İkinci tanık zaten yolun içinde: fikstürün kurucu hesabı
+     (`kurgusal.kurucu@bos.local`) YALNIZ bu veritabanında var. Sunucu
+     başka bir veritabanı okusaydı o kimlikle giriş BAŞARISIZ olurdu.
+     Giriş sonucu artık kütüğe yazılıyor ve bekçi onu okuyor — yani
+     "sunucu fikstürü okuyor" bir varsayım değil, ölçülmüş bir sonuç. */
   /* ── ÖNCE PORT BOŞ MU (bağımsız inceleme · P1-2) ──────────────────
      Tek kontrol "3211 yanıt veriyor mu" idi. O portta BAŞKA bir süreç
      dinliyorsa (önceki koşumun zombisi, paralel bir iş, geliştiricinin
@@ -399,7 +414,14 @@ async function bosKurulumKur() {
      sunucudan 200 alır ve tanık BAŞKA BİR KURULUMU "boş kurulum" diye
      ölçer — tohumlu bir sunucuya rastlarsa cümlesiz yüzey doğal olarak
      0 çıkar ve kapı YANLIŞ SEBEPLE yeşil yanar. */
-  const port = Number(process.env.BOS_PORT ?? 3211);
+  /* ── PORT ÇAKIŞMASI (Codex · P2) ───────────────────────────────────
+     `BOS_PORT` sabit 3211 varsayıyordu; `PORT=3211 npm run kapi:parti`
+     koşulduğunda parti kendi paylaşılan sunucusunu 3211'e kuruyor ve bu
+     adım "PORT ZATEN DOLU" diyerek yerel kapanışı imkânsız kılıyordu.
+     Varsayılan artık PAYLAŞILAN porttan TÜRETİLİR. */
+  const paylasilan = Number(process.env.PORT ?? 3210);
+  const port = Number(process.env.BOS_PORT ?? (paylasilan + 1 === paylasilan
+    ? 3211 : paylasilan + 1));
   const kok = `http://127.0.0.1:${port}`;
   try {
     await fetch(`${kok}/giris`, { signal: AbortSignal.timeout(1500) });
@@ -493,7 +515,15 @@ const browser = await chromium.launch({
 try {
   const context = await browser.newContext({ viewport: { width: 1440, height: 900 } });
   const page = await context.newPage();
-  await girisYap(page, SUNUCU, OTURUM);
+  const oturumAcildi = await girisYap(page, SUNUCU, OTURUM);
+  if (BOS_KOSUM) {
+    ONCUL.sunucuOturum = oturumAcildi === true;
+    if (!ONCUL.sunucuOturum) {
+      throw new Error('BOŞ KURULUM SUNUCUSU FİKSTÜRÜ OKUMUYOR: kurucu hesabıyla '
+        + 'giriş açılamadı. Sunucu başka bir veritabanına (tohumlu dev.db) '
+        + 'düşmüş olabilir.');
+    }
+  }
   for (const rota of ROTALAR) {
     try {
       const yanit = await page.goto(`${SUNUCU}${rota}`, { waitUntil: 'networkidle', timeout: 30_000 });

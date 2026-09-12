@@ -429,6 +429,9 @@ jobs:
       # kendi sunucusunu (3211) kurar, sonunda üçünü de kaldırır.
       - name: DOM tanığı · BOŞ KURULUM koşumu
         working-directory: web
+        # BOS_PORT paylaşılan porttan TÜRETİLİR (PORT+1); adımın kendisi
+        # de bunu açıkça yazar ki `PORT=3211 npm run kapi:parti` gibi bir
+        # yerel koşumda çakışma doğmasın.
         run: npm run tanik:dom-bos
 
       - name: DOM tanığı · ayrışma bekçisi

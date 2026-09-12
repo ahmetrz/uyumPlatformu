@@ -2440,6 +2440,18 @@
       "eski": 38,
       "yeni": 39,
       "gerekce": "R15 · kişisel veri koruma ekranı ve eylem katmanı yeni politika cümleleri getirdi. Tavan yükseldi çünkü ÜRÜN büyüdü, ölçüm gevşemedi: S1 cümlelerinin üçü de aynı partide eritildi ve S1 tavanı SIFIRDA kaldı."
+    },
+    {
+      "alan": "korToplam",
+      "eski": 0,
+      "yeni": 382,
+      "gerekce": "YENİ bir tavan; gevşetme değil, daha önce HİÇ ÖLÇÜLMEYEN bir sınırın ilk kez dondurulması. Kusur: OZNE kalıbı özneyi yalın hâliyle arar ve çekimli hâlleri görmez; yüklemi olup yalın öznesi olmayan 382 aday türeticinin DIŞINDA kalıyor ve bugüne kadar hiçbir kapı bu sayının büyümesini görmüyordu. Tavan bu sayıyı kilitler: yeni bir kör cümle eklenirse kapı kırmızı yanar. Sınır kapatılmadı çünkü kalıbı genişletmek 51 satırlık ölçülmemiş borç açar ve bu kütüğün yedinci dişi sıfırda kilitli."
+    },
+    {
+      "alan": "korGovde",
+      "eski": 0,
+      "yeni": 51,
+      "gerekce": "YENİ bir tavan; 382 satırlık sınırın, bilinen bir gövdenin çekimli hâlini TAŞIYAN alt kümesi. Ayrı tutulur çünkü OZNE kalıbını gövdeye çevirmenin fiyatı tam olarak bu sayıdır (51), sınırın tamamı (382) değil; ikisini karıştırmak genişletme kararını yanlış fiyatlar. Alt küme de büyüyemez."
     }
   ]
 }

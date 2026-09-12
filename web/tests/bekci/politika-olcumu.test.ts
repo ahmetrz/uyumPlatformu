@@ -331,11 +331,19 @@ describe('SONUÇ SINIFI ve CIRCIR [URN-POL-001]', () => {
     } catch { taban = null; }
     if (taban === null) return; /* kütüğü GETİREN dal */
 
+    /* ── R0-23 TAVANLARI DA DENETİMDE (Codex bulgusu) ────────────────
+       Anahtar haritası yalnız `olculmeyen` ve `sinif.*` okuyordu; yeni
+       `korToplam`/`korGovde` tavanları bu denetimin DIŞINDAYDI. Kör
+       küme büyüdüğünde tavanı yeni sayıya çekmek iki vakayı da
+       geçiriyor ve DONDURULMUŞ SINIR sessizce yükselmiş oluyordu —
+       gerekçe istenmeden. Dondurmanın anlamı tam da bunu engellemek. */
     const oku = (k: typeof kutuk): Record<string, number> => ({
       olculmeyen: k.tavanlar.olculmeyen,
       'sinif.S1': k.tavanlar.sinif.S1,
       'sinif.S2': k.tavanlar.sinif.S2,
       'sinif.S3': k.tavanlar.sinif.S3,
+      korToplam: k.tavanlar.korToplam ?? 0,
+      korGovde: k.tavanlar.korGovde ?? 0,
     });
     const bugunku = oku(kutuk);
     const tabanki = oku(taban);

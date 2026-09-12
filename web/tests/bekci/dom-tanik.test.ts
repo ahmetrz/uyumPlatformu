@@ -59,7 +59,8 @@ type TanikCiktisi = {
   veriYuzeyi?: number;
   bosYuzeySayisi?: number;
   /* Boş kurulum öncülü: veritabanı GERÇEKTEN boş muydu (P1-3). */
-  oncul?: { kullanici: number | null; tesis: number | null; madde: number | null } | null;
+  oncul?: { kullanici: number | null; tesis: number | null; madde: number | null;
+    sunucuOturum?: boolean | null } | null;
 };
 type TanikSatiri = {
   kod: string; rota: string; cekirdek: string; sinif: string;
@@ -249,7 +250,6 @@ describe('DOM tanığı · POPÜLASYON AYRIŞMASI [URN-TNK-001]', () => {
          · kütük BÜYÜDÜYSE   → PAY düşemez (tanık aynı satırları hâlâ
            görüyor; yeni satırın açılışta görünmesi beklenemez).
        İkisi de türetilmiş; uydurulmuş bir tolerans katsayısı yok. */
-    const tabanGorulen = tk.satirlar.length - tabanGorulmeyen.length;
     if (politika.satirlar.length <= tk.satirlar.length) {
       expect(bugunku,
         `TANIK KAPSAMI DARALDI: %${(tabanOran * 100).toFixed(1)} → `
@@ -257,10 +257,23 @@ describe('DOM tanığı · POPÜLASYON AYRIŞMASI [URN-TNK-001]', () => {
         + `${tk.satirlar.length} → ${politika.satirlar.length})`)
         .toBeGreaterThanOrEqual(tabanOran);
     } else {
-      expect(gorulenBugun,
-        `TANIK DARALDI: gördüğü satır ${tabanGorulen} → ${gorulenBugun}. `
-        + 'Kütük büyüdü, ama tanığın ZATEN gördüğü satırlar da azaldı.')
-        .toBeGreaterThanOrEqual(tabanGorulen);
+      /* ── SAYI DEĞİL KİMLİK (Codex · P2) ──────────────────────────────
+         Salt sayı karşılaştırması bir satırın KAYBINI, başka bir yeni
+         satırın kazanılmasıyla takas ettiriyordu: tanık eski kapsamında
+         daralsa bile toplam korunabiliyordu. Bugün TABANDA GÖRÜLEN
+         cümlelerin bugün de görülüyor olması istenir. */
+      const bugunGorulen = new Set(
+        politika.satirlar.map((x) => x.cumle)
+          .filter((c) => !ayrisma(tanik.politikaAdaylari.map((a) => a.cumle), [c])
+            .domdaGorulmeyen.length),
+      );
+      const tabanGorulenler = tk.satirlar.map((x) => x.cumle)
+        .filter((c) => !tabanGorulmeyen.includes(c));
+      const kaybolan = tabanGorulenler.filter((c) => !bugunGorulen.has(c));
+      expect(kaybolan,
+        `TANIK DARALDI: tabanda GÖRÜLEN ${kaybolan.length} cümle bugün görülmüyor:\n`
+        + kaybolan.slice(0, 5).join('\n'))
+        .toEqual([]);
     }
   });
 
@@ -368,8 +381,15 @@ describe('DOM tanığı · POPÜLASYON AYRIŞMASI [URN-TNK-001]', () => {
         + '`PORT=3210 node arac/dom-tanik.mjs --bos --yaz`').toBe('');
       return;
     }
-    const kusur = (bosTanik.cumlesizYuzeyler ?? [])
-      .map((c) => `${c.rota} · <${c.etiket}> · kapsam "${c.kapsam}" · "${c.baslik}"`);
+    /* ── İKİ KOŞUM DA DENETLENİR (Codex · P2) ────────────────────────
+       İlk yazım yalnız boş kurulum çıktısına bakıyordu. Ama bir ALT
+       tablo/liste ancak ÜST kayıt varken render edilir (detay rotaları)
+       ve boş kurulumda hiç doğmaz: tohumlu koşum onu toplar, kimse
+       bakmazdı. İki çıktının BİRLEŞİMİ denetlenir. */
+    const kusur = [
+      ...(bosTanik.cumlesizYuzeyler ?? []).map((c) => ({ ...c, kosum: 'boş' })),
+      ...(tanik?.cumlesizYuzeyler ?? []).map((c) => ({ ...c, kosum: 'tohumlu' })),
+    ].map((c) => `[${c.kosum}] ${c.rota} · <${c.etiket}> · kapsam "${c.kapsam}" · "${c.baslik}"`);
     expect(kusur, `CÜMLESİZ boş yüzey — sıfır satırlı bir veri yüzeyi, `
       + `kapsamında hiçbir boş durum cümlesi olmadan render ediliyor:\n${kusur.join('\n')}`)
       .toEqual([]);
@@ -392,6 +412,14 @@ describe('DOM tanığı · POPÜLASYON AYRIŞMASI [URN-TNK-001]', () => {
     expect(o!.kullanici, 'kurucu hesap tek değil — fikstür beklendiği gibi kurulmamış').toBe(1);
     expect(o!.tesis, 'Tesis tablosu DOLU — tanık tohumlu bir kurulumu ölçmüş').toBe(0);
     expect(o!.madde, 'Madde tablosu DOLU — tanık tohumlu bir kurulumu ölçmüş').toBe(0);
+    /* ── SUNUCU DA AYNI VERİTABANINI OKUYOR (Codex · P2) ─────────────
+       Yukarıdaki üç sayı DOSYAYI ölçer. Sunucu `DATABASE_URL`i yitirip
+       tohumlu `dev.db`ye düşseydi fikstür dosyası yine boş olurdu ve bu
+       vaka geçerdi. İkinci tanık girişin kendisidir: fikstürün kurucu
+       hesabı YALNIZ bu veritabanında var. */
+    expect(o!.sunucuOturum,
+      'sunucu fikstürün kurucu hesabıyla oturum AÇAMADI — başka bir veritabanı okuyor')
+      .toBe(true);
   });
 
   it('BOŞ KOŞUMDA atlanan rota da BEYANLI — sessiz daralma yok [URN-TNK-001]', () => {

@@ -186,7 +186,13 @@ export const OZNE = new RegExp(
    R0-23 · Sahip: KODLAYAN · Kapanış: P3 · mesaj kataloğu (arayüz metni
    sözlük anahtarına geçtiğinde tarama metinden ANAHTARA döner ve gövde
    sorunu ortadan kalkar). */
-const GOVDE_EKLERI = '(?:[ıiuü]n|[ıiuü]|[ae]|d[ae]|d[ae]n|l[ae]|[ıiuü]m|[ıiuü]z)';
+/* KAYNAŞTIRMA ÜNSÜZÜ (Codex bulgusu): ünlüyle biten gövdeler eki
+   doğrudan almaz — "sunucu" + "un" değil "sunucu**n**un"; "sunucu" +
+   "u" değil "sunucu**y**u". İlk yazım yalnız ünlüyle başlayan ekleri
+   doğrudan ekliyordu, yani `Sunucunun içeriği değiştirilemez` gibi bir
+   cümle NE `OZNE`ye NE `OZNE_GOVDE`ye uyuyordu: kör kümeyi büyüten yeni
+   bir politika cümlesi, dondurulmuş sınırı hiç kıpırdatmadan girerdi. */
+const GOVDE_EKLERI = '(?:[ny]?(?:[ıiuü]n|[ıiuü]|[ae]|d[ae]|d[ae]n|l[ae]|[ıiuü]m|[ıiuü]z))';
 export const OZNE_GOVDE = new RegExp(
   `${SOZCUK_BASI}(kütü[kğ]|kayd?|ürün|sistem|platform|motor|sunucu|kapsam|yetki|iz)`
   + `${GOVDE_EKLERI}${SOZCUK_SONU}`,

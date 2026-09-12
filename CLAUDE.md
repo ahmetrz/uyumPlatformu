@@ -37,6 +37,7 @@ kabul kriteridir (P0 · URN-KUR-003); ölü atıf eklemeyin.
 | Ürünün kendi yedeği | `docs/URUN_YEDEKLEME.md` · `web/arac/yedek.mjs` |
 | Senaryo kütüğü · test eşlemesi | `docs/MASTER_SCENARIO_REGISTRY.md` · `docs/SCENARIO_TEST_MATRIX.md` (`web/lib/senaryo/` üretir) |
 | Kalite araçları ve kapılar | `web/arac/BENIOKU.md` |
+| **Ölçüm dondurma kaydı · ölçülen · beyanlı ölçülmeyen** | `docs/OLCUM_DONDURMA.md` |
 | Devir kaydı · açık kalemler · son ölçüm | `docs/DEVIR_KAYDI.md` |
 | Kalite borcu izin listesi · cırcır | `web/arac/kalite-borcu.json` |
 | Ölçüm kapsamı tabanı | `web/arac/olcum-tabani.json` |
@@ -575,8 +576,11 @@ kalan altısı sonraki işlerde eklendi (`kanit:denetim-formu` ·
 `kapi:ithal-zinciri` · `kanit:bildirim-kaydi` · `kanit:bildirim-donemi` ·
 `kanit:kimlik` · `kanit:mevzuat-radari`) ve düzeltme turunda İKİ tane
 daha eklendi (`tanik:dom` · `kapi:dom-tanik` — ikinci popülasyon tanığı).
-Ölçüm (11 Eyl 2026): **36 benzersiz komut, 37 adım** (bir komut iki ayrı
-ortamda koşuyor ve bu iki ayrı kapıdır). Sayı
+Brief M bir tane daha getirdi (`tanik:dom-bos` — tanığın BOŞ KURULUM
+koşumu; cümlesiz boş yüzey ancak veri yokken görünür ve tohumlu koşumda
+ölçüm doğası gereği 0 çıkar). Ölçüm (12 Eyl 2026): **37 benzersiz
+komut, 38 adım** (bir komut iki ayrı ortamda koşuyor ve bu iki ayrı
+kapıdır). Sayı
 elle sayılmaz, testte iki yönlü eşitlikle tutulur: kapı düşerse de,
 BEYANSIZ kapı eklenirse de kırmızı.
 

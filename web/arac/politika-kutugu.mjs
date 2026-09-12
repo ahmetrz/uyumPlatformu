@@ -144,9 +144,10 @@ const SOZCUK_SONU = `(?![${HARF}])`;
 
      bugün (ASCII `\b`)                    216 satır
      yalnız Türkçe sınır (bu düzeltme)     220 satır   (+4)
-     gövde + serbest ek                    325 satır   (+109)
 
-   Gövde genişletmesi 105 satırlık yeni bir popülasyon açar ve bu
+   Gövde genişletmesi **51** satırlık yeni bir popülasyon açar
+   (`korGovdeSayisi()`; ilk turda anılan "105" daha gevşek bir serbest-ek
+   denemesinin sayısıydı ve türetilmemişti — bağımsız inceleme · P3-7) ve bu
    kütüğün yedinci dişi SIFIRDA KİLİTLİ: her satır gerçek yol ölçümüyle
    gelmek zorunda. Yüz satırı bir turda aceleyle ölçmek, bu deponun
    kaçındığı şeyin ta kendisidir — aynı gerekçe `TARANAN` kökleri için de
@@ -160,6 +161,106 @@ export const OZNE = new RegExp(
   + `|bu sayfa|bu aktarım|sunucu|motor|kütük|ürün|sistem|platform`
   + `|kayıt|kayıtlar|kapsam|yetki\\w*|hiçbir|otomatik|denetim izi|iz)${SOZCUK_SONU}`,
   'iu');
+
+/* ══ BEYANLI SINIRIN ÖLÇÜSÜ · R0-23 (Brief M · FAZ 3) ═══════════════════
+   `OZNE` özneleri YALIN hâlleriyle arar. Türkçede özne çekim eki alır ve
+   o hâlleri kalıp GÖRMEZ:
+
+     görülen  : "Bu ekran …"   · "Kayıt silinmez"   · "Motor yazmaz"
+     GÖRÜLMEYEN: "Kütüğün …"   · "Kaydı …"          · "Motorun …"
+                 "Ürünün …"    · "Sistemin …"       · "Kapsamın …"
+
+   Sınır bu turda GENİŞLETİLMEDİ ve sebebi ölçüldü: gövde + serbest ek
+   kalıbı popülasyonu 220'den 325'e çıkarıyor, yani 105 satırlık yeni bir
+   borç açıyor — ve bu kütüğün yedinci dişi SIFIRDA KİLİTLİ, her satır
+   gerçek yol ölçümüyle gelmek zorunda. Yüz satırı bir turda aceleyle
+   ölçmek, bu deponun kaçındığı şeyin ta kendisidir.
+
+   Sınırın DONDURULMASI budur: kör satır sayısı ÖLÇÜLÜR ve BÜYÜYEMEZ.
+   Yarın çekimli özneyle yazılan yeni bir politika cümlesi sayıyı
+   artırır ve kapı KIRMIZI yanar; yazan kişi ya kalıbın gördüğü bir hâl
+   kullanır ya da kalıbı genişletip 105 satırlık borcu üstlenir. Sınırın
+   ikinci bekçisi DOM tanığıdır: çekimli özneli bir cümle gerçekten
+   ekrana çıkıyorsa tanık onu görür ve kütükte bulamayınca kırmızı yanar.
+
+   R0-23 · Sahip: KODLAYAN · Kapanış: P3 · mesaj kataloğu (arayüz metni
+   sözlük anahtarına geçtiğinde tarama metinden ANAHTARA döner ve gövde
+   sorunu ortadan kalkar). */
+/* KAYNAŞTIRMA ÜNSÜZÜ (Codex bulgusu): ünlüyle biten gövdeler eki
+   doğrudan almaz — "sunucu" + "un" değil "sunucu**n**un"; "sunucu" +
+   "u" değil "sunucu**y**u". İlk yazım yalnız ünlüyle başlayan ekleri
+   doğrudan ekliyordu, yani `Sunucunun içeriği değiştirilemez` gibi bir
+   cümle NE `OZNE`ye NE `OZNE_GOVDE`ye uyuyordu: kör kümeyi büyüten yeni
+   bir politika cümlesi, dondurulmuş sınırı hiç kıpırdatmadan girerdi. */
+const GOVDE_EKLERI = '(?:[ny]?(?:[ıiuü]n|[ıiuü]|[ae]|d[ae]|d[ae]n|l[ae]|[ıiuü]m|[ıiuü]z))';
+export const OZNE_GOVDE = new RegExp(
+  `${SOZCUK_BASI}(kütü[kğ]|kayd?|ürün|sistem|platform|motor|sunucu|kapsam|yetki|iz)`
+  + `${GOVDE_EKLERI}${SOZCUK_SONU}`,
+  'iu');
+
+/* ── SINIRIN GERÇEK BÜYÜKLÜĞÜ (bağımsız inceleme · P2-14 · P3-8) ─────
+   İlk yazım yalnız `korGovdeSayisi()`yi (51) donduruyor ve buna
+   "beyanlı sınır donduruldu" diyordu. Ölçüldü: yüklemi olup YALIN
+   öznesi olmayan aday sayısı **382**; tavan bunun 51'ini kapsıyordu,
+   yani sınırın sekizde birini. Öznesi hiç olmayan ya da on gövdeden
+   birini kullanmayan yeni bir cümle ("Onay olmadan yayımlanmaz.")
+   kör kümeyi büyütür ve hiçbir kapı kırmızı yanmazdı.
+
+   İkinci düzeltme ADDADIR: `OZNE_GOVDE` gövde+ekini cümlenin HERHANGİ
+   bir yerinde arar, özne KONUMUNU sormaz — ölçülen 51 satırın çoğunda
+   eşleşen sözcük özne değil ("… bu kayda uygulanmaz" · "Sayılar
+   sunucudan ölçülür"). Sayı gerçek bir sınırı dondurur (bu satırlar
+   hakikaten kütüğe girmiyor) ama adı yanlıştı. Bugün iki sayı da
+   ölçülüyor ve İKİSİ DE tavanlı:
+
+     korGovde  · bilinen bir gövdenin çekimli hâlini TAŞIYAN aday
+     korToplam · yüklemi olup YALIN öznesi olmayan BÜTÜN adaylar     */
+
+/** Yüklemi olan ama YALIN özne taşımayan bütün adaylar (sınırın tamamı). */
+export function korToplamSayisi() {
+  return korAdaylar().length;
+}
+
+/** Kalıbın görmediği, bilinen bir gövdenin ÇEKİMLİ hâlini taşıyan adaylar. */
+export function korGovdeSayisi() {
+  return korAdaylar().filter((c) => OZNE_GOVDE.test(c)).length;
+}
+
+/** Ortak yürüyüş — iki sayı da AYNI popülasyondan çıkar. */
+function korAdaylar() {
+  /* Türeticinin KENDİ yürüyüşü kullanılır (ikinci bir tarama, ikinci bir
+     körlük demektir). Fark yalnız ölçüttedir: `politikaMi` yerine
+     "yüklem VAR, yalın özne YOK, ÇEKİMLİ özne VAR". */
+  const kor = new Set();
+  for (const kok of TARANAN) {
+    for (const f of readdirSync(path.join(KOK, kok), { recursive: true }).map(String)) {
+      if (!/\.(tsx|ts)$/.test(f) || /\.test\.tsx?$/.test(f)) continue;
+      const kod = bitisikleriBirlestir(
+        yorumsuz(readFileSync(path.join(KOK, `${kok}/${f}`), 'utf8')));
+      const adaylar = [...kaynakDizeleri(kod), ...jsxMetinleri(kod)];
+      for (const ham of adaylar) {
+        const cumle = String(ham).trim();
+        if (cumle.length < CUMLE_TABANI || cumle.length > CUMLE_TAVANI) continue;
+        /* ── ADAY SÜZGECİ POLİTİKAYLA AYNI OLMALI (Codex · P2) ───────
+           `korAdaylar` yalnız uzunluk + yüklem soruyordu; `politikaMi`nin
+           "en az dört sözcük" ve "JSX/biçem parçası değil" dişleri
+           yoktu. Sonuç ölçüldü: sınıra ithal yolu
+           (`@/lib/eylemler2/reddedilenKayit`), JSX parçası
+           (`karar('reddedildi') > Reddet`) ve dört sözcükten kısa
+           dizeler giriyordu. Bir ithal adının değişmesi DONDURULMUŞ
+           sınırı oynatıp yanıltıcı bir "politika sınırı" gerekçesi
+           istiyordu — tavan bir MAYINA dönüşüyordu. Süzgeç bugün
+           politikanınkiyle aynı; fark YALNIZ öznededir. */
+        if (cumle.split(/\s+/).length < 4) continue;
+        if (/[<>]|style=\{|className=|var\(--/.test(cumle)) continue;
+        if (!YUKLEM.test(cumle)) continue;
+        if (OZNE.test(cumle)) continue;            /* zaten görülüyor */
+        kor.add(cumle);
+      }
+    }
+  }
+  return [...kor];
+}
 
 /** Sistemin ne yapacağı/yapmayacağı.
  *

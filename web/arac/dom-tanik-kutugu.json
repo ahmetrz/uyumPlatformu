@@ -2,7 +2,8 @@
   "not": "DOM TANIĞININ AÇTIĞI SATIRLAR. Bu cümleler kaynakta TEK bir dize olarak durmaz: ekranda ÇALIŞMA ANINDA, birkaç parçadan (sabit + hesaplanan değer + kardeş bağ) birleşir. Kütük metne göre anahtarlandığı için ana kütük onları TAŞIYAMAZ — ama kullanıcı onları okur, dolayısıyla R-F onları kapsar. Satırlar elle DEĞİL, `node arac/dom-tanik.mjs --yaz` çıktısındaki ayrışmadan gelir; her satır ölçümünü taşımak ZORUNDADIR (ölçülmeyen tavanı sıfırdır, istisna yoktur).",
   "tavanlar": {
     "olculmeyen": 0,
-    "atlananRota": 0
+    "atlananRota": 0,
+    "bosAtlananRota": 6
   },
   "satirlar": [
     {
@@ -105,5 +106,17 @@
   "ilkTurTavani": {
     "satir": 8
   },
-  "ilkTurTavaniGerekcesi": "Tanık kütüğü BU DALDA doğdu: taban dalda (origin/main) yok, yani \"taban dala göre büyüyemez\" cırcırının karşılaştıracağı bir sayı yok. Sessizce geçmek cırcırın hiç koşmaması demekti (düzeltme turu · P2-4). Buradaki sayı ELLE yazıldı ve o turda ÖLÇÜLEN satır sayısıdır; türeticinin yazdığı bir alan olsaydı kütük kendini kendisiyle karşılaştırır ve her zaman geçerdi. Kütük merge edildikten sonra bu alan ölü kalır — cırcır taban daldan okur."
+  "ilkTurTavaniGerekcesi": "Tanık kütüğü BU DALDA doğdu: taban dalda (origin/main) yok, yani \"taban dala göre büyüyemez\" cırcırının karşılaştıracağı bir sayı yok. Sessizce geçmek cırcırın hiç koşmaması demekti (düzeltme turu · P2-4). Buradaki sayı ELLE yazıldı ve o turda ÖLÇÜLEN satır sayısıdır; türeticinin yazdığı bir alan olsaydı kütük kendini kendisiyle karşılaştırır ve her zaman geçerdi. Kütük merge edildikten sonra bu alan ölü kalır — cırcır taban daldan okur.",
+  "beyan": {
+    "bosYuzey": 0,
+    "gerekce": "Boş kurulumda SIFIR satırlı veri yüzeyi yok: altı VeriTablosu çağıranının altısı da tablodan ÖNCE kendi boş durumunu çiziyor, yani paylaşılan tablo orada hiç render edilmiyor. Sayı bir TABAN değildir (sıfır ölçüm bir ölçüm değildir) — bir BEYANDIR: değişirse bir çağıran tabloyu cümlesiz boş bırakmaya başlamış demektir ve bu bilerek yeniden beyan edilmelidir."
+  },
+  "tavanGerekceleri": [
+    {
+      "alan": "bosAtlananRota",
+      "eski": 0,
+      "yeni": 6,
+      "gerekce": "YENİ bir tavan; gevşetme değil, daha önce HİÇ ÖLÇÜLMEYEN bir sayının ilk kez kilitlenmesi. Boş kurulum koşumu ALTI rotayı atlar ve altısı da tohum kimlikli DETAY rotasıdır (`/tesisler/<id>` · `/riskler/<id>` · `/denetimler/<id>` · `/surecler/<id>` · `/bulgular/<id>` · `/uyum/<cerceve>`): boş bir kurulumda o kayıtlar YOKTUR, sunucu 404 döner ve bu DOĞRU davranıştır — atlama bir ürün kusuru değil, boş kurulumun tanımıdır. Kusur olmadığı için tavan konuyor; sayının BÜYÜMESİ ise kusurdur, çünkü o zaman tanık boş kurulumda gerçekten var olması gereken bir rotayı kaybetmiş demektir. Sebep sınıfı ayrıca denetlenir: beklenmeyen bir sebeple atlanan rota bu tavandan bağımsız olarak kapıyı kırmızı yakar."
+    }
+  ]
 }

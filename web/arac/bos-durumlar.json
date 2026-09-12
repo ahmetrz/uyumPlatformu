@@ -302,14 +302,14 @@
       "yer": "app/(kabuk)/(operasyonel)/envanter/EnvanterIstemci.tsx",
       "satir": 246,
       "tur": "satirIci",
-      "cumle": "Bu süzgeçte varlık yok. Kapsamınızda varlık kaydı yok. Sinyal merceğinde varlık yok — bilinen açık ve geçmiş ömür yok. … {filtreAktif ? ( Süzgeci temizle ) : varliklar.length === 0 ? ( yazabilir ? ( …}> İlk varlığı ekle ) : ( Kapsamımı gör ) ) : ( …}> Tümü merceğine geç )}",
+      "cumle": "… Bu süzgeçte varlık yok — seçtiğiniz ölçütler kütükteki hiçbir kayıtla eşleşmedi. Kapsamınızda varlık kaydı yok — envanter henüz doldurulmadı ya da bu varlıklar yetki kapsamınızın dışında. Sinyal merceğinde varlık yok — bilinen açık ve geçmiş ömür yok. … {filtreAktif ? ( Süzgeci temizle ) : varlikl",
       "iyiHaber": false,
       "neden": true,
       "eylem": true
     },
     {
       "yer": "app/(kabuk)/(operasyonel)/envanter/EnvanterIstemci.tsx",
-      "satir": 328,
+      "satir": 336,
       "tur": "satirIci",
       "cumle": "Zincirde ya da tabloda bir varlık seçin; yedi halka o varlıktan geçen yolu gösterir. … {gorunur.length > 0 && ( İlk varlığı aç )}",
       "iyiHaber": false,
@@ -318,7 +318,7 @@
     },
     {
       "yer": "app/(kabuk)/(operasyonel)/envanter/EnvanterIstemci.tsx",
-      "satir": 549,
+      "satir": 557,
       "tur": "satirIci",
       "cumle": "Seçili varlığa bağlı kayıt yok; bu halka boş. Kayıt yok; bir varlık seçilmedi. … {secili ? ( /* `?sec=` bu ekranın KENDİ adres durumudur (`useUrlDurumuBos`) ve gerçekten okunur. İlk yazımda `/varliklar/ ` yazılmıştı ve öyle bir rota yok — bağımsız inceleme yakaladı. */ Bağları düzenle ) : ilkSecileb",
       "iyiHaber": false,
@@ -327,7 +327,7 @@
     },
     {
       "yer": "app/(kabuk)/(operasyonel)/envanter/EnvanterIstemci.tsx",
-      "satir": 598,
+      "satir": 606,
       "tur": "satirIci",
       "cumle": "Bir varlık seçin; dört halka o varlıktan geçen yolu gösterir. {ilkSecilebilir && ( İlk varlığı aç )}",
       "iyiHaber": false,
@@ -336,7 +336,7 @@
     },
     {
       "yer": "app/(kabuk)/(operasyonel)/envanter/EnvanterIstemci.tsx",
-      "satir": 784,
+      "satir": 792,
       "tur": "satirIci",
       "cumle": "Açık zafiyet kaydı yok; bu varlık için kapatılmamış zafiyet bulunmuyor.",
       "iyiHaber": true,
@@ -345,7 +345,7 @@
     },
     {
       "yer": "app/(kabuk)/(operasyonel)/envanter/EnvanterIstemci.tsx",
-      "satir": 795,
+      "satir": 803,
       "tur": "satirIci",
       "cumle": "Bu varlık bir risk ya da projeye bağlı değil; bağ kurulduğunda yönetişim izi burada görünür. … Risk ya da projeye bağla",
       "iyiHaber": false,

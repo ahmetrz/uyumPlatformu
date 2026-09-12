@@ -2399,7 +2399,9 @@
       "S1": 0,
       "S2": 0,
       "S3": 0
-    }
+    },
+    "korGovde": 51,
+    "korToplam": 357
   },
   "not": "R-F · politika cümlesi kütüğü. Satırlar arac/politika-kutugu.mjs ile TÜRETİLİR, elle yazılmaz.",
   "tavanGerekceleri": [
@@ -2438,6 +2440,18 @@
       "eski": 38,
       "yeni": 39,
       "gerekce": "R15 · kişisel veri koruma ekranı ve eylem katmanı yeni politika cümleleri getirdi. Tavan yükseldi çünkü ÜRÜN büyüdü, ölçüm gevşemedi: S1 cümlelerinin üçü de aynı partide eritildi ve S1 tavanı SIFIRDA kaldı."
+    },
+    {
+      "alan": "korToplam",
+      "eski": 0,
+      "yeni": 357,
+      "gerekce": "YENİ bir tavan; gevşetme değil, daha önce HİÇ ÖLÇÜLMEYEN bir sınırın ilk kez dondurulması. Kusur: OZNE kalıbı özneyi yalın hâliyle arar ve çekimli hâlleri görmez; yüklemi olup yalın öznesi olmayan 357 aday türeticinin DIŞINDA kalıyor ve bugüne kadar hiçbir kapı bu sayının büyümesini görmüyordu. Tavan bu sayıyı kilitler: yeni bir kör cümle eklenirse kapı kırmızı yanar. Sınır kapatılmadı çünkü kalıbı genişletmek 51 satırlık ölçülmemiş borç açar ve bu kütüğün yedinci dişi sıfırda kilitli. SAYI 382'DEN 357'YE İNDİ (inceleme bulgusu): aday süzgeci politikanınkiyle aynı değildi — \"en az dört sözcük\" ve \"JSX/biçem parçası değil\" dişleri yoktu, bu yüzden sınıra bir ithal yolu, bir JSX parçası ve dört sözcükten kısa dizeler giriyordu. Bir ithal adının değişmesi dondurulmuş sınırı oynatıp yanıltıcı bir gerekçe istiyordu; tavan bir MAYINA dönüşüyordu. Süzgeç politikanınkiyle eşitlendi, fark YALNIZ öznede kaldı."
+    },
+    {
+      "alan": "korGovde",
+      "eski": 0,
+      "yeni": 51,
+      "gerekce": "YENİ bir tavan; 357 satırlık sınırın, bilinen bir gövdenin çekimli hâlini TAŞIYAN alt kümesi. Ayrı tutulur çünkü OZNE kalıbını gövdeye çevirmenin fiyatı tam olarak bu sayıdır (51), sınırın tamamı (357) değil; ikisini karıştırmak genişletme kararını yanlış fiyatlar. Alt küme de büyüyemez."
     }
   ]
 }

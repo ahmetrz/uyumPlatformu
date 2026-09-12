@@ -422,6 +422,18 @@ jobs:
         working-directory: web
         run: npm run tanik:dom
 
+      # BOŞ KURULUM koşumu: cümlesiz boş yüzey ancak veri YOKKEN görünür.
+      # Tohumlu koşumda tabloların çoğu doludur ve ölçüm doğası gereği 0
+      # çıkar — "tohumlu koşumda 0" ile "böyle bir kusur yok" aynı şey
+      # değildir. Tanık kendi veritabanını, kendi kurucu hesabını ve
+      # kendi sunucusunu (3211) kurar, sonunda üçünü de kaldırır.
+      - name: DOM tanığı · BOŞ KURULUM koşumu
+        working-directory: web
+        # BOS_PORT paylaşılan porttan TÜRETİLİR (PORT+1); adımın kendisi
+        # de bunu açıkça yazar ki `PORT=3211 npm run kapi:parti` gibi bir
+        # yerel koşumda çakışma doğmasın.
+        run: npm run tanik:dom-bos
+
       - name: DOM tanığı · ayrışma bekçisi
         working-directory: web
         run: npm run kapi:dom-tanik

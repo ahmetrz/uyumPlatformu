@@ -27,7 +27,9 @@
     "politika.cumle": 220,
     "tanik.rota": 65,
     "tanik.cumle": 43,
-    "tanik.bosDurum": 16
+    "tanik.bosDurum": 16,
+    "tanik.veriYuzeyi": 17,
+    "tanik.kapsam": 35
   },
   "dususler": {
     "bos.durum": {

@@ -244,10 +244,18 @@ export default function EnvanterIstemci({
         <div className="ab-a-tuval">
           {suzulmus.length === 0 ? (
             <p className="bos">
+              {/* ── HER DAL KENDİ SEBEBİNİ SÖYLER (Brief M · FAZ 1) ────
+                  İlk iki dal tek tümceydi ("Bu süzgeçte varlık yok." ·
+                  "Kapsamınızda varlık kaydı yok.") ve kütük bunu
+                  GÖRMÜYORDU: ölçüt üç dalın BİRLEŞİK metnine bakıyor,
+                  üçüncü dalın "— bilinen açık ve geçmiş ömür yok"
+                  kuyruğu ölçütü geçiriyordu. Kullanıcı ise süzgeç
+                  boşalttığında yalnız ilk dalı görüyor. DOM tanığı
+                  canlı yakaladı; türetici dal başına ölçmeye çevrildi. */}
               {filtreAktif
-                ? 'Bu süzgeçte varlık yok.'
+                ? 'Bu süzgeçte varlık yok — seçtiğiniz ölçütler kütükteki hiçbir kayıtla eşleşmedi.'
                 : varliklar.length === 0
-                  ? 'Kapsamınızda varlık kaydı yok.'
+                  ? 'Kapsamınızda varlık kaydı yok — envanter henüz doldurulmadı ya da bu varlıklar yetki kapsamınızın dışında.'
                   : 'Sinyal merceğinde varlık yok — bilinen açık ve geçmiş ömür yok.'}
               {/* ── ÇIKIŞ, KULLANICININ NASIL GELDİĞİNE BAĞLIDIR ──────
                   Üç boşluğun üç ayrı sebebi var ve üçünün çözümü ayrı

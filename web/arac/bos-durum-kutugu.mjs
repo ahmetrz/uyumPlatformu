@@ -435,6 +435,78 @@ export function satirIciMetin(govde) {
     .trim();
 }
 
+/**
+ * Satır içi gövdenin RENDER EDİLEBİLİR VARYANTLARI.
+ *
+ * ── ÖLÇÜLEN KUSUR (Brief M · FAZ 1) ──────────────────────────────────
+ * Dal-başına ölçüm Brief L'de eklenmişti — ama YALNIZ `<BosIlk>`e.
+ * `satirIci` sınıfı gövdeyi hâlâ TEK METNE birleştiriyordu
+ * (`satirIciMetin` her `{…}` ifadesini `cumleMetni` ile düzleştirir) ve
+ * sebebini söyleyen bir dal, söylemeyeni ÖRTÜYORDU. Yani yedinci
+ * körlüğün yarısı kapatılmış, yarısı açık kalmıştı.
+ *
+ * DOM tanığı sonucu canlı yakaladı: `/envanter` süzgeçle boşalınca
+ * ekranda YALNIZ "Bu süzgeçte varlık yok." yazıyor — tek tümce, sebepsiz,
+ * R-G'nin doğduğu cümlenin birebir aynısı. Kütükte ise satır `neden:
+ * true` görünüyordu, çünkü ölçüt ÜÇ DALIN BİRLEŞİMİNE bakıyordu ve
+ * üçüncü dal ("… — bilinen açık ve geçmiş ömür yok") ölçütü geçiriyordu.
+ *
+ * ── VARYANT ÜRETİMİ ──────────────────────────────────────────────────
+ * Kartezyen çarpım ALINMAZ: iki üçlü ifade taşıyan bir gövde dokuz
+ * varyant üretir ve sayı ifade başına üstel büyür. Gerekli olan daha
+ * azı — HER DALIN en az bir varyantta görünmesi. Bu yüzden her seferinde
+ * TEK ifade değiştirilir, ötekiler ilk dallarında bırakılır.
+ */
+export function satirIciDallari(govde) {
+  const temiz = String(govde).replace(/\{'\s*'\}/g, ' ');
+  /* ── DENGELİ TARAYICI, REGEX DEĞİL ─────────────────────────────────
+     `/\{([^{}]*)\}/` iç içe süs taşıyan bir bloğu (JSX eylem yuvası:
+     `{kosul ? (<button onClick={...}>…</button>) : …}`) eşleştiremez ve
+     o blok HAM kalır. Ölçüldü: `/envanter` gövdesinde üç dal doğru
+     ayrıldı ama her varyantın SONUNA ham `{filtreAktif ? ( Süzgeci
+     temizle ) : …}` kuyruğu ekleniyordu; `nedenSoyluyor` o kuyrukta
+     birden çok tümce görüp ölçütü GEÇİRİYORDU. Yani dal ayırma doğru,
+     ölçüm yine kördü. */
+  const ifadeler = [];
+  let iskelet = '';
+  for (let i = 0; i < temiz.length; i += 1) {
+    if (temiz[i] !== '{') { iskelet += temiz[i]; continue; }
+    let derinlik = 0;
+    let j = i;
+    for (; j < temiz.length; j += 1) {
+      if (temiz[j] === '{') derinlik += 1;
+      else if (temiz[j] === '}') { derinlik -= 1; if (derinlik === 0) break; }
+    }
+    if (derinlik !== 0) { iskelet += temiz.slice(i); break; }   // kapanmayan süs
+    ifadeler.push(temiz.slice(i + 1, j));
+    iskelet += `\u0001${ifadeler.length - 1}\u0001`;
+    i = j;
+  }
+  const duzle = (metin) => metin
+    .replace(/<[^>]*>/g, ' ')
+    .replace(/…(\s*…)+/g, '…')
+    .replace(/\s+/g, ' ')
+    .trim();
+  /* İfade başına dal listesi: seçim değilse tek "…" dalı. */
+  const dallar = ifadeler.map((ic) => (ifadeSecim(ic) ? cumleDallari(ic) : ['…']));
+  const varyantlar = [];
+  const yaz = (secim) => {
+    const metin = duzle(iskelet.replace(/\u0001(\d+)\u0001/g,
+      (_, i) => dallar[Number(i)][secim[Number(i)]] ?? '…'));
+    if (metin && metin !== '…') varyantlar.push(metin);
+  };
+  const taban = ifadeler.map(() => 0);
+  yaz(taban);
+  for (let i = 0; i < dallar.length; i += 1) {
+    for (let d = 1; d < dallar[i].length; d += 1) {
+      const secim = [...taban];
+      secim[i] = d;
+      yaz(secim);
+    }
+  }
+  return [...new Set(varyantlar)];
+}
+
 /** Satır içi yüzeyde EYLEM: gövdede gerçek bir bağ ya da düğme var mı.
     Öznitelik yok, bu yüzden kod okunur — kütükten işaretlenemez. */
 /* ── YUVA, DOLDURULDUĞU SÜRECE EYLEMDİR ───────────────────────────────
@@ -549,7 +621,22 @@ export function satirIciKaydi(yer, satir, c, yuvaDolu = false) {
       ? `«okunamadı» ${String(c.govde).replace(/\s+/g, ' ').trim().slice(0, 260)}`
       : metin.slice(0, 300),
     iyiHaber,
-    neden: okunamadi ? false : nedenSoyluyor(metin),
+    /* HER VARYANT ayrı ölçülür: sebebini söyleyen dal, söylemeyeni
+       örtemez. `BosIlk` için Brief L'de yapılmıştı; bu sınıf açıktı. */
+    /* ── SESSİZ GERİ DÜŞÜŞ KALDIRILDI (bağımsız inceleme · P2-13) ────
+       İlk yazım varyant üretilemediğinde ESKİ BİRLEŞİK ölçüte geri
+       düşüyordu (`nedenSoyluyor(metin)`) — yani dal başına ölçümün
+       düzeltmek için yazıldığı körlüğe, sessizce. Üstelik geri düşülen
+       metin iç içe süs taşıyan gövdelerde ham kod parçası taşıyor ve o
+       parça ölçütü geçirebiliyordu. Bugün varyant üretilemeyen satır
+       `okunamadi` gibi ele alınır: `neden` FALSE sayılır ve satır
+       cırcıra dâhil olur — türeticinin okuyamadığı bir yüzey, kütükte
+       işaretli durur. */
+    neden: okunamadi ? false : (() => {
+      const varyantlar = satirIciDallari(c.govde);
+      if (varyantlar.length === 0) return false;
+      return varyantlar.every((v) => nedenSoyluyor(v));
+    })(),
     eylem: iyiHaber || satirIciEylem(c.govde, yuvaDolu),
   };
 }

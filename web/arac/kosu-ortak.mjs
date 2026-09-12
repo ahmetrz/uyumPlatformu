@@ -402,16 +402,20 @@ export async function perdeyiAc(sayfa, { formuBekle = true } = {}) {
   }
 }
 
-export async function girisYap(sayfa, kok = KOK) {
+/* `giris` PARAMETRE, sabit değil (Brief M · FAZ 1): boş kurulum
+   koşumunda tohum hesabı YOKTUR ve oturum, ürünün kendi kurucu hesap
+   aracıyla açılan tek yöneticiyle açılır. Varsayılan aynen korunur —
+   çağıranların hiçbiri değişmez. */
+export async function girisYap(sayfa, kok = KOK, giris = GIRIS) {
   await sayfa.goto(`${kok}/giris`, { waitUntil: 'load' });
   if (!sayfa.url().includes('/giris')) return false;
   await perdeyiAc(sayfa);
   const eposta = sayfa.locator('input[type=email]');
   if (!(await eposta.count())) return false;
   for (let deneme = 1; deneme <= 3; deneme += 1) {
-    await sayfa.fill('input[type=email]', GIRIS.eposta);
-    await sayfa.fill('input[type=password]', GIRIS.parola);
-    const yerlesti = (await sayfa.inputValue('input[type=email]')) === GIRIS.eposta
+    await sayfa.fill('input[type=email]', giris.eposta);
+    await sayfa.fill('input[type=password]', giris.parola);
+    const yerlesti = (await sayfa.inputValue('input[type=email]')) === giris.eposta
       && (await sayfa.inputValue('input[type=password]')).length > 0;
     if (yerlesti) break;
     await sayfa.waitForTimeout(300 * deneme);

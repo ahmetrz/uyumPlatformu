@@ -198,23 +198,38 @@ export const OZNE_GOVDE = new RegExp(
   + `${GOVDE_EKLERI}${SOZCUK_SONU}`,
   'iu');
 
-/* ── SINIRIN GERÇEK BÜYÜKLÜĞÜ (bağımsız inceleme · P2-14 · P3-8) ─────
+/* ── SINIRIN GERÇEK BÜYÜKLÜĞÜ · TEK KİLİT SAYI ──────────────────────
    İlk yazım yalnız `korGovdeSayisi()`yi (51) donduruyor ve buna
-   "beyanlı sınır donduruldu" diyordu. Ölçüldü: yüklemi olup YALIN
-   öznesi olmayan aday sayısı **382**; tavan bunun 51'ini kapsıyordu,
-   yani sınırın sekizde birini. Öznesi hiç olmayan ya da on gövdeden
-   birini kullanmayan yeni bir cümle ("Onay olmadan yayımlanmaz.")
-   kör kümeyi büyütür ve hiçbir kapı kırmızı yanmazdı.
+   "beyanlı sınır donduruldu" diyordu. Ölçüldü (bağımsız inceleme ·
+   P2-14): yüklemi olup YALIN öznesi olmayan aday sayısı **357**; tavan
+   bunun 51'ini kapsıyordu, yani sınırın yedide birini. Öznesi hiç
+   olmayan ya da on gövdeden birini kullanmayan yeni bir cümle ("Onay
+   olmadan yayımlanmaz.") kör kümeyi büyütür ve hiçbir kapı kırmızı
+   yanmazdı.
 
    İkinci düzeltme ADDADIR: `OZNE_GOVDE` gövde+ekini cümlenin HERHANGİ
    bir yerinde arar, özne KONUMUNU sormaz — ölçülen 51 satırın çoğunda
    eşleşen sözcük özne değil ("… bu kayda uygulanmaz" · "Sayılar
    sunucudan ölçülür"). Sayı gerçek bir sınırı dondurur (bu satırlar
-   hakikaten kütüğe girmiyor) ama adı yanlıştı. Bugün iki sayı da
-   ölçülüyor ve İKİSİ DE tavanlı:
+   hakikaten kütüğe girmiyor) ama adı yanlıştı.
 
-     korGovde  · bilinen bir gövdenin çekimli hâlini TAŞIYAN aday
-     korToplam · yüklemi olup YALIN öznesi olmayan BÜTÜN adaylar     */
+   ── SÖZLEŞME: KİLİT TEKTİR, ALT KÜME BİLGİDİR ─────────────────────
+   İki sayı da ölçülür ama YALNIZ BİRİ TAVANLIDIR:
+
+     korToplam · yüklemi olup YALIN öznesi olmayan BÜTÜN adaylar
+                 → `politika-cumleleri.json` → `tavanlar.korToplam`
+                 KİLİT SAYI; büyüyemez, taban dala göre de kilitli.
+     korGovde  · bunların `OZNE_GOVDE` taşıyan ALT KÜMESİ
+                 → BİLGİ. Sayı tavanı YOKTUR ve geri konursa kapı
+                 kırmızı yanar (`tests/bekci/politika-olcumu.test.ts`).
+
+   Alt kümenin sayı tavanı bir kapı değil MAYINDIR: üst küme sabitken
+   alt küme büyüyebilir, çünkü kör bir cümleyi çekimli özneyle yeniden
+   yazmak körlüğü hiç değiştirmez ama alt kümeyi bir artırır ve temiz
+   bir dalı kırmızı yakardı (ölçüldü). Üst küme kilitli olduğu için alt
+   küme zaten onu aşamaz (51 ≤ 357). Alt kümeyi KİMLİKLE izlemek başka
+   bir mekanizmadır ve yasak değildir — sayı tavanına ihtiyacı yoktur.
+   Ayrıntı: `docs/OLCUM_DONDURMA.md` → R0-23.                        */
 
 /** Yüklemi olan ama YALIN özne taşımayan bütün adaylar (sınırın tamamı). */
 export function korToplamSayisi() {

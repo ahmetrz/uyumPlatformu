@@ -41,7 +41,7 @@ const KUTUK = path.join(process.cwd(), 'arac', 'politika-cumleleri.json');
 const kutuk = JSON.parse(readFileSync(KUTUK, 'utf8')) as {
   not?: string;
   tavanlar: { olculmeyen: number; sinif: Record<string, number>;
-    korGovde?: number; korToplam?: number };
+    korToplam?: number };
   tavanGerekceleri?: { alan: string; eski: number; yeni: number; gerekce: string }[];
   satirlar: {
     kod: string; cumle: string; yer: string; sinif: string; gerekce?: string;
@@ -325,25 +325,49 @@ describe('SONUÇ SINIFI ve CIRCIR [URN-POL-001]', () => {
         "CI'da taban dal okunamadı — cırcırın beşinci dişi ölçülemedi").toBe('');
       return;
     }
-    let taban: typeof kutuk | null = null;
-    try {
-      taban = JSON.parse(git(['show', 'origin/main:web/arac/politika-cumleleri.json']));
-    } catch { taban = null; }
-    if (taban === null) return; /* kütüğü GETİREN dal */
+    /* ── OKUNAMAYAN TABAN = KIRMIZI ──────────────────────────────────
+       Eski yazım `JSON.parse`ı çıplak bir `try/catch` içine alıyor ve
+       İKİ AYRI HÂLİ aynı sessiz `return`a düşürüyordu: kütüğün tabanda
+       HİÇ OLMAMASI (meşru — kütüğü getiren dal) ile tabandaki kütüğün
+       OKUNAMAMASI/BOZUK olması. İkincisi bir ölçüm kaybıdır ve
+       dondurulmuş sayının kilidini sessizce açar. Depodaki üç hâlli
+       karar (`tabanDalKarari`) bu dosyada zaten kullanılıyor; tavan
+       denetimi de aynı ayrımı yapar. */
+    const YOL_TAVAN = 'origin/main:web/arac/politika-cumleleri.json';
+    let tabandaVar = true;
+    try { git(['cat-file', '-e', YOL_TAVAN]); } catch { tabandaVar = false; }
+    let ham: string | null = null;
+    if (tabandaVar) { try { ham = git(['show', YOL_TAVAN]); } catch { ham = null; } }
+    const karar = tabanDalKarari(tabandaVar, ham);
+    if (karar.hal === 'olculemedi') {
+      expect(process.env.CI ?? '',
+        `TABAN DAL ÖLÇÜLEMEDİ (${karar.sebep}) — R0-23 tavanı denetlenemedi`).toBe('');
+      return;
+    }
+    if (karar.hal === 'taban_yok') return; /* kütüğü GETİREN dal */
+    const taban = karar.belge as typeof kutuk;
 
-    /* ── R0-23 TAVANLARI DA DENETİMDE (Codex bulgusu) ────────────────
+    /* ── R0-23 TAVANI DA DENETİMDE (Codex bulgusu) ───────────────────
        Anahtar haritası yalnız `olculmeyen` ve `sinif.*` okuyordu; yeni
-       `korToplam`/`korGovde` tavanları bu denetimin DIŞINDAYDI. Kör
-       küme büyüdüğünde tavanı yeni sayıya çekmek iki vakayı da
-       geçiriyor ve DONDURULMUŞ SINIR sessizce yükselmiş oluyordu —
-       gerekçe istenmeden. Dondurmanın anlamı tam da bunu engellemek. */
+       `korToplam` tavanı bu denetimin DIŞINDAYDI. Kör küme büyüdüğünde
+       tavanı yeni sayıya çekmek vakayı geçiriyor ve DONDURULMUŞ SINIR
+       sessizce yükselmiş oluyordu — gerekçe istenmeden. Dondurmanın
+       anlamı tam da bunu engellemek.
+
+       R0-23'ün KİLİT SAYISI TEKTİR ve ADAY POPÜLASYONUN TAMAMIDIR
+       (`korToplam`). Çekimli gövde taşıyan alt küme (`korGovde`) bir
+       tavan DEĞİL bilgidir ve bu haritaya girmez — gerekçesi kusurdur:
+       üst küme sabitken alt küme büyüyebilir (kör bir cümleyi çekimli
+       özneyle yeniden yazmak körlüğü değiştirmez, alt kümeyi bir
+       artırır) ve bir alt küme tavanı o temiz dalı kırmızı yakardı;
+       kapı değil MAYIN olurdu. Üst küme kilitli olduğu için alt küme
+       zaten onu aşamaz. */
     const oku = (k: typeof kutuk): Record<string, number> => ({
       olculmeyen: k.tavanlar.olculmeyen,
       'sinif.S1': k.tavanlar.sinif.S1,
       'sinif.S2': k.tavanlar.sinif.S2,
       'sinif.S3': k.tavanlar.sinif.S3,
       korToplam: k.tavanlar.korToplam ?? 0,
-      korGovde: k.tavanlar.korGovde ?? 0,
     });
     const bugunku = oku(kutuk);
     const tabanki = oku(taban);
@@ -710,26 +734,52 @@ describe('KALIBIN KENDİ YÜRÜYÜŞÜ [URN-POL-001]', () => {
    Tarayıcı geçen tur regex yerine yazıldı ve HİÇBİR VAKAYA bağlanmadı —
    yani popülasyonu üreten kod, deponun "ölçülmemiş kural" tarifine tam
    olarak uyuyordu. Vakalar burada. */
-/* ═══ R0-23 · BEYANLI SINIR DONDURULDU (Brief M · FAZ 3) ═══════════════
+/* ═══ R0-23 · BEYANLI SINIR DONDURULDU · TEK SAYI ═════════════════════
    `OZNE` özneleri YALIN hâlleriyle arar; çekimli hâlleri ("kütüğün" ·
-   "kaydı" · "ürünün") GÖRMEZ. Sınır bu turda genişletilmedi — gövde
-   kalıbı 51 satırlık yeni bir borç açıyor ve bu kütüğün yedinci dişi
-   SIFIRDA KİLİTLİ, her satır gerçek yol ölçümüyle gelmek zorunda.
+   "kaydı" · "ürünün") ve öznesi hiç olmayanları GÖRMEZ. Sınır bu turda
+   genişletilmedi: kalıbı gövdeye çevirmek ölçülmemiş yeni bir borç açar
+   ve bu kütüğün yedinci dişi SIFIRDA KİLİTLİ — her satır gerçek yol
+   ölçümüyle gelmek zorunda.
 
-   Dondurma şudur: kör satır sayısı BÜYÜYEMEZ. Yarın çekimli özneyle
-   yazılan yeni bir politika cümlesi sayıyı artırır ve kapı kırmızı
-   yanar; yazan kişi ya kalıbın gördüğü bir hâl kullanır ya da kalıbı
-   genişletip borcu üstlenir. Sınırın ikinci bekçisi DOM tanığıdır. */
+   ── KİLİT SAYI TEKTİR: ADAY POPÜLASYONUN TAMAMI ────────────────────
+   Rapor bir ara üç sayı taşıdı ve uzlaşmamıştı. Üçü de AYNI yürüyüşten
+   çıkar ve tam olarak şunları sayar:
+
+     357  ADAY POPÜLASYON  `korToplamSayisi()` — 25–400 karakter, en az
+                           dört sözcük, JSX/biçem parçası değil, YÜKLEM
+                           var, YALIN ÖZNE yok.              ← KİLİT
+      51  ALT KÜME         bu 357'nin `OZNE_GOVDE` taşıyanı.  ← BİLGİ
+     382  ESKİ/GEÇERSİZ    aynı yürüyüşün, aday süzgeci `politikaMi`
+                           ile hizalanmadan önceki hâli; aradaki 25
+                           satır politika cümlesi OLAMAZ (ithal yolu,
+                           JSX parçası, dört sözcükten kısa dize).
+                           Ölçüldü: 357 + 25 = 382.
+
+   ── ALT KÜME NEDEN TAVAN DEĞİL ─────────────────────────────────────
+   Alt kümeyi dondurmak üst kümeyi serbest bırakır — P2-14'ün bulduğu
+   deliğin ta kendisi. Tersi de kapı değil MAYIN olurdu: üst küme
+   sabitken alt küme büyüyebilir, çünkü kör bir cümleyi "Onay olmadan
+   yayımlanmaz" yerine "Kaydın onayı olmadan yayımlanmaz" diye yeniden
+   yazmak KÖRLÜĞÜ HİÇ DEĞİŞTİRMEZ ama alt kümeyi bir artırır; bir alt
+   küme tavanı o temiz dalı kırmızı yakardı. Üst küme kilitli olduğu
+   için alt küme zaten onu aşamaz (51 ≤ 357): kapsam kaybı yok.
+
+   Dondurma şudur: ADAY SAYISI BÜYÜYEMEZ. Türeticinin görmediği yeni bir
+   politika cümlesi sayıyı artırır ve kapı kırmızı yanar; yazan kişi ya
+   kalıbın gördüğü bir özne hâli kullanır ya da kalıbı genişletip borcu
+   üstlenir. Tavanın kendisi de taban dala göre kilitlidir (beşinci diş)
+   ve sınırın ikinci bekçisi DOM tanığıdır. */
 describe('R0-23 · ÇEKİMLİ ÖZNE SINIRI BÜYÜYEMEZ [URN-POL-001]', () => {
-  it('SINIRIN TAMAMI tavanlı — 51 değil 382 (bağımsız inceleme · P2-14) [URN-POL-001]', () => {
-    /* İlk yazım yalnız `korGovde`yi (51) donduruyor ve buna "beyanlı
-       sınır donduruldu" diyordu. Ölçüldü: yüklemi olup YALIN öznesi
-       olmayan aday sayısı 382 — tavan sınırın sekizde birini
-       kapsıyordu. Öznesi hiç olmayan yeni bir cümle ("Onay olmadan
-       yayımlanmaz.") kör kümeyi büyütür ve hiçbir kapı yanmazdı. */
+  it('KİLİT SAYI: aday popülasyonun TAMAMI tavanlı [URN-POL-001]', () => {
+    /* İlk yazım yalnız ALT KÜMEYİ (51) donduruyor ve buna "beyanlı sınır
+       donduruldu" diyordu. Ölçüldü (bağımsız inceleme · P2-14): aday
+       sayısı 357 — tavan sınırın yedide birini kapsıyordu. Öznesi hiç
+       olmayan yeni bir cümle ("Onay olmadan yayımlanmaz.") kör kümeyi
+       büyütür ve hiçbir kapı yanmazdı. */
     const toplam = korToplamSayisi();
     const tavan = kutuk.tavanlar.korToplam ?? 0;
-    console.log(`R0-23 · sınırın TAMAMI: ${toplam} aday (tavan ${tavan})`);
+    console.log(`R0-23 · KİLİT SAYI · aday popülasyon: ${toplam} (tavan ${tavan})`
+      + ` · alt küme (bilgi): ${korGovdeSayisi()}`);
     expect(toplam,
       `BEYANLI SINIR BÜYÜDÜ: ${tavan} → ${toplam}. Türeticinin GÖRMEDİĞİ yeni bir `
       + 'politika adayı eklendi. Ya kalıbın gördüğü bir özne hâli kullanın, ya '
@@ -738,23 +788,41 @@ describe('R0-23 · ÇEKİMLİ ÖZNE SINIRI BÜYÜYEMEZ [URN-POL-001]', () => {
       .toBeLessThanOrEqual(tavan);
   });
 
-  it('ÇEKİMLİ GÖVDE alt kümesi de tavanlı [URN-POL-001]', () => {
-    /* Alt küme AYRI tutulur: `OZNE`yi gövdeye çevirmenin maliyeti tam
-       olarak bu sayıdır (51), sınırın tamamı (382) değil. İki sayıyı
-       birbirine karıştırmak, genişletme kararını yanlış fiyatlar. */
-    const kor = korGovdeSayisi();
-    const tavan = kutuk.tavanlar.korGovde ?? 0;
-    console.log(`R0-23 · çekimli gövde taşıyan alt küme: ${kor} (tavan ${tavan})`);
-    expect(kor, `ÇEKİMLİ GÖVDE ALT KÜMESİ BÜYÜDÜ: ${tavan} → ${kor}`)
-      .toBeLessThanOrEqual(tavan);
+  it('ALT KÜMENİN SAYI TAVANI YOK — mayın geri gelmesin [URN-POL-001]', () => {
+    /* Uzlaştırma kararının kendisi ölçülür: alt kümenin SAYI TAVANI geri
+       gelirse yukarıdaki mayın da geri gelmiş olur (körlüğü hiç
+       değiştirmeyen bir yeniden yazım temiz dalı kırmızı yakar).
+
+       ── NE YASAKLANIYOR, NE YASAKLANMIYOR (inceleme · P2) ───────────
+       Yasaklanan şey `tavanlar.korGovde` adındaki SAYI TAVANIDIR.
+       Alt kümeyi izlemenin kendisi yasak değildir: tabandaki alt küme
+       cümlelerinin KİMLİĞİNİ karşılaştıran bir mekanizma bu dişin
+       kapsamı dışındadır ve bu vaka onu engellemez — çünkü böyle bir
+       mekanizmanın kütükte bir sayı tavanına ihtiyacı yoktur.
+
+       ── SAYI TAVANININ KABUL EDİLMİŞ SINIRI ─────────────────────────
+       Bire bir TAKAS görünmez: bir kör aday silinip yerine başka bir
+       kör aday eklenirse toplam 357'de kalır ve kapı susar. Bu her SAYI
+       tavanının doğasıdır — `korToplam` için de böyleydi ve bu turda
+       açılmadı. Beyanlıdır (`docs/OLCUM_DONDURMA.md` → R0-23); kısmî
+       ikinci bekçi DOM tanığıdır. */
+    expect('korGovde' in kutuk.tavanlar,
+      'ALT KÜMENİN SAYI TAVANI GERİ GELMİŞ: `tavanlar.korGovde`. Kilit sayı TEKTİR '
+      + '(aday popülasyon); alt kümenin SAYI tavanı, körlüğü hiç değiştirmeyen bir '
+      + 'yeniden yazımda temiz dalı kırmızı yakar. Alt kümeyi KİMLİKLE izlemek '
+      + 'isterseniz o başka bir mekanizmadır ve bu vaka onu engellemez.')
+      .toBe(false);
   });
 
   it('SINIR GERÇEKTEN BİR SINIR — kör sayı sıfır değil [URN-POL-001]', () => {
     /* Sıfır olsaydı "beyanlı sınır" cümlesi yalan olurdu ve diş hiçbir
        şey ölçmezdi. Sayı ayrıca TABANLIDIR: sıfıra düşerse ya sınır
        gerçekten kapandı (kalıp genişledi) ya da ÖLÇÜM bozuldu — ikisi
-       de bakılmadan geçilemez. */
-    expect(korGovdeSayisi(), 'kör satır sayısı 0 — ölçüm bozulmuş olabilir')
+       de bakılmadan geçilemez. Kilit sayı da alt küme de sorulur:
+       ikisinden biri sıfırlanırsa yürüyüş bozulmuş demektir. */
+    expect(korToplamSayisi(), 'aday sayısı 0 — ölçüm bozulmuş olabilir')
+      .toBeGreaterThan(0);
+    expect(korGovdeSayisi(), 'alt küme 0 — ölçüm bozulmuş olabilir')
       .toBeGreaterThan(0);
   });
 });

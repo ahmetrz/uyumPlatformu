@@ -191,11 +191,20 @@ async function sayfaTopla(page) {
        AKLIYORDU. Kütük "bu boşluğun cümlesi var" der, ekranda cümle
        yoktur — dişin kovaladığı kusurun kendi aklama tarafındaki
        hâli. */
-    const cumleGorunur = (kapsam) => {
+    /* ── BİR CÜMLE BİR YÜZEYİ AKLAR (Codex · P2) ────────────────────
+       "Kapsamda cümle var mı" diye soran bir ölçüt, aynı bölümü
+       PAYLAŞAN iki yüzeyden birinin cümlesiyle ÖBÜRÜNÜ de aklıyordu:
+       ikinci tablo cümlesiz kalabilir ve diş bunu hiç göremezdi. Bugün
+       sorulan şey SAYIDIR — kapsamdaki görünür cümle sayısı, o
+       kapsamdaki boş yüzey sayısından azsa fark kadar yüzey
+       cümlesizdir. Kapsamı daraltmak yetmedi; bölüm gerçekten iki
+       yüzey taşıyabiliyor. */
+    const cumleSayisi = (kapsam) => {
+      let n = 0;
       for (const el of kapsam.querySelectorAll(`${ISARET}, div.ab-blok > span.etiket`)) {
-        if (gorunur(el)) return true;
+        if (gorunur(el)) n += 1;
       }
-      return false;
+      return n;
     };
     /* ── VERİ SATIRI ≠ HER `tr` (bağımsız inceleme · P1-1) ───────────
        `tbody` içinde veri OLMAYAN satırlar var: kuyruk satırı
@@ -232,6 +241,7 @@ async function sayfaTopla(page) {
        `<table>` bile olmadığı için aşağıdaki tarama onu göremez.
        Bileşen bu yüzden görünmez bir işaret basıyor
        (`[data-bos-yuzey]`) ve tanık sözleşmeyi buradan okur. */
+    const bosYuzeyler = [];
     for (const isaret of document.querySelectorAll('[data-bos-yuzey]')) {
       /* ── İŞARETİN KENDİ `aria-hidden`I ONU ELEMEZ (Codex · P1) ────
          Önceki düzeltme "gizli bir sekme panelindeki işaret cümle talep
@@ -245,10 +255,9 @@ async function sayfaTopla(page) {
       cikan.bosYuzeySayisi += 1;
       const kapsam = isaret.closest(BOLUM) || isaret.parentElement;
       if (!kapsam) continue;
-      if (cumleGorunur(kapsam)) continue;
-      cikan.cumlesiz.push({
+      bosYuzeyler.push({
+        kapsam,
         etiket: isaret.getAttribute('data-bos-yuzey'),
-        kapsam: (kapsam.getAttribute('class') || kapsam.tagName).slice(0, 60),
         baslik: (kapsam.innerText || kapsam.textContent || '')
           .replace(/\s+/g, ' ').trim().slice(0, 80),
       });
@@ -267,13 +276,31 @@ async function sayfaTopla(page) {
       const kapsam = dugum.closest(BOLUM) || dugum.parentElement;
       if (!kapsam) continue;
       cikan.bosYuzeySayisi += 1;   /* POPÜLASYON: kaç sıfır satırlı düğüme bakıldı */
-      if (cumleGorunur(kapsam)) continue;
-      cikan.cumlesiz.push({
+      bosYuzeyler.push({
+        kapsam,
         etiket: dugum.tagName.toLowerCase(),
-        kapsam: (kapsam.getAttribute('class') || kapsam.tagName).slice(0, 60),
         baslik: (dugum.querySelector('thead') ? dugum.querySelector('thead').innerText : '')
           .replace(/\s+/g, ' ').trim().slice(0, 80),
       });
+    }
+    /* ── KAPSAM BAŞINA YARGI ─────────────────────────────────────────
+       Yüzeyler önce TOPLANDI; karar burada, kapsam kapsam veriliyor.
+       Kapsamdaki görünür cümle sayısı kadar yüzey aklanır, GERİSİ
+       cümlesizdir. Hangi yüzeyin aklandığı sorusu sorulmaz — soru
+       "bu bölümde her boş yüzeye bir cümle düşüyor mu"dur. */
+    const kapsamlar = new Map();
+    for (const y of bosYuzeyler) {
+      if (!kapsamlar.has(y.kapsam)) kapsamlar.set(y.kapsam, []);
+      kapsamlar.get(y.kapsam).push(y);
+    }
+    for (const [kapsam, liste] of kapsamlar) {
+      for (const y of liste.slice(cumleSayisi(kapsam))) {
+        cikan.cumlesiz.push({
+          etiket: y.etiket,
+          kapsam: (kapsam.getAttribute('class') || kapsam.tagName).slice(0, 60),
+          baslik: y.baslik,
+        });
+      }
     }
     /* ── "İKİNCİ ŞEKİL" TARAMASI KALDIRILDI (bağımsız inceleme · P2-2) ─
        Görünür ama metinsiz yaprak bölümleri sayan bir tarama yazılmıştı;
@@ -499,19 +526,27 @@ const bosDurumlar = new Map();        // metin → { rotalar, sinif, eylem } · 
    adımlarından biri atarsa çalışma dizini ve — spawn edildiyse —
    sunucu süreci kalıyordu. Bir sonraki koşumun port çakışması tam
    buradan doğar. */
+/* ── TARAYICI DA AYNI TEMİZLİK YOLUNDAN GEÇER (Codex · P2) ───────────
+   Fikstür `try` içine alınmıştı ama `chromium.launch()` ARADA
+   kalıyordu: tarayıcı yoksa ya da başlatma atarsa fikstür kurulmuş,
+   sunucu ayağa kalkmış oluyor ve HİÇBİR temizlik koşmuyordu — bir
+   sonraki yerel koşum dolu portla karşılaşıyordu. İkisi de tek
+   `try`'da. */
 let fikstur = null;
+let browser = null;
 try {
   fikstur = BOS_KOSUM ? await bosKurulumKur() : null;
+  browser = await chromium.launch({
+    executablePath: tarayiciYolu(), headless: true, args: ['--no-sandbox'],
+  });
 } catch (hata) {
-  await bosTemizle(null);
+  if (browser) await browser.close();
+  await bosTemizle(fikstur);
   throw hata;
 }
 const SUNUCU = fikstur ? fikstur.kok : KOK;
 const OTURUM = BOS_KOSUM ? BOS_GIRIS : undefined;
 
-const browser = await chromium.launch({
-  executablePath: tarayiciYolu(), headless: true, args: ['--no-sandbox'],
-});
 try {
   const context = await browser.newContext({ viewport: { width: 1440, height: 900 } });
   const page = await context.newPage();

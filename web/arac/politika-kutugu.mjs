@@ -161,6 +161,60 @@ export const OZNE = new RegExp(
   + `|kayıt|kayıtlar|kapsam|yetki\\w*|hiçbir|otomatik|denetim izi|iz)${SOZCUK_SONU}`,
   'iu');
 
+/* ══ BEYANLI SINIRIN ÖLÇÜSÜ · R0-23 (Brief M · FAZ 3) ═══════════════════
+   `OZNE` özneleri YALIN hâlleriyle arar. Türkçede özne çekim eki alır ve
+   o hâlleri kalıp GÖRMEZ:
+
+     görülen  : "Bu ekran …"   · "Kayıt silinmez"   · "Motor yazmaz"
+     GÖRÜLMEYEN: "Kütüğün …"   · "Kaydı …"          · "Motorun …"
+                 "Ürünün …"    · "Sistemin …"       · "Kapsamın …"
+
+   Sınır bu turda GENİŞLETİLMEDİ ve sebebi ölçüldü: gövde + serbest ek
+   kalıbı popülasyonu 220'den 325'e çıkarıyor, yani 105 satırlık yeni bir
+   borç açıyor — ve bu kütüğün yedinci dişi SIFIRDA KİLİTLİ, her satır
+   gerçek yol ölçümüyle gelmek zorunda. Yüz satırı bir turda aceleyle
+   ölçmek, bu deponun kaçındığı şeyin ta kendisidir.
+
+   Sınırın DONDURULMASI budur: kör satır sayısı ÖLÇÜLÜR ve BÜYÜYEMEZ.
+   Yarın çekimli özneyle yazılan yeni bir politika cümlesi sayıyı
+   artırır ve kapı KIRMIZI yanar; yazan kişi ya kalıbın gördüğü bir hâl
+   kullanır ya da kalıbı genişletip 105 satırlık borcu üstlenir. Sınırın
+   ikinci bekçisi DOM tanığıdır: çekimli özneli bir cümle gerçekten
+   ekrana çıkıyorsa tanık onu görür ve kütükte bulamayınca kırmızı yanar.
+
+   R0-23 · Sahip: KODLAYAN · Kapanış: P3 · mesaj kataloğu (arayüz metni
+   sözlük anahtarına geçtiğinde tarama metinden ANAHTARA döner ve gövde
+   sorunu ortadan kalkar). */
+const GOVDE_EKLERI = '(?:[ıiuü]n|[ıiuü]|[ae]|d[ae]|d[ae]n|l[ae]|[ıiuü]m|[ıiuü]z)';
+export const OZNE_GOVDE = new RegExp(
+  `${SOZCUK_BASI}(kütü[kğ]|kayd?|ürün|sistem|platform|motor|sunucu|kapsam|yetki|iz)`
+  + `${GOVDE_EKLERI}${SOZCUK_SONU}`,
+  'iu');
+
+/** Kalıbın GÖRMEDİĞİ (çekimli özneli) politika adayı sayısı. */
+export function korGovdeSayisi() {
+  /* Türeticinin KENDİ yürüyüşü kullanılır (ikinci bir tarama, ikinci bir
+     körlük demektir). Fark yalnız ölçüttedir: `politikaMi` yerine
+     "yüklem VAR, yalın özne YOK, ÇEKİMLİ özne VAR". */
+  const kor = new Set();
+  for (const kok of TARANAN) {
+    for (const f of readdirSync(path.join(KOK, kok), { recursive: true }).map(String)) {
+      if (!/\.(tsx|ts)$/.test(f) || /\.test\.tsx?$/.test(f)) continue;
+      const kod = bitisikleriBirlestir(
+        yorumsuz(readFileSync(path.join(KOK, `${kok}/${f}`), 'utf8')));
+      const adaylar = [...kaynakDizeleri(kod), ...jsxMetinleri(kod)];
+      for (const ham of adaylar) {
+        const cumle = String(ham).trim();
+        if (cumle.length < CUMLE_TABANI || cumle.length > CUMLE_TAVANI) continue;
+        if (!YUKLEM.test(cumle)) continue;
+        if (OZNE.test(cumle)) continue;            /* zaten görülüyor */
+        if (OZNE_GOVDE.test(cumle)) kor.add(cumle); /* YALNIZ çekimli gövde */
+      }
+    }
+  }
+  return kor.size;
+}
+
 /** Sistemin ne yapacağı/yapmayacağı.
  *
  * ── TÜRKÇE HARF `\w` DEĞİLDİR ─────────────────────────────────────────

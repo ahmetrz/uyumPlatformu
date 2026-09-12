@@ -105,3 +105,54 @@ export function tamAyrisma(domda, kutukte, tanikSatirlari) {
     .map((t) => t.kod);
   return { acikta, olu };
 }
+
+/* ═══════════════════════════════════════════════════════════════════════
+   TANIĞIN ULAŞAMADIĞI SATIR · KATEGORİ (Brief M · FAZ 2)
+
+   ── NEDEN KATEGORİ ────────────────────────────────────────────────────
+   Tanık kütüğün bir bölümünü görüyor ve bu BEYANLI bir sınır. Ama çıplak
+   bir "ulaşılamadı" hiçbir şey söylemez: sınırın DARALDIĞINI mı, ürünün
+   büyüdüğünü mü, tanığın körleştiğini mi anlatır? Kategorisiz bir sınır,
+   bir sonraki turda "zaten görmüyorduk" diye büyütülür.
+
+   Kategoriler KODDAN türetilir — elle işaretlenmez. Üçü de BİRBİRİNİ
+   DIŞLAR ve birlikte ulaşılamayan satırların TAMAMINI kaplar; kapı bu
+   toplamı ayrıca ölçer, yoksa dördüncü bir hâl sessizce sınıfsız kalır.
+   ═══════════════════════════════════════════════════════════════════════ */
+
+/** `app/(kabuk)/(operasyonel)/envanter/X.tsx` → `/envanter` */
+export function dosyaRotasi(yer) {
+  const y = String(yer ?? '');
+  if (!y.startsWith('app/')) return null;
+  const parcalar = y.slice(4).split('/').slice(0, -1)      // dosya adını at
+    .filter((p) => !/^\(.*\)$/.test(p) && !p.startsWith('@') && !p.startsWith('_'));
+  return `/${parcalar.join('/')}`.replace(/\/+$/, '') || '/';
+}
+
+/**
+ * Tanığın bir kütük satırına neden ulaşamadığı.
+ *
+ * @param {{yer?: string}} satir kütük satırı
+ * @param {Set<string>} gezilen tanığın GEZDİĞİ rotalar
+ * @returns {'sunucu-eylemi'|'rota-gezilmedi'|'acilista-yok'}
+ */
+export function erisimKategorisi(satir, gezilen) {
+  const yer = String(satir?.yer ?? '');
+  /* 1 · Sunucu eyleminin ret gerekçesi: ilk DOM'da HİÇ bulunmaz, ancak
+     kullanıcı bir işlem denediğinde görünür. Tanık işlem denemiyor. */
+  if (!yer.startsWith('app/')) return 'sunucu-eylemi';
+  const rota = dosyaRotasi(yer);
+  /* 2 · Rota hiç gezilmedi (dinamik segment çözülemedi, HTTP hata,
+     çok parametreli rota). Tanığın `atlanan` listesi bunu adıyla yazar. */
+  if (rota && !gezilen.has(rota)) return 'rota-gezilmedi';
+  /* 3 · Rota gezildi ama cümle AÇILIŞ hâlinde yok: çekmece, sekme,
+     form, onay kutusu ya da koşullu bir durumun arkasında. */
+  return 'acilista-yok';
+}
+
+/** Ulaşılamayan satırların kategori dağılımı. */
+export function erisimDagilimi(ulasilamayan, gezilen) {
+  const sayim = { 'sunucu-eylemi': 0, 'rota-gezilmedi': 0, 'acilista-yok': 0 };
+  for (const s of ulasilamayan) sayim[erisimKategorisi(s, gezilen)] += 1;
+  return sayim;
+}

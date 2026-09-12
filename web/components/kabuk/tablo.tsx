@@ -71,6 +71,25 @@ function icEtkilesim(e: MouseEvent<HTMLElement>): boolean {
   return !!hedef?.closest('a, button, input, select, textarea, summary, label');
 }
 
+/* ── GÖRÜNMEZ İŞARET: "BURADA BOŞ BİR VERİ YÜZEYİ VAR" ────────────────
+   ── ÖLÇÜLEN KUSUR (Brief M · FAZ 1) ─────────────────────────────────
+   Bu bileşen sıfır satırda HİÇBİR ŞEY çizmiyor ve bu doğru bir karar:
+   boşluğun sebebini paylaşılan bir tablo bilemez. Ama sonucu bir delik
+   açtı — ortada bir `<table>` bile kalmadığı için DOM tanığı "burada bir
+   veri yüzeyi vardı" diyemiyor, kaynak türeticisi de okuyacak bir metin
+   bulamıyor. Ekran hiçbir cümle söylemeden boş kalabiliyor ve İKİ ÖLÇÜM
+   MEKANİZMASI DA bunu göremiyor.
+
+   İşaret bir CÜMLE DEĞİLDİR ve öyle olmamalı: sıfır boyutlu, ekrana
+   hiçbir şey basmayan, ekran okuyucudan gizli bir düğüm. Yaptığı tek şey
+   tanığa "bu kapsamda boş bir veri yüzeyi var, cümlesini ara" demek.
+   Ürünün kendi sözleşmesini beyan etmesi bu depoda zaten kullanılan
+   kalıp: `BosIlk` de kendini `div.ab-blok > span.etiket` ile bildiriyor
+   ve tanık onu o sözleşmeden okuyor. */
+const BosYuzeyIsareti = () => (
+  <span className="ab-bos-yuzey" data-bos-yuzey="tablo" aria-hidden="true" />
+);
+
 export function VeriTablosu<T extends { id: string }>({
   etiket, kolonlar, satirlar, secili, sec, durum, sira, siraDegistir, bosCumle, bosEylem, bosTemizle, sik, yukseklik,
   kuyruk, dipNot, grup, acik, yukleniyor,
@@ -177,7 +196,7 @@ export function VeriTablosu<T extends { id: string }>({
   }
 
   if (satirlar.length === 0 && !kuyruk) {
-    if (bosCumle === null) return null;
+    if (bosCumle === null) return <BosYuzeyIsareti />;
     /* ── ARKETİP: PAYLAŞILAN TABLO BOŞLUĞU (R-G) ──────────────────────
        Varsayılan cümle "Bu süzgeçte kayıt yok." idi: tek tümce, sebebi
        söylemiyor, çıkışı yok. Bağımsız inceleme (Brief L · tur 1) bunu
@@ -215,7 +234,7 @@ export function VeriTablosu<T extends { id: string }>({
            `olaylar` · `riskler`); bileşenin ikinci, sebebi uydurulmuş
            bir boşluk çizmesi onları ikiye katlıyordu. */
     if (bosTemizle) return <BosFiltre temizle={bosTemizle} />;
-    if (!bosCumle && !bosEylem) return null;
+    if (!bosCumle && !bosEylem) return <BosYuzeyIsareti />;
     /* SINIF ADINDA `bos` YOK ve bu bilerek: bu kap artık bileşenin KENDİ
        boş durumu değil, ÇAĞIRANIN cümlesinin kabıdır. `bos` sözcüğünü
        taşısaydı boş durum türeticisi burayı bileşene ait bir boş durum

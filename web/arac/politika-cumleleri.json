@@ -2399,7 +2399,8 @@
       "S1": 0,
       "S2": 0,
       "S3": 0
-    }
+    },
+    "korGovde": 51
   },
   "not": "R-F · politika cümlesi kütüğü. Satırlar arac/politika-kutugu.mjs ile TÜRETİLİR, elle yazılmaz.",
   "tavanGerekceleri": [

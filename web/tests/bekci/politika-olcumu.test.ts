@@ -3,8 +3,8 @@ import { execFileSync } from 'node:child_process';
 import { existsSync, readFileSync } from 'node:fs';
 import path from 'node:path';
 import {
-  GEREKCE_ASGARI, kacisKapisiKusurlari, kaynakDizeleri, politikaMi, sonucSinifi,
-  turet, yeniSatirKusurlari, yorumsuz,
+  GEREKCE_ASGARI, kacisKapisiKusurlari, kaynakDizeleri, korGovdeSayisi, politikaMi,
+  sonucSinifi, turet, yeniSatirKusurlari, yorumsuz,
 } from '../../arac/politika-kutugu.mjs';
 import { tabanKarari, tabanOku } from '../../arac/olcum-tabani.mjs';
 import { tabanDalKarari } from '../../arac/taban-dal.mjs';
@@ -40,7 +40,7 @@ import { tabanDalKarari } from '../../arac/taban-dal.mjs';
 const KUTUK = path.join(process.cwd(), 'arac', 'politika-cumleleri.json');
 const kutuk = JSON.parse(readFileSync(KUTUK, 'utf8')) as {
   not?: string;
-  tavanlar: { olculmeyen: number; sinif: Record<string, number> };
+  tavanlar: { olculmeyen: number; sinif: Record<string, number>; korGovde?: number };
   tavanGerekceleri?: { alan: string; eski: number; yeni: number; gerekce: string }[];
   satirlar: {
     kod: string; cumle: string; yer: string; sinif: string; gerekce?: string;
@@ -701,6 +701,38 @@ describe('KALIBIN KENDİ YÜRÜYÜŞÜ [URN-POL-001]', () => {
    Tarayıcı geçen tur regex yerine yazıldı ve HİÇBİR VAKAYA bağlanmadı —
    yani popülasyonu üreten kod, deponun "ölçülmemiş kural" tarifine tam
    olarak uyuyordu. Vakalar burada. */
+/* ═══ R0-23 · BEYANLI SINIR DONDURULDU (Brief M · FAZ 3) ═══════════════
+   `OZNE` özneleri YALIN hâlleriyle arar; çekimli hâlleri ("kütüğün" ·
+   "kaydı" · "ürünün") GÖRMEZ. Sınır bu turda genişletilmedi — gövde
+   kalıbı 51 satırlık yeni bir borç açıyor ve bu kütüğün yedinci dişi
+   SIFIRDA KİLİTLİ, her satır gerçek yol ölçümüyle gelmek zorunda.
+
+   Dondurma şudur: kör satır sayısı BÜYÜYEMEZ. Yarın çekimli özneyle
+   yazılan yeni bir politika cümlesi sayıyı artırır ve kapı kırmızı
+   yanar; yazan kişi ya kalıbın gördüğü bir hâl kullanır ya da kalıbı
+   genişletip borcu üstlenir. Sınırın ikinci bekçisi DOM tanığıdır. */
+describe('R0-23 · ÇEKİMLİ ÖZNE SINIRI BÜYÜYEMEZ [URN-POL-001]', () => {
+  it('kör satır sayısı beyan edilen tavanı AŞMIYOR [URN-POL-001]', () => {
+    const kor = korGovdeSayisi();
+    const tavan = kutuk.tavanlar.korGovde ?? 0;
+    console.log(`R0-23 · çekimli özne yüzünden görülmeyen cümle: ${kor} (tavan ${tavan})`);
+    expect(kor,
+      `BEYANLI SINIR BÜYÜDÜ: ${tavan} → ${kor}. Çekimli özneli yeni bir politika `
+      + 'cümlesi eklendi ve türetici onu GÖRMÜYOR. Ya kalıbın gördüğü bir özne '
+      + 'hâli kullanın ya da `OZNE`yi genişletip açılan borcu bu partide eritin.')
+      .toBeLessThanOrEqual(tavan);
+  });
+
+  it('SINIR GERÇEKTEN BİR SINIR — kör sayı sıfır değil [URN-POL-001]', () => {
+    /* Sıfır olsaydı "beyanlı sınır" cümlesi yalan olurdu ve diş hiçbir
+       şey ölçmezdi. Sayı ayrıca TABANLIDIR: sıfıra düşerse ya sınır
+       gerçekten kapandı (kalıp genişledi) ya da ÖLÇÜM bozuldu — ikisi
+       de bakılmadan geçilemez. */
+    expect(korGovdeSayisi(), 'kör satır sayısı 0 — ölçüm bozulmuş olabilir')
+      .toBeGreaterThan(0);
+  });
+});
+
 describe('KAYNAK DİZE TARAYICISI [URN-POL-001]', () => {
   it('AÇGÖZLÜ ALTERNATİF kusuru geri gelmez — uzun eşleşme kısa dizeyi YUTAMAZ [URN-POL-001]', () => {
     /* Tarayıcının var oluş sebebi: eski regex alternatifleri açgözlüydü

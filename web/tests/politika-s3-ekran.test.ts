@@ -575,9 +575,21 @@ describe('PAYLAŞILAN TABLO BOŞLUĞU · varsayılan cümle [SIS-EKR-001]', () =
     /* Süzgeç boşluğunda ürünün arketipi çizilir. */
     expect(kod, 'süzgeç boşluğunda ürünün arketipi çizilmiyor')
       .toContain('if (bosTemizle) return <BosFiltre temizle={bosTemizle} />;');
-    /* Çağıran hiçbir şey vermediyse tablo cümle UYDURMAZ. */
-    expect(kod, 'çağıran boş bıraktığında tablo yine bir şey çiziyor')
-      .toContain('if (!bosCumle && !bosEylem) return null;');
+    /* ── ÇAĞIRAN BOŞ BIRAKTIĞINDA: CÜMLE YOK, İŞARET VAR (Brief M) ──
+       Eski sözleşme `return null` idi ve doğruydu — ama bir delik
+       açıyordu: ortada bir `<table>` bile kalmadığı için DOM tanığı
+       "burada bir veri yüzeyi vardı" diyemiyor, kaynak türeticisi de
+       okuyacak metin bulamıyordu. Ekran hiçbir cümle söylemeden boş
+       kalabiliyor ve İKİ ÖLÇÜM MEKANİZMASI DA bunu göremiyordu.
+
+       Bugün bileşen görünmez bir İŞARET basıyor: sıfır boyutlu, ekran
+       okuyucudan gizli, hiçbir metin taşımayan bir düğüm. Bu bir cümle
+       DEĞİLDİR — tanığa "bu kapsamda boş bir veri yüzeyi var, cümlesini
+       ara" der ve kapı cümleyi ÇAĞIRANIN yerinde arar. */
+    expect(kod, 'çağıran boş bıraktığında tablo yine bir CÜMLE çiziyor')
+      .toContain('if (!bosCumle && !bosEylem) return <BosYuzeyIsareti />;');
+    expect(kod, 'işaret görünür bir metin taşıyor — cümle uydurmuş olurdu')
+      .toMatch(/data-bos-yuzey="tablo" aria-hidden="true" \/>/);
     /* Kapsayıcı sınıfı ÇAĞIRANIN olduğunu söyler: `ab-vt-bos` adı,
        bileşenin kendi boş durumu varmış gibi okunuyordu. */
     expect(kod, 'kapsayıcı hâlâ bileşenin kendi boş durumu gibi adlandırılmış')

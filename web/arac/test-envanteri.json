@@ -1,7 +1,7 @@
 {
-  "imza": "22617b527ce9123f60751674f00d9593",
+  "imza": "1d08e141197a55c0949433940bf8c578",
   "dosya": 246,
-  "vaka": 4424,
+  "vaka": 4430,
   "atlanan": 1,
   "dosyalar": {
     "tests/adaptor-yetenekleri.test.ts": {
@@ -61,7 +61,7 @@
       "atlanan": 0
     },
     "tests/bekci/dom-tanik.test.ts": {
-      "vaka": 15,
+      "vaka": 19,
       "atlanan": 0
     },
     "tests/bekci/ek-eklemesi.test.ts": {
@@ -109,7 +109,7 @@
       "atlanan": 0
     },
     "tests/bekci/politika-olcumu.test.ts": {
-      "vaka": 45,
+      "vaka": 47,
       "atlanan": 0
     },
     "tests/bekci/radar-agsiz.test.ts": {

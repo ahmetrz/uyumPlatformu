@@ -153,6 +153,14 @@ const EKLENEN_KAPILAR = [
      yeniden türetir ve kütükle karşılaştırır. İlk koşusunda dokuz
      satırlık görünmeyen borç ve bir R-G ihlali açtı. */
   'npm run tanik:dom',
+  /* ── BOŞ KURULUM KOŞUMU (Brief M · FAZ 1) ────────────────────────
+     Cümlesiz boş yüzey ancak veri YOKKEN görünür: tohumlu koşumda
+     tabloların çoğu doludur ve ölçüm doğası gereği 0 çıkar. "Tohumlu
+     koşumda 0" ile "böyle bir kusur yok" AYNI ŞEY DEĞİLDİR — ikisini
+     ayıran tek şey boş veriyle bir koşumdur. Tanık kendi veritabanını,
+     kendi kurucu hesabını ve kendi sunucusunu kurar; kendi kurmadığı
+     bir duruma yaslanan kapı yanlış sebeple geçebilir (POL-084 sınıfı). */
+  'npm run tanik:dom-bos',
   'npm run kapi:dom-tanik',
 ];
 
@@ -191,8 +199,10 @@ describe('kapı kümesi bölünmeyle değişmez', () => {
        döngüsüne göre doğru sınıflanması. */
     const tarayicili = kapiAdimlari(AKIS).filter((a) => a.sunucuIster);
     /* 10 → 12: DOM tanığı ve onun ayrışma bekçisi de canlı sunucu
-       ister ve `kapi-rota` işinde koşar. */
-    expect(tarayicili).toHaveLength(12);
+       ister ve `kapi-rota` işinde koşar.
+       12 → 13: boş kurulum koşumu da tarayıcılıdır — ama KENDİ
+       sunucusunu kurar (3211), paylaşılan 3210'u kullanmaz. */
+    expect(tarayicili).toHaveLength(13);
     expect(new Set(tarayicili.map((a) => a.is)).size).toBe(4);
   });
 

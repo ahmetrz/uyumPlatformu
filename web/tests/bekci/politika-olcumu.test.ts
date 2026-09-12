@@ -325,11 +325,27 @@ describe('SONUÇ SINIFI ve CIRCIR [URN-POL-001]', () => {
         "CI'da taban dal okunamadı — cırcırın beşinci dişi ölçülemedi").toBe('');
       return;
     }
-    let taban: typeof kutuk | null = null;
-    try {
-      taban = JSON.parse(git(['show', 'origin/main:web/arac/politika-cumleleri.json']));
-    } catch { taban = null; }
-    if (taban === null) return; /* kütüğü GETİREN dal */
+    /* ── OKUNAMAYAN TABAN = KIRMIZI ──────────────────────────────────
+       Eski yazım `JSON.parse`ı çıplak bir `try/catch` içine alıyor ve
+       İKİ AYRI HÂLİ aynı sessiz `return`a düşürüyordu: kütüğün tabanda
+       HİÇ OLMAMASI (meşru — kütüğü getiren dal) ile tabandaki kütüğün
+       OKUNAMAMASI/BOZUK olması. İkincisi bir ölçüm kaybıdır ve
+       dondurulmuş sayının kilidini sessizce açar. Depodaki üç hâlli
+       karar (`tabanDalKarari`) bu dosyada zaten kullanılıyor; tavan
+       denetimi de aynı ayrımı yapar. */
+    const YOL_TAVAN = 'origin/main:web/arac/politika-cumleleri.json';
+    let tabandaVar = true;
+    try { git(['cat-file', '-e', YOL_TAVAN]); } catch { tabandaVar = false; }
+    let ham: string | null = null;
+    if (tabandaVar) { try { ham = git(['show', YOL_TAVAN]); } catch { ham = null; } }
+    const karar = tabanDalKarari(tabandaVar, ham);
+    if (karar.hal === 'olculemedi') {
+      expect(process.env.CI ?? '',
+        `TABAN DAL ÖLÇÜLEMEDİ (${karar.sebep}) — R0-23 tavanı denetlenemedi`).toBe('');
+      return;
+    }
+    if (karar.hal === 'taban_yok') return; /* kütüğü GETİREN dal */
+    const taban = karar.belge as typeof kutuk;
 
     /* ── R0-23 TAVANI DA DENETİMDE (Codex bulgusu) ───────────────────
        Anahtar haritası yalnız `olculmeyen` ve `sinif.*` okuyordu; yeni

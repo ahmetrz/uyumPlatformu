@@ -2400,7 +2400,6 @@
       "S2": 0,
       "S3": 0
     },
-    "korGovde": 51,
     "korToplam": 357
   },
   "not": "R-F · politika cümlesi kütüğü. Satırlar arac/politika-kutugu.mjs ile TÜRETİLİR, elle yazılmaz.",
@@ -2445,13 +2444,7 @@
       "alan": "korToplam",
       "eski": 0,
       "yeni": 357,
-      "gerekce": "YENİ bir tavan; gevşetme değil, daha önce HİÇ ÖLÇÜLMEYEN bir sınırın ilk kez dondurulması. Kusur: OZNE kalıbı özneyi yalın hâliyle arar ve çekimli hâlleri görmez; yüklemi olup yalın öznesi olmayan 357 aday türeticinin DIŞINDA kalıyor ve bugüne kadar hiçbir kapı bu sayının büyümesini görmüyordu. Tavan bu sayıyı kilitler: yeni bir kör cümle eklenirse kapı kırmızı yanar. Sınır kapatılmadı çünkü kalıbı genişletmek 51 satırlık ölçülmemiş borç açar ve bu kütüğün yedinci dişi sıfırda kilitli. SAYI 382'DEN 357'YE İNDİ (inceleme bulgusu): aday süzgeci politikanınkiyle aynı değildi — \"en az dört sözcük\" ve \"JSX/biçem parçası değil\" dişleri yoktu, bu yüzden sınıra bir ithal yolu, bir JSX parçası ve dört sözcükten kısa dizeler giriyordu. Bir ithal adının değişmesi dondurulmuş sınırı oynatıp yanıltıcı bir gerekçe istiyordu; tavan bir MAYINA dönüşüyordu. Süzgeç politikanınkiyle eşitlendi, fark YALNIZ öznede kaldı."
-    },
-    {
-      "alan": "korGovde",
-      "eski": 0,
-      "yeni": 51,
-      "gerekce": "YENİ bir tavan; 357 satırlık sınırın, bilinen bir gövdenin çekimli hâlini TAŞIYAN alt kümesi. Ayrı tutulur çünkü OZNE kalıbını gövdeye çevirmenin fiyatı tam olarak bu sayıdır (51), sınırın tamamı (357) değil; ikisini karıştırmak genişletme kararını yanlış fiyatlar. Alt küme de büyüyemez."
+      "gerekce": "R0-23'ün TEK kilit sayısı: türeticinin göremediği ADAY POPÜLASYONUN TAMAMI. Kusur: OZNE kalıbı özneyi yalın hâliyle arar; yüklemi olup yalın öznesi olmayan 357 cümle türeticinin DIŞINDA kalıyor ve bugüne kadar hiçbir kapı bu sayının büyümesini görmüyordu. Tavan bu sayıyı kilitler: kalıbın görmediği yeni bir politika adayı kapıyı kırmızı yakar. Sınır kapatılmadı çünkü kalıbı gövdeye çevirmek ölçülmemiş yeni bir borç açar ve bu kütüğün yedinci dişi sıfırda kilitli. SAYI 382'DEN 357'YE İNDİ (inceleme bulgusu): aday süzgeci politikaMi() ile aynı değildi — \"en az dört sözcük\" ve \"JSX/biçem parçası değil\" dişleri yoktu, bu yüzden sınıra bir ithal yolu, bir JSX parçası ve kısa dizeler giriyordu (25 satır). ALT KÜME (çekimli gövde taşıyan 51 aday) ARTIK TAVAN DEĞİL, BİLGİDİR ve sebebi kusurdur: alt küme üst kümeye eşit kalırken büyüyebilir — kör bir cümleyi \"Onay olmadan yayımlanmaz\" yerine \"Kaydın onayı olmadan yayımlanmaz\" diye yeniden yazmak körlüğü hiç değiştirmez ama alt kümeyi bir artırırdı ve tavan her temiz dalı kırmızı yakardı; bu bir kapı değil MAYINDIR. Üst küme kilitli olduğu için alt küme zaten onu aşamaz (51 ≤ 357): kapsam kaybı yok."
     }
   ]
 }

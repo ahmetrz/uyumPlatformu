@@ -458,6 +458,12 @@ bunu `Kiraci.markaAd` alanına taşır). `Regula` **iç çalışma adıdır** ve
 arayüzde, sitede, dış iletişimde kullanılmaz; domain alınmaz, marka
 başvurusu yapılmaz, logo çizdirilmez (`docs/URUN_VIZYONU.md` §10).
 
+**Commit mesajı YALNIZ konu başlığıdır.** Tek satır, ne yapıldığını
+söyler; gövde, gerekçe paragrafı, ölçüm dökümü ya da sabotaj listesi
+yazılmaz. Gerekçe ve ölçüm zaten dosyada durur — kütükte, kapıda, R0
+kaydında; commit mesajı onların yerine geçmez ("commit mesajı dosyayı
+okuyanın önünde durmaz"). Ayrıntı gerekiyorsa PR gövdesine yazılır.
+
 **Dil çok dillidir; Türkçe birinci dil.** Kod yorumları, commit
 mesajları ve belgeler Türkçedir. Arayüz metinleri P3'ten sonra mesaj
 kataloğundan gelir (TR birinci, EN ikinci); o güne kadar mevcut Türkçe

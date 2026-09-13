@@ -1,0 +1,28 @@
+kod;ust_kod;baslik;metin;sira;seviye;zorunluluk_tipi;kanit_beklentisi;dis_kontrol_id;kanit_tipi
+4;;Varlık Yönetimi;Kritik enerji altyapısına ait BT ve OT varlıklarının envanteri ve sınıflandırması.;4000;;;;;
+4.1;4;Varlık Envanteri;Tüm BT/OT varlıkları güncel bir envanterde izlenmelidir.;4100;;;;;kayit
+4.1.1;4.1;Envanter güncelliği;"Envanter en geç 6 ayda bir gözden geçirilir; değişiklikler 30 gün içinde işlenir.";4101;;;;;kayit
+4.1.2;4.1;Kritiklik sınıflandırması;Varlıklar üretim sürekliliğine etkisine göre sınıflandırılır.;4102;;;;;politika
+4.2;4;Ağ Mimarisi ve Ayrıştırma;Kurumsal BT ağı ile endüstriyel kontrol ağı ayrıştırılmalıdır.;4200;;;;;
+4.2.1;4.2;SCADA segmentasyonu;"SCADA/EKS ağları, kurumsal ağdan güvenlik bölgeleriyle (zone/conduit) ayrılır; bölgeler arası trafik denetlenir.";4201;;;;;konfigurasyon
+4.2.2;4.2;Uzaktan erişim;OT ortamına uzaktan erişim çok faktörlü kimlik doğrulama ve kayıt altına alma ile yapılır.;4202;;;;;konfigurasyon
+5;;Kimlik ve Erişim Yönetimi;Erişim hakları görev ayrılığı ve en az ayrıcalık ilkesine göre yönetilir.;5000;;;;;
+5.1;5;Hesap Yönetimi;Hesap açma/kapama süreçleri tanımlı ve izlenebilir olmalıdır.;5100;;;;;
+5.1.1;5.1;Servis hesapları;Servis hesapları envanterde izlenir, parolaları kasada tutulur ve düzenli rotasyona tabidir.;5101;;;;;kayit
+5.1.2;5.1;Ayrıcalıklı erişim;Ayrıcalıklı oturumlar kaydedilir ve düzenli gözden geçirilir.;5102;;;;;kayit
+6;;Ağ ve Sistem Güvenliği;Elektrik üretim tesislerinde kurumsal ağ ile endüstriyel kontrol ağı arasındaki geçişler tanımlı, onaylı ve denetlenebilir olmalıdır.;6000;;REGULATION;;;
+6.1;6;Sınır Güvenliği;Bölgeler arası her geçit (conduit) için izin verilen protokoller ve yönler belgelenir.;6100;;REGULATION;;;
+6.1.1;6.1;Geçit kuralları;"Kurumsal ağdan süreç kontrol ağına doğrudan bağlantı bulunmaz; tüm trafik OT DMZ üzerinden ve tanımlı protokollerle geçer. Geçit kuralları en az yılda bir doğrulanır.";6101;;REGULATION;"Yürürlükteki konfigürasyon veya test kaydı; en fazla 180 gün eski.";;konfigurasyon
+6.1.2;6.1;Uzak bakım oturumları;Tedarikçi uzaktan erişimi yalnızca talep üzerine açılır, oturum kaydı alınır ve kayıtlar en az bir yıl saklanır.;6102;;REGULATION;"Yürürlükteki konfigürasyon veya test kaydı; en fazla 180 gün eski.";;kayit
+6.2;6;Sistem Sıkılaştırma;İşletim sistemi ve uygulama sıkılaştırma temelleri tanımlanır ve sapmalar izlenir.;6200;;REGULATION;;;
+6.2.1;6.2;Yama yönetimi;"Kritik güvenlik yamaları, üretim penceresi kısıtları gözetilerek tanımlı süre içinde uygulanır; uygulanamayanlar için telafi edici kontrol kaydedilir.";6201;;REGULATION;"Yürürlükteki konfigürasyon veya test kaydı; en fazla 180 gün eski.";;kayit
+7;;Olay Yönetimi ve İzleme;Siber olayların tespiti, müdahalesi ve raporlanması.;7000;;;;;
+7.1;7;Kayıt Yönetimi;Güvenlik olay kayıtları merkezî olarak toplanır.;7100;;;;;
+7.1.4;7.1;OT log toplama;Endüstriyel protokol trafiği ve OT sistem kayıtları pasif yöntemlerle merkezî SIEM'e aktarılır.;7104;;;;;konfigurasyon
+7.2;7;Olay Müdahale Planı;EPDK bildirim yükümlülüklerini içeren olay müdahale planı bulunur ve yılda bir tatbikat yapılır.;7200;;;;;politika
+8;;Süreklilik ve Yedekleme;Üretim ve kontrol sistemlerinin kesinti sonrası geri dönüşü planlanmış, test edilmiş ve kanıtlanmış olmalıdır.;8000;;REGULATION;;;
+8.1;8;Yedekleme;Kontrol sistemi konfigürasyonları ve süreç verisi düzenli olarak yedeklenir.;8100;;REGULATION;;;
+8.1.1;8.1;Yedek kapsamı;"SCADA/DCS konfigürasyonu, historian verisi ve mühendislik projeleri yedekleme kapsamındadır; kapsam dışı bırakılan sistemler gerekçesiyle kaydedilir.";8101;;REGULATION;"Yürürlükteki konfigürasyon veya test kaydı; en fazla 180 gün eski.";;konfigurasyon
+8.1.2;8.1;Geri yükleme testi;Yedeklerin geri yüklenebildiği en az altı ayda bir izole ortamda test edilir ve sonucu kayıt altına alınır. Test yapılmamış yedek, yedek sayılmaz.;8102;;REGULATION;"Yürürlükteki konfigürasyon veya test kaydı; en fazla 180 gün eski.";;test_kaydi
+8.2;8;İş Sürekliliği;Kurtarma hedefleri üretim etkisine göre belirlenir ve tatbik edilir.;8200;;REGULATION;;;
+8.2.1;8.2;Kurtarma hedefleri;Her kritik sistem için RPO ve RTO tanımlıdır, sahiplendirilmiştir ve yıllık tatbikatla doğrulanır.;8201;;REGULATION;"Yürürlükteki konfigürasyon veya test kaydı; en fazla 180 gün eski.";;plan

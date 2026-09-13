@@ -1,0 +1,117 @@
+.root { --mesafe: 0px; --ekran: max(100svh, 580px); --metin: 1; --arayuz: 0; --ilerleme: 0%; position: relative; isolation: isolate; background: #0a0c0d; color: #edeeec; }
+.runway { height: calc(var(--ekran) + var(--mesafe)); position: relative; z-index: 1; }
+.stage { position: sticky; top: 0; height: var(--ekran); overflow: hidden; background: #0a0c0d; }
+.backdrop { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; pointer-events: none; transform-origin: 50% 45%; }
+.kare { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; object-position: center; pointer-events: none; opacity: 0; visibility: hidden; }
+.kare[data-kare='uzak'] { opacity: 1; visibility: visible; }
+.vignette { position: absolute; inset: 0; pointer-events: none; background: radial-gradient(ellipse 88% 78% at 50% 46%, transparent 55%, #07101d99 100%); }
+.shade { position: absolute; inset: 0; pointer-events: none; background: linear-gradient(0deg, #07101df2, #07101da6 25%, transparent 64%), linear-gradient(90deg, #07101d44, transparent 60%); opacity: var(--metin); }
+.header { position: absolute; top: 0; inset-inline: 0; display: flex; align-items: center; justify-content: space-between; gap: 24px; padding: 30px 5%; z-index: 2; background: linear-gradient(#07101d99, transparent); }
+.brand { max-width: 240px; font: 500 13px/1.6 'Inter', sans-serif; letter-spacing: .03em; }
+.skip { color: #edeeec; text-decoration: none; font-size: 13px; padding: 12px 0 12px 20px; white-space: nowrap; }
+.skip span { padding-left: 20px; color: #e8ae79; }
+.editorial { position: absolute; left: 6%; right: 6%; bottom: 124px; z-index: 1; opacity: var(--metin); display: grid; grid-template-columns: minmax(0, 1fr) 260px; gap: 14px 40px; align-items: end; }
+.eyebrow { grid-column: 1; color: #e4d4c3; font: 12px/1.5 'Inter', sans-serif; letter-spacing: .12em; margin: 0; }
+.editorial h1 { grid-column: 1; font: 400 clamp(64px, 7vw, 108px)/.92 'Barlow Condensed', sans-serif; letter-spacing: -.02em; margin: 0; text-shadow: 0 2px 28px #07101d; }
+.editorial h1 span { color: #edbc91; }
+.description { grid-column: 1; color: #e0e4e5; font-size: 16px; line-height: 1.6; margin: 4px 0 10px; }
+.cta { grid-column: 1; justify-self: start; display: inline-flex; align-items: center; justify-content: space-between; gap: 48px; min-height: 48px; padding: 0 22px; background: #e1a36b; color: #0a0c0d; text-decoration: none; font-weight: 600; font-size: 14px; }
+.cta:hover { background: #edbc91; }
+.skip:focus-visible, .cta:focus-visible, .tempo select:focus-visible { outline: 2px solid #edeeec; outline-offset: 5px; }
+.footer { position: absolute; bottom: 30px; inset-inline: 6%; display: flex; align-items: center; justify-content: space-between; gap: 24px; color: #edeeec; font: 12px/1.6 'Inter', sans-serif; }
+.scroll { opacity: var(--metin); text-shadow: 0 1px 8px #07101d; }
+.scroll span { margin-left: 16px; color: #edbc91; }
+.current { color: #edeeec; font-family: 'JetBrains Mono', monospace; font-size: 12px; }
+.tempo { display: flex; align-items: center; gap: 12px; font-size: 12px; }
+.tempo select { min-height: 42px; padding: 8px 28px 8px 12px; border: 1px solid #899398; border-radius: 0; color: #edeeec; background: #101b22; font: inherit; cursor: pointer; }
+.root[data-mod='statik'] .tempo { display: none; }
+.progress { position: absolute; bottom: 0; left: 0; height: 2px; width: var(--ilerleme); background: #e1a36b; }
+.destination { position: relative; z-index: 2; min-height: 100svh; background: #0a0c0d; outline: none; transform-origin: top left; }
+.root[data-mod='hareketli'] .kare { inset: auto; left: 0; top: 0; transform-origin: 0 0; will-change: transform, opacity; backface-visibility: hidden; }
+.root[data-mod='hareketli'] .destination { margin-top: calc(-1 * var(--ekran)); transform: translateY(calc(-1 * var(--mesafe))); visibility: hidden; }
+.root[data-metinsiz='true'] .editorial { visibility: hidden; }
+/* Arayüz ekran yüzeyinde belirdikçe sahne kabuğu (başlık, alt şerit, ilerleme) söner; tamamen görününce erişim ağacından da çıkar. */
+.root[data-mod='hareketli'] .header, .root[data-mod='hareketli'] .footer, .root[data-mod='hareketli'] .progress { opacity: calc(1 - var(--arayuz)); }
+.root[data-arayuz='1'] .header, .root[data-arayuz='1'] .footer, .root[data-arayuz='1'] .progress { visibility: hidden; }
+.root[data-tamam='true'] .runway { pointer-events: none; }
+.root[data-tamam='true'] .stage, .root[data-tamam='true'] .stage * { visibility: hidden !important; }
+.root[data-tamam='true'] .destination { z-index: auto; }
+.root[data-mod='dogrudan'] .runway { display: none; }
+.root[data-mod='dogrudan'] .destination, .root[data-mod='statik'] .destination { margin-top: 0; transform: none; visibility: visible; clip-path: none; }
+.root[data-mod='statik'] .runway { height: var(--ekran); }
+.root[data-mod='statik'] .stage { visibility: visible; }
+@media (max-width: 699px) {
+  .root { --ekran: 100svh; }
+  .header { padding: 20px 6%; gap: 16px; }
+  .brand { font-size: 12px; max-width: 58%; }
+  .skip { font-size: 12px; padding: 10px 0; }
+  .skip span { margin-left: 4px; padding: 0; }
+  .editorial { bottom: 136px; grid-template-columns: minmax(0, 1fr); gap: 12px; }
+  .editorial h1 { font-size: clamp(60px, 16vw, 84px); }
+  .eyebrow { font-size: 12px; letter-spacing: .08em; }
+  .description { display: none; }
+  .footer { bottom: 22px; display: grid; grid-template-columns: 1fr auto; gap: 10px; }
+  .scroll { display: none; }
+  .current { grid-column: 1 / -1; font-size: 11px; }
+  .tempo { grid-column: 1 / -1; justify-content: space-between; }
+}
+@media (max-width: 699px) and (max-height: 600px) {
+  .header { padding-block: 10px; }
+  .editorial { bottom: 94px; gap: 6px; }
+  .editorial h1 { font-size: clamp(42px, 13vw, 58px); }
+  .eyebrow, .sektor > span { display: none; }
+  .cta { min-height: 38px; padding-inline: 16px; }
+  .sektor button { min-height: 34px; padding-block: 5px; }
+  .footer { bottom: 8px; grid-template-columns: minmax(0, 1fr) auto; align-items: end; }
+  .current { grid-column: 1; align-self: center; }
+  .tempo { grid-column: 2; }
+  .tempo > label { position: absolute; width: 1px; height: 1px; overflow: hidden; clip-path: inset(50%); white-space: nowrap; }
+  .tempo select { min-height: 38px; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .root .runway { height: var(--ekran); }
+  .root .kare { inset: 0; width: 100%; height: 100%; transform: none !important; opacity: 0 !important; visibility: hidden !important; }
+  .root .kare[data-kare='uzak'] { opacity: 1 !important; visibility: visible !important; }
+  .root .destination { margin-top: 0; transform: none; clip-path: none; visibility: visible; }
+}
+@media print {
+  .root .runway { display: none; }
+  .root .destination { margin: 0; transform: none !important; clip-path: none !important; visibility: visible !important; }
+}
+
+/* Satır şablonu SIFIRLANIR. `/giris` `.ab` sınıfını belirteç ve tipografi
+   için kullanıyor ama uygulama KABUĞU değil: başlık çubuğu, durum şeridi,
+   ayak yok. `.ab` ise kabuğun altı satırını dayatıyor
+   (`56px auto auto minmax(0, 1fr) auto auto`) ve giriş ekranının iki paneli
+   kabuğun 56 piksellik BAŞLIK satırına çakılıyordu.
+
+   ÖLÇÜLDÜ (bu satır yazılmadan önce, CTA izlendikten sonra): görsel alanı
+   1440'ta 1040×56 · 1024'te 624×56 · 768'de 368×56 ve e-posta alanının üst
+   kenarı y885 — yani 900px'lik görüntü alanının en altında, form fiilen
+   ekran dışında. 375'te y1011 (görünür alan 780). Kusur her endeydi ve
+   hiçbir kapı ölçmüyordu: axe "form görünür mü" diye sormaz.
+
+   Sütun kuralı satır içi `style` ile ezilemezdi, satır kuralı da öyle;
+   ikisi de burada durur. */
+.login { grid-template-columns: minmax(0, 1fr) var(--drawer-w); grid-template-rows: minmax(0, 1fr); }
+@media (max-width: 699px) {
+  .login { grid-template-columns: minmax(0, 1fr); }
+  .login > section { min-height: 320px; }
+  .login > main { min-height: 460px; border-left: 0 !important; }
+}
+
+/* ── SEKTÖR SEÇİMİ · açılış ────────────────────────────────────────────
+   Ziyaretçinin ilk on beş saniyede alması gereken cevap "bu ürün benim
+   işim için mi". CTA'nın hemen üstünde durur: karar, girişten ÖNCE
+   verilir. Düğmeler eşit ağırlıkta — hiçbir sektör öbürünün varsayılanı
+   değildir. */
+.sektor { grid-column: 2; grid-row: 2 / 5; align-self: end; margin: 0; padding-left: 24px; border-left: 1px solid #899398; }
+.sektor > span { display: block; margin-bottom: 14px; font-size: 13px; color: #e0e4e5; }
+.sektor > div { display: flex; flex-wrap: wrap; gap: 8px; }
+.sektor button { min-height: 42px; padding: 9px 13px; cursor: pointer; font: inherit; font-size: 13px; color: #edeeec; background: #101b22db; border: 1px solid #899398; border-radius: 0; }
+.sektor button:hover, .sektor button:focus-visible { border-color: #edbc91; outline-color: #edbc91; }
+@media (max-width: 699px) {
+  .sektor { grid-column: 1; grid-row: auto; padding: 0; border: 0; margin: 2px 0; }
+  .sektor > span { margin-bottom: 8px; font-size: 12px; }
+  .sektor button { font-size: 12px; min-height: 40px; padding: 8px 10px; }
+}

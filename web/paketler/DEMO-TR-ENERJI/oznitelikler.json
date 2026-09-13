@@ -1,0 +1,135 @@
+[
+  {
+    "anahtar": "kuruluGuc",
+    "tip": "sayi",
+    "birim": "MW",
+    "etiketAnahtari": "kapasite",
+    "rol": "kapasite",
+    "grup": null,
+    "secenekler": null,
+    "kuraldaKullanilir": true,
+    "sira": 0
+  },
+  {
+    "anahtar": "lisansTipi",
+    "tip": "metin",
+    "birim": null,
+    "etiketAnahtari": "lisansTipi",
+    "rol": null,
+    "grup": "Lisans ve kabul",
+    "secenekler": null,
+    "kuraldaKullanilir": false,
+    "sira": 110
+  },
+  {
+    "anahtar": "lisansNo",
+    "tip": "metin",
+    "birim": null,
+    "etiketAnahtari": "lisansNo",
+    "rol": null,
+    "grup": "Lisans ve kabul",
+    "secenekler": null,
+    "kuraldaKullanilir": false,
+    "sira": 111
+  },
+  {
+    "anahtar": "kabulDurumu",
+    "tip": "metin",
+    "birim": null,
+    "etiketAnahtari": "kabulDurumu",
+    "rol": null,
+    "grup": "Lisans ve kabul",
+    "secenekler": [
+      {
+        "deger": "lisans_oncesi",
+        "ad": "Lisans öncesi"
+      },
+      {
+        "deger": "insaat",
+        "ad": "İnşaat"
+      },
+      {
+        "deger": "gecici_kabul",
+        "ad": "Geçici kabul"
+      },
+      {
+        "deger": "kesin_kabul",
+        "ad": "Kesin kabul"
+      }
+    ],
+    "kuraldaKullanilir": false,
+    "sira": 112
+  },
+  {
+    "anahtar": "kabulTarihi",
+    "tip": "tarih",
+    "birim": null,
+    "etiketAnahtari": "kabulTarihi",
+    "rol": null,
+    "grup": "Lisans ve kabul",
+    "secenekler": null,
+    "kuraldaKullanilir": false,
+    "sira": 113
+  },
+  {
+    "anahtar": "blackStart",
+    "tip": "mantik",
+    "birim": null,
+    "etiketAnahtari": "blackStart",
+    "rol": null,
+    "grup": "Şebeke ve haberleşme",
+    "secenekler": null,
+    "kuraldaKullanilir": true,
+    "sira": 120
+  },
+  {
+    "anahtar": "teiasScadaEms",
+    "tip": "mantik",
+    "birim": null,
+    "etiketAnahtari": "teiasScadaEms",
+    "rol": null,
+    "grup": "Şebeke ve haberleşme",
+    "secenekler": null,
+    "kuraldaKullanilir": true,
+    "sira": 121
+  },
+  {
+    "anahtar": "seriHaberlesme",
+    "tip": "mantik",
+    "birim": null,
+    "etiketAnahtari": "seriHaberlesme",
+    "rol": null,
+    "grup": "Şebeke ve haberleşme",
+    "secenekler": null,
+    "kuraldaKullanilir": true,
+    "sira": 122
+  },
+  {
+    "anahtar": "kritiklikSinifi",
+    "tip": "metin",
+    "birim": null,
+    "etiketAnahtari": "kritiklikSinifi",
+    "rol": "kritiklik",
+    "grup": "Kritiklik ve maruziyet",
+    "secenekler": [
+      {
+        "deger": "dusuk",
+        "ad": "Düşük"
+      },
+      {
+        "deger": "orta",
+        "ad": "Orta"
+      },
+      {
+        "deger": "yuksek",
+        "ad": "Yüksek"
+      },
+      {
+        "deger": "kritik",
+        "ad": "Kritik"
+      }
+    ],
+    "kuraldaKullanilir": true,
+    "sira": 130
+  }
+]

@@ -1,0 +1,214 @@
+[
+  {
+    "anahtar": "kuruluGuc",
+    "tip": "sayi",
+    "birim": "MW",
+    "etiketAnahtari": "kapasite",
+    "rol": "kapasite",
+    "grup": null,
+    "secenekler": null,
+    "kuraldaKullanilir": true,
+    "sira": 100
+  },
+  {
+    "anahtar": "lisansTipi",
+    "tip": "metin",
+    "birim": null,
+    "etiketAnahtari": "lisansTipi",
+    "rol": null,
+    "grup": "Lisans ve kabul",
+    "secenekler": null,
+    "kuraldaKullanilir": false,
+    "sira": 110
+  },
+  {
+    "anahtar": "lisansNo",
+    "tip": "metin",
+    "birim": null,
+    "etiketAnahtari": "lisansNo",
+    "rol": null,
+    "grup": "Lisans ve kabul",
+    "secenekler": null,
+    "kuraldaKullanilir": false,
+    "sira": 111
+  },
+  {
+    "anahtar": "kabulDurumu",
+    "tip": "metin",
+    "birim": null,
+    "etiketAnahtari": "kabulDurumu",
+    "rol": null,
+    "grup": "Lisans ve kabul",
+    "secenekler": [
+      {
+        "deger": "lisans_oncesi",
+        "ad": "Lisans öncesi"
+      },
+      {
+        "deger": "insaat",
+        "ad": "İnşaat"
+      },
+      {
+        "deger": "gecici_kabul",
+        "ad": "Geçici kabul"
+      },
+      {
+        "deger": "kesin_kabul",
+        "ad": "Kesin kabul"
+      }
+    ],
+    "kuraldaKullanilir": false,
+    "sira": 112
+  },
+  {
+    "anahtar": "kabulTarihi",
+    "tip": "tarih",
+    "birim": null,
+    "etiketAnahtari": "kabulTarihi",
+    "rol": null,
+    "grup": "Lisans ve kabul",
+    "secenekler": null,
+    "kuraldaKullanilir": false,
+    "sira": 113
+  },
+  {
+    "anahtar": "blackStart",
+    "tip": "mantik",
+    "birim": null,
+    "etiketAnahtari": "blackStart",
+    "rol": null,
+    "grup": "Şebeke ve haberleşme",
+    "secenekler": null,
+    "kuraldaKullanilir": true,
+    "sira": 120
+  },
+  {
+    "anahtar": "teiasScadaEms",
+    "tip": "mantik",
+    "birim": null,
+    "etiketAnahtari": "teiasScadaEms",
+    "rol": null,
+    "grup": "Şebeke ve haberleşme",
+    "secenekler": null,
+    "kuraldaKullanilir": true,
+    "sira": 121
+  },
+  {
+    "anahtar": "seriHaberlesme",
+    "tip": "mantik",
+    "birim": null,
+    "etiketAnahtari": "seriHaberlesme",
+    "rol": null,
+    "grup": "Şebeke ve haberleşme",
+    "secenekler": null,
+    "kuraldaKullanilir": true,
+    "sira": 122
+  },
+  {
+    "anahtar": "kritiklikSinifi",
+    "tip": "metin",
+    "birim": null,
+    "etiketAnahtari": "kritiklikSinifi",
+    "rol": "kritiklik",
+    "grup": "Kritiklik ve maruziyet",
+    "secenekler": [
+      {
+        "deger": "dusuk",
+        "ad": "Düşük"
+      },
+      {
+        "deger": "orta",
+        "ad": "Orta"
+      },
+      {
+        "deger": "yuksek",
+        "ad": "Yüksek"
+      },
+      {
+        "deger": "kritik",
+        "ad": "Kritik"
+      }
+    ],
+    "kuraldaKullanilir": true,
+    "sira": 130
+  },
+  {
+    "anahtar": "epdkEki",
+    "tip": "metin",
+    "birim": null,
+    "etiketAnahtari": "epdkEki",
+    "rol": null,
+    "grup": "Lisans ve kabul",
+    "secenekler": [
+      {
+        "deger": "ek1",
+        "ad": "Ek-1 Elektrik Dağıtım"
+      },
+      {
+        "deger": "ek2",
+        "ad": "Ek-2 Doğal Gaz Dağıtım"
+      },
+      {
+        "deger": "ek3",
+        "ad": "Ek-3 Elektrik Üretim"
+      },
+      {
+        "deger": "ek4",
+        "ad": "Ek-4 Rafineri"
+      },
+      {
+        "deger": "ek5",
+        "ad": "Ek-5 Doğal Gaz Depolama"
+      },
+      {
+        "deger": "ek6",
+        "ad": "Ek-6 Doğal Gaz ve Ham Petrol İletim"
+      },
+      {
+        "deger": "ek7",
+        "ad": "Ek-7 Elektrik İletim"
+      }
+    ],
+    "kuraldaKullanilir": true,
+    "sira": 140
+  },
+  {
+    "anahtar": "uretimTipi",
+    "tip": "metin",
+    "birim": null,
+    "etiketAnahtari": "uretimTipi",
+    "rol": null,
+    "grup": "Lisans ve kabul",
+    "secenekler": [
+      {
+        "deger": "hes",
+        "ad": "HES"
+      },
+      {
+        "deger": "res",
+        "ad": "RES"
+      },
+      {
+        "deger": "ges",
+        "ad": "GES"
+      },
+      {
+        "deger": "termik",
+        "ad": "Termik (DCS)"
+      }
+    ],
+    "kuraldaKullanilir": true,
+    "sira": 141
+  },
+  {
+    "anahtar": "yetkinlikHedefSeviyesi",
+    "tip": "sayi",
+    "birim": null,
+    "etiketAnahtari": "yetkinlikHedefSeviyesi",
+    "rol": null,
+    "grup": "Kritiklik ve maruziyet",
+    "secenekler": null,
+    "kuraldaKullanilir": true,
+    "sira": 142
+  }
+]

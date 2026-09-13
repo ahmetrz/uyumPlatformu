@@ -1,0 +1,13 @@
+import Kabuk from '@/components/kabuk/Kabuk';
+import { kabukVerisi } from '@/components/kabuk/kabukVerisi';
+
+/* Tam ekran katmanı — kendi üst çubuğunu taşıyan, ray gerektirmeyen
+   yüzeyler (enerji portföyü). Kabuk YÖNÜ ROTADAN seçer; `/portfoy` B
+   yüzeyine düşer ve saha sekme çubuğunu alır.
+
+   Eskiden burada önceki arayüz katmanının token kapsamı vardı ve bu rota kabuğun tümüyle
+   DIŞINDA kalıyordu: gezinme yoktu, kapsam çubuğu yoktu, ekran tek
+   başına duruyordu (rota taraması yakaladı). */
+export default async function TamYerlesim({ children }: { children: React.ReactNode }) {
+  return <Kabuk veri={await kabukVerisi()}>{children}</Kabuk>;
+}

@@ -1,0 +1,152 @@
+[
+  {
+    "anahtar": "tesis",
+    "dil": "tr",
+    "tekil": "lokasyon",
+    "cogul": "lokasyonlar",
+    "iyelik": "lokasyonun",
+    "belirtme": "lokasyonu",
+    "bulunma": "lokasyonda",
+    "yonelme": "lokasyona"
+  },
+  {
+    "anahtar": "tesis360",
+    "dil": "tr",
+    "tekil": "Lokasyon 360",
+    "cogul": "Lokasyon 360",
+    "iyelik": "Lokasyon 360",
+    "belirtme": "Lokasyon 360",
+    "bulunma": "Lokasyon 360",
+    "yonelme": "Lokasyon 360"
+  },
+  {
+    "anahtar": "portfoy",
+    "dil": "tr",
+    "tekil": "banka portföyü",
+    "cogul": "banka portföyleri",
+    "iyelik": "banka portföyünün",
+    "belirtme": "banka portföyünü",
+    "bulunma": "banka portföyünde",
+    "yonelme": "banka portföyüne"
+  },
+  {
+    "anahtar": "kurum",
+    "dil": "tr",
+    "tekil": "banka",
+    "cogul": "bankalar",
+    "iyelik": "bankanın",
+    "belirtme": "bankayı",
+    "bulunma": "bankada",
+    "yonelme": "bankaya"
+  },
+  {
+    "anahtar": "sistem",
+    "dil": "tr",
+    "tekil": "bilgi sistemi",
+    "cogul": "bilgi sistemleri",
+    "iyelik": "bilgi sisteminin",
+    "belirtme": "bilgi sistemini",
+    "bulunma": "bilgi sisteminde",
+    "yonelme": "bilgi sistemine"
+  },
+  {
+    "anahtar": "disHizmet",
+    "dil": "tr",
+    "tekil": "dış hizmet sağlayıcı",
+    "cogul": "dış hizmet sağlayıcılar",
+    "iyelik": "dış hizmet sağlayıcının",
+    "belirtme": "dış hizmet sağlayıcıyı",
+    "bulunma": "dış hizmet sağlayıcıda",
+    "yonelme": "dış hizmet sağlayıcıya"
+  },
+  {
+    "anahtar": "isFonksiyonu",
+    "dil": "tr",
+    "tekil": "iş fonksiyonu",
+    "cogul": "iş fonksiyonları",
+    "iyelik": "iş fonksiyonunun",
+    "belirtme": "iş fonksiyonunu",
+    "bulunma": "iş fonksiyonunda",
+    "yonelme": "iş fonksiyonuna"
+  },
+  {
+    "anahtar": "komite",
+    "dil": "tr",
+    "tekil": "komite",
+    "cogul": "komiteler",
+    "iyelik": "komitenin",
+    "belirtme": "komiteyi",
+    "bulunma": "komitede",
+    "yonelme": "komiteye"
+  },
+  {
+    "anahtar": "aktifBuyuklugu",
+    "dil": "tr",
+    "tekil": "aktif büyüklüğü",
+    "cogul": "aktif büyüklükleri",
+    "iyelik": "aktif büyüklüğünün",
+    "belirtme": "aktif büyüklüğünü",
+    "bulunma": "aktif büyüklüğünde",
+    "yonelme": "aktif büyüklüğüne"
+  },
+  {
+    "anahtar": "calisanSayisi",
+    "dil": "tr",
+    "tekil": "çalışan sayısı",
+    "cogul": "çalışan sayıları",
+    "iyelik": "çalışan sayısının",
+    "belirtme": "çalışan sayısını",
+    "bulunma": "çalışan sayısında",
+    "yonelme": "çalışan sayısına"
+  },
+  {
+    "anahtar": "sistemSinifi",
+    "dil": "tr",
+    "tekil": "sistem sınıfı",
+    "cogul": "sistem sınıfları",
+    "iyelik": "sistem sınıfının",
+    "belirtme": "sistem sınıfını",
+    "bulunma": "sistem sınıfında",
+    "yonelme": "sistem sınıfına"
+  },
+  {
+    "anahtar": "yurtIcindeMi",
+    "dil": "tr",
+    "tekil": "yurt içinde bulundurma",
+    "cogul": "yurt içinde bulundurmalar",
+    "iyelik": "yurt içinde bulundurmanın",
+    "belirtme": "yurt içinde bulundurmayı",
+    "bulunma": "yurt içinde bulundurmada",
+    "yonelme": "yurt içinde bulundurmaya"
+  },
+  {
+    "anahtar": "kritiklik",
+    "dil": "tr",
+    "tekil": "kritiklik",
+    "cogul": "kritiklikler",
+    "iyelik": "kritikliğin",
+    "belirtme": "kritikliği",
+    "bulunma": "kritiklikte",
+    "yonelme": "kritikliğe"
+  },
+  {
+    "anahtar": "kritikHizmetMi",
+    "dil": "tr",
+    "tekil": "kritik hizmet",
+    "cogul": "kritik hizmetler",
+    "iyelik": "kritik hizmetin",
+    "belirtme": "kritik hizmeti",
+    "bulunma": "kritik hizmette",
+    "yonelme": "kritik hizmete"
+  },
+  {
+    "anahtar": "altYukleniciVar",
+    "dil": "tr",
+    "tekil": "alt yüklenici",
+    "cogul": "alt yükleniciler",
+    "iyelik": "alt yüklenicinin",
+    "belirtme": "alt yükleniciyi",
+    "bulunma": "alt yüklenicide",
+    "yonelme": "alt yükleniciye"
+  }
+]

@@ -1,0 +1,16 @@
+{
+  "kod": "EPDK-SYM",
+  "ad": "EPDK Siber Yetkinlik Modeli",
+  "surumEtiketi": "2024",
+  "yayimTarihi": null,
+  "yururlukTarih": "2024-09-19",
+  "lisans": {
+    "tur": "kamuya_acik",
+    "metinDahil": true,
+    "not": "DEMO: madde kodları ve metinleri gerçek yönetmeliğin değil demo tohumunun (docs/P4_TOHUM_TASIMA_OLCUMU.md §1/4); gerçek çerçeve TR-ENERJI/cerceve/EPDK-SGYM*"
+  },
+  "maddeDosyasi": "EPDK-SYM.csv",
+  "zorunlulukTipi": "REGULATION",
+  "not": "DEMO: madde metni TEMSİLÎDİR — EPDK Yetkinlik Modeli Yönetmeliği örnek alınarak yazılmıştır, o belgeden alınmamıştır. Bu yüzden çerçeve kaynak adresi BEYAN ETMEZ (kaynağı olduğunu söyleyen çerçevede her metinli madde kaynak adresi ve erişim tarihi taşımak zorundadır). Resmî metin ayrı pakette gelir.",
+  "temsili": true
+}

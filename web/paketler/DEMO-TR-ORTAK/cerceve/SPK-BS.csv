@@ -1,0 +1,4 @@
+kod;ust_kod;baslik;metin;sira;seviye;zorunluluk_tipi;kanit_beklentisi;dis_kontrol_id;kanit_tipi
+11;;Erişim kontrolü;Bilgi sistemlerine erişim yetkilendirme esaslarına bağlanır.;0;;;;;politika
+14;;Denetim izi;İşlem kayıtları değiştirilemez şekilde saklanır.;1;;;;;kayit
+19;;Süreklilik planı;İş sürekliliği ve felaket kurtarma planları test edilir.;2;;;;;rapor

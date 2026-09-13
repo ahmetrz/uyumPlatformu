@@ -1,0 +1,27 @@
+[
+  {
+    "kod": "ot_guvenlik_sorumlusu",
+    "ad": "OT güvenlik sorumlusu",
+    "aciklama": "Bir kontrol sistemi kapsam öğesinin siber güvenlik kontrollerinden sorumlu; öğenin uyum, envanter ve risk kayıtlarını yazar, denetimi okur. Yetki kapsam öğesine verilir.",
+    "izinler": {
+      "uyum": ["okuma", "yazma"],
+      "envanter": ["okuma", "yazma"],
+      "risk": ["okuma", "yazma"],
+      "denetim": ["okuma"]
+    },
+    "kapsamEkseni": "kapsamOgesi",
+    "sira": 10
+  },
+  {
+    "kod": "duzenleyici_iliskiler_sorumlusu",
+    "ad": "Düzenleyici ilişkiler sorumlusu",
+    "aciklama": "Düzenleyici kuruma bildirim ve raporlamadan sorumlu; uyum, denetim ve proje kayıtlarını okur, yükümlülük bildirimlerini izler.",
+    "izinler": {
+      "uyum": ["okuma"],
+      "denetim": ["okuma"],
+      "proje": ["okuma"]
+    },
+    "kapsamEkseni": "global",
+    "sira": 20
+  }
+]

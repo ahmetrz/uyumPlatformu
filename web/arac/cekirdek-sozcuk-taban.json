@@ -1,0 +1,20 @@
+{
+  "//": [
+    "ÇEKİRDEK SÖZCÜK TABANI — B listesinin CIRCIRI.",
+    "",
+    "A listesi (bekçi izin listesi) cırcırlı: dosya eklenemez, temizlenen",
+    "düşmek ZORUNDA. B listesi ilk ölçümde dişsizdi — sayı düşse de",
+    "düştüğünü kimse garanti etmiyor, geri tırmanışı kimse görmüyordu.",
+    "",
+    "Bu taban o boşluğu kapatır. Kural A ile AYNI:",
+    "  · Dosya başına sayı ARTAMAZ (yeni çakılı sözcük eklenemez).",
+    "  · Listeye YENİ DOSYA eklenemez.",
+    "  · Sayı düşerse taban güncellenmek ZORUNDA — düşen sayı burada",
+    "    kalırsa gösterge yalan söyler.",
+    "Ölçen: tests/bekci/cekirdek-taban.test.ts",
+    "",
+    "Taban güncelleme: npx tsx arac/cekirdek-sozcuk-taramasi.mjs --taban"
+  ],
+  "toplam": 0,
+  "dosyalar": {}
+}

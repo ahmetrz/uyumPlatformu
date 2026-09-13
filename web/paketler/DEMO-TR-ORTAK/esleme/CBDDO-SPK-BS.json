@@ -1,0 +1,19 @@
+{
+  "kod": "CBDDO-SPK-BS",
+  "ad": "CBDDÖ → SPK BS denklikleri",
+  "kaynak": {
+    "cerceve": "CBDDO",
+    "surumEtiketi": "2.0"
+  },
+  "hedef": {
+    "cerceve": "SPK-BS",
+    "surumEtiketi": "VII-128.9"
+  },
+  "lisans": {
+    "tur": "kamuya_acik",
+    "metinDahil": false,
+    "not": "Demo tohumunun elle yazılmış denklikleri; açıklama yok"
+  },
+  "eslemeDosyasi": "CBDDO-SPK-BS.csv",
+  "kaynakBelge": "Demo tohumu (prisma/seed.ts, 2.5 öncesi)"
+}

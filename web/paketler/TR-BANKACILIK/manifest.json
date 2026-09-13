@@ -1,0 +1,98 @@
+{
+  "kod": "TR-BANKACILIK",
+  "ad": "Türkiye · Bankacılık (BDDK) sektör paketi — iskelet",
+  "tur": "sektor",
+  "ulke": "TR",
+  "sektor": {
+    "kod": "BANKACILIK",
+    "ad": "Bankacılık"
+  },
+  "dil": "tr",
+  "surum": "0.1.0",
+  "yayinci": "Uyum ve Yönetişim Platformu (iskelet)",
+  "lisans": {
+    "tur": "kamuya_acik",
+    "metinDahil": false,
+    "kaynak": "https://www.mevzuat.gov.tr/mevzuat?MevzuatNo=34360&MevzuatTur=7&MevzuatTertip=5",
+    "not": "Resmî metin (RG 15.03.2020/31069) — birincil kaynak erişilemedi (503); yapı Lexpera konsolide metninden (ikincil). İskelet, madde metni yok"
+  },
+  "bagimliliklar": [],
+  "icerikOzetleri": {
+    "cerceve/BDDK-BS.csv": "7c3fdf10e07065147a9b1cc5ee90163f0c27d6d6c03d4b31837280fee2615487",
+    "cerceve/BDDK-BS.json": "43df7081305d6ddaebc78911cc8154be41daaa2db6a55c8bae05e687120794f3",
+    "form/BDDK-BS-OZDEGERLENDIRME.json": "dd6f26ccb86269904dd6ef045bd7df5a0ca43238b043ca02612b0e33ab47ff5d",
+    "kapsam-turleri.json": "cee29f60610409bb03d2af9582ff1fc8a41e4c19f9eed13a5394e104f1ba54b5",
+    "oznitelikler.json": "1fd83f51b5a9fbf77d275ff0f7a01ce44c91ac4ad79c7e6539cf7c4541392db0",
+    "roller.json": "c92a9851580b839a929ef0906e8971b31aa8e9b274da1b2ee720f79a12713602",
+    "sozluk.json": "74efe54c9fd4209567a1d7f0ef11a3c18b3995dbd8bb73a589462ea3daf81cbc",
+    "yukumlulukler.json": "37517e5f3dc66819f61f5a7bb8ace1921282415f10551d2defa5c3eb0985b570"
+  },
+  "imza": null,
+  "aciklama": "İSKELET (P4 · 4.5): kapsam öğesi türleri (sistem · dış hizmet · iş fonksiyonu · komite), öznitelikler ve BDDK yönetmeliğinin kısım/bölüm yapısı + 47 madde numarası. Madde başlıkları ve madde–bölüm eşlemesi birincil metin erişilince doldurulur; uydurulmadı (docs/TR_SEKTOR_PAKETLERI.md §3.2).",
+  "alanEslemesi": {
+    "BDDK-BS": [
+      {
+        "kaynakAlan": "Kısım/bölüm numarası · madde numarası",
+        "urunAlani": "kod",
+        "gerekce": "Ürünün `kod` alanı maddenin çerçeve içindeki TEKİL kimliğidir: ekran, eşleme ve kanıt bu kodla maddeye atıf yapar, bu yüzden belge yeniden düzenlense bile aynı maddeyi göstermelidir. Kaynağın madde/kontrol numarası da aynı işi görür — belge içinde tekildir ve değişiklik metinleri maddeye bu numarayla atıf yapar. İskelette madde METNİ yoktur; kimlik taşınır, içerik birincil metne erişilince gelir."
+      },
+      {
+        "kaynakAlan": "Maddenin bulunduğu kısım/bölüm",
+        "urunAlani": "ust_kod",
+        "gerekce": "Ürünün `ust_kod` alanı madde AĞACINDAKİ üst düğümdür — kapsama (bütün–parça) ilişkisi kurar, öncelik ya da ağırlık ilişkisi değil; ekran alt maddeyi üstünün altında gösterir ve kapsam sayımı üstten aşağı yürür. Yönetmelik kısım → bölüm → madde diye kurulmuştur."
+      },
+      {
+        "kaynakAlan": "Kısım ve bölüm başlıkları",
+        "urunAlani": "baslik",
+        "gerekce": "Ürünün `baslik` alanı maddenin KISA ADIDIR. Bu iskelette YALNIZ kısım ve bölüm başlıkları gerçektir (ikincil konsolide metinden); madde satırlarının başlığı \"Madde N\" biçiminde numaranın kendisidir — madde kenar başlıkları birincil metne erişilemediği için (503) UYDURULMADI, birincil metin gelince doldurulacaktır."
+      },
+      {
+        "kaynakAlan": null,
+        "urunAlani": "sira",
+        "gerekce": "Ürünün `sira` alanı maddenin listede GÖRÜNTÜLENME sırasıdır; önem, öncelik ya da risk sırası değildir ve hiçbir hesaba girmez. Kaynak belgede böyle bir alan yoktur: belgedeki okuma sırası korunsun diye değeri aktarımı yapan verir."
+      }
+    ],
+    "BDDK-BS-OZDEGERLENDIRME": [
+      {
+        "kaynakAlan": null,
+        "urunAlani": "degerlendirmeDonemi",
+        "gerekce": "Formun ürün alanı, öz-değerlendirmenin HANGİ DÖNEMİ anlattığıdır: aynı kontrol kümesi iki dönemde iki farklı cevap verir ve dönem yazılmazsa cevabın ne zamana ait olduğu kaybolur. Kaynak yönetmelikte böyle bir alan yoktur — bu iskelet ürünün kendi sorusudur ve kurum doldurur."
+      },
+      {
+        "kaynakAlan": null,
+        "urunAlani": "degerlendirmeTarihi",
+        "gerekce": "Ürün alanı, değerlendirmenin YAPILDIĞI GÜNDÜR — kapsadığı dönemden ayrıdır (2025 dönemi 2026'da değerlendirilebilir) ve kanıtın tazeliği bu tarihe göre okunur. Kaynak yönetmelikte alan olarak yoktur; kurum doldurur."
+      },
+      {
+        "kaynakAlan": null,
+        "urunAlani": "kapsamTuru",
+        "gerekce": "Ürün alanı, değerlendirmenin BÜTÜN bilgi sistemlerini mi yalnız kritik olanları mı kapsadığını söyler; kapsamın genişliği cevapların anlamını değiştirir ve yazılmazsa kısmi bir değerlendirme tam sanılır. Yönetmelikte böyle bir seçim alanı yoktur — iskeleti kuran ekledi."
+      },
+      {
+        "kaynakAlan": "BDDK-BS · Kısım 2 · B1 bölüm başlığı: “Bilgi Sistemleri Yönetişimi”",
+        "urunAlani": "komiteVar",
+        "gerekce": "Ürün alanı, o bölümün sorduğu yönetişim yapısının KURULU OLUP OLMADIĞINI taşır (evet/hayır); bölümün olgunluğunu ya da yeterliliğini DEĞİL. Kaynakta bölüm başlığı vardır, soru yoktur: soruyu iskelet sorar, madde METNİ pakete girmez."
+      },
+      {
+        "kaynakAlan": "BDDK-BS · Kısım 2 · B2 bölüm başlığı: “Bilgi Sistemleri Risklerinin Yönetilmesi”",
+        "urunAlani": "riskDegerlendirmeYili",
+        "gerekce": "Ürün alanı, en son risk değerlendirmesinin YILIDIR — sayılabilir bir tazelik ölçüsüdür, risk seviyesi ya da bulgu sayısı değildir. Kaynakta bölüm başlığı vardır; yıl sorusu iskeletin kendi sorusudur."
+      },
+      {
+        "kaynakAlan": "BDDK-BS · Kısım 2 · B3 bölüm başlığı: “Bilgi Güvenliği Yönetimi”",
+        "urunAlani": "guvenlikPolitikasiVar",
+        "gerekce": "Ürün alanı, bilgi güvenliği politikasının ONAYLI olup olmadığını taşır; politikanın varlığı ile onaylanmış olması ayrı şeylerdir ve bu alan ikincisini sorar. Kaynakta bölüm başlığı vardır, soru yoktur."
+      },
+      {
+        "kaynakAlan": "BDDK-BS · Kısım 2 · B5 bölüm başlığı: “Bilgi Sistemleri Sürekliliği ve Erişilebilirlik Yönetimi”",
+        "urunAlani": "sureklilikTestiTarihi",
+        "gerekce": "Ürün alanı, süreklilik testinin en son YAPILDIĞI TARİHTİR — testin başarılı olup olmadığını söylemez, yalnız ne zaman koşulduğunu söyler. Kaynakta bölüm başlığı vardır; tarih sorusu iskeletindir."
+      },
+      {
+        "kaynakAlan": "BDDK-BS · Kısım 2 · B6 bölüm başlığı: “Bilgi Sistemlerine İlişkin Dış Hizmet Alımı”",
+        "urunAlani": "disHizmetEnvanteriVar",
+        "gerekce": "Ürün alanı, dış hizmet envanterinin GÜNCEL olup olmadığını taşır; envanterin var olması ile güncel olması ayrı şeylerdir ve bayat bir envanter yokluğundan daha yanıltıcıdır. Kaynakta bölüm başlığı vardır, soru yoktur."
+      }
+    ]
+  }
+}

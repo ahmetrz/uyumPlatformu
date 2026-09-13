@@ -1,0 +1,388 @@
+# Devir kaydı · 8 Eylül 2026
+
+Bu belge ardıl oturum içindir. Anlatan kimse olmayacak; **buradan
+okunacak.** İki bölüm var: neyin açık kaldığı (A) ve kapanış anındaki
+sayılar (B).
+
+Kural gereği hiçbir sayı burada tekrar yazılmaz, **ölçülür**: B
+bölümündeki her satırın nasıl ölçüldüğü komutuyla yazılı. Ardıl oturumun
+İLK İŞİ o komutları kendi ucunda koşmaktır. Tutmuyorsa eşitleme
+yapılmamıştır — belge yalan söylemez, ölçüm ortamı bayattır.
+
+---
+
+## 0 · SIFIRDAN BAŞLAYAN OTURUM İÇİN — İLK YARIM SAAT
+
+Bu belgeyi yazan konuşmanın hafızası yok sayılacak. Aşağıdakiler
+varsayım değil, **yapılacak iş**.
+
+### 0.1 · Önce oku (sırayla)
+
+1. `CLAUDE.md` — bağlayıcı kurallar. Özellikle "Bağlayıcı kurallar"
+   bölümünün tamamı; yedi kural bu turlarda ÖLÇÜLMÜŞ kusurlardan doğdu.
+2. `web/arac/BENIOKU.md` → **ORTAM TAZELİĞİ** — ölçüm yapmadan önce
+   atlanamaz yordam. Bu oturumda üç kez yanlış alarm üretti.
+3. `docs/GELISTIRME_PAKETLERI.md` §6 — R0 kütüğü (açık kalemler).
+4. Bu belgenin geri kalanı.
+
+### 0.2 · Önce ORTAMI KUR (ölçüm bunsuz düşer)
+
+`npm ci` YETMEZ. Prisma istemcisi üretilmiş bir çıktıdır
+(`lib/prisma-client`, depoda yok) ve tohum verisi olmadan ekran kodu
+içe aktarılamaz. Eksikse ölçüm bir kod kusuru gibi düşer — ölçüldü
+(8 Eyl 2026): `cekirdek-sozcuk-taramasi.mjs`
+`Cannot find module '@/lib/prisma-client/client'` ile çöktü ve bu
+kırmızı KODA ait değildi. Sıra CI'nın kendi sırasıdır:
+
+```sh
+cd web
+npm ci
+npx prisma migrate deploy
+npx prisma generate            # lib/prisma-client — depoda YOK, üretilir
+npx tsx prisma/seed.ts
+```
+
+Tarayıcılı kapılar için ayrıca `arac/BENIOKU.md` → **ORTAM TAZELİĞİ**
+koşulur (süreçleri öldür → portun kapandığını doğrula → derle → başlat).
+
+### 0.3 · Sonra ÖLÇ (anlatılana güvenme)
+
+```sh
+cd web
+npx vitest run
+npm run sayimlar:denetle             # beklenen sayı BURADAN gelir
+npx tsx arac/cekirdek-sozcuk-taramasi.mjs
+npx vitest run tests/bekci/sektor-terimi.test.ts
+```
+
+Beklenen test sayısı bu belgeye **yazılmaz**: tek kaynak
+`web/arac/test-envanteri.json` ve onu `sayimlar:denetle` doğrular
+(sıfır keşif "ölçüm" değil KIRIKTIR — `kesifKarari`). Belgeye elle
+yazılan bir sayı, ilk test eklendiğinde yalan söyler.
+
+Sayılar §B ile tutmuyorsa **eşitleme yapılmamıştır** — önce onu çöz.
+
+### 0.4 · Ölçüm ortamı tuzakları (üçü de yaşandı)
+
+| Tuzak | Nasıl görünür |
+| --- | --- |
+| Bayat `next start` | `rota-duman`: "`/` ← kabuk yok"; süreç SİLİNMİŞ inode tutuyor |
+| Dolu disk | Vitest keşfi "0 vaka" döner, kapı "doğrulandı" der |
+| Kendi kendini bekleyen `pgrep`/`pkill` | `pkill -f "next start"` KENDİ kabuğunu öldürür; `pgrep -f "x.mjs"` bekleyicinin kendi komut satırıyla eşleşir ve süreç hiç bitmez (ölçüldü: 1sa 42dk boşuna bekleme) |
+
+Uzun koşan bir kapı varken portu BAŞKA bir iş için kapatmayın: o kapı
+kod kusuru gibi görünen bir hatayla düşer.
+
+### 0.5 · Depo düzeni
+
+- Ürün kodu `web/` altında. Kapılar `web/arac/`, bekçiler
+  `web/tests/bekci/`.
+- Değişiklik PR ile gelir; `main`'e doğrudan push yok.
+- **Merge ön koşulu ikidir: CI yeşil VE açık inceleme yorumu yok.**
+- Uzun koşan elle kapı: `PORT=3211 npm run kapi:iki-sozluk` (~22 dk).
+- Parti kapanışı: `npm run kapi:parti` (`--liste` ile koşmadan görülür).
+- **`kapi-compose`nin otoritesi CI'dır.** Geliştirme kum havuzunda yerel
+  ölçüm yapılamıyor (`dockerd` bayat bir vekil portu taşıyor; düzeltmeyi
+  ortam sınıflandırıcısı reddetti ve etrafından dolaşılmadı), bu yüzden
+  yerel `kapi:parti` çıktısındaki bu satır ne "geçti" ne de kod kusuru
+  sayılır — ölçümü CI yapar. Karar: gözden geçiren, 11 Eyl 2026.
+
+---
+
+## A · AÇIK KALEMLER
+
+### A.1 · R0 kütüğündeki açık satırlar
+
+Tam metinleri `docs/GELISTIRME_PAKETLERI.md` §6'dadır; burada yalnız
+sahibi ve kapanış aşaması.
+
+| No | Kusur | Sahip | Kapanış |
+| --- | --- | --- | --- |
+| ~~R0-10~~ | **KAPANDI** (8 Eyl 2026) — jetondan hesaplanan yükseklik ızgaraya devredildi; üç bantta da tam oturuyor, sabotajla doğrulandı | — | kapandı |
+| R0-11 | `KURULU_GUC = 'kuruluGucMw'` — bir KAYIT ANAHTARI (`TesisOzellik.anahtar` sütununda duruyor), kod adı değil; değiştirmek veri göçü ister | P4 · öznitelik şeması | ekranlar özniteliği adıyla bilmeyi bıraktığında |
+| R0-12 | Bloklayıcı erişilebilirlik kapısı **1366×768'i hiç taramıyor** (axe 1440×900 · 768×1024 · 375×780) | kalite kapıları dilimi | `tasarim:dizustu` CI'ya bağlandığı gün |
+
+Kapanan bir kalem daha var ve buraya yazılıyor ki tekrar açılmasın:
+**inceleme turu #30'un beş bulgusu** (#32 ile kapandı) — göç sözlüğü
+doldurmuyordu (P1), öznitelik profil alanını eziyordu (P1), sınıfsız
+tesis "tek sektör" sayılıyordu, `olcek.mjs`de eksik `await`, disk
+temizliği başkasının dizinini siliyordu. Beşinin de düzeltme kanıtı
+`web/tests/inceleme-30.test.ts`te; beşi de sabotajla doğrulandı.
+
+### A.2 · Sektör terimi izin listesi — ERTELENMİŞ satırların kapanışı
+
+Liste artık **tek karışık sayı değil**: her satır KALICI ya da ERTELENMİŞ.
+Makine tarafı `web/tests/bekci/sektor-terimi-izin.json` → `siniflandirma`;
+bekçi bunu dişleriyle zorunlu tutar (sınıfsız satır kırmızı, kapanışsız
+erteleme kırmızı, kapanışlı "kalıcı" kırmızı).
+
+**KALICI — sıfır BEKLENMİYOR.** Sektör sözcüğü orada ilkesel bir sebeple
+duruyor; temizlemek dosyanın işini bozar.
+
+| Dosya | Neden kalıcı |
+| --- | --- |
+| `lib/dil/terimler.ts` | Sözlük katmanının kendisi; hâl eklerini anlatmak için kiracının sözcüğünü **alıntılamak** zorunda |
+| `lib/senaryo/urunlestirme.ts` | Senaryolar terim katmanını anlatıyor ve bekçi kalıbına verilen yazımları alıntılıyor |
+| `lib/sahaArkaPlan.ts` | Görsel künyesi **fotoğrafın kendisini** anlatır; karede rüzgâr türbini varsa künye "türbin" der |
+
+**ERTELENMİŞ — kapanış aşaması yazılı.** Asıl eriyecek borç budur ve
+kendi tavanını taşır (`ertelenmisTavani`).
+
+| Dosya | Kapanış aşaması |
+| --- | --- |
+| `app/(kabuk)/(operasyonel)/sistem/bilesenler/Galeri.tsx` | Sözlük yayılımı `/sistem` ailesine geldiğinde — örnek içerik de sözlükten üretilir |
+| `app/(kabuk)/(operasyonel)/sistem/page.tsx` | Aynı dilim (jeton örnek değerleri) |
+| `components/kabuk/tip.ts` | **P4** · eşleme `TesisTipi` satırından okunduğunda |
+| `lib/sabitler.ts` | **P4** · şema göçü — R0-11 ile aynı gün |
+| `lib/entegrasyon/adaptorler/elleAktarim.ts` | **P4** · eşad sözlüğü içerik paketinden geldiğinde |
+| `lib/entegrasyon/varlikAktarim.ts` | **P4** · aynı dilim |
+| `lib/gorsel.ts` | **P2** · kiracı görselleri kiracı yapılandırmasına taşındığında |
+| `app/(kabuk)/(operasyonel)/yonetim-tezgahi/Formlar.tsx` | **P2** · form varsayılanları kiracının tip kümesinden okunduğunda |
+
+### A.3 · Beyanla CI DIŞINDA bırakılan kapılar
+
+Kaynak `web/arac/kapi-farki.mjs` → `BEYAN`; beyansız betik kapıyı kırmızı
+yakar. **Her satırda sebebin türü açık yazılıdır** — ikisi aynı şey
+değildir ve karıştırılırsa bir kusur "süre sorunu" diye yıllarca bekler.
+
+- **SÜRE** = kapı çalışıyor, sonucu güvenilir; CI'ya bağlanmaması bütçe kararı.
+- **KUSUR** = kapı bugün bağlanırsa **kırmızı yanar**; önce kusurun kendisi kapanmalı.
+
+> **BEYAN BİR ÇÖZÜM DEĞİL, BORÇTUR — ve borcun faizi ÖLÇÜLDÜ.** Tek bir
+> inceleme turu (#30), beyanla CI dışında bırakılmış kapıların ARKASINDA
+> **iki** kusur buldu: `arac/olcek.mjs`de eksik bir `await` (`kapsamKur`
+> asenkron; ölçek yolu çağırıp beklemiyordu, `kapsam.yazabilir` tanımsız
+> diye atıyordu) ve `tasarim:dizustu`nun bandındaki erişilebilirlik
+> boşluğu (R0-12). İkisi de aylardır oradaydı; ikisini de kapı değil,
+> bir insan/bot okuması buldu. Beyan listesi uzadıkça, kapının
+> göremediği yüzey büyür. Listeye yeni satır eklerken bu ölçüm
+> hatırlansın.
+
+| Betik | Tür | Sebep |
+| --- | --- | --- |
+| `kapi:iki-sozluk` | **SÜRE** | Üç düzen kapısını üç sözlükle koşar (9 koşum, ~22 dk); tarayıcılı bloğu üçe katlar |
+| `tasarim:rota` | **SÜRE** | 4 bant × 58 rota; `rota:duman` ile örtüşüyor, ayrıştırılmadan bağlanırsa süre iki katına çıkar |
+| `test:kapsam` | **SÜRE** | Kapsam raporu eşiksiz ve süreyi ikiye katlıyor |
+| `tasarim:dizustu` | **KUSUR** | 1366×768 kırpılma bandı borç listesinde yok → bağlanırsa kırmızı (**R0-12**) |
+| `tasarim:ux` | **KUSUR** | Bulguları borç listesine girmedi; cırcırsız bağlanırsa ilk turda kırmızı |
+| `tasarim:cekmece` | **KUSUR** | Aynı gerekçe: borç listesi yok |
+| `tasarim:gorsel` | **KUSUR** | Altın görüntüler depoda yok; altınsız koşarsa "altın yok" diye kırmızı |
+| `tasarim:erisim` | **EMEKLİ** | `erisim-axe` yerini aldı (axe-core, üç bant, cırcırlı); araç kaldırılacak |
+| `tasarim:yuk` · `tasarim:gorev` | **EŞİKSİZ** | Rapor üretir, kusur eşiği yok — çıkış kodu hep 0, kapı değil ölçü |
+| `olcum:yuk` · `kalite:lighthouse` | **ORTAMA BAĞLI** | Eşik runner donanımına göre kayar; CI'da anlamsız |
+| `kapi:parti` | **TOTOLOJİ** | İş akışının kendisinden türetilir; CI'ya bağlanması iş akışının kendini çağırması olur |
+
+---
+
+## A.4 · BU TURDA KONAN KURALLAR
+
+Beşi de `CLAUDE.md` "Bağlayıcı kurallar" bölümünde tam metniyle yazılı.
+Hepsi **ölçülmüş** bir kusurdan doğdu; hiçbiri kuramsal değil.
+
+1. **Parti kapanış kapı kümesi = PR kapı kümesi.**
+   Kapanış kümesi elle sayılıyordu ve PR'ınkinden küçüktü: `demo:build`
+   parti sonunda hiç koşmadığı için modül döngüsü **iki parti boyunca**
+   kırmızı kaldı. Bugün küme `pr-kapisi.yml`den TÜRETİLİR
+   (`npm run kapi:parti`, `--liste` ile koşmadan görülür).
+
+2. **Taban indirmesi ve tavan yükseltmesi gerekçe ister — DOSYADA.**
+   ÖLÇÜLDÜ: `terimTavani` 85 → 500 yazıldığında bekçinin on bir vakası
+   da yeşil kaldı. Bugün tavan ölçümün üstüne çıkamaz; yükselme
+   `tavanGerekceleri` altında o yükselmeyi (`eski` → `yeni`) anlatan bir
+   gerekçe ister. Taban `--taban-yaz --sebep="..."` olmadan **inmez** ve
+   gerekçe `olcum-tabani.json`a işlenir. Commit mesajı yetmez.
+
+3. **Kırmızıyı koda yazmadan önce ölçüm ortamının tazeliğini doğrula.**
+   Bayat `next start`, dolu disk, kapatılmış port — üçü de ölçüldü ve
+   üçü de kod kusuru gibi görünen yanlış alarm üretti. Sıra
+   `web/arac/BENIOKU.md` → **ORTAM TAZELİĞİ**'nde; **2. adım (portun
+   kapandığını doğrula) atlanamaz**: `next start` `EADDRINUSE` ile ölür
+   ama `curl` eski sunucuyu görüp "hazır" der.
+
+4. **Gerekçe kusuru anlatır, maliyeti değil.**
+   Bir gerekçe kusurun kendisini değil düzeltme maliyetini anlatıyorsa,
+   o bir gerekçe değildir. `npm run gerekce:tarama` mevcut bütün
+   muafiyet/beyan gerekçelerini bu ölçüte vurur (bugün 69 gerekçe).
+
+5. **Ölçüm tabanı — ölçümlerin tavanı var, tabanı yok idi.**
+   Sayı raporlayan her kapı beklenen ASGARİ sayıyı da doğrular
+   (`arac/olcum-tabani.mjs`). Cırcır borç için tavan tutar; bu taban
+   kapsam için taban tutar. Doğuran kusur: disk dolunca test keşfi
+   "158 dosya · **0 vaka**" döndü ve sayım kapısı "doğrulandı" dedi.
+
+Altıncısı bu turda eklendi ve aynı sınıfta:
+**Düzelttiğini iddia eden değişiklik SABOTAJLA kanıtlanır** — yama geri
+alındığında kırmızı geri gelmiyorsa düzelttiğin şey o değildi.
+
+Yedincisi bir merge hatasından doğdu:
+**Merge ön koşulu İKİDİR — CI yeşil VE açık inceleme yorumu yok.** Biri
+öbürünün yerine geçmez. ÖLÇÜLDÜ: #30'da otomatik inceleme 06:58'de beş
+bulgu (ikisi P1) bildirdi, merge 07:00'de yalnız CI'ya bakılarak yapıldı
+ve beşi de `main`e girdi. Düzeltmeleri #32 kapattı.
+
+Dokuzuncusu sekizincinin devamı (9 Eylül 2026):
+**NULL-olumsuzlama bir SINIFTIR, tek kusur değil.** Depoda ölçüldü: 637
+dosya · 1 393 Prisma çağrısı · 37 olumsuz yüklem bulgusu (`not:` 21 ·
+`NOT:` 7 · `notIn:` 9 · `isNot:` 0 · ham SQL 0); 34'ü şemaya karşı
+güvenli (NULL'un kendisi 14 · NOT NULL kolon 18 · NULL açıkça ele alınmış
+2), 3'ü beyanlı (dinamik ilişki olumsuzlaması 1 · çağrı dışı ortak parça
+2 — ikisi de NOT NULL kolon). Kusur sayısı: 1 (Faz B'de düzeltilen). Kural motoru `!=` işleci NULL'da
+`bilinmiyor` döner (`kosulSagla`), kusur yok. Bekçi
+`tests/bekci/null-olumsuzlama.test.ts` (URN-VER-001); izin listesi
+yalnız küçülür.
+
+Sekizincisi Faz B'de (B1/B2) ölçüldü:
+**Parite EKRANDAN ölçülür, yeşil testten değil.** 3 289 vaka yeşilken
+K4 ekran koşusu enerji Tesis 360'ta 20 yerine **13** alan gösterdi:
+`NOT: { rol: 'kapasite' }` SQL üç değerli mantıkta rolü NULL yedi satırı
+düşürüyordu; saf fonksiyon testleri şemayı hazır aldığı için göremedi.
+Bugün veri yolu DB'ye karşı sınanır (`tests/tesis360-sektor-profili.test.ts`,
+TES-PRF-006, sabotajla kanıtlı) ve K4 aracı sayıyı ekranın kendi
+metninden okur (`web/arac/k4-enerji-su.mjs` → `docs/kanit/faz-b-k4/`).
+Aynı koşu aracın kendi iki yanlış alarmını da ölçtü: risk adındaki
+"yetkisiz" sözcüğü hata sayılıyordu; CSS `text-transform` yüzünden
+"TANIMSIZ" (ı → I) düzenli ifadeye uymuyordu — hata bileşeninin kendi
+metni (`403 · Yetkisiz`) ve `textContent` ile düzeltildi.
+
+**KAPANDI · depo ayarı (8 Eylül 2026).** Kural artık YAPISAL: `main`
+ruleset'inde PR zorunlu (0 onay) · **Require conversation resolution
+before merging** · status check `kapi` + **Require branches to be up to
+date** · force push engelli · silme kısıtlı. **Bypass listesi boş** —
+istisnası olan bir kural, kural değildir. Elle yapılan kontrol bir gün
+yapılmaz; artık yapılmasına gerek yok. Bu satır kalemi KAPATIR: ardıl
+oturum bunu bir daha sormaz.
+
+---
+
+## A.5 · DEDEKTÖRLER NEREDE
+
+Kusuru bulan şey ekran değil, dedektördür. Örnekleri temizleyip
+dedektörü kapatmamak, borcu **görünmez** yapar — bu turda iki kez oldu.
+
+| Ne | Nerede | Ne yapar |
+| --- | --- | --- |
+| `camelKalibi` | `web/arac/turkce-arama.mjs` | camelCase yazımları görür (`gucMw` · `kuruluGucMw` · `uretimKaybiMw`); `tests/bekci/terimler.ts` MW kalıbında kullanılıyor |
+| `plant` kalıbı | `web/tests/bekci/terimler.ts` | Sağ sınır rakama AÇIK → `Plant360` görünür; sol sınır sözcük sınırı → "toplantı" görünmez. Alt çizgili yazım bilerek dışarıda (depoda 0 eşleşme, körlük yazılı) |
+| `olcum-tabani` | `web/arac/olcum-tabani.mjs` + `.json` | Sayı raporlayan kapının asgari kapsamı; `tabanKarari` · `yazimKarari` saf, tarayıcısız sınanır |
+| tek-nüsha değişmezi | `web/tests/tek-nusha.test.ts` | Kapı betikleri ortak yardımcıyı İÇE AKTARIR, yeniden tanımlamaz; ikiz liste dosyası da kırmızıdır |
+| `kesifKarari` | `web/arac/test-envanteri.mjs` + `tests/kesif-karari.test.ts` | Sıfır keşif ölçüm değil KIRIKTIR |
+| `kapi-farki` | `web/arac/kapi-farki.mjs` | `package.json` betikleri ile CI'da gerçekten koşanın farkı; beyansız betik kırmızı. `adimlar()` ve `isOrtami()` de burada |
+| `kapi:parti` | `web/arac/parti-kapanisi.mjs` | Parti kapanış kümesini iş akışından türetip koşar; tanımadığı her anahtarı **ORTAM FARKI** olarak sayar |
+| `durdurmaKarari` · `sunucuYasamDongusu` | `web/arac/kapi-farki.mjs` + `tests/sunucu-durdurma.test.ts` | "Başarısız OLAMAYAN temizlik adımı" sınıfı: süreç adıyla öldürme · `\|\| true` · son koşulu doğrulamayan adım. Yaşam döngüsü adımlarının tespiti de burada — **tek nüsha**; `parti-kapanisi.mjs` koşar, bekçi sınar. Başlatan var da duran tanınmıyorsa ATAR, sessiz `-1` dönmez |
+| `gerekce:tarama` | `web/arac/gerekce-tarama.mjs` | Muafiyet/beyan gerekçelerini maliyet diline karşı tarar. **Kapı değildir**, tarayıcıdır — kendi sınırı başlığında yazılı |
+| `kirpanAta` vakaları | `web/tests/kirpan-ata.test.ts` | Düzen kapısının kırpan-ata yürüyüşü; kaydırılabilen içerik kayıp sayılmaz, `auto` ama kaymayan kap yürüyüşü durdurmaz |
+| `sozlukDurumu` | `web/lib/dil/sozlukDurumu.ts` | "Sözlük yok" ile "sözlük BOŞ"u ayırır: SEKTÖRSÜZ (doğru cevap) · EKSİK (kusur) · VAR. `kapsamKarari` da burada — bilinmeyen sektör "tek sektör" sayılmaz |
+| `kurgusal-adlar` bekçisi | `web/prisma/kurgusal-adlar.ts` + `tests/bekci/kurgusal-adlar.test.ts` | Depoya gerçek bir KURULUŞ ya da ÜRÜN adı girmesini engeller. **Kara liste değil**: ad kaynağı tektir ve bekçi VERİTABANINA bakar (kaynak metnine değil — kusur "tohumda dize var" değil, "ekranda gerçek firma görünüyor"du). Meşru gerçek ad (entegrasyon hedefi · yayımlanmış CVE) `GERCEK_AD_BEYANLARI` içinde kaynağı ve gerekçesiyle **beyan edilir**; beyansız gerçek ad kırmızıdır. İstisnanın kendi dişleri: kullanılmayan beyan · kaynaksız beyan · kurgusal+gerçek adın aynı kayıtta karışması · kaynak referansı olmayan zafiyet · beyansız **adaptör hedefi** (`Adaptor.hedefUrunler`, abstract — yayımlanmış çıktı taranınca bulundu: bekçi veritabanına bakıyordu, adaptör metinleri veritabanından geçmez) |
+| İnceleme #30 vakaları | `web/tests/inceleme-30.test.ts` | Bir inceleme turunun beş bulgusunun düzeltme kanıtı; hepsi sabotajla doğrulandı |
+| `semaBekcisi` · `omurgaIhlalleri` · `sektorKolonlari` | `web/tests/bekci/semaBekcisi.ts` + `kapsam-omurga.test.ts` · `sema-sektorsuz.test.ts` | Şemayı OKUR, anlatılana bakmaz: omurga modelinde doğrudan `tesisId` (URN-KAP-001, izin listesi `kapsam-omurga-izin.json` yalnız küçülür, taban dal alt küme dişi) · paket anahtarı çekirdek modelde kolon (URN-KAP-002: enerji şemasının anahtarları + `KURULU_GUC` + `GUNLUK_DEBI`, model ve alan adlarında `terimleriBul`). Altı sabotaj vakası (S1–S6) kırmızı-yeşil kanıtlı |
+| K3 göç eşitliği | `web/arac/goc-sayimi.mjs` → `arac/goc-sayimlari/*.json` + `tests/kapsam-ogesi-gocu.test.ts` | Göç öncesi/sonrası sayısal eşitlik dosyadan okunur (74 ortak anahtar, 25 tesis → 25 öğe: kurum 2 · tesis 23); tohum ile göç aynı kimlikleri/satırları yazıyor mu (`ko-` kuralı dört yerde, öznitelik şeması UNION bloğundan ayrıştırılır, kapasite rolü UPDATE'i) |
+| K4 parite koşusu | `web/arac/k4-enerji-su.mjs` → `docs/kanit/faz-b-k4/OZET.md` | Sekiz demo ekranı iki mercekte; HTTP · gövde uzunluğu · hata metni (bileşenin kendi metni) · mercek sözcüğü · Tesis 360 profil alanı sayısı **ekranın metninden** (`textContent`). Canlı sunucu ister, kapı değildir; sonuç JPEG + OZET.md |
+| `sektorProfiliOku` veri yolu | `web/tests/tesis360-sektor-profili.test.ts` | Beklenti şema TABLOSUNDAN ölçülür: kapasite dışı her satır alan olmalı, rolü NULL olanlar dahil (SQL `NOT rol = x` tuzağı). Yalnız kapasite beyan eden paket boş profil verir |
+| NULL-olumsuzlama bekçisi | `web/tests/bekci/nullOlumsuzlama.ts` + `null-olumsuzlama.test.ts` + `null-olumsuzlama-izin.json` | SINIF kapısı (URN-VER-001): her `NOT:` · `not:` · `notIn:` · `isNot:` ve ham SQL `NOT IN`/`<>`/`!=` yüklemi, kapsayan Prisma çağrısından modele ve ilişki zincirinden alana çözülüp şemadaki null'lukla okunur. NULL'un kendisini olumsuzlayan, NOT NULL kolondaki ya da NULL'u aynı where içinde açıkça ele alan yüklem güvenli; kalanı gerekçeli listede yoksa kırmızı. Çağrı dışı süzgeç parçası (`const kutuk = { durum: { not } }`) `model` beyanı ister ve beyan şemaya karşı doğrulanır; tohum verisindeki Türkçe `not:` ve yorum/dize bulgu değildir (maskeleme). Ölçüm tabanı: dosya · çağrı · bulgu sıfır olamaz. Sabotaj: `NOT: { rol: 'kapasite' }` geri konunca kırmızı |
+| **POPÜLASYON AYRIŞMASI** | `web/tests/bekci/dom-tanik.test.ts` · `web/arac/dom-tanik.mjs` · `web/arac/tanik-karsilastirma.mjs` · `web/arac/dom-tanik-kutugu.json` | URN-TNK-001 · **İKİNCİ BAĞIMSIZ POPÜLASYON TANIĞI**. Bu deponun adı konmuş başarısızlık biçimi: kütüklerin paydası TEK bir düzenli ifadeden türüyor ve "tavan sıfır" dişi yalnız TÜRETİCİNİN GÖRDÜĞÜNÜ koruyor — politika evreni 131 → 184 → 213 → 215 → 216, boş durum 74 → … → 126 diye genişledi ve her genişleme, bir önceki "ölçülmeyen 0" oranının KÖR bir payda üzerinde hesaplandığını gösterdi. Tanık kaynağı HİÇ OKUMAZ: ürünü gerçek tarayıcıda gezer ve kullanıcıya GÖRÜNEN metni toplar. Ekranda okunan ama hiçbir kütükte açıklanmayan cümle KIRMIZIDIR. Çalışma anında BİRLEŞEN cümleler (kaynakta bütün hâlde durmayanlar) ayrı bir kütükte ölçümleriyle durur ve o kütük taban dala göre BÜYÜYEMEZ — körlüğü kütüğe taşımak yerine türetici genişletilir. **Tanığın ERİŞİM SINIRI da ölçülüdür**: yalnız sayfanın AÇILIŞ hâlini gezer (çekmece açmaz) ve 220 satırın bir bölümünü görür; sayı taban taşır, "ayrışma 0" tek başına bir şey söylemez. **Düzeltme turu · tur 2:** tanığın KENDİ ölçüm araçları da aynı kusuru taşıyordu ve dördü de kapandı — (a) `25`/`400` sınırları tanığın İÇİNE yazılıydı, artık türeticiden gelir (iki ayrı yerde iki ayrı sayı tutmak, tanığın yakaladığı dördüncü körlüğün ta kendisiydi); (b) `ROTALAR.length < 30` sabiti araçtaydı ve tanık 65 rota geziyordu — otuz beş rotalık sessiz daralma penceresi; tabanlar `olcum-tabani.json`a taşındı (`tanik.rota` 65 · `tanik.cumle` 43 · `tanik.bosDurum` 16) ve `dom-tanik.mjs` taban yazan araçlardan biri oldu; (c) iki `continue` "atlanır, SAYILIR" diyordu ve saymıyordu, bekçi de listenin BOŞ olmasını istiyordu — tanık rota kaybettikçe kapı daha da mutlu oluyordu; (d) cırcırın `taban_yok` dalı SESSİZCE dönüyordu ve bu kütük taban dalda YOK, yani cırcır tam da tanığı getiren turda hiçbir şey ölçmüyordu — bugün kütük ilk tur tavanını ELLE beyan eder (`ilkTurTavani`), beyansızsa KIRMIZI. Karşılaştırma SAF bir fonksiyondadır ve sentetik girdilerle sınanır. Sabotaj: tanığı körleştirmek (rota listesi boşaltıldı · cümleler silindi · atlanan rota gizlendi), ayrışma üretmek, eylemsiz boş durum eklemek, tanık kütüğüne ölçümsüz satır ve ölü referans koymak — yedisi de kırmızı |
+| **CÜMLESİZ BOŞ YÜZEY** | `web/tests/bekci/dom-tanik.test.ts` · `web/arac/dom-tanik.mjs --bos` · `web/components/kabuk/tablo.tsx` | URN-TNK-001 · Paylaşılan tablo sıfır satırda HİÇBİR ŞEY çizmiyor ve bu doğru bir karar (boşluğun sebebini bilemez) — ama bir delik açtı: ortada `<table>` bile kalmadığı için DOM tanığı "burada bir veri yüzeyi vardı" diyemiyor, kaynak türeticisi de okuyacak metin bulamıyordu. Ekran hiçbir cümle söylemeden boş kalabiliyor ve İKİ ÖLÇÜM MEKANİZMASI DA bunu göremiyordu; kütük bir satırı SİLEREK "iyileşmişti". Bugün bileşen görünmez bir işaret basıyor (`[data-bos-yuzey]` · sıfır boyutlu · `aria-hidden`) ve tanık sözleşmeyi oradan okuyor: sıfır satırlı her veri yüzeyinin KAPSAMINDA bir boş durum cümlesi olmak zorunda, tavan SIFIR. Ölçüm BOŞ KURULUMDA yapılır — tohumlu koşumda tabloların çoğu doludur ve sonuç doğası gereği 0 çıkar; "tohumlu koşumda 0" ile "böyle bir kusur yok" aynı şey değildir. Tanık bunun için kendi veritabanını, kendi kurucu hesabını (ürünün belgelenmiş `arac/kurucu-hesap.ts` CLI'sı) ve kendi sunucusunu kurup üçünü de kaldırır; temizlik son koşulunu ölçer. **Dişin KENDİ körlüğü aynı turda ölçüldü:** ilk yazım sıfır satırlı düğüm ararken `gorunur()` istiyordu — sıfır satırlı bir listenin yüksekliği tanımı gereği sıfırdır, yani diş aradığı şeyi eliyordu ve popülasyon 0'a düşüyordu; "0 kusur" diyen kapı hiçbir şeye bakmamıştı. Taranan yüzey sayısı artık kütüğe yazılır ve taban taşır. Sabotaj: bir ekranın boş durumu kaldırıldı (tanık yüzeyi gördü, kapı kırmızı) · kütük şişirildi (kırmızı) · popülasyon sıfırlandı (taban kırmızı) — üçü de yandı; dişi körletmek kapıyı kırmızı DEĞİL sessiz yeşil yapıyor ve savunması tam da o taban |
+| **TANIK KAPSAMI** | `web/tests/bekci/dom-tanik.test.ts` · `web/arac/tanik-karsilastirma.mjs` | URN-TNK-001 · Tanık kütüğün 35/220'ini (%15,9) görüyor ve bu BEYANLI bir sınır; sorun sınırın kendisi değil, SESSİZCE DARALABİLMESİ. Ölçü ORANDIR ve taban dala göre düşemez — salt sayıya bakan bir taban yetmez: kütük büyürken tanık sabit kalırsa sayı korunur, oran düşer ve "ayrışma 0" giderek daha az şey söyler. Ulaşılamayan her satır KODDAN türetilen bir kategori taşır (`acilista-yok` 151 · `sunucu-eylemi` 32 · `rota-gezilmedi` 2) ve üçü ulaşılamayanların TAMAMINI kaplamak zorundadır; dördüncü bir hâl doğarsa toplam tutmaz ve kapı kırmızı yanar. Kategorisiz "ulaşılamadı" bir sonraki turda "zaten görmüyorduk" diye büyütülür. Testin içine sabit yazılmış 30'luk taban `olcum-tabani.json`a taşındı (ölçülen 35'ti: beş satırlık sessiz daralma penceresi). Sabotaj: tanık cümlelerinin yarısı düşürüldü — dört diş birden kırmızı |
+| **SABİT İDDİA** | `web/tests/kalite-kapilari.test.ts` | SIS-KAP-004 · Tarayıcılı kanıt kapıları `kaydet(bant, 'iddia', sonuc)` ile rapor yazar. Üç araçta BEŞ satır `sonuc` yerine sabit `true` geçiyordu: rapora "geçti" yazan, hiçbir şey ÖLÇMEYEN satırlar. Üstündeki `waitFor` düşerse koşum zaten patlar, düşmezse satır HER hâlde yeşil yanar — yani raporu okuyan insan, ölçülmüş bir iddia ile ölçülmemiş bir cümleyi ayırt edemiyordu. Beşi de gözlemle değiştirildi ve kural kapıya bağlandı. Sabit `false` YASAK DEĞİL ve sebebi ölçüldü: kapının ilk yazımı onu da yasaklayınca altı satır çıktı (`mevzuat-radari-kanit.mjs` ×3 · `veri-koruma-kanit.mjs` ×3) ve üçü de okundu — hepsi bulunamama dalında duruyor ve ölçülen OLUMSUZ sonucu yazıyor; asimetri de bunu söyler: sabit `true` bir kusuru SAKLAR, sabit `false` olsa olsa yanlış alarm üretir. Taramanın kendisi de tabanlı (en az üç araç), yoksa sıfır dosya tarayan bir kapı sıfır kusur bulur. Sabotaj: bir sabit `true`yu geri koymak — kırmızı |
+| **ÖLÜ BAĞ** | `web/tests/bekci/olu-bag.test.ts` · `web/arac/rota-agaci.mjs` | SIS-BAG-001 · Ekranın gösterdiği ÇIKIŞ gerçek olmalı. Rota desenleri `app/` AĞACINDAN türetilir (üretilmiş bir listeden DEĞİL: liste kör kalırsa bekçi olmayan bir rotayı "var" sayar). Eşleşme segment segmenttir ve segment SAYISI uyuşmak zorundadır — üst yola yaslanan gevşek eşleşme `/tesisler/cm1/olmayan/derin`i geçiriyordu. Beş hedef türü taranır (`href` düz/ifade · `router.push` · `redirect` · `revalidatePath`) ve üç kök (`app` · `components` · `lib`); `lib` gerekçesi ölçüldü: `revalidatePath` çağrılarının 272'si orada ve DÖRDÜ olmayan bir rotayı tazeliyordu (sessiz no-op). **Düzeltme turu · tur 2:** ZORUNLU yakalayıcı (`[...yol]`) çıplak üst yolu YİYORDU — Next.js'te en az bir segment ister ve `/belge` o desenle çözülmez; ölü bir bağ canlı sayılıyordu ve TESTİN KENDİSİ bu yanlışı kilitliyordu (`expect(rotaCozulur('/belge', D)).toBe(true)`). Bugün zorunlu ve isteğe bağlı (`[[...yol]]`) yakalayıcı ayrıdır; ağaçta yakalayıcı desen YOK (ölçüldü: 65 desen, 0 yakalayıcı) ve bu sayı da vakada kilitli. Sabotaj: çözümleyiciyi gevşetmek · rota grubunu yola sızdırmak · kapsamı ya da kökü daraltmak · ölü bağı geri koymak · yakalayıcı ayrımını kaldırmak — yedisi de kırmızı |
+
+---
+
+## A.6 · ARŞİV DALLARI — ne oldukları ve neden duruyorlar
+
+İkisi de **ölü koddur ve öyle kalmalıdır**; hiçbir dal onlardan
+dallanmaz, hiçbiri `main`e gitmez. Var olma sebepleri tek: kapanan bir
+oturumun diskiyle birlikte kaybolacak olmalarıydı. "Bu dallar ne?" diye
+sorulup silinmesinler diye buraya yazıldılar.
+
+| Dal | Uç | Nedir | Neden duruyor |
+| --- | --- | --- | --- |
+| `arsiv/p1-eski-yerel-2026-09` | `a5668f4` | P1 terim çevirisinin **yerel kopyası**. Uzak dal 13 commit ilerlemişti ve öbür oturum aynı işi yapmıştı (71/75 dosya tek commit'te örtüşüyordu); benim çoğaltılmış parti commit'lerim atıldı, yalnız dedektör/alet işi üstakımın ucuna yeniden kuruldu | Atma kararının **kaydı**. Hangi işin neden atıldığı sorulursa cevabı burada; yeniden kurulan `90c1e21` ile karşılaştırılabilir |
+| `arsiv/yerel-main-2026-09` | `4cde36f` | Yerel `main`de duran ve **hiçbir uzak dalda bulunmayan 10 commit** — 2 Eylül tarihsel UX denetimi (FAZ F–Q), zorunlu UX skill seti, iki ölçüm aracı | İçeriğinin `origin/main`de olup olmadığı satır satır doğrulanmadı; skill dosyaları her ikisinde de var ama 498 dosyalık bir fark duruyor. Silmeden önce o farkın incelenmesi gerekir |
+
+İkisi de bu oturumda **geri okumayla** doğrulandı
+(`git ls-remote --heads origin 'arsiv/*'`), "push başarılı" mesajıyla
+değil.
+
+---
+
+## B · SON ÖLÇÜM RAPORU
+
+**Ardıl oturum bu bölümü okumakla yetinmez, komutları koşar.**
+
+### Ölçüm künyesi
+
+| | |
+| --- | --- |
+| **Ölçüm commit'i** | `85bd880` — `Merge pull request #31 from ahmetrz/kapanis-devir` |
+| Ölçüm tarihi | 8 Eylül 2026 |
+| Ölçülen ağaç | `origin/main` (devir kaydı birleştirildikten SONRA) |
+| Önceki ölçüm | `640c837` (#32 · inceleme düzeltmeleri) — sayılar AYNI çıktı; #31 terim borcuna dokunmadı |
+| Kapı kümesi | `npm run kapi:parti` → **geçti 18 · KIRMIZI 0 · ÖLÇÜLMEDİ 0** |
+| Test keşfi | 162 dosya · 3215 vaka geçti · 1 atlandı |
+| **Sonraki ölçüm — Faz B dalı** (`claude/uyumplatformu05-kod-l8y12k`, PR açık) | `kapi:parti` **19 · KIRMIZI 0 · ÖLÇÜLMEDİ 0** · 169 dosya · 3 292 vaka · 1 atlandı · senaryo 296 / GAP 0 · terim 85/85 (`tavan` 11) · çekirdek sözcük 0 · K3 sayımlar eşit · K4 14 ölçüm / kırmızı 0 (enerji Tesis 360 20 alan, su 12). Yedi sabotaj (S1–S7) kırmızı→yeşil |
+| **Sonraki ölçüm — NULL sınıfı + P4 dalı** (`claude/uyumplatformu05-kod-l8y12k`, `origin/main`'den yeniden kuruldu, PR açık; `98b50c6`) | `kapi:parti` **19 · KIRMIZI 0 · ÖLÇÜLMEDİ 0** · 174 dosya · 3 344 vaka · 1 atlandı · senaryo 302 / GAP 0 · ters kapsam 390 davranış / senaryosuz 0 · terim 85/85 · çekirdek sözcük 0 · şema sapması 0 · NULL-olumsuzlama 37 bulgu / beyan 3 / kusur 0 · iskelet paketler doğrulayıcı 0 hata (TR-ENERJI 601 madde · TR-BANKACILIK 58). Sabotaj S8 (NOT rol geri) · S9 (izin satırı + tavan) · S10 (iskelet dosyasında tek sözcük) kırmızı→yeşil |
+| **Sonraki ölçüm — PR #41 incelemesi sonrası** (`bc71421`; `main` #37 ile birleştirildi, çakışma 0; CI iki iş success, PR "clean", açık inceleme iş parçacığı 0) | `kapi:parti` **19 · KIRMIZI 0 · ÖLÇÜLMEDİ 0** · 174 dosya · 3 356 vaka · 1 atlandı · senaryo 304 / GAP 0 · ters kapsam 390 davranış / senaryosuz 0 · şema sapması 0 · kalite borcu axe 0 / taşma 1 izinli (cırcır 0 eklenen) · NULL-olumsuzlama 645 dosya / 1 428 çağrı / 41 bulgu (güvenli 38 · beyan 3 · kusur 0; +4 yeni bulgu uzlaştırmanın `notIn`leri, NOT NULL kolon) · Codex 8 bulgu (4 P1 · 4 P2) düzeltildi, sabotaj S11–S18 her biri kırmızı→yeşil (56/56) |
+| **Sonraki ölçüm — PR #41 incelemesi 2. tur sonrası** (`8ff0978`; açık inceleme iş parçacığı 0 / 15 çözüldü) | `kapi:parti` **19 · KIRMIZI 0 · ÖLÇÜLMEDİ 0** · 174 dosya · 3 363 vaka · 1 atlandı · senaryo 305 / GAP 0 · ters kapsam 390 davranış / senaryosuz 0 · şema sapması 0 · NULL-olumsuzlama 645 dosya / 1 429 çağrı / 41 bulgu (güvenli 38 · beyan 3 · kusur 0) · Codex 7 bulgu (2 P1 · 5 P2) düzeltildi: kurulu sürüm değişmez (URN-PKT-008), bağımlılık kararı transaction içinde, telifli `kanit_beklentisi` red, sektörsüz paket sözlük/öznitelik red, `seviye` 0–5, takvim tarihi, kapanmamış tırnak; sabotaj S19–S25 her biri kırmızı→yeşil (54/54) |
+| **Sonraki ölçüm — P4 kalan dilimler 2.1–2.7 + R-A/R-B/R-C** (`claude/uyumplatformu05-kod-l8y12k`, `origin/main` `fdbf3b3` üzerinde, main ilerlemedi; `ölçülen `c31ee45``) | `kapi:parti` **19 · KIRMIZI 0 · ÖLÇÜLMEDİ 0** · 185 dosya · 3 430 vaka · 1 atlandı · senaryo 315 / GAP 0 · ters kapsam 392 davranış / senaryosuz 0 · şema sapması 0 (4 eklemeli göç; `MaddeEslestirmesi.aktif` için migrate diff RedefineTables üretti, elle ADD COLUMN yazıldı) · tohum artık `DEMO-TR-*` paketlerinden (köken sayımı: sözlük 18 · öznitelik 10 · regülasyon 4 · eşleme 8 hepsi `paket`; ölçülen kayıp ISO 27001 4 metin) · `/paketler` iki bant kanıtı 26/26 geçti (13 iddia × 2 bant, 1440×900 · 1024×768: taşma 0px · başlık · kalıcı kural cümlesi · 5 satır ve hâl sözleri · panelde engel nedeni · Kur açık/Kaldır engelli; ilk koşudaki 8 kırmızının dördü de BETİK kusuruydu — innerText CSS büyük harfini uyguluyordu, /TR-ENERJI/ deseni önce DEMO-TR-ENERJI satırına eşleşiyordu — ekran kusuru 0) · sabotaj S35–S79 (45 vaka) her biri kırmızı→yeşil (S61 ilk turda yeşil kaldı, bekçi penceresi düzeltildi) · R-B: şema/kiracı verisi/lisans PR'ı — bağımsız inceleme bekliyor |
+| **Sonraki ölçüm — R-D alan eşlemesi + TR-ENERJI 0.3.0 + R5 PostgreSQL + P7 dağıtım + R3 yedek** (`claude/uyumplatformu05-kod-l8y12k`, PR #44; bağımsız inceleme İKİ TUR — tur 2 sonrası ölçüldü) | `kapi:parti` **TAM (hızlı + yavaş + postgresql + compose) · 24 kapı · KIRMIZI 0 · ÖLÇÜLMEDİ 0**; tek koşuda 22'si geçti, iki PostgreSQL kapısı **yerelde `postgres:16` sunucusu ayakta olmadığı için** kırmızı yandı (`connection refused`) ve sunucu kaldırılıp ADIYLA yeniden ölçüldü — kod kusuru değil ölçüm ortamı eksiğiydi, kural gereği "geçti" yazılmadan önce ölçüldü: göç 1/1 · şema farkı 0 · değişmezlik 9/9 · eksik nesne 0 tetikleyici / 0 indeks · temizlik doğrulandı. Tam küme **194 dosya · 3 528 geçti · 1 atlandı (3 529)**, İKİ SAĞLAYICIDA DA aynı sayı · senaryo 324 / GAP 0 · TR-ENERJI 0.3.0: 8 çerçeve / 3 803 madde, alan eşleme beyanı 8/8 (`paket:dogrula` çıktısı) · **compose kurulumunda rota duman 60/60 · kusur 0 · sayfa hatası 0 · readiness 2,5–4,4 sn · temizlik iki tanıkla doğrulandı**; aynı ölçüm CI'da `kapi-compose` işinde de yeşil · R3: SQLite tatbikatı KOŞTURULDU (yedek al → `prisma/dev.db` taşındı, `veri/kanit` silindi → geri yükle → `--karsilastir` SAĞLAM → tam küme geri yüklenen veritabanına karşı yeşil); tatbikat `main` birleştirmesinden (`353c1e7`) SONRA YENİDEN koşuldu — `--al` çıkış 0 · içerik özeti `2c0e42dd6da68991` · `--karsilastir` **SAĞLAM** (göç farkı 0 · iz farkı 0 · sahipsiz dosya 0) · tam küme **194 dosya · 3 528 vaka · 1 atlandı · çıkış 0**, ve AYNI ağaçta depo kökü YOKKEN `--al` çıkış **1** verip `KUSURLU` yazdı (`0 dosya` ile `ölçülemedi` ayrı yazıldı — tur 2 kuralı canlıda sınandı); kanıt dosyalı gidiş-dönüş sabotajla ölçüldü (dosyayı boz / sil → ikisi de ADIYLA yakalandı, çıkış 1; geri yüklenen dosyanın özeti kaynakla aynı); PostgreSQL yolu **inceleme tur 2'sinin `psql -R` bulgusundan SONRA yeniden ölçüldü** (158 tablo · 0,38 MB döküm · `bütünlük`/`yabancı anahtar kusuru` ölçülmedi diye yazılıyor). **Kapının kurulumda bulduğu beş kusur** (hiçbiri `next dev`de görünmüyordu): derleme anında veritabanı sorgusu · yutulan ön-render sinyali · oturumsuz detay rotasında 307 yerine 500 · `/sistem`in okuduğu dosya imajda yok · kiracı adı istemcide derleme sabiti (58 sayfada hidrasyon uyuşmazlığı). Bağımsız inceleme (R-B): tur 1 → 21 bulgu (4 P1 · 7 P2 · 10 P3), tur 2 → 15 bulgu (3 P1 · 4 P2 · 8 P3). Tur 2'nin P1'leri GERÇEKTİ ve ikisi bu turun kendi düzeltmeleriydi: `psql -R` son kaydı newline ile bitirdiği için PostgreSQL yedek yolu HİÇ koşmuyordu (sabotajla kanıtlandı) · yeni `yedek` birimi kapsayıcıda root'a aitti · kapının `--tut` çıktısı operatörün yığınını sildiren bir komut öneriyordu. Ertelenen tek kalem R0-15 (sahibi ve kapanış aşaması yazılı) |
+| **Sonraki ölçüm — R-E kuralı + dışa aktarım kapsamı sınıfı + takvim tetikli yükümlülük + P6 kimlik/SSO** (`claude/uyumplatformu05-kod-l8y12k`, PR #49; bağımsız inceleme 1. tur sonrası, `430c40d`) | `kapi:parti` **TAM · 32 adım · geçti 31 · KIRMIZI 0 · ÖLÇÜLMEDİ 1**. Ölçülmeyen `kapi-compose`: kum havuzunun **disk tavanı** (`no space left on device`, tohum imajının katman çıkarımında) — TLS kesme engeli `CA_DEMETI` kancasıyla aşıldı ve uygulama yığını **kalktı, iki kapsayıcı da sağlıklı**; kapıyı CI ölçtü ve **yeşil**. Tam küme **217 dosya · 3 971 geçti · 1 atlandı**, İKİ SAĞLAYICIDA DA aynı sayı · senaryo 342 / GAP 0 / hayalet 0 · ters kapsam 414 davranış / senaryosuz 0 · tarayıcı kanıtları: bildirim dönemi **33/33**, kimlik ve SSO **32/32** (ikisi de iki bant) · CI `430c40d` üzerinde **10/10 yeşil** (`kapi-compose` dâhil). Kapı kümesi 29 → **31 benzersiz komut, 32 adım**. **Sabotaj (R-E):** parti içi 13 koşum 13 kırmızı; inceleme sonrası **10 koşum, ÜÇÜ YAKMADI** — S21 zayıf sabotajdı (yeni tasarımın ileri normalleştirme döngüsü yanlış başlangıcı kendi düzeltiyordu; S21b yaktı), S22 ve S25 ise **gerçek test kusuruydu** (bulgu 5'in düzeltmesi ve ölü kodun geri gelmesi hiçbir yerde ölçülmüyordu; ölçümler eklendi, S22b ve S25b yaktı). Toplam **23 koşum · yakmayan 3**. Bağımsız inceleme (R-B) 1. tur: **8 bulgu, 8'i de doğrulandı, yanlış alarm 0**; ikisi P1 (MFA girişe hiç bağlı değildi · `mfaGirisDogrula` `'use server'`den ihraç ediliyordu) |
+| **Sonraki ölçüm — R-F eki (altıncı diş) + S2 tamamı + kurulum provası + boş kurulum kapısı + boş durum sayımı + test izolasyonu sızıntısı** (`claude/uyumplatformu05-kod-l8y12k`, PR #51; bağımsız inceleme İKİ TUR sonrası, `045870d`) | `kapi:parti` **TAM · 35 kapı · geçti 34 · KIRMIZI 1 · ÖLÇÜLMEDİ 0**. **Kırmızı `kapi-compose` ve kök sebebi ölçüldü: ölçüm ortamı bayat, kod değil.** Kapsayıcı yeniden başlayınca ajan vekilinin portu değişti; `dockerd` (pid 5112) süreç ortamında ESKİ portu (33981) taşımaya devam ediyor ve `registry-1.docker.io`a hiç ulaşamıyor (`proxyconnect tcp: dial tcp 127.0.0.1:33981: connect: connection refused`). İki düzeltme denendi — daemon'ı taze vekille yeniden başlatmak ve ölü portu canlı vekile köprülemek — **ikisi de ortam tarafından reddedildi; etrafından DOLAŞILMADI** (kapıyı geçirmek için `pull_policy` gevşetmek de reddedildi: kapıyı susturmak düzeltme değil delik açmaktır). Kapıyı CI ölçtü ve **yeşil**. Kural gereği yerelde "geçti" YAZILMADI ve parti kapanışı KIRMIZI sayıldı. Tam küme **238 dosya · 4 259 vaka**, İKİ SAĞLAYICIDA DA aynı sayı (SQLite 4 258 geçti / 1 atlandı · PostgreSQL 4 241 geçti / 18 atlandı — fark, üretilmiş Prisma istemcisi sağlayıcıya bağlı olduğu için SQLite dosyası isteyen kurucu-hesap ve boş-kurulum vakalarıdır, sebebi dosyada yazılı) · envanter **taze · gerçek keşifle doğrulandı** · **boş kurulum duman kapısı 9 adım · 9 geçti · 2 551 ms** · CI `045870d` üzerinde **10/10 yeşil** (`kapi-compose` dâhil) · açık inceleme iş parçacığı **0**. Kapı kümesi 32 → **35 adım** (boş kurulum duman kapısı · KVK kanıtı · ithal zinciri). **Sabotaj (R-E):** S50–S54 R-F eki **5 · yakmayan 0** · S55–S70 S2 eritme **16 · yakmayan 1** (S60) · S71–S75 sızıntı **5 · yakmayan 0** · S76–S78 boş kurulum kapısı **3 · yakmayan 0** · S79–S83 boş durum **5 · yakmayan 1** (S80) · inceleme tur 1 **16 · yakmayan 5** (S86 · S89 · S90 · S96 · S97) · tur 2 **13 · yakmayan 3** (S101 · S103 · S105). Toplam **63 koşum · YAKMAYAN 10**. Onu da kapandı ve hiçbiri "düzeltildi" diye yazılmadı; ikisi R-E'nin ÖBÜR yüzüydü — **S80 ve S89 zayıf SABOTAJLARDI** (kusurun eski hâlini geri getirmiyorlardı) ve sabotajın kendisi yeniden yazıldı, kalan sekizinde bulgu testte · kapıda · ölçüm ortamındaydı. Bağımsız inceleme (R-B) iki tur: tur 1 **5 P2 · 10 P3 · 3 şüphe**, tur 2 **1 P1 · 3 P2 · 18 P3 · 3 şüphe**; yanlış alarm 0. Tur 2'nin en ağır üçü kodun değil **ölçüm disiplininin** kusuruydu: depoya girmiş bir sabotaj işareti · her temiz dalı kırmızı yakacak bir mayın diş · türeticinin ikinci körlüğü (evren 94 → **95**) | 
+| **Sonraki ölçüm — Brief M · SON ALET PR'I: cümlesiz boş yüzey dişi + tanık kapsamı cırcırı + R0-23 dondurma** (`claude/uyumplatformu05-kod-l8y12k`, PR #53; İKİ inceleme bacağı koştu — salt-okunur araç kümeli ikinci model VE Codex; `bb06c0e`) | `kapi:parti` **TAM · 38 kapı · geçti 37 · KIRMIZI 1 · ÖLÇÜLMEDİ 0**. Kırmızı yine `kapi-compose` ve sebebi koddan değil ORTAMDAN: kum havuzunda `dockerd` koşmuyor (`Cannot connect to the Docker daemon`); etrafından DOLAŞILMADI, otoritesi CI ve orada **yeşil**. Tam küme **246 dosya · 4 432 geçti · 1 atlandı** · CI **10/10 yeşil**. **Kapı kümesi 37 → 38 adım** (`tanik:dom-bos` — boş kurulum koşumu). **Yeni ölçümler:** DOM tanığı artık İKİ VERİ HÂLİNDE koşuyor — tohumlu (65 rota · 43 cümle · 16 boş durum · taranan veri yüzeyi 56) ve BOŞ KURULUM (65 rota · atlanan 6 tavanlı · 37 cümle · 51 boş durum · taranan yüzey 17 · sıfır satırlı yüzey 0 · cümlesiz 0); boş koşum kendi veritabanını, kendi kurucu hesabını (ürünün belgelenmiş CLI'sı) ve kendi sunucusunu kurup üçünü de kaldırıyor ve öncülü ÖLÇÜYOR (`Kullanici 1 · Tesis 0 · Madde 0` + sunucunun o veritabanını okuduğu girişle kanıtlı). Tanık kapsamı **35/220 (%15,9)**, ulaşılamayan 185 satır üç kategoride (`acilista-yok` 153 · `sunucu-eylemi` 32 · `rota-gezilmedi` 0 · `siniflanmadi` 0). R0-23 sınırı **357** aday (alt küme 51) olarak ölçüldü ve İKİSİ de tavanlı, tavanlar taban dal denetiminde; sayı 382'den 357'ye İNDİ çünkü aday süzgeci `politikaMi()` ile aynı değildi ve sınıra bir ithal yolu ile JSX parçaları giriyordu (bir ithal adının değişmesi dondurulmuş sınırı oynatıyordu — tavan bir MAYINDI). Boş durum 125 · eylemsiz 0 · nedensiz 1. **Bulunan GERÇEK ürün kusuru:** `/envanter` süzgeçle boşalınca "Bu süzgeçte varlık yok." diyordu — tek tümce, sebepsiz, R-G'nin doğduğu cümlenin aynısı; kütük `neden: true` diyordu çünkü ölçüt ÜÇ DALIN BİRLEŞİMİNE bakıyordu (dal başına ölçüm Brief L'de yalnız `BosIlk`e uygulanmıştı). **Sabotaj (R-E): 12 koşum · 9 kırmızı · 1 "geçti" (kanıt amaçlı) · YAKMAYAN 2 (S-M10 · S-M11)**; S-M2 bir toplayıcıyı sabote etmenin kapıyı kırmızı değil SESSİZ YEŞİL yaptığını gösterdi ve savunması popülasyon tabanı olarak ölçüldü (S-M3). **İnceleme:** ikinci model 25 bulgu (3 P1 · 14 P2 · 8 P3), Codex **22 iş parçacığı** (1 P1 · 21 P2; BEŞ tur hâlinde geldi, altısı ilk turda zaten kapanmıştı). **Kırk yedisi kapatıldı**, yedisi R0-24'e yazıldı — açık iş parçacığı 0. Son ikisi dişin KENDİ körlüğüydü: (i) ölçüt "kapsamda cümle var mı" diye soruyordu ve aynı bölümü paylaşan iki boş yüzeyden birinin cümlesi ÖBÜRÜNÜ de aklıyordu — S-M8 ile ölçüldü, aynı girdide yeni ölçüt 1 cümlesiz bulup kapıyı kırmızı yakarken eski ölçüt 0 bulup sessiz yeşil kalıyordu; (ii) `chromium.launch()` fikstür temizliğinin DIŞINDA kalıyordu ve tarayıcı başlatma atarsa sunucu ile çalışma dizini ayakta kalıyordu (yerelde ölçüldü: öldürülen bir koşumdan yirmiden fazla `.parti/bos-kurulum-*` dizini kaldı). **En ağır ikisi dişlerin KENDİ körlüğüydü:** ilk yazım sıfır satırlı düğüm ararken `gorunur()` istiyordu (sıfır satırlı listenin yüksekliği tanımı gereği sıfır — popülasyon 0'a düşüyor, kapı "0 kusur" diyordu) ve `gizli(isaret)` düzeltmesi işaretin KENDİ `aria-hidden`ını yakalayıp işaret yolunu tümüyle öldürüyordu. İkisi de sabotajla kapatıldı. **YAKMAYAN SABOTAJ 2 — ikisi de adıyla yazıldı ve ikisi de kapatıldı.** (a) Bulgusu FİKSTÜRDEYDİ: S-M10 sıfır satırlı yol için yükseklik koşulunu geri koydu (dişin ilk ölçülmüş körlüğü) ve pozitif kontrol kırmızı YANMADI; sebebi fikstürün üç kartının da `<thead>` taşıması, yani yükseklik eksenini hiç sınamamasıydı. Boş bir `<ul>` taşıyan dördüncü kart eklendi ve S-M10b yaktı (4/4/3 → 3/3/2). (b) S-M11 (atlanan rota tavanı 6 → 7) yakmadı ve sebebi YAPISALDI: tavan bu dalda DOĞDU, taban dalda karşılaştırılacak bir şey yok — bir tavanın doğduğu tur, onu istediği yere koyabileceğin tek turdur. İkinci bir diş eklendi (taban dalda olmayan tavan GEREKÇE ister, asgari uzunlukla) ve S-M11b kırmızı yaktı. Ayrıca S-M12: tanıktan görülen 1 cümle + kütükten görülmeyen 7 satır düşürülünce ORAN YÜKSELİYOR (%15,9 → %16,0) ve oran dişi geçiyor; kimlik dişi kırmızı yakıyor, ESKİ kod (kimlik yalnız büyüme dalında) ise geçiyordu. **Son turun en ağır bulgusu dişin CANLILIĞIYDI:** sıfır popülasyonlu bir eşitlik, toplayıcı tamamen bozukken de geçiyordu (S-M9 ile ölçüldü: işaret taraması körleştirilince ürün hiç değişmeden sayı düşüyor) — bugün toplayıcı ürünün DIŞINDA, bilinen bir sentetik sayfada da koşuyor ve beklenen 4/4/3 KAPIDA sabit. **MERGE SONRASI: YAYIN KIRMIZI YANDI ve kusur ÖLÇÜMDE çıktı.** `e492b22` yayın koşumu `tests/kimlik-mfa-zincir.test.ts` üzerinde düştü (`expected 59640889 to be 59640890`): vaka TOTP kodunu bir `Date.now()` ile üretip sonucu BAŞKA bir `Date.now()` ile karşılaştırıyordu ve otuz saniyelik pencere ikisinin arasında döndü. Ürün DOĞRU davranıyordu. Düzeltme (PR #54): kod ve beklenti TEK damgadan türer, zincirin sonraki halkası aynı kodu kullanır; `mfaDogrula` bir sunucu eylemi olduğu için ona zaman ENJEKTE EDİLMEDİ. Sabotaj S-M13 (damga bir adım geri + ESKİ beklenti) CI'nın imzasının aynısını determinist üretti, S-M13b (sınır dururken YENİ beklenti) geçti. **Aynı sınıf kardeş dosyada da bulundu** (`kimlik-giris-mfa`, henüz patlamamıştı) ve kapatıldı; onun sabotajı KURULAMADI ve bu adıyla yazıldı — kusuru üretmek gerçek saatin adım sınırını geçmesini gerektiriyor ve `giris` zaman enjeksiyonu kabul etmiyor (doğru davranış). Ölçüm dondurma kaydı `docs/OLCUM_DONDURMA.md`'de |
+
+```
+A · KALICI      :  3 dosya /  13 terim
+A · ERTELENMİŞ  :  8 dosya /  72 terim
+A · TOPLAM      : 11 dosya /  85 terim
+B               :  0 bulgu /   0 dosya   (65/65 muafiyet kullanıldı)
+ölçüm commit'i  : 85bd880
+```
+
+Cırcır tavanları aynı uçta: `tavan` 11 · `terimTavani` 85 ·
+`ertelenmisTavani` 72. Üçü de ölçümün ÜSTÜNDE değil, TAM ÜSTÜNDE —
+gevşeklik dişi bunu zorunlu tutuyor.
+
+### Nasıl yeniden ölçülür
+
+**A (sektör terimi izin listesi)** — sınıf başına dosya ve terim:
+
+```sh
+cd web
+npx tsx -e "
+import { readFileSync } from 'node:fs';
+import { terimleriBul } from './tests/bekci/terimler';
+const izin = JSON.parse(readFileSync('tests/bekci/sektor-terimi-izin.json','utf8'));
+const say = (d) => terimleriBul(d).reduce((a,x)=>a+x.sayi,0);
+let k={d:0,t:0}, e={d:0,t:0};
+for (const d of izin.dosyalar) {
+  const n = say(d), s = izin.siniflandirma[d];
+  if (s.tur==='kalici') { k.d++; k.t+=n; } else { e.d++; e.t+=n; }
+}
+console.log('KALICI', k.d, '/', k.t, '· ERTELENMİŞ', e.d, '/', e.t);
+"
+```
+
+**B (çekirdek sözcük taraması)**:
+
+```sh
+cd web && npx tsx arac/cekirdek-sozcuk-taramasi.mjs
+```
+
+**Cırcırın kendisi** (on iki diş, ikisi taban dal ister):
+
+```sh
+cd web && npx vitest run tests/bekci/sektor-terimi.test.ts
+```
+
+### Tutmazsa ne demektir
+
+Sayı **büyükse**: ya uç bu commit'ten geride, ya da yeni bir sızıntı
+girmiş — bekçi zaten kırmızı yanar, önce onu okuyun.
+
+Sayı **küçükse**: birileri temizlemiş ama tavanı indirmemiş olabilir;
+gevşeklik dişi bunu kırmızı yakar ve tavanı ölçüme çekmenizi ister.
+
+**Hiç ölçülemiyorsa** (komut çöküyor, 0 dönüyor): bu bir "geçti" değil.
+Önce ölçüm ortamının tazeliğini doğrulayın (`web/arac/BENIOKU.md` →
+ORTAM TAZELİĞİ); bu oturumda dolu disk yüzünden test keşfi "0 vaka"
+dönmüş ve kapı "doğrulandı" demişti.
+

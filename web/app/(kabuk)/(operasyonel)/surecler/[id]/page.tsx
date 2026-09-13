@@ -1,0 +1,270 @@
+import type { Metadata } from 'next';
+import { STATIK_DEMO } from '@/lib/statikDerleme';
+import { notFound } from 'next/navigation';
+import { girisZorunlu, izinVar } from '@/lib/erisim';
+import { modulYazabilir, OGE_GORUNUMU, ogeKapsami, ogeKosulu, ogeYetkili } from '@/app/kapsam';
+import { Yetkisiz } from '@/components/kabuk/temel';
+import { db } from '@/lib/db';
+import SurecDetayIstemci, { type DetayVerisi } from './SurecDetayIstemci';
+import { kisaKod, sayimla, type Degerlendirme, type S } from '../ortak';
+
+export const metadata: Metadata = { title: 'Uyum kampanyası' };
+
+/* Kampanya kaydı — "bu kampanyada hangi madde hangi tesiste takılı?"
+
+   Ekranın atomu bir DEĞERLENDİRMEDİR (kampanya × madde × tesis). /uyum
+   aynı veriden tesis × kontrol ailesi ÖZETİ üretir; burada tek tek
+   kayıtlar yönetilir (durum, sorumlu, kanıt, bulgu, istisna). İki ekran
+   aynı satırı iki farklı soruyla okur, biri diğerinin matrisini tekrar
+   etmez. */
+
+/* PARAMETRE LİSTESİ SUNUCU DERLEMESİNDE HİÇ DIŞA AKTARILMAZ (P7 · ölçüldü).
+
+   `generateStaticParams` VARSA Next rotayı SSG sayar. Sunucu derlemesinde
+   liste boş döndürmek YETMEZ: Next rotayı hiç render etmeden "statik"
+   kabul eder ve istek geldiğinde on-demand statik üretim dener; orada
+   `cookies()` yasaktır ve sayfa 500 döner. Ölçüldü (compose duman kapısı):
+   oturumsuz `/tesisler/x` 307 yerine 500 veriyordu — KİMLİK KAPISI bir
+   sunucu hatasına dönüşmüştü.
+
+   `force-dynamic` bunu çözer ama statik demoyu BOZAR: `output: 'export'`
+   sunucusuzdur ve o kipi reddeder (ölçüldü, CI · `demo:build`). Rota
+   kesiti ayarları literal olmak zorunda olduğu için koşullu da yazılamaz.
+
+   Çözüm işlevin KENDİSİNİ koşullu dışa aktarmaktır: `generateStaticParams`
+   bir yapılandırma literali değil, derlenmiş modülden okunan bir İŞLEVDİR;
+   yoksa rota dinamiktir. Sunucu derlemesinde `undefined`, statik demoda
+   gerçek işlev. Ölçüldü: sunucu derlemesinde rota `ƒ`, demo dışa
+   aktarımında parametreler üretiliyor. */
+async function parametreler() {
+  const surecler = await db.uyumSureci.findMany({ select: { id: true } });
+  return surecler.map((s) => ({ id: s.id }));
+}
+export const generateStaticParams = STATIK_DEMO ? parametreler : undefined;
+
+export default async function Sayfa({ params }: { params: Promise<{ id: string }> }) {
+  const kullanici = await girisZorunlu();
+  if (!izinVar(kullanici, 'uyum', 'okuma')) return <Yetkisiz rol="uyum okuma" />;
+  const { id } = await params;
+
+  const izinli = ogeKapsami(kullanici, 'uyum');
+  /* Tesise kısıtlı rol kapsamsız (global) yazma yapamaz ama KENDİ
+     tesisinde yazabilir — düğmeler bu yüzden `modulYazabilir` ile
+     sorulur ("yazabildiğin tesis var mı"), `izinVar` ile değil.
+     Bu ekran o soruyu üç dosyada ayrı ayrı elle yazıyordu; yüklem
+     `app/kapsam.ts` içinde tek yere indi. Sunucu her kayıtta tesis
+     kapsamını yeniden doğrular. */
+  const yazabilir = izinVar(kullanici, 'uyum', 'yazma');
+  /* UY-07 · Doğrulama `uyum/onay` ister. Kaba kapı `modulYazabilir` ile
+     sorulur ("onay verebildiğin tesis var mı"); satır kararı ayrıca
+     `kapsamdaYetkili` ile verilir — ekran sunucudan gevşek olamaz. */
+  const onaylayabilir = modulYazabilir(kullanici, 'uyum', 'onay');
+
+  const simdi = new Date().getTime();
+  const kapsamSuzgeci = ogeKosulu(izinli);
+
+  const surec = await db.uyumSureci.findUnique({
+    where: { id },
+    include: {
+      regulasyon: { select: { id: true, kod: true, ad: true } },
+      kapsam: { include: { kapsamOgesi: OGE_GORUNUMU } },
+      denetimler: { where: { silindi: null }, select: { id: true, kod: true, durum: true } },
+    },
+  });
+  if (!surec) notFound();
+
+  const [durumlar, agac, kullanicilar, alanlar, ekipler] = await Promise.all([
+    db.maddeDurumu.findMany({
+      where: { surecId: id, ...kapsamSuzgeci },
+      include: {
+        madde: {
+          include: {
+            alanlar: { include: { alan: { select: { kod: true } } } },
+            eslestirmeKaynak: { where: { aktif: true }, include: { hedef: { select: { kod: true } } } },
+            eslestirmeHedef: { where: { aktif: true }, include: { kaynak: { select: { kod: true } } } },
+          },
+        },
+        kapsamOgesi: OGE_GORUNUMU,
+        sorumlu: { select: { id: true, adSoyad: true, aktif: true } },
+        /* UY-07 · ekip ve doğrulayan. Ekibin AKTİF ÜYE sayısı da okunur:
+           aktif üyesi olmayan bir ekip "sorumlusu var" göstermemeli. */
+        ekip: {
+          select: {
+            id: true, kod: true, ad: true, aktif: true,
+            uyeler: { where: { kullanici: { aktif: true } }, select: { id: true } },
+          },
+        },
+        dogrulayan: { select: { id: true, adSoyad: true } },
+        /* UY-64 · Kontrol testleri, en yeniden eskiye. Beş kayıt yeter:
+           ekran duruşu belirleyen SON işleyiş testini gösterir, tam
+           geçmiş denetim izindedir. */
+        kontrolTestleri: {
+          include: { testEden: { select: { adSoyad: true } } },
+          orderBy: { testTarihi: 'desc' },
+          take: 5,
+        },
+        /* Değerlendirmeyi KİM yaptı: değişmez tarihçenin son satırı.
+           `MaddeDurumu` üzerinde ayrıca tutulmaz — iki doğruluk kaynağı
+           olurdu. */
+        tarihce: {
+          orderBy: { zaman: 'desc' }, take: 1,
+          select: { aktorId: true, aktor: { select: { id: true, adSoyad: true } } },
+        },
+        bulgular: {
+          where: { silindi: null },
+          select: { id: true, baslik: true, durum: true, onemDerecesi: true },
+        },
+        kanitBaglantilari: { include: { kanit: true } },
+      },
+    }),
+    // Bölüm başlığı için hiyerarşi: yaprak maddenin KÖK atası hangi bölüm?
+    db.madde.findMany({
+      where: { regulasyonId: surec.regulasyonId },
+      select: { id: true, kod: true, baslik: true, ustMaddeId: true },
+    }),
+    db.kullanici.findMany({
+      where: { aktif: true },
+      select: { id: true, adSoyad: true },
+      orderBy: { adSoyad: 'asc' },
+    }),
+    db.kapsamAlani.findMany({
+      where: { aktif: true },
+      select: { kod: true, ad: true },
+      orderBy: { kod: 'asc' },
+    }),
+    /* UY-07 · Sorumlu ekip seçenekleri. Yalnız AKTİF ekipler listelenir:
+       pasif ekip kontrol sorumlusu olamaz (sunucu da reddeder) ve
+       seçilebilir göstermek kullanıcıyı kesin bir hataya yürütürdü. */
+    db.ekip.findMany({
+      where: { aktif: true },
+      select: {
+        id: true, kod: true, ad: true,
+        uyeler: { where: { kullanici: { aktif: true } }, select: { id: true } },
+      },
+      orderBy: { kod: 'asc' },
+    }),
+  ]);
+
+  /* Kök bölüm: yaprak maddeden yukarı yürünür. Döngüsel veri ihtimaline
+     karşı adım sayısı sınırlıdır — bozuk katalog sayfayı kilitlemesin. */
+  const agacIdx = new Map(agac.map((m) => [m.id, m]));
+  const kokBasligi = (maddeId: string): string => {
+    let mevcut = agacIdx.get(maddeId);
+    for (let i = 0; mevcut?.ustMaddeId && i < 12; i += 1) {
+      const ust = agacIdx.get(mevcut.ustMaddeId);
+      if (!ust) break;
+      mevcut = ust;
+    }
+    return mevcut?.baslik ?? '—';
+  };
+
+  const kayitlar: Degerlendirme[] = durumlar.map((d) => {
+    const kanitlar = d.kanitBaglantilari
+      .map((b) => b.kanit)
+      .filter((k) => !k.silindi);
+    return {
+      id: d.id,
+      madde: {
+        id: d.madde.id,
+        kod: d.madde.kod,
+        kisaKod: kisaKod(d.madde.kod, surec.regulasyon.kod),
+        baslik: d.madde.baslik,
+        metin: d.madde.metin,
+        bolum: kokBasligi(d.madde.id),
+        kanitTipi: d.madde.kanitTipi,
+        alanlar: d.madde.alanlar.map((a) => a.alan.kod),
+        esler: [
+          ...d.madde.eslestirmeKaynak.map((e) => ({ kod: e.hedef.kod, denklik: e.denklik })),
+          ...d.madde.eslestirmeHedef.map((e) => ({ kod: e.kaynak.kod, denklik: e.denklik })),
+        ],
+      },
+      tesis: d.kapsamOgesi,
+      durum: d.durum,
+      guven: d.guven,
+      kanitBayat: d.kanitBayat,
+      /* UY-59 · ÖLÇÜLEN olgunluk tesis başına; HEDEF madde üzerinde ve
+         bütün tesisler için ortak. `null` = ölçülmedi, sıfır DEĞİL. */
+      olgunluk: d.olgunlukSeviyesi,
+      hedefOlgunluk: d.madde.olgunlukSeviyesi,
+      /* UY-64 · Kontrol testleri — en yeniden eskiye. */
+      testler: d.kontrolTestleri.map((t) => ({
+        id: t.id,
+        yontem: t.yontem,
+        sonuc: t.sonuc,
+        evrenSayisi: t.evrenSayisi,
+        orneklemSayisi: t.orneklemSayisi,
+        uygunSayisi: t.uygunSayisi,
+        testTarihi: t.testTarihi.toISOString(),
+        testEden: t.testEden.adSoyad,
+        not: t.not,
+      })),
+      not: d.not,
+      sorumlu: d.sorumlu ? { id: d.sorumlu.id, ad: d.sorumlu.adSoyad } : null,
+      sorumluAktif: d.sorumlu?.aktif ?? false,
+      ekip: d.ekip ? {
+        id: d.ekip.id, kod: d.ekip.kod, ad: d.ekip.ad, aktif: d.ekip.aktif,
+        aktifUye: d.ekip.uyeler.length,
+      } : null,
+      dogrulayan: d.dogrulayan
+        ? { id: d.dogrulayan.id, ad: d.dogrulayan.adSoyad } : null,
+      dogrulamaZamani: d.dogrulamaZamani?.toISOString() ?? null,
+      degerlendiren: d.tarihce[0]?.aktor
+        ? { id: d.tarihce[0].aktor.id, ad: d.tarihce[0].aktor.adSoyad } : null,
+      /* Dört göz kararı SUNUCUDA verilir; ekran düğmeyi ona göre gösterir.
+         `degerlendirmeDogrula` aynı kuralı yeniden uygular — ekran
+         sunucudan gevşek olamaz. */
+      dogrulayabilir: onaylayabilir
+        && ogeYetkili(kullanici, 'uyum', 'onay', d.kapsamOgesiId)
+        && d.sonDegerlendirme !== null
+        && d.tarihce[0]?.aktorId != null
+        && d.tarihce[0].aktorId !== kullanici.id,
+      sonDegerlendirme: d.sonDegerlendirme?.toISOString() ?? null,
+      bulgular: d.bulgular.map((b) => ({
+        id: b.id, baslik: b.baslik, durum: b.durum, onem: b.onemDerecesi,
+      })),
+      kanitlar: kanitlar.map((k) => ({
+        id: k.id, ad: k.ad, tip: k.tip,
+        baslangic: k.gecerlilikBaslangic.toISOString(),
+      })),
+      /* UY-16 · GEÇERLİ kanıt: kabul durumu `gecerli` VE süresi dolmamış.
+         Reddedilmiş ya da süresi dolmuş bir belgeye dayanarak "uyumlu"
+         denemez; kapsama hesabı bu sayıyı kullanır. */
+      gecerliKanit: kanitlar.filter(
+        (k) => k.durum === 'gecerli'
+          && (k.gecerliBitis === null || k.gecerliBitis > new Date()),
+      ).length,
+      acikBulgu: d.bulgular.filter((b) => b.durum === 'acik' || b.durum === 'aksiyonda').length,
+    };
+  });
+
+  const hamSayim: Record<string, number> = {};
+  for (const d of durumlar) hamSayim[d.durum] = (hamSayim[d.durum] ?? 0) + 1;
+
+  const s: S = {
+    id: surec.id, kod: surec.kod, ad: surec.ad, durum: surec.durum,
+    baslangic: surec.baslangic?.toISOString() ?? null,
+    bitis: surec.bitis?.toISOString() ?? null,
+    aciklama: surec.aciklama,
+    regulasyon: surec.regulasyon,
+    tesisler: surec.kapsam
+      .map((k) => k.kapsamOgesi)
+      .filter((t) => izinli === null || izinli.includes(t.id)),
+    sayim: sayimla(hamSayim),
+    acikBulgu: kayitlar.reduce((a, k) => a + k.acikBulgu, 0),
+    denetimler: surec.denetimler,
+  };
+
+  const veri: DetayVerisi = {
+    surec: s,
+    simdi,
+    kayitlar,
+    kullanicilar: kullanicilar.map((u) => ({ id: u.id, ad: u.adSoyad })),
+    alanlar,
+    yazabilir,
+    ekipler: ekipler.map((e) => ({
+      id: e.id, kod: e.kod, ad: e.ad, aktifUye: e.uyeler.length,
+    })),
+  };
+
+  return <SurecDetayIstemci veri={veri} />;
+}

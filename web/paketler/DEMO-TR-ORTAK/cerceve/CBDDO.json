@@ -1,0 +1,16 @@
+{
+  "kod": "CBDDO",
+  "ad": "CBDDÖ Bilgi ve İletişim Güvenliği Rehberi",
+  "surumEtiketi": "2.0",
+  "yayimTarihi": null,
+  "yururlukTarih": "2024-09-19",
+  "lisans": {
+    "tur": "kamuya_acik",
+    "metinDahil": true,
+    "not": "Demo tohumu: temsilî 4 madde, kısa özet cümleleri — rehberin metni değil"
+  },
+  "maddeDosyasi": "CBDDO.csv",
+  "zorunlulukTipi": "REGULATION",
+  "not": "DEMO: madde metni TEMSİLÎDİR — CBDDÖ Bilgi ve İletişim Güvenliği Rehberi örnek alınarak yazılmıştır, o belgeden alınmamıştır. Bu yüzden çerçeve kaynak adresi BEYAN ETMEZ (kaynağı olduğunu söyleyen çerçevede her metinli madde kaynak adresi ve erişim tarihi taşımak zorundadır). Resmî metin ayrı pakette gelir.",
+  "temsili": true
+}

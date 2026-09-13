@@ -1,0 +1,22 @@
+# İmaj derleme bağlamı — ne GİRMEZ (P7).
+#
+# Ölçüldü: bağlam kısıtlanmadan derlenen imaj 16,7 GB oldu ve dışa
+# aktarım "no space left on device" ile düştü. Sebep, ana makinenin
+# `web/.next/cache` (Turbopack) ve `node_modules` dizinlerinin bağlama
+# girmesiydi: ikisi de imajın İÇİNDE yeniden üretilir, kopyalanmaları
+# hem yavaş hem yanlıştır (ana makinenin yerel eklenti ikilileri
+# kapsayıcınınkiyle aynı olmak ZORUNDA değildir).
+.git
+**/node_modules
+**/.next
+**/.parti
+**/.gecici
+**/coverage
+web/veri
+web/yedek
+web/prisma/dev.db
+web/prisma/*.db-wal
+web/prisma/*.db-shm
+# Sır DEPOYA da İMAJA da girmez.
+deploy/compose/.env
+**/*.log

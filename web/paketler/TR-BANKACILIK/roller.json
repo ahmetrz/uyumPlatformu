@@ -1,0 +1,41 @@
+[
+  {
+    "kod": "bilgi_sistemleri_sorumlusu",
+    "ad": "Bilgi sistemleri sorumlusu",
+    "aciklama": "Bilgi sistemleri yönetişimi ve kontrollerinin uygulanmasından sorumlu; uyum, envanter, risk ve proje kayıtlarını yazar, denetim ve tanımları okur.",
+    "izinler": {
+      "uyum": ["okuma", "yazma"],
+      "envanter": ["okuma", "yazma"],
+      "risk": ["okuma", "yazma"],
+      "proje": ["okuma", "yazma"],
+      "denetim": ["okuma"],
+      "tanimlar": ["okuma"]
+    },
+    "kapsamEkseni": "global",
+    "sira": 10
+  },
+  {
+    "kod": "ic_kontrol_gorevlisi",
+    "ad": "İç kontrol görevlisi",
+    "aciklama": "Kontrollerin etkinliğini değerlendirir; denetim kayıtlarını yazar ve onaylar, uyum ve riski okur.",
+    "izinler": {
+      "denetim": ["okuma", "yazma", "onay"],
+      "uyum": ["okuma"],
+      "risk": ["okuma"]
+    },
+    "kapsamEkseni": "global",
+    "sira": 20
+  },
+  {
+    "kod": "dis_hizmet_sorumlusu",
+    "ad": "Dış hizmet sorumlusu",
+    "aciklama": "Bir dış hizmet sağlayıcı kapsam öğesinden sorumlu; o öğenin envanterini yazar, uyum ve riskini okur. Yetki kapsam öğesine verilir.",
+    "izinler": {
+      "envanter": ["okuma", "yazma"],
+      "uyum": ["okuma"],
+      "risk": ["okuma"]
+    },
+    "kapsamEkseni": "kapsamOgesi",
+    "sira": 30
+  }
+]

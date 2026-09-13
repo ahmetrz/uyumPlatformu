@@ -1,0 +1,29 @@
+[
+  {
+    "kod": "DEMO-KAYNAK-RSS",
+    "ad": "Kurgusal Düzenleyici · duyuru beslemesi",
+    "yayinKanali": "https://kurgusal-merci.ornek/duyuru/besleme.xml",
+    "tur": "rss",
+    "dil": "tr",
+    "merci": "Kurgusal Düzenleyici Kurum",
+    "not": "KURGUSAL kaynak — demo kiracısı içindir, gerçek bir kuruma ait değildir."
+  },
+  {
+    "kod": "DEMO-KAYNAK-ENGELLI",
+    "ad": "Kurgusal kapalı kaynak",
+    "yayinKanali": "https://kapali-merci.ornek/duyurular",
+    "tur": "liste",
+    "dil": "tr",
+    "merci": "Kurgusal Kapalı Kurum",
+    "not": "KURGUSAL kaynak — robots.txt ile otomatik erişime kapalı bir kanalın ekranda nasıl göründüğünü gösterir."
+  },
+  {
+    "kod": "DEMO-KAYNAK-BILINMEYEN",
+    "ad": "Kurgusal biçimi okunamayan kaynak",
+    "yayinKanali": "https://bicimsiz-merci.ornek/liste",
+    "tur": "rss",
+    "dil": "tr",
+    "merci": "Kurgusal Üçüncü Kurum",
+    "not": "KURGUSAL kaynak — \"karşılaştırılamadı\" hâlinin ekranda AYRI göründüğünü gösterir."
+  }
+]

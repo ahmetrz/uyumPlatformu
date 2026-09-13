@@ -1,0 +1,157 @@
+{
+  "olcum": "2026-09-03T18:58:08.975Z",
+  "not": "TOHUM VERİSİYLE ölçüldü; gerçek veri hacmini temsil etmez (UY-55).",
+  "ortam": {
+    "node": "v22.22.2",
+    "platform": "linux",
+    "cpu": "Intel(R) Xeon(R) Processor @ 2.10GHz"
+  },
+  "kip": "uretim",
+  "ayar": {
+    "tekrar": 30,
+    "esZamanli": 4,
+    "taban": "http://127.0.0.1:3311"
+  },
+  "rotalar": {
+    "/": {
+      "istek": 30,
+      "basarili": 30,
+      "basarisiz": 0,
+      "hataOrani": 0,
+      "p50": 41,
+      "p95": 60,
+      "p99": 62,
+      "enHizli": 18,
+      "enYavas": 62,
+      "durumlar": {
+        "307": 30
+      }
+    },
+    "/portfoy": {
+      "istek": 30,
+      "basarili": 30,
+      "basarisiz": 0,
+      "hataOrani": 0,
+      "p50": 40,
+      "p95": 68,
+      "p99": 68,
+      "enHizli": 18,
+      "enYavas": 68,
+      "durumlar": {
+        "307": 30
+      }
+    },
+    "/uyum": {
+      "istek": 30,
+      "basarili": 30,
+      "basarisiz": 0,
+      "hataOrani": 0,
+      "p50": 36,
+      "p95": 48,
+      "p99": 49,
+      "enHizli": 17,
+      "enYavas": 49,
+      "durumlar": {
+        "307": 30
+      }
+    },
+    "/envanter": {
+      "istek": 30,
+      "basarili": 30,
+      "basarisiz": 0,
+      "hataOrani": 0,
+      "p50": 34,
+      "p95": 40,
+      "p99": 41,
+      "enHizli": 22,
+      "enYavas": 41,
+      "durumlar": {
+        "307": 30
+      }
+    },
+    "/bulgular": {
+      "istek": 30,
+      "basarili": 30,
+      "basarisiz": 0,
+      "hataOrani": 0,
+      "p50": 36,
+      "p95": 45,
+      "p99": 45,
+      "enHizli": 16,
+      "enYavas": 45,
+      "durumlar": {
+        "307": 30
+      }
+    },
+    "/riskler": {
+      "istek": 30,
+      "basarili": 30,
+      "basarisiz": 0,
+      "hataOrani": 0,
+      "p50": 30,
+      "p95": 39,
+      "p99": 40,
+      "enHizli": 17,
+      "enYavas": 40,
+      "durumlar": {
+        "307": 30
+      }
+    },
+    "/saglik": {
+      "istek": 30,
+      "basarili": 30,
+      "basarisiz": 0,
+      "hataOrani": 0,
+      "p50": 35,
+      "p95": 100,
+      "p99": 101,
+      "enHizli": 15,
+      "enYavas": 101,
+      "durumlar": {
+        "307": 30
+      }
+    },
+    "/yedekleme": {
+      "istek": 30,
+      "basarili": 30,
+      "basarisiz": 0,
+      "hataOrani": 0,
+      "p50": 33,
+      "p95": 38,
+      "p99": 38,
+      "enHizli": 22,
+      "enYavas": 38,
+      "durumlar": {
+        "307": 30
+      }
+    },
+    "/kimlik": {
+      "istek": 30,
+      "basarili": 30,
+      "basarisiz": 0,
+      "hataOrani": 0,
+      "p50": 31,
+      "p95": 41,
+      "p99": 42,
+      "enHizli": 10,
+      "enYavas": 42,
+      "durumlar": {
+        "307": 30
+      }
+    },
+    "/prosesler": {
+      "istek": 30,
+      "basarili": 30,
+      "basarisiz": 0,
+      "hataOrani": 0,
+      "p50": 33,
+      "p95": 36,
+      "p99": 37,
+      "enHizli": 22,
+      "enYavas": 37,
+      "durumlar": {
+        "307": 30
+      }
+    }
+  }
+}

@@ -1,0 +1,143 @@
+import type { Metadata } from 'next';
+import { redirect } from 'next/navigation';
+import { aktifKullanici } from '@/lib/auth';
+import GirisFormu from './GirisFormu';
+import SinematikGiris from '@/components/giris/SinematikGiris';
+import styles from '@/components/giris/giris.module.css';
+import { DEMO, TEMEL } from '@/lib/demo';
+import { MARKA_AD } from '@/lib/marka';
+import { guvenliHedef, VARSAYILAN_HEDEF } from './mantik';
+import { girisSaglayicilari, kimlikRetCumlesi } from './kurumGirisi';
+
+export const metadata: Metadata = { title: 'Giriş' };
+
+/* Giriş — oturum yok, kayıt yok, karar yok: uygulama kabuğunun dışındaki
+   tek ekran. Kabuk çizilmez ama YÜZEY kabuğundur: `.ab[data-yogunluk='amiral']`
+   sarmalayıcısı tek paleti ve tipografiyi getirir — `yogunlukSec` de
+   `/giris`i amiral yoğunluğa düşürüyor, iki karar ayrışmasın.
+
+   Yerleşim iki şeritli: solda fotoğrafik kimlik bandı, sağda 400px'lik
+   form kolonu — detay panelinin genişliğiyle aynı ölçü. Kart yok,
+   yuvarlak köşe yok, gölge yok; ayrımı kenar çizgisi ve yüzey tonu yapar.
+
+   `?next=/yol` (E40): giriş başarınca `next` hedefine dönülür. BUGÜN bu
+   parametreyi üreten bir yönlendirme YOK — `girisZorunlu()` çıplak /giris'e
+   atar (sunucu bileşeni isteğin yolunu bilmez; middleware/proxy kurulmadı).
+   Kapı, elle yazılan ya da ileride bir proxy'nin üreteceği bağ için hazır. Hedef hem burada (zaten oturumu olan
+   ziyaretçi için) hem eylemde (`girisYap`) aynı kuralla süzülür —
+   yalnız site içi göreli yol, aksi '/'. Süzülmüş hâli forma verilir ki
+   dip nottaki "girişten sonra … dönülür" cümlesi yalan söylemesin. */
+
+export default async function Giris({ searchParams }: {
+  searchParams: Promise<{ [key: string]: string | string[] | undefined }>;
+}) {
+  /* STATİK DEMODA `searchParams` OKUNMAZ. Demo `output: 'export'` ile
+     derlenir: HTML bir kez üretilir, arkasında istek gören bir sunucu
+     yoktur. Böyle bir sayfada `await searchParams` yalnız boş dönmez —
+     `dynamic = "error"` altında DERLEMEYİ KIRAR:
+       Route /giris ... couldn't be rendered statically because it used
+       `await searchParams`
+     2026-09-02'de yayın koşusu tam buradan düştü ve canlı demo bir gün
+     önceki derlemede dondu (yeni tesis görselleri görünmedi). Kusur
+     üründe değil, ürünün demo ikizindeydi; ama kütüğe girmesi PR
+     kapısının demo derlemesini hiç koşmamasıydı — kapı düzeltildi.
+
+     Demoda kaybedilen bir davranış yok: `aktifKullanici()` demo kimliğini
+     hep döndürür, yani bu ekran zaten koşulsuz `redirect` eder ve
+     yazma yolları kapalıdır. Üründe okuma aynen sürer. */
+  const p = DEMO ? {} : await searchParams;
+  const hedef = DEMO ? VARSAYILAN_HEDEF : guvenliHedef(p.next);
+  if (await aktifKullanici()) redirect(hedef);
+
+  /* P6 · kurum hesabı bölümü. Liste BOŞSA bölüm hiç çizilmez: olmayan bir
+     yolu düğme olarak göstermek, kullanıcıya çalışmayan bir kapı açmaktır. */
+  const saglayicilar = await girisSaglayicilari();
+  const kimlikReddi = kimlikRetCumlesi(
+    typeof p.kimlik === 'string' ? p.kimlik : null);
+
+  return (
+    <SinematikGiris>
+    <div className={`ab ${styles.login}`} data-yogunluk="amiral" style={{
+      minHeight: '100dvh', display: 'grid',
+    }}>
+      <section style={{ position: 'relative', overflow: 'hidden',
+        background: 'var(--panel2)', color: 'var(--murekkep)' }}>
+        {/* eslint-disable-next-line @next/next/no-img-element -- statik dışa aktarım: optimizasyon kapalı */}
+        <img
+          src={`${TEMEL}/gorseller/giris-genis.webp`}
+          /* Dekoratif fotoğrafik alan: ekranın bilgisi kardeş düğümlerde
+             (başlık, gövde, form). Saha ana ekranındaki aynı türden alanla
+             tutarlı olarak boş alt + aria-hidden alır; ekran okuyucu
+             gereksiz bir görsel tarifiyle oyalanmaz. */
+          alt=""
+          aria-hidden
+          decoding="async"
+          fetchPriority="high"
+          style={{ position: 'absolute', inset: 0, width: '100%', height: '100%',
+            objectFit: 'cover', opacity: 0.62 }}
+        />
+        <span aria-hidden style={{ position: 'absolute', inset: 0,
+          background: 'linear-gradient(180deg, rgba(24,26,24,.52) 0%, rgba(24,26,24,.10) 44%, rgba(24,26,24,.72) 100%)' }} />
+        <div style={{ position: 'relative', height: '100%', display: 'flex',
+          flexDirection: 'column', justifyContent: 'space-between',
+          padding: 'var(--s40) var(--s44)' }}>
+          <p className="etiket" style={{ margin: 0, color: 'rgba(246,244,238,.72)' }}>
+            {MARKA_AD}
+          </p>
+          <div>
+            <h1 className="ab-pano-basligi" style={{ margin: 0, maxWidth: 620 }}>
+              Enerji üretiminde <b>BT/OT uyumu</b> tek kütükte
+            </h1>
+            <p style={{ margin: 'var(--s16) 0 0', maxWidth: 560,
+              fontSize: 'var(--t-cell)', color: 'rgba(246,244,238,.76)' }}>
+              Regülasyon maddeleri, tesis kapsamı, bulgu ve kanıt zinciri ile
+              değişmez denetim izi.
+            </p>
+          </div>
+          <p className="etiket" style={{ margin: 0, color: 'rgba(246,244,238,.52)' }}>
+            BT/OT yönetişim · uyum · dönüşüm
+          </p>
+        </div>
+      </section>
+
+      <main style={{ background: 'var(--panel2)',
+        borderLeft: 'var(--bw-strong) solid var(--hr2)',
+        display: 'flex', flexDirection: 'column', justifyContent: 'center',
+        padding: 'var(--s40) var(--s34)' }}>
+        <p className="etiket" style={{ margin: '0 0 var(--s10)' }}>Kurum hesabı</p>
+        <h2 className="ab-bolum-basligi" style={{ margin: '0 0 var(--s26)' }}>Oturum aç</h2>
+        {kimlikReddi && (
+          <p className="ab-gr-hata" role="alert" style={{ margin: '0 0 var(--s16)' }}>
+            {kimlikReddi}
+          </p>
+        )}
+        <GirisFormu next={hedef === VARSAYILAN_HEDEF ? null : hedef} />
+
+        {saglayicilar.length > 0 && (
+          <div style={{ marginTop: 'var(--s26)', paddingTop: 'var(--s20)',
+            borderTop: 'var(--bw-hair) solid var(--hr2)' }}>
+            <p className="etiket" style={{ margin: '0 0 var(--s10)' }}>
+              Kurum kimlik sağlayıcısı
+            </p>
+            {saglayicilar.map((s) => (
+              /* Bağ, düğme DEĞİL: akış bir GET gezinmesidir ve JavaScript
+                 gerektirmemeli — kimlik doğrulamanın betik çalışmayan bir
+                 tarayıcıda da yürümesi gerekir. */
+              <a key={s.id} className="ab-dugme tam"
+                style={{ display: 'block', textAlign: 'center', marginBottom: 'var(--s8)' }}
+                href={`/kimlik/basla?saglayici=${encodeURIComponent(s.id)}`
+                  + (hedef === VARSAYILAN_HEDEF ? '' : `&next=${encodeURIComponent(hedef)}`)}>
+                {s.ad} ile giriş yap
+              </a>
+            ))}
+            <p className="ab-panel-dip" style={{ margin: 'var(--s10) 0 0' }}>
+              Kurum hesabıyla giriş, bu kurulumda hesabınız TANIMLIYSA çalışır;
+              kimlik sağlayıcıda hesabınızın olması tek başına yetmez.
+            </p>
+          </div>
+        )}
+      </main>
+    </div>
+    </SinematikGiris>
+  );
+}

@@ -1,0 +1,5 @@
+kod;ust_kod;baslik;metin;sira;seviye;zorunluluk_tipi;kanit_beklentisi;dis_kontrol_id;kanit_tipi
+3.1;;Ağ Güvenliği;"Ağ topolojisi belgelenir; kritik bölümler ayrıştırılır.";0;;;;;konfigurasyon
+3.2;;Sıkılaştırma;Sunucu ve istemciler kurumsal sıkılaştırma standardına göre yapılandırılır.;1;;;;;konfigurasyon
+4.1;;Yetkilendirme;Erişim talepleri onay akışıyla yönetilir.;2;;;;;kayit
+4.2;;Denetim İzleri;Kritik sistemlerde denetim izleri en az 2 yıl saklanır.;3;;;;;kayit

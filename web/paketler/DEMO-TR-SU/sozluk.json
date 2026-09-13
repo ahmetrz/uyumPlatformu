@@ -1,0 +1,52 @@
+[
+  {
+    "anahtar": "tesis",
+    "dil": "tr",
+    "tekil": "arıtma tesisi",
+    "cogul": "arıtma tesisleri",
+    "iyelik": "arıtma tesisinin",
+    "belirtme": "arıtma tesisini",
+    "bulunma": "arıtma tesisinde",
+    "yonelme": "arıtma tesisine"
+  },
+  {
+    "anahtar": "birim",
+    "dil": "tr",
+    "tekil": "arıtma hattı",
+    "cogul": "arıtma hatları",
+    "iyelik": "arıtma hattının",
+    "belirtme": "arıtma hattını",
+    "bulunma": "arıtma hattında",
+    "yonelme": "arıtma hattına"
+  },
+  {
+    "anahtar": "portfoy",
+    "dil": "tr",
+    "tekil": "su portföyü",
+    "cogul": "su portföyleri",
+    "iyelik": "su portföyünün",
+    "belirtme": "su portföyünü",
+    "bulunma": "su portföyünde",
+    "yonelme": "su portföyüne"
+  },
+  {
+    "anahtar": "tesis360",
+    "dil": "tr",
+    "tekil": "Arıtma Tesisi 360",
+    "cogul": "Arıtma Tesisi 360",
+    "iyelik": "Arıtma Tesisi 360",
+    "belirtme": "Arıtma Tesisi 360",
+    "bulunma": "Arıtma Tesisi 360",
+    "yonelme": "Arıtma Tesisi 360"
+  },
+  {
+    "anahtar": "kapasite",
+    "dil": "tr",
+    "tekil": "günlük debi",
+    "cogul": "günlük debiler",
+    "iyelik": "günlük debinin",
+    "belirtme": "günlük debiyi",
+    "bulunma": "günlük debide",
+    "yonelme": "günlük debiye"
+  }
+]

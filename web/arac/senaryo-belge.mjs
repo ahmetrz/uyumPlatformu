@@ -1,0 +1,282 @@
+#!/usr/bin/env node
+/* Senaryo kütüğünden iki belge üretir:
+
+     docs/MASTER_SCENARIO_REGISTRY.md
+     docs/SCENARIO_TEST_MATRIX.md
+
+   ── BAĞ TESTİN KENDİ METNİDİR ─────────────────────────────────────────
+   Senaryo ile test arasındaki bağ ayrı bir eşleme tablosunda tutulsaydı,
+   tablo ilk yeniden adlandırmada testten ayrışır ve kimse görmezdi. Bağ
+   burada testin BAŞLIĞINDAKİ köşeli parantezdir:
+
+     it('kapsam dışı varlığa yazılamaz [ENV-YAZ-003]', …)
+
+   Araç `tests/` altını bu kimlik için tarar. Bulamazsa satır GAP'tir.
+
+   TypeScript kütüğünü içeri aldığı için `tsx` altında koşar:
+     npx tsx arac/senaryo-belge.mjs           → ölç ve raporla
+     npx tsx arac/senaryo-belge.mjs --yaz     → belgeleri yaz          */
+
+import { readFileSync, readdirSync, writeFileSync } from 'node:fs';
+import path from 'node:path';
+
+const KOK = process.cwd();
+const TEST_DIZINI = path.join(KOK, 'tests');
+const BELGE_DIZINI = path.join(KOK, '..', 'docs');
+
+/* Kütüksüz kalabilecek test dosyaları — her biri GEREKÇESİYLE.
+   Bunlar bir kullanıcı senaryosunu değil, kütüğün/kodun kendi
+   tutarlılığını ölçer; bir senaryo kimliği taşımaları anlamsız olurdu. */
+export const KUTUKSUZ_DOSYALAR = {
+  'olcum-tabani.test.ts': 'Ölçüm kapsamı tabanı — sıfır ölçümle geçen kapı sınıfı',
+  'tek-nusha.test.ts': 'Tek nüsha değişmezi — ortak davranışın ikinci tanımı ve ikiz liste dosyası',
+  'kesif-karari.test.ts': 'Test keşfi sıfır dönerse ölçüm değil kırık sayılır',
+  'belge-sayimlari.test.ts': 'Belgelerdeki sayıların koda karşı doğrulaması',
+  'tasarim-belgesi.test.ts': 'DESIGN.md jeton değerlerinin kabuk.css\'e karşı doğrulaması',
+  'senaryo-kutugu.test.ts': 'Kütüğün kendi nöbetçisi',
+  'ters-kapsam.test.ts': 'Ters kapsamanın nöbetçisi — davranış envanterini kütüğe karşı sayar',
+  'eylem-dili.test.ts': 'Bozuk durum bloklarının eylem/beklenen-durum nöbetçisi',
+  'bagimlilik-guvenligi.test.ts': 'Bağımlılık ağacının güvenlik taraması',
+  'kalite-kapilari.test.ts': 'Kapı betiklerinin varlığı',
+  'kalite-borcu-listesi.test.ts': 'Kalite borcu izin listesinin okunabilirliği — '
+    + 'muafiyet mantığından BAĞIMSIZ iddia, bilerek ayrı dosyada',
+  'semantik.test.ts': 'Ortak durum sözlüğünün tutarlılığı',
+  'alan-metin.test.ts': 'Metin yardımcılarının saf davranışı',
+  'alan-surum.test.ts': 'Sürüm karşılaştırma yardımcısı',
+  'alan-ag.test.ts': 'Ağ adresi yardımcıları',
+  'kisit-mesaji.test.ts': 'Veritabanı kısıt mesajlarının insan diline çevrimi',
+  'istemci-adresi.test.ts': 'İstemci adresi çözümleme yardımcısı',
+  'turkiye-siniri.test.ts': 'Coğrafi sınır verisinin tutarlılığı',
+  'yedek-araci.test.ts': 'Ürünün kendi yedekleme aracı',
+  'xlsx-ayristirma.test.ts': 'Tablo ayrıştırıcısının saf davranışı',
+  'arama-kosulu.test.ts': 'Arama koşulu üreticisinin saf davranışı',
+  'olculmemis-gosterimi.test.ts': 'Ölçülmemiş değer gösterim sözlüğü',
+  'saha-yerlesim.test.ts': 'Saha yerleşim sözlüğü',
+  'saha-arka-plan.test.ts': 'Saha arka plan seçimi',
+  'kabuk-inceleme.test.ts': 'Kabuk gramerinin statik incelemesi',
+  'ekran-mantik-72.test.ts': 'Ekran mantığı toplu regresyonu',
+  'uc-deger-kurali.test.ts': 'Üç değerli mantığın sözlüğü',
+  'omur-ufuk.test.ts': 'Ömür şeridinin aciliyet bantları — ölçek işaretinin saf mantığı',
+  'kapi-farki.test.ts': 'Kapı farkı ölçüsünün saf kuralları — hangi betik CI\'da koşuyor',
+  'kirpan-ata.test.ts': 'Düzen kapısının kırpan-ata yürüyüşü — kaydırılabilen içerik kayıp sayılmaz',
+  'inceleme-30.test.ts': 'Bir inceleme turunun beş bulgusunun düzeltme kanıtı — birlikte okunmaları gerekir',
+  'bekci/sunucu-eylem-ihraci.test.ts': "`'use server'` dosyasının ihraç kuralı —"
+    + ' nesne ihracı çalışma zamanında 500 verir, tsc ve lint göremez',
+  'denetim-sablon.test.ts': 'Paket form şablonunun doldurulması — çekirdek yalnız doldurur; bağlanmayan şablon alanı formu dolu göstermez',
+  'denetim-formu-eylem.test.ts': 'Denetim formu eyleminin kapsam denetimi ve iz kaydı — kapsam dışı istek reddedilir, sessizce daraltılmaz',
+  'denetim-formu.test.ts': 'Denetim formunun saf kuralları — hiçbir hücre boş kalmaz, gerekçe uydurulmaz, hedef ile mevcut olgunluk karışmaz',
+  'derleme-artefakti.test.ts': 'Paylaşılan derleme artefaktının ortam beyanı — beyansız tüketim ve gizli yol tuzağı',
+  'disa-aktarim-xlsx.test.ts': 'XLSX üretiminin saf kuralları — formül hücresi üretilmez, kalkan CSV ile aynı',
+  'bildirim-kaydi.test.ts': 'Olaydan doğan mevzuat bildiriminin saf kuralları — motor GÖNDERMEZ, süresiz yükümlülükte geri sayım yoktur, referanssız gönderim reddedilir',
+  'bildirim-kaydi-eylem.test.ts': 'Bildirim zincirinin kendisi — olaydan taslak doğar, ikinci koşuda ikinci taslak açılmaz, insan kararı iz bırakır',
+  'bildirim-donemi.test.ts': 'Takvim tetikli yükümlülüğün saf kuralları — dönem yoksa pencere yok, teslim süresi yoksa sayaç yok, motor VERMEZ',
+  'bildirim-donemi-zincir.test.ts': 'Dönem zincirinin kendisi — periyottan dönem doğar, ikinci koşuda ikinci dönem açılmaz, kapalı döneme motor dokunmaz',
+  'bildirim-donemi-eylem.test.ts': 'Dönemi kapatan insan kararı — referanssız teslim reddedilir, tesise kısıtlı rol kurumsal yükümlülüğe dokunamaz, eşzamanlı iki karar sessizce ezişmez',
+  'takvim-ekrani.test.ts': 'Raporlama takvimi ekranının saf katmanı — dönemsiz yükümlülük listeden düşmez, sayacı olmayan satır bilinmeyen sınıfında durur',
+  'kimlik-oidc.test.ts': 'OIDC saf katmanı — sahte bir IdP\'ye karşı imza, iss, aud, nonce ve exp doğrulaması; alg karıştırma ve yeniden oynatma reddi',
+  'kimlik-totp.test.ts': 'TOTP ve oturum politikası saf katmanı — RFC vektörleri, ±1 adım penceresi, tekrar engeli, 12/2 varsayılanı',
+  'kimlik-akis.test.ts': 'Kurum hesabıyla giriş zinciri — tanınmayan sub reddedilir ve kullanıcı açılmaz, JIT açıkken bile hesap yetkisiz doğar',
+  'kimlik-mfa-zincir.test.ts': 'MFA zinciri — TOTP sırrı veritabanında zarflı durur, kurtarma kodu bir kez kullanılır, zorunlu politikada kayıt kaldırılamaz',
+  'kimlik-saglayici-eylem.test.ts': 'Kimlik sağlayıcı yönetimi — sır DEĞERİ kabul edilmez, kaydet/bağla/aktif et üç ayrı karardır, yapılandırma değişince bağ düşer',
+  'bekci/disa-aktarim-kapsami.test.ts': 'Dışa aktarım kapsamı EKRAN kapsamından geniş olamaz — yüzey listesi türetilir, kapsam kararı tek kaynaktan okunur',
+  'bekci/bildirim-motoru.test.ts': 'Motor dosyaları METİN olarak taranır: insan kararı olan durum kodu motora yazılamaz',
+  'ithal-zinciri.test.ts': 'Araç zincirinin YAPISAL ölçüsü — bir aracın ihracı silinince ya da dosyası üzerine yazılınca kırmızı; modül ÇALIŞTIRILMADAN ölçülür',
+  'kapi-is-kapsami.test.ts': 'Kapı kümesinin İŞ katmanı — iş adları türetilir, bölünmeyle hiçbir kapı düşmez',
+  'sunucu-durdurma.test.ts': 'Başarısız OLAMAYAN temizlik adımı sınıfı — süreç adıyla öldürme, sonucu yutan `|| true` ve son koşulunu doğrulamayan adım',
+};
+
+/* Vitest'in globuyla AYNI küme: `tests/**\/*.test.ts` — yani ALT
+   DİZİNLER DE. Düz `readdirSync` yalnız kökü görüyordu; `tests/bekci/`
+   gibi bir alt dizin açıldığında oradaki testler kütük ölçümünün dışında
+   kalır, senaryoları GAP görünür ve araç kendi körlüğünü kusur diye
+   raporlardı. Ölçüm aracının kapsamı, ölçtüğü kümenin kapsamıyla aynı
+   olmak zorundadır. Dosya adı `tests/` köküne GÖRELİ tutulur ki iki
+   dizindeki aynı ad birbirini ezmesin. */
+function testDosyalari() {
+  const cikti = [];
+  const gez = (d) => {
+    for (const ad of readdirSync(d, { withFileTypes: true }).sort((a, b) => a.name.localeCompare(b.name))) {
+      const tam = path.join(d, ad.name);
+      if (ad.isDirectory()) gez(tam);
+      else if (ad.name.endsWith('.test.ts')) {
+        cikti.push({ ad: path.relative(TEST_DIZINI, tam), metin: readFileSync(tam, 'utf8') });
+      }
+    }
+  };
+  gez(TEST_DIZINI);
+  return cikti;
+}
+
+/** Bir dosyadaki `[KIMLIK]` işaretlerini ve taşıdıkları test başlığını çıkarır. */
+function isaretler(metin) {
+  const bulunan = [];
+  /* `it(`, `test(`, `it.skip(`, `it.only(`, `it.each(...)(` … hepsi.
+     Önce yalnız `it(` aranıyordu; `it.each(TABLO)('… [KIMLIK]')` biçimindeki
+     başlıklar TARANMIYOR ve senaryoları GAP görünüyordu. Ölçüm aracının
+     göremediği bir test, kütükte olmayan bir test gibi davranır. */
+  const kalip = /\b(?:it|test)(?:\.\w+)*\s*(?:\([\s\S]*?\)\s*)?\(\s*(['"`])((?:\\.|(?!\1)[\s\S])*?)\1/g;
+  let m;
+  while ((m = kalip.exec(metin)) !== null) {
+    const baslik = m[2];
+    for (const k of baslik.matchAll(/\[([A-Z]{3}-[A-Z0-9]{2,10}-\d{3})\]/g)) {
+      bulunan.push({ id: k[1], baslik: baslik.replace(/\s*\[[^\]]+\]/g, '').trim() });
+    }
+  }
+  return bulunan;
+}
+
+export function olc(senaryolar) {
+  const dosyalar = testDosyalari();
+  /** kimlik → [{dosya, baslik}] */
+  const kapsam = new Map();
+  /** dosya → kaç senaryo işareti taşıyor */
+  const dosyaIsareti = new Map();
+  for (const d of dosyalar) {
+    const bulunan = isaretler(d.metin);
+    dosyaIsareti.set(d.ad, bulunan.length);
+    for (const b of bulunan) {
+      kapsam.set(b.id, [...(kapsam.get(b.id) ?? []), { dosya: d.ad, baslik: b.baslik }]);
+    }
+  }
+
+  const kimlikler = new Set(senaryolar.map((s) => s.id));
+  const bosluklar = senaryolar.filter((s) => !kapsam.has(s.id)).map((s) => s.id);
+  /* Kütükte olmayan bir kimliği işaret eden test: ya kimlik yazım hatası
+     ya da silinmiş senaryo. İkisi de sessiz kalmamalı. */
+  const hayaletler = [...kapsam.keys()].filter((k) => !kimlikler.has(k));
+  const oksuzDosyalar = dosyalar
+    .filter((d) => (dosyaIsareti.get(d.ad) ?? 0) === 0)
+    .map((d) => d.ad)
+    .filter((ad) => !(ad in KUTUKSUZ_DOSYALAR));
+
+  return { kapsam, bosluklar, hayaletler, oksuzDosyalar, dosyaSayisi: dosyalar.length };
+}
+
+const kacar = (s) => String(s).replace(/\|/g, '\\|').replace(/\n/g, ' ');
+
+function registryMetni(senaryolar, olcum) {
+  const alanlar = [...new Set(senaryolar.map((s) => s.alan))]
+    .sort((a, b) => a.localeCompare(b, 'tr'));
+  const satirlar = [];
+  satirlar.push('# Ana senaryo kütüğü');
+  satirlar.push('');
+  satirlar.push('Bu belge **elle yazılmaz.** `web/lib/senaryo/` altındaki kütükten');
+  satirlar.push('`npx tsx arac/senaryo-belge.mjs --yaz` ile üretilir ve');
+  satirlar.push('`tests/senaryo-kutugu.test.ts` sapma olduğu an kırmızı olur.');
+  satirlar.push('');
+  satirlar.push('Senaryo ile test arasındaki bağ, testin **kendi başlığıdır**:');
+  satirlar.push('');
+  satirlar.push('```');
+  satirlar.push("it('kapsam dışı varlığa yazılamaz [ENV-YAZ-003]', …)");
+  satirlar.push('```');
+  satirlar.push('');
+  satirlar.push('Ayrı bir eşleme tablosu tutulsaydı, tablo ilk yeniden adlandırmada');
+  satirlar.push('testten ayrışır ve kimse görmezdi.');
+  satirlar.push('');
+  satirlar.push(`Senaryo: **${senaryolar.length}** · testli: **${senaryolar.length - olcum.bosluklar.length}** · GAP: **${olcum.bosluklar.length}**`);
+  satirlar.push('');
+  for (const alan of alanlar) {
+    const kume = senaryolar.filter((s) => s.alan === alan);
+    satirlar.push(`## ${alan} · ${kume.length} senaryo`);
+    satirlar.push('');
+    satirlar.push('| ID | Rota | Rol · kapsam | Ön koşul · veri | Eylem | Beklenen sonuç | Ekran | Denetim izi | Görev/bildirim | Test |');
+    satirlar.push('| --- | --- | --- | --- | --- | --- | --- | --- | --- | --- |');
+    for (const s of kume) {
+      const testler = olcum.kapsam.get(s.id) ?? [];
+      const testYazi = testler.length === 0
+        ? '**GAP**'
+        : testler.map((t) => `\`${t.dosya}\``).join(' · ');
+      satirlar.push('| ' + [
+        `\`${s.id}\``, kacar(s.rota), `${kacar(s.rol)} · ${kacar(s.kapsam)}`,
+        `${kacar(s.onkosul)} · ${kacar(s.veriHali)}`, kacar(s.eylem),
+        kacar(s.beklenenSonuc), kacar(s.beklenenEkran), kacar(s.beklenenIz),
+        kacar(s.beklenenBildirim), testYazi,
+      ].join(' | ') + ' |');
+    }
+    satirlar.push('');
+  }
+  return satirlar.join('\n') + '\n';
+}
+
+function matrisMetni(senaryolar, olcum) {
+  const satirlar = [];
+  satirlar.push('# Senaryo · test matrisi');
+  satirlar.push('');
+  satirlar.push('Üretilen belge — kaynağı `web/lib/senaryo/` ve `web/tests/`.');
+  satirlar.push('');
+  satirlar.push(`| Ölçü | Değer |`);
+  satirlar.push('| --- | --- |');
+  satirlar.push(`| Senaryo | ${senaryolar.length} |`);
+  satirlar.push(`| Testi olan senaryo | ${senaryolar.length - olcum.bosluklar.length} |`);
+  satirlar.push(`| **GAP** | **${olcum.bosluklar.length}** |`);
+  satirlar.push(`| Hayalet işaret (kütükte olmayan kimlik) | ${olcum.hayaletler.length} |`);
+  satirlar.push(`| Kütüksüz test dosyası | ${olcum.oksuzDosyalar.length} |`);
+  satirlar.push(`| Taranan test dosyası | ${olcum.dosyaSayisi} |`);
+  satirlar.push('');
+  satirlar.push('## Katman başına kapsam');
+  satirlar.push('');
+  satirlar.push('| Katman | Senaryo | Testli | GAP |');
+  satirlar.push('| --- | --- | --- | --- |');
+  const katmanlar = [...new Set(senaryolar.flatMap((s) => s.katmanlar))].sort();
+  for (const k of katmanlar) {
+    const kume = senaryolar.filter((s) => s.katmanlar.includes(k));
+    const testli = kume.filter((s) => olcum.kapsam.has(s.id)).length;
+    satirlar.push(`| ${k} | ${kume.length} | ${testli} | ${kume.length - testli} |`);
+  }
+  satirlar.push('');
+  satirlar.push('## Satır satır');
+  satirlar.push('');
+  satirlar.push('| Senaryo | Alan | Katman | Test dosyası | Test başlığı | Otomatik | Sonuç |');
+  satirlar.push('| --- | --- | --- | --- | --- | --- | --- |');
+  for (const s of senaryolar) {
+    const testler = olcum.kapsam.get(s.id) ?? [];
+    if (testler.length === 0) {
+      satirlar.push(`| \`${s.id}\` | ${kacar(s.alan)} | ${s.katmanlar.join(' · ')} | — | — | — | **GAP** |`);
+      continue;
+    }
+    for (const t of testler) {
+      satirlar.push(`| \`${s.id}\` | ${kacar(s.alan)} | ${s.katmanlar.join(' · ')} | \`${t.dosya}\` | ${kacar(t.baslik)} | evet | geçti |`);
+    }
+  }
+  satirlar.push('');
+  if (olcum.oksuzDosyalar.length > 0) {
+    satirlar.push('## Kütüksüz test dosyaları');
+    satirlar.push('');
+    satirlar.push('Bu dosyalar hiçbir senaryo kimliği taşımıyor ve gerekçeli');
+    satirlar.push('listede de değil. Ya bir senaryoya bağlanmalı ya da gerekçesi');
+    satirlar.push('`arac/senaryo-belge.mjs` içindeki listeye yazılmalı.');
+    satirlar.push('');
+    for (const d of olcum.oksuzDosyalar) satirlar.push(`- \`${d}\``);
+    satirlar.push('');
+  }
+  satirlar.push('## Gerekçesiyle kütüksüz kalan dosyalar');
+  satirlar.push('');
+  satirlar.push('| Dosya | Neden senaryosu yok |');
+  satirlar.push('| --- | --- |');
+  for (const [d, neden] of Object.entries(KUTUKSUZ_DOSYALAR)) {
+    satirlar.push(`| \`${d}\` | ${neden} |`);
+  }
+  satirlar.push('');
+  return satirlar.join('\n') + '\n';
+}
+
+const { SENARYOLAR } = await import('../lib/senaryo/kutuk.ts');
+const olcum = olc(SENARYOLAR);
+
+if (process.argv.includes('--yaz')) {
+  writeFileSync(path.join(BELGE_DIZINI, 'MASTER_SCENARIO_REGISTRY.md'),
+    registryMetni(SENARYOLAR, olcum));
+  writeFileSync(path.join(BELGE_DIZINI, 'SCENARIO_TEST_MATRIX.md'),
+    matrisMetni(SENARYOLAR, olcum));
+  console.log('güncellendi: docs/MASTER_SCENARIO_REGISTRY.md · docs/SCENARIO_TEST_MATRIX.md');
+}
+
+console.log(`senaryo: ${SENARYOLAR.length} · testli: ${SENARYOLAR.length - olcum.bosluklar.length}`
+  + ` · GAP: ${olcum.bosluklar.length} · hayalet: ${olcum.hayaletler.length}`
+  + ` · kütüksüz dosya: ${olcum.oksuzDosyalar.length}`);
+if (olcum.bosluklar.length > 0) {
+  console.log('GAP:', olcum.bosluklar.join(' '));
+}
+if (olcum.hayaletler.length > 0) {
+  console.log('HAYALET:', olcum.hayaletler.join(' '));
+}

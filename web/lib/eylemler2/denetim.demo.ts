@@ -1,0 +1,10 @@
+/* Statik demo: yazma yok. */
+type Sonuc = { ok: true } | { ok: false; hata: string };
+const uyar = async (): Promise<Sonuc> => ({ ok: false, hata: 'Demo sürümü: değişiklikler bu ortamda kaydedilmez.' });
+export const denetimKaydet = uyar;
+export const asamaIlerlet = uyar;
+export const asamaGeriAl = uyar;
+export const kanitTalebiEkle = uyar;
+export const kanitTalebiDurum = uyar;
+export const kapsamEkle = uyar;
+export const kapsamCikar = uyar;

@@ -1,0 +1,104 @@
+{
+  "db": "prisma/dev.db",
+  "zaman": "2026-09-08T19:00:39.211Z",
+  "tablolar": {
+    "SurecKapsami": 16,
+    "MaddeDurumu": 110,
+    "UygulanabilirlikKarari": 13,
+    "Istisna": 3,
+    "KanitTesis": 61,
+    "DenetciKapsami": 0,
+    "DegerlendirmeAktarimi": 0,
+    "UyumAnlik": 20,
+    "Yetki": 5
+  },
+  "dagilim": {
+    "SurecKapsami": {
+      "MERKEZ-BT": 4,
+      "SAHA-A2": 1,
+      "SAHA-A3": 3,
+      "SAHA-C-RES": 1,
+      "SAHA-D-RES": 1,
+      "SU-A1": 2,
+      "SU-B1": 2,
+      "SU-MERKEZ-BT": 2
+    },
+    "SurecKapsami·öznesiz": 0,
+    "MaddeDurumu": {
+      "MERKEZ-BT": 22,
+      "SAHA-A2": 14,
+      "SAHA-A3": 22,
+      "SAHA-C-RES": 14,
+      "SAHA-D-RES": 14,
+      "SU-A1": 8,
+      "SU-B1": 8,
+      "SU-MERKEZ-BT": 8
+    },
+    "MaddeDurumu·öznesiz": 0,
+    "UygulanabilirlikKarari": {
+      "SAHA-A1": 1,
+      "SAHA-A2": 1,
+      "SAHA-A3": 1,
+      "SAHA-B-GES": 1,
+      "SAHA-B-JES": 1,
+      "SAHA-C-RES": 1,
+      "SAHA-D-RES": 1,
+      "SAHA-E-RES": 1,
+      "SAHA-F-HES": 1,
+      "SAHA-G-HES": 1,
+      "SAHA-H-HES": 1,
+      "SAHA-I-HES": 1,
+      "SAHA-J-HES": 1
+    },
+    "UygulanabilirlikKarari·öznesiz": 0,
+    "Istisna": {
+      "SAHA-B-GES": 1,
+      "SAHA-F-HES": 1,
+      "SAHA-L-HES": 1
+    },
+    "Istisna·öznesiz": 0,
+    "KanitTesis": {
+      "MERKEZ-BT": 20,
+      "SAHA-A2": 12,
+      "SAHA-A3": 12,
+      "SAHA-C-RES": 9,
+      "SAHA-D-RES": 8
+    },
+    "KanitTesis·öznesiz": 0,
+    "DenetciKapsami": {},
+    "DenetciKapsami·öznesiz": 0,
+    "DegerlendirmeAktarimi": {},
+    "DegerlendirmeAktarimi·öznesiz": 0,
+    "UyumAnlik": {
+      "MERKEZ-BT": 3,
+      "SAHA-A2": 1,
+      "SAHA-A3": 3,
+      "SAHA-C-RES": 1,
+      "SAHA-D-RES": 1,
+      "SU-A1": 2,
+      "SU-B1": 2,
+      "SU-MERKEZ-BT": 2
+    },
+    "UyumAnlik·öznesiz": 5,
+    "Yetki": {
+      "MERKEZ-BT": 1
+    },
+    "Yetki·öznesiz": 4
+  },
+  "profil": {
+    "lisansTipi": 13,
+    "lisansNo": 1,
+    "kabulDurumu": 13,
+    "kabulTarihi": 0,
+    "blackStart": 12,
+    "teiasScadaEms": 12,
+    "seriHaberlesme": 6,
+    "kritiklikSinifi": 13
+  },
+  "tesis": 25,
+  "kapsamOgesi": 25,
+  "kapsamOgesiTur": {
+    "kurum": 2,
+    "tesis": 23
+  }
+}

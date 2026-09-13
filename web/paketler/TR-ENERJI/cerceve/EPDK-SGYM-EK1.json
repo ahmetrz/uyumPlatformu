@@ -1,0 +1,33 @@
+{
+  "kod": "EPDK-SGYM-EK1",
+  "ad": "Ek-1 · Elektrik Dağıtım Sektörü Siber Güvenlik Yetkinlik Modeli Teknik Kontrol Maddeleri",
+  "surumEtiketi": "RG-2025-11-25-33088",
+  "yayimTarihi": "2023-06-06",
+  "yururlukTarih": "2023-06-06",
+  "kaynakUrl": "https://www.epdk.gov.tr/Detay/Icerik/3-33068/enerji-sektorunde-siber-guvenlik-yetkinlik-modeli-",
+  "lisans": {
+    "tur": "kamuya_acik",
+    "metinDahil": true,
+    "kaynak": "https://www.epdk.gov.tr/Detay/DownloadDocument?id=4KFPqszJ13k%3D",
+    "not": "Resmî metin — 5846 s. FSEK md. 31 (yayımlanmış yönetmelik ve ekinden faydalanma serbesttir). Kaynak: EPDK sitesindeki Ek-1 teknik kontrol maddeleri dosyası (XLSX), erişim 2026-09-09."
+  },
+  "maddeDosyasi": "EPDK-SGYM-EK1.csv",
+  "zorunlulukTipi": "REGULATION",
+  "not": "12 kontrol ailesi + 476 kontrol. Kimlik (No), kontrol grubu (Alt Kontrol) ve kontrol METNİ Ek-1 dosyasından okundu. Kaynağın kademe sözcüğü OLDUĞU GİBİ taşınır (Ek Kontrol: 7 · Ek kontrol: 30 · Seviye 1: 274 · Seviye 2: 161 · Seviye 3: 4) — büyük/küçük harf farkı kaynağın kendisindedir, düzeltilmedi. \"Ek kontrol\" kademesi OPTIONAL (yönetmelik: zorunlu değildir), diğerleri REGULATION. Ek yönetmeliğe RG-6/6/2023-32213 (ilk hâl) ile geldi; yayım ve yürürlük tarihi ekin kendi tarihidir.",
+  "uygulanabilirlik": {
+    "kapsamTurleri": [
+      "tesis",
+      "kontrol_sistemi"
+    ],
+    "kosul": {
+      "hepsi": [
+        {
+          "alan": "epdkEki",
+          "islec": "=",
+          "deger": "ek1"
+        }
+      ]
+    },
+    "aciklama": "MADDE 9 (5) a: Elektrik Dağıtım Sektörü Teknik Kontrol Maddeleri (Ek-1). Yönetmelik MADDE 2 (1): kapsam elektrik dağıtım lisansı sahibi tüzel kişiler. Kuruluşun hangi ekle yükümlü olduğu `epdkEki` özniteliğindedir; MADDE 2'deki nitelemeler (lisans türü, kurulu güç, sevkiyat kontrol merkezi yükümlülüğü) ürün özniteliğine indirgenmemiştir — karar motorun ÖNERİSİDİR."
+  }
+}

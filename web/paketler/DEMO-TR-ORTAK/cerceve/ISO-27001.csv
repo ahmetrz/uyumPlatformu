@@ -1,0 +1,5 @@
+kod;ust_kod;baslik;metin;sira;seviye;zorunluluk_tipi;kanit_beklentisi;dis_kontrol_id;kanit_tipi
+A.5.9;;Bilgi varlıkları envanteri;;0;;;;;kayit
+A.8.9;;Konfigürasyon yönetimi;;1;;;;;konfigurasyon
+A.8.16;;İzleme faaliyetleri;;2;;;;;kayit
+A.5.24;;Olay yönetimi planlaması;;3;;;;;politika

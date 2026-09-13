@@ -1,0 +1,17 @@
+{
+  "kod": "BDDK-BS",
+  "ad": "Bankaların Bilgi Sistemleri ve Elektronik Bankacılık Hizmetleri Hakkında Yönetmelik",
+  "surumEtiketi": "RG-2020-03-15-31069",
+  "yayimTarihi": "2020-03-15",
+  "yururlukTarih": "2020-07-01",
+  "kaynakUrl": "https://www.mevzuat.gov.tr/mevzuat?MevzuatNo=34360&MevzuatTur=7&MevzuatTertip=5",
+  "lisans": {
+    "tur": "kamuya_acik",
+    "metinDahil": false,
+    "kaynak": "https://www.mevzuat.gov.tr/mevzuat?MevzuatNo=34360&MevzuatTur=7&MevzuatTertip=5",
+    "not": "Resmî metin; iskelet — madde metni aktarılmadı; birincil kaynak erişilemedi (503), yapı Lexpera konsolide metninden"
+  },
+  "maddeDosyasi": "BDDK-BS.csv",
+  "zorunlulukTipi": "REGULATION",
+  "not": "4 kısım ve II. kısmın 7 bölümü (ikincil kaynak) + 47 madde NUMARASI. Madde başlıkları ve madde–bölüm eşlemesi birincil metin erişilince doldurulacak; uydurulmadı."
+}

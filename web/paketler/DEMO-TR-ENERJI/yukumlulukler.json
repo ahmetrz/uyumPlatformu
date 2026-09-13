@@ -1,0 +1,69 @@
+[
+  {
+    "kod": "DEMO-MERCI-A-24",
+    "ad": "Kurgusal Merci A'ya olay bildirimi (24 saat)",
+    "asgariSiddet": "orta",
+    "sureSaat": 24,
+    "dayanak": "KURGUSAL. Demo kiracısının ekranını beslemek için yazıldı; hiçbir mevzuata karşılık gelmez. Süreli yükümlülük yolunu (geri sayım · süre daralıyor · süre geçti) demo verisiyle görünür kılar.",
+    "merci": "Kurgusal Merci A",
+    "kanalNotu": "Kurumun kendi bildirim formu üzerinden"
+  },
+  {
+    "kod": "DEMO-MERCI-B-SURESIZ",
+    "ad": "Kurgusal Merci B'ye olay bildirimi (süre belirlenmemiş)",
+    "asgariSiddet": "orta",
+    "sureSaat": null,
+    "dayanak": "KURGUSAL. Mevzuatın SÜRE BELİRLEMEDİĞİ hâli demo verisinde görünür kılar: geri sayım gösterilmez, \"süre mevzuatta belirlenmedi\" yazar ve kayıt ASLA \"süresi geçti\" olmaz. Saat uydurulmaz.",
+    "merci": "Kurgusal Merci B",
+    "kanalNotu": "Kurgusal bildirim kanalı"
+  },
+  {
+    "kod": "DEMO-KISISEL-VERI",
+    "ad": "Kurgusal Kurul'a kişisel veri ihlali bildirimi",
+    "asgariSiddet": "orta",
+    "sureSaat": 72,
+    "dayanak": "KURGUSAL. Demo kiracısının ekranını beslemek için yazıldı; hiçbir mevzuata karşılık gelmez. EK KAPSAM KOŞULU yolunu görünür kılar: bu yükümlülük yalnız KİŞİSEL VERİ ihlallerinde doğar, kişisel veri işlenmemiş bir kesintide taslak AÇILMAZ.",
+    "merci": "Kurgusal Veri Koruma Kurulu",
+    "kanalNotu": "Kurgusal ihlal bildirim formu üzerinden",
+    "kapsamKosulu": "kisisel_veri_ihlali"
+  },
+  {
+    "tetikleyici": "takvim",
+    "asgariSiddet": "dusuk",
+    "sureSaat": null,
+    "kanalNotu": "Kurgusal bildirim sistemi üzerinden",
+    "kod": "DEMO-DONEM-YILLIK",
+    "ad": "Kurgusal yıllık uyum raporu",
+    "merci": "Kurgusal Düzenleyici Kurum",
+    "donem": "yillik",
+    "donemBaslangici": "01-01",
+    "teslimGun": 30,
+    "dayanak": "KURGUSAL. Takvim tetikli yükümlülüğün ekranda nasıl göründüğünü göstermek için yazıldı; hiçbir gerçek mevzuata karşılık gelmez."
+  },
+  {
+    "tetikleyici": "takvim",
+    "asgariSiddet": "dusuk",
+    "sureSaat": null,
+    "kanalNotu": "Kurgusal bildirim sistemi üzerinden",
+    "kod": "DEMO-DONEM-TESLIMSIZ",
+    "ad": "Kurgusal çeyreklik bildirim (teslim süresi yok)",
+    "merci": "Kurgusal Merci T",
+    "donem": "ceyreklik",
+    "donemBaslangici": null,
+    "teslimGun": null,
+    "dayanak": "KURGUSAL. Mevzuatın TESLİM SÜRESİ vermediği hâli demo verisinde göstermek için: dönem açılır ama sayaç işlemez."
+  },
+  {
+    "tetikleyici": "takvim",
+    "asgariSiddet": "dusuk",
+    "sureSaat": null,
+    "kanalNotu": "Kurgusal bildirim sistemi üzerinden",
+    "kod": "DEMO-DONEM-BELIRSIZ",
+    "ad": "Kurgusal periyodik yükümlülük (dönem belirsiz)",
+    "merci": "Kurgusal Merci U",
+    "donem": null,
+    "donemBaslangici": null,
+    "teslimGun": null,
+    "dayanak": "KURGUSAL. Mevzuatın PERİYOT vermediği hâli göstermek için: dönem hiç açılmaz ve ürün bir takvim uydurmaz."
+  }
+]

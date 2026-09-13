@@ -1,0 +1,60 @@
+{
+  "//": [
+    "BEKLENEN TERİM FARKI — rota başına, aile kapanırken ölçülüp yazılır.",
+    "",
+    "NİÇİN. `sozluk-farki`in 'çakılı 0' sonucu sözcüğün SABİT olmadığını",
+    "söyler; ekrana ULAŞTIĞINI değil. 16 dosyalık bir aile çevrilip ekranda",
+    "4 fark çıkıyorsa soru şudur: 4 doğru mu, iki yer mi kaçtı? Sayı",
+    "yazılmadan bu soru sorulamaz.",
+    "",
+    "Sayı BEKLENTİ değil ÖLÇÜMDÜR: aileyi çeviren, o rotanın varsayılan",
+    "render'ında sözlükten beslenen kaç nokta olduğunu sayar ve yazar.",
+    "Ölçülen bunun ALTINDAysa kapı kırmızı — bir yer kaçmış ya da koşula",
+    "bağlı bir dalda kalmış. ÜSTÜNDEyse kusur değil; yeni nokta eklenmiştir",
+    "ve sayı güncellenir.",
+    "",
+    "Koşula bağlı dallar (boş durum, yetki kısıtı, modal) varsayılan",
+    "render'da görünmez ve sayıya GİRMEZ — bu yüzden sayı ailedeki toplam",
+    "sözlük çağrısından küçüktür ve öyle olmalıdır.",
+    "",
+    "MUAFİYET. Çekirdek sözcük bazen ÜRÜN METNİNDE değil VERİDE geçer:",
+    "denetçi adı \"İç Denetim Birimi\", dosya adı \"…-tesis.csv\" gibi. Bunlar",
+    "sözlükten beslenmez ve BESLENMEMELİ — kayıt neyse odur. Av bunları",
+    "çakılı sanır; muafiyet o dizeyi ölçümden çıkarır.",
+    "",
+    "Muafiyet SATIR değil DİZE eşleşmesidir ve gerekçesi zorunludur. Ürün",
+    "metnini muaf etmek kapıyı kör eder; yalnız veri kaynaklı dizeler girer",
+    "ve her biri kaynağıyla birlikte yazılır.",
+    "",
+    "Her muafiyet KAYNAĞINI taşır (hangi tohum dosyası, hangi kayıt) ve",
+    "`tests/bekci/muafiyet-canli.test.ts` dizenin o dosyada HÂLÂ geçtiğini",
+    "doğrular. Tohum değişip dize kaybolursa ölü muafiyet kalır ve liste",
+    "kapının kör noktasına döner — kırmızı versin."
+  ],
+  "rotalar": {
+    "/envanter": 2,
+    "/tedarikciler": 1,
+    "/raporlar": 2,
+    "/yedekleme": 4,
+    "/olaylar": 2,
+    "/kesif": 1,
+    "/harita": 5,
+    "/portfoy": 2,
+    "/uyum": 4,
+    "/riskler": 3,
+    "/kimlik": 8,
+    "/yetkiler": 5,
+    "/ayarlar": 3,
+    "/varlik-aktarim": 0,
+    "/denetimler": 7,
+    "/dokumanlar": 8,
+    "/projeler": 4
+  },
+  "muafiyetler": {
+    "İç Denetim Birimi": {
+      "sebep": "Denetçi ADI. Buradaki 'Birimi' kurumsal bir departmandır, `birim` sözlük anahtarı (üretim ünitesi / arıtma hattı) DEĞİL.",
+      "kaynak": "prisma/seed-denetim-proje.ts",
+      "kayit": "DEN-2026-IC-OT"
+    }
+  }
+}

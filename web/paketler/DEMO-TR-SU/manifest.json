@@ -1,0 +1,27 @@
+{
+  "kod": "DEMO-TR-SU",
+  "ad": "Demo · Su ve atıksu kiracısı — tohum",
+  "tur": "demo",
+  "ulke": "TR",
+  "sektor": {
+    "kod": "SU-ARITMA",
+    "ad": "Su ve Atıksu"
+  },
+  "dil": "tr",
+  "surum": "0.1.0",
+  "yayinci": "Uyum ve Yönetişim Platformu (demo tohumu)",
+  "lisans": {
+    "tur": "kamuya_acik",
+    "metinDahil": false,
+    "not": "Demo tohumu: sözlük ve öznitelik şeması; çerçeveler DEMO-TR-ORTAK paketinden"
+  },
+  "bagimliliklar": [
+    "DEMO-TR-ORTAK"
+  ],
+  "icerikOzetleri": {
+    "oznitelikler.json": "9506cf1fb7761375392875cb1e6c1280da216a58982e39ae7c8c5014f9127913",
+    "sozluk.json": "9508a3d38b0bf577fe5f41fbbe5eded30ea0c499a9348ef2b7582d5b1292ef5c"
+  },
+  "imza": null,
+  "aciklama": "DEMO (P4 · 2.5): tohumun su sözlüğü (5) ve öznitelik şeması (1: günlük debi, m³/gün). Su için ayrı mevzuat uydurulmadı; CBDDÖ ve ISO 27001 ortak paketten. Tesisler ve tipler tohumda (P8)."
+}

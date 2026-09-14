@@ -13,7 +13,7 @@ it('kapsam dışı varlığa yazılamaz [ENV-YAZ-003]', …)
 Ayrı bir eşleme tablosu tutulsaydı, tablo ilk yeniden adlandırmada
 testten ayrışır ve kimse görmezdi.
 
-Senaryo: **395** · testli: **395** · GAP: **0**
+Senaryo: **398** · testli: **398** · GAP: **0**
 
 ## Aktivite · 2 senaryo
 
@@ -182,7 +182,7 @@ Senaryo: **395** · testli: **395** · GAP: **0**
 | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- |
 | `HRT-KNM-001` | /harita | kurum yöneticisi · kurum geneli | Koordinatı olmayan tesis var · kısmi | Haritayı açar | Koordinatsız tesis uydurma bir yere KONMAZ | Listede ayrıca sayılır | yazma yok | yok | `harita-mantik.test.ts` |
 | `HRT-DOK-010` | /harita | telefonla bakan kullanıcı · kurum geneli | Haritaya yerleşen tesis var · normal | Haritayı 375px ve 1440px genişlikte açar | Her işaretin vuruş alanı iki bantta da en az 24 CSS piksel; yarıçap tuvalin ölçeğinden TÜRETİLİR, sabit yazılmaz | Harita tuvali | yazma yok | yok | `harita-dokunma.test.ts` |
-| `HRT-DOK-011` | /harita | telefonla bakan kullanıcı · kurum geneli | Panel eskiden boştu ve "bir işarete tıklayın" diyordu · normal | Panel listesinden bir satıra dokunur | Listede haritadaki her işaret için bir satır var, her satır en az 24px, dokunulan satır haritadaki işareti seçer ve künyeyi açar; seçim iki yüzeyde birden işaretlidir | Harita yan paneli · tesis listesi | yazma yok | yok | `harita-dokunma.test.ts` · `harita-dokunma.test.ts` |
+| `HRT-DOK-011` | /harita | telefonla bakan kullanıcı · kurum geneli | Panel eskiden boştu ve "bir işarete tıklayın" diyordu · normal | Panel listesinden bir satıra dokunur | Listede haritadaki her işaret için bir satır var, her satır en az 24px, dokunulan satır haritadaki işareti seçer ve künyeyi açar; seçim iki yüzeyde birden işaretlidir | Harita yan paneli · tesis listesi | yazma yok | yok | `harita-dokunma.test.ts` · `harita-dokunma.test.ts` · `harita-dokunma.test.ts` |
 | `KNM-KRD-001` | /tesisler/[id] | tesis sorumlusu · kendi tesisi | Yalnız enlem girildi · kısmi | Koordinatı kaydetmeyi dener | YARIM koordinat reddedilir | Silme meşrudur; iki alan birlikte boşaltılabilir | Tesis · guncelleme | yok | `konum-apianahtar-eylem.test.ts` |
 
 ## İçe aktarım · 2 senaryo
@@ -497,7 +497,7 @@ Senaryo: **395** · testli: **395** · GAP: **0**
 | `TOP-TML-001` | /topoloji | tesis kullanıcısı · tek tesis | Anlık başka tesisin · normal | Kapsam dışı anlığı temel onaylamayı dener | Reddedilir; yürürlükteki temel DEĞİŞMEZ | Yetki cümlesi tesisi adlandırır | yazma yok | yok | `ters-kapsam-eylem.test.ts` |
 | `TOP-BUL-001` | /topoloji | uyum uzmanı · kendi tesisi | Madde durumu seçilmemiş · kısmi | Madde durumu bağlamadan bulgu açmayı dener | Reddedilir — bağsız bulgu hangi maddeyi ihlal ettiğini söyleyemez | Eksik alan adlandırılır | yazma yok | yok | `ters-kapsam-eylem.test.ts` |
 
-## Uyum · 28 senaryo
+## Uyum · 31 senaryo
 
 | ID | Rota | Rol · kapsam | Ön koşul · veri | Eylem | Beklenen sonuç | Ekran | Denetim izi | Görev/bildirim | Test |
 | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- |
@@ -525,6 +525,9 @@ Senaryo: **395** · testli: **395** · GAP: **0**
 | `KVK-ENV-005` | /kisisel-veri | güvenlik denetçisi · kurum geneli | Katkıcı, okuyucu ve tesise kısıtlı roller kurulu · normal | Her rol gerçek sunucu eylemini çağırır | Uyum onayı olmayan REDDEDİLİR ve kayıt DEĞİŞMEZ | Yetkisiz kullanıcıda karar düğmesi yok | reddedilen denemede yazma yok | yok | `veri-koruma.test.ts` · `veri-koruma.test.ts` · `veri-koruma.test.ts` · `veri-koruma.test.ts` · `veri-koruma.test.ts` |
 | `REG-BOS-001` | /regulasyonlar | uyum sorumlusu · kurum geneli | Paket kurulu; çerçeve sürümleri TASLAK ve içinde madde var · kısmi | Regülasyon kütüphanesi açılır | Üç hâl ayrıdır: sürüm yok / taslakta madde var / sürüm boş | Taslakta madde varsa "YÜKLÜ: N madde … aktifleştirme bekliyor" yazar ve kararı açan düğmeyi verir; "henüz yüklenmedi" DEMEZ | yazma yok — ekran hiçbir sürümü kendiliğinden yürürlüğe almaz | yok | `regulasyon-katalog-boslugu.test.ts` · `regulasyon-katalog-boslugu.test.ts` · `regulasyon-katalog-boslugu.test.ts` · `regulasyon-katalog-boslugu.test.ts` · `regulasyon-katalog-boslugu.test.ts` · `regulasyon-katalog-boslugu.test.ts` · `regulasyon-katalog-boslugu.test.ts` · `regulasyon-katalog-boslugu.test.ts` |
 | `KVK-ENV-006` | /kisisel-veri | uyum sorumlusu · kurum geneli | Envanter, aktarım ve başvuru kayıtlı · bilinmiyor | Ekranın metrik ve kapsam cümlesine bakar | Üç hâl AYRI sayılır ve AYRI cümlede söylenir | Aydınlatma metni üreten düğme YOK | yazma yok | yok | `veri-koruma-mantik.test.ts` · `veri-koruma-mantik.test.ts` · `veri-koruma-mantik.test.ts` · `veri-koruma-mantik.test.ts` · `veri-koruma-mantik.test.ts` · `veri-koruma-mantik.test.ts` · `veri-koruma-mantik.test.ts` · `veri-koruma-mantik.test.ts` · `veri-koruma-mantik.test.ts` · `veri-koruma-mantik.test.ts` |
+| `SIS-UYM-030` | /uyum | uyum sorumlusu · kurum geneli | Matriste tam ve eksik kapsamlı satırlar birlikte · kısmi | Matrisi açar ve kapsam kolonunu tarar | Eksik kapsamlı satır mürekkebe çıkar, tam kapsam sessiz kalır; ölçüt veriden gelir (kapsamda < tesis sayısı), sabit bir sayıdan değil | Uyum matrisi · kapsam kolonu | yazma yok | yok | `kabuk-gezinme.test.ts` |
+| `SIS-UYM-031` | /uyum | renk ayrımı sınırlı kullanıcı · kurum geneli | Eksik kapsamlı satır var · kısmi | Kapsam hücresinin üstünde durur ya da ekran okuyucuyla okur | Hücre kaç tesiste kapsamda olduğunu SÖZLE de söyler; sayı iki hâlde de çizilir, gizlenmez | Uyum matrisi · kapsam hücresi | yazma yok | yok | `kabuk-gezinme.test.ts` |
+| `SIS-UYM-032` | /uyum | ürün ekibi · kurum geneli | Kapsam kolonunun iki hâli var · normal | Kabuk CSS’inde iki kural karşılaştırılır | İki kural farklı renk yazar; aynı rengi yazan bir ayrım ayrım değildir | Sınıf gerçekten bir şey yapıyor | yazma yok | yok | `kabuk-gezinme.test.ts` |
 | `UYU-SRC-001` | /surecler | uyum uzmanı · kendi tesisi | Hiçbir madde değerlendirilmemiş · yok | Süreç listesini açar | Yüzde null kalır — %0 GÖSTERİLMEZ | "Ölçülmedi" yazılır | yazma yok | yok | `ters-kapsam-ekran.test.ts` |
 | `UYU-SRC-002` | /surecler | uyum uzmanı · kendi tesisi | Bazı maddeler kapsam dışı · kısmi | Süreç toplamına bakar | Kapsam dışı maddeler paydaya GİRMEZ; toplam alt sayımların toplamıdır | Kapsam dışı ayrı sayılır | yazma yok | yok | `ters-kapsam-ekran.test.ts` |
 | `UYU-CRC-004` | /uyum/[cerceve] | uyum uzmanı · kendi tesisi | Çerçevenin bazı maddeleri hiç değerlendirilmemiş · kısmi | Madde satırını genişletir | Değerlendirilmemiş madde "uyumlu" ya da "uyumsuz" SAYILMAZ | Genişleyen satırda "ölçülmedi" ayrı okunur | yazma yok | yok | `ters-kapsam-ekran.test.ts` |

@@ -3608,6 +3608,13 @@ details:not([open]) > *:not(summary) { display: none !important; }
 .ab-mtx .satir .kod { font-size: 11px; color: var(--i2); }
 .ab-mtx .satir .baslik { font-size: 12.5px; min-width: 0; overflow-wrap: anywhere; }
 .ab-mtx .satir .kapsam { font-size: 11px; color: var(--i3); text-align: right; }
+/* EKSİK KAPSAM OKUNUR, TAM KAPSAM SESSİZ. Ölçüldü (sadeleştirme turu):
+   kolonun on dört değeri de aynı renkteydi ve "5 / 5" ile "2 / 5" ayırt
+   edilemiyordu — oysa kolonun tek işi, bir kontrolün tesislerin yalnız
+   bir kısmına uygulandığı satırı göstermek. Renk TEK KANAL DEĞİLDİR:
+   `title` aynı olguyu sözle de söyler ve `role="cell"` metni zaten
+   okunur. Sayı gizlenmez, vurgu değişir. */
+.ab-mtx .satir .kapsam.eksik { color: var(--murekkep); font-weight: 600; }
 
 .ab-mtx .satir.acik > * { background: var(--secim); }
 .ab-mtx .satir.acik .kod,

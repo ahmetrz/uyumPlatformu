@@ -552,7 +552,27 @@ function UyumMatrisi({ cerceve, satirlar, tesisler, acik, setAcik, yazabilir }: 
                   </span>
                 );
               })}
-              <span className="mono kapsam" role="cell">{s.kapsamda} / {tesisler.length}</span>
+              {/* KAPSAM KOLONUNUN İŞİ İSTİSNAYI GÖSTERMEKTİR. Ölçüldü
+                  (sadeleştirme turu, 1440×900): kolon on dört satırda da
+                  aynı ağırlıkta çiziliyordu — "5 / 5" ile "2 / 5" görsel
+                  olarak AYNIYDI. Tam kapsam bir haber değildir; okuyanın
+                  aradığı, bir kontrolün tesislerin yalnız BİR KISMINA
+                  uygulandığı satırdır ve o satır kalabalığın içinde
+                  kayboluyordu.
+
+                  Sayı GİZLENMEZ, vurgu değişir: tam kapsam sessiz kalır,
+                  eksik kapsam mürekkebe çıkar. Ölçüt veriden gelir
+                  (`kapsamda < tesisler.length`), kiracının kaç tesisi
+                  olduğundan bağımsızdır. */}
+              <span
+                className={`mono kapsam${s.kapsamda < tesisler.length ? ' eksik' : ''}`}
+                role="cell"
+                title={s.kapsamda < tesisler.length
+                  ? `${tesisler.length} ${terim('tesis', 'iyelik')} ${s.kapsamda} tanesinde kapsamda`
+                  : undefined}
+              >
+                {s.kapsamda} / {tesisler.length}
+              </span>
             </div>
 
             {satirAcik && acik && (

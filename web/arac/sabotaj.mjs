@@ -247,6 +247,22 @@ const SABOTAJLAR = [
     testler: ['tests/kabuk-gezinme.test.ts'],
   },
   {
+    ad: 'Kapsam kolonunda istisna yine ayırt edilemiyor',
+    kural: 'Eksik kapsamlı satır tam kapsamlıdan ayrılır',
+    dosya: 'app/(kabuk)/(operasyonel)/uyum/UyumIstemci.tsx',
+    ara: "className={`mono kapsam${s.kapsamda < tesisler.length ? ' eksik' : ''}`}",
+    yaz: 'className="mono kapsam"',
+    testler: ['tests/kabuk-gezinme.test.ts'],
+  },
+  {
+    ad: 'Eksik kapsam vurgusu temel kuralla aynı renge çekildi',
+    kural: 'İki hâl GERÇEKTEN ayrılır; aynı rengi yazan ayrım ayrım değildir',
+    dosya: 'app/kabuk.css',
+    ara: '.ab-mtx .satir .kapsam.eksik { color: var(--murekkep); font-weight: 600; }',
+    yaz: '.ab-mtx .satir .kapsam.eksik { color: var(--i3); font-weight: 600; }',
+    testler: ['tests/kabuk-gezinme.test.ts'],
+  },
+  {
     ad: 'Harita vuruş alanı yine kullanıcı biriminde',
     kural: 'İşaretin vuruş alanı ekranda 24 CSS pikselidir',
     dosya: 'app/(tam)/harita/HaritaIstemci.tsx',

@@ -627,6 +627,47 @@ export const PLATFORM_SENARYOLARI: Senaryo[] = [
     beklenenIz: 'yazma yok', beklenenBildirim: 'yok',
     katmanlar: ['UI', 'ACCESSIBILITY'],
   },
+  {
+    id: 'SIS-UYM-030', alan: 'Uyum', rota: '/uyum', eksen: 'arayuz',
+    amac: 'Bir kontrolün tesislerin yalnız BİR KISMINA uygulandığı '
+      + 'satırın görülmesi — ölçüldü: kapsam kolonunun on dört değeri de '
+      + 'tek renkteydi, "5 / 5" ile "2 / 5" ayırt edilemiyordu',
+    rol: 'uyum sorumlusu', kapsam: 'kurum geneli',
+    onkosul: 'Matriste tam ve eksik kapsamlı satırlar birlikte',
+    veriHali: 'kısmi',
+    eylem: 'Matrisi açar ve kapsam kolonunu tarar',
+    beklenenSonuc: 'Eksik kapsamlı satır mürekkebe çıkar, tam kapsam '
+      + 'sessiz kalır; ölçüt veriden gelir (kapsamda < tesis sayısı), '
+      + 'sabit bir sayıdan değil',
+    beklenenEkran: 'Uyum matrisi · kapsam kolonu',
+    beklenenIz: 'yazma yok', beklenenBildirim: 'yok',
+    katmanlar: ['UI'],
+  },
+  {
+    id: 'SIS-UYM-031', alan: 'Uyum', rota: '/uyum', eksen: 'arayuz',
+    amac: 'İstisnanın yalnız RENGE bağlı olmaması',
+    rol: 'renk ayrımı sınırlı kullanıcı', kapsam: 'kurum geneli',
+    onkosul: 'Eksik kapsamlı satır var', veriHali: 'kısmi',
+    eylem: 'Kapsam hücresinin üstünde durur ya da ekran okuyucuyla okur',
+    beklenenSonuc: 'Hücre kaç tesiste kapsamda olduğunu SÖZLE de söyler; '
+      + 'sayı iki hâlde de çizilir, gizlenmez',
+    beklenenEkran: 'Uyum matrisi · kapsam hücresi',
+    beklenenIz: 'yazma yok', beklenenBildirim: 'yok',
+    katmanlar: ['UI', 'ACCESSIBILITY'],
+  },
+  {
+    id: 'SIS-UYM-032', alan: 'Uyum', rota: '/uyum', eksen: 'arayuz',
+    amac: 'Vurgu sınıfının ÖLÜ kalmaması — sınıf yazılıp CSS’i '
+      + 'yazılmazsa kural bir yorumdan ibaret olurdu',
+    rol: 'ürün ekibi', kapsam: 'kurum geneli',
+    onkosul: 'Kapsam kolonunun iki hâli var', veriHali: 'normal',
+    eylem: 'Kabuk CSS’inde iki kural karşılaştırılır',
+    beklenenSonuc: 'İki kural farklı renk yazar; aynı rengi yazan bir '
+      + 'ayrım ayrım değildir',
+    beklenenEkran: 'Sınıf gerçekten bir şey yapıyor',
+    beklenenIz: 'yazma yok', beklenenBildirim: 'yok',
+    katmanlar: ['UI'],
+  },
 
   /* ── Yardım ─────────────────────────────────────────────────────── */
   {

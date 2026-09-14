@@ -4,8 +4,8 @@
 
 | Ölçü | Değer |
 | --- | --- |
-| Senaryo | 395 |
-| Testi olan senaryo | 395 |
+| Senaryo | 398 |
+| Testi olan senaryo | 398 |
 | **GAP** | **0** |
 | Hayalet işaret (kütükte olmayan kimlik) | 0 |
 | Kütüksüz test dosyası | 0 |
@@ -15,7 +15,7 @@
 
 | Katman | Senaryo | Testli | GAP |
 | --- | --- | --- | --- |
-| ACCESSIBILITY | 14 | 14 | 0 |
+| ACCESSIBILITY | 15 | 15 | 0 |
 | API | 12 | 12 | 0 |
 | CONCURRENCY | 8 | 8 | 0 |
 | DOMAIN | 230 | 230 | 0 |
@@ -26,7 +26,7 @@
 | RESPONSIVE | 9 | 9 | 0 |
 | SCOPE | 34 | 34 | 0 |
 | SERVER | 159 | 159 | 0 |
-| UI | 126 | 126 | 0 |
+| UI | 129 | 129 | 0 |
 | VISUAL | 4 | 4 | 0 |
 | WORKFLOW | 39 | 39 | 0 |
 
@@ -378,7 +378,11 @@
 | `HRT-KNM-001` | Harita | DOMAIN · UI | `harita-mantik.test.ts` | koordinatı olan yerleşir, ili olan YAKLAŞIK, ikisi de yoksa haritada YOK | evet | geçti |
 | `HRT-DOK-010` | Harita | UI · ACCESSIBILITY | `harita-dokunma.test.ts` | vuruş yarıçapı ÖLÇEKTEN türetilir, sabit yazılmaz | evet | geçti |
 | `HRT-DOK-011` | Harita | UI · ACCESSIBILITY | `harita-dokunma.test.ts` | işarete ulaşmanın dokunulabilir karşılığı VAR | evet | geçti |
+| `HRT-DOK-011` | Harita | UI · ACCESSIBILITY | `harita-dokunma.test.ts` | liste kaynakta durup GİZLENEMEZ | evet | geçti |
 | `HRT-DOK-011` | Harita | UI · ACCESSIBILITY | `harita-dokunma.test.ts` | tarayıcı kapısı KÖR değil — seçicileri ekrana bağlı | evet | geçti |
+| `SIS-UYM-030` | Uyum | UI | `kabuk-gezinme.test.ts` | eksik kapsam satırı işaretlenir — ölçüt VERİDEN gelir | evet | geçti |
+| `SIS-UYM-031` | Uyum | UI · ACCESSIBILITY | `kabuk-gezinme.test.ts` | istisna RENGE bağlı değil — sözle de söylenir | evet | geçti |
+| `SIS-UYM-032` | Uyum | UI | `kabuk-gezinme.test.ts` | CSS iki hâli AYIRIR — yoksa sınıf ölü kalırdı | evet | geçti |
 | `YRD-SOR-001` | Yardım | DOMAIN · UI | `yardim.test.ts` | listedeki genel kısayolların her biri kaynakta bağlıdır | evet | geçti |
 | `OTR-HSP-001` | Oturum | SERVER · DOMAIN | `hesap.test.ts` | alt sınır 12 karakter; kısa parola kusur cümlesi üretir, boş alan susar | evet | geçti |
 | `OTR-HSP-002` | Oturum | SERVER · RBAC | `oturum-yasam-dongusu.test.ts` | başka kullanıcının oturumuna DOKUNMAZ | evet | geçti |

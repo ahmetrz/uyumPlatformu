@@ -422,3 +422,46 @@ describe('kabuk · katlama kapısı bileşene bağlı', () => {
     expect(bilesen).toContain("role=\"menuitem\"");
   });
 });
+
+/* ── KAPSAM KOLONU: İSTİSNA OKUNUR ───────────────────────────────────
+   Ölçülen kusur (sadeleştirme turu, 1440×900, `/uyum`): kapsam kolonu
+   on dört satırda da TEK renkte çiziliyordu — ölçüldü, `getComputedStyle`
+   bir tek renk döndürdü. Yani "5 / 5" ile "2 / 5" görsel olarak aynıydı,
+   oysa kolonun tek işi bir kontrolün tesislerin yalnız BİR KISMINA
+   uygulandığı satırı göstermek.
+
+   NE ÖLÇÜLMEZ (beyanlı sınır): tohumda `/uyum` matrisinin on dört
+   satırının on dördü de tam kapsamdadır, yani TARAYICI kapısı bu kuralı
+   canlı veriyle süremez — sabotajla doğrulanan şey kuralın kaynakta
+   durduğu ve CSS'in iki hâli ayırdığıdır. `tuval-kanit.mjs`te kabul
+   edilen aynı sınır: sınanmayan bir dal ölçülmüş sayılmaz ve bu yüzden
+   burada adıyla yazılır. */
+describe('uyum · kapsam kolonu istisnayı gösterir', () => {
+  const ekran = readFileSync('app/(kabuk)/(operasyonel)/uyum/UyumIstemci.tsx', 'utf8');
+
+  it('eksik kapsam satırı işaretlenir — ölçüt VERİDEN gelir [SIS-UYM-030]', () => {
+    /* Koşul kiracının kaç tesisi olduğundan bağımsızdır: sabit bir sayı
+       yazılsaydı beş tesisli kurulumda doğru, altı tesislide yanlış olurdu. */
+    expect(ekran).toMatch(/s\.kapsamda < tesisler\.length \? ' eksik' : ''/);
+    /* Sayı GİZLENMEZ: iki hâlde de aynı metin çizilir. */
+    expect(ekran).toMatch(/\{s\.kapsamda\} \/ \{tesisler\.length\}/);
+  });
+
+  it('istisna RENGE bağlı değil — sözle de söylenir [SIS-UYM-031]', () => {
+    /* Durum yalnız renkle anlatılmaz (ürünün kendi kuralı). */
+    expect(ekran).toMatch(/title=\{s\.kapsamda < tesisler\.length/);
+    expect(ekran).toMatch(/tanesinde kapsamda/);
+  });
+
+  it('CSS iki hâli AYIRIR — yoksa sınıf ölü kalırdı [SIS-UYM-032]', () => {
+    const taban = css.match(/\.ab-mtx \.satir \.kapsam \{([^}]*)\}/);
+    const eksik = css.match(/\.ab-mtx \.satir \.kapsam\.eksik \{([^}]*)\}/);
+    expect(taban, 'kapsam temel kuralı kayboldu').not.toBeNull();
+    expect(eksik, 'eksik kapsam kuralı yok — sınıf ölü').not.toBeNull();
+    /* İki kural aynı rengi yazarsa sınıf hiçbir şey yapmaz; ayrım
+       GERÇEK olmalı. */
+    const renk = (g: string) => g.match(/color:\s*([^;]+)/)?.[1].trim();
+    expect(renk(eksik![1])).toBeTruthy();
+    expect(renk(eksik![1])).not.toBe(renk(taban![1]));
+  });
+});

@@ -715,12 +715,13 @@ function KaynakBlogu({ reg, yazabilir }: { reg: Reg; yazabilir: boolean }) {
           : ozet.hicBakilmadi > 0 || ozet.adressiz > 0 ? 'var(--unk)' : 'var(--i3)' }}>
         {takipCumlesi(ozet)}
       </p>
-      {/* Cümle TEK KAYNAKTAN gelir. Önce ekranda sabit bir önek vardı
-          ("Ürün hiçbir siteye kendiliğinden bağlanmaz ve … DEMEZ:") ve
-          sağlayıcı sabiti de AYNI cümleyle bitiyordu — aynı iddia tek
-          paragrafta iki kez okunuyordu. */}
+      {/* İddia BİR KEZ okunur. Önce hem bu önek hem sağlayıcı sabiti
+          aynı cümleyle bitiyordu; tekrar SABİTTEN silindi, ekrandaki
+          metin yerinde kaldı — kaynağı okuyan türetici onu görebilsin
+          (yalnız sabiti render etmek cümleyi ölçülemez hâle getirirdi). */}
       <p className="ab-panel-dip" style={{ margin: '0 0 var(--s14)' }}>
-        {mevzuatSaglayici.bagliDegilkenDavranis}
+        Ürün hiçbir siteye kendiliğinden bağlanmaz ve &quot;değişiklik yok&quot;
+        DEMEZ: {mevzuatSaglayici.bagliDegilkenDavranis}
       </p>
 
       <div style={{ display: 'grid', gap: 'var(--s14)' }}>

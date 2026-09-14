@@ -1,5 +1,5 @@
 {
-  "uretilme": "2026-09-14T11:59:11.879Z",
+  "uretilme": "2026-09-14T12:24:51.104Z",
   "rota": [
     "/",
     "/aktivite",
@@ -262,12 +262,6 @@
       ]
     },
     {
-      "cumle": "Kaynaklar kütüğe ELLE kaydedilir ve \"en son ne zaman bakıldı\" bilgisi elle güncellenir. Ürün hiçbir siteye kendiliğinden bağlanmaz ve \"değişiklik yok\" DEMEZ — yalnız en son bakılan tarihi ve o bakışta düşülen notu gösterir.",
-      "rotalar": [
-        "/regulasyonlar"
-      ]
-    },
-    {
       "cumle": "Keşif yalnız AĞDA GÖRÜNEN cihazı bulur; kapalı panodaki yedek bir kart hiçbir taramada çıkmaz. Sayım birinin gidip bakmasıdır. Sayım hiçbir varlığı silmez: \"bulunamadı\" bir ölçüm sonucudur, envanterden düşürme ayrı bir karardır.",
       "rotalar": [
         "/sayim"
@@ -319,6 +313,12 @@
       "cumle": "Tanımlı dış denetçi erişimi yok. Dış denetçi erişimi süreli ve kapsamlıdır; tanımlanmadan hiçbir dış hesap kayıt göremez.",
       "rotalar": [
         "/denetci-erisimi"
+      ]
+    },
+    {
+      "cumle": "Ürün hiçbir siteye kendiliğinden bağlanmaz ve \"değişiklik yok\" DEMEZ: Kaynaklar kütüğe ELLE kaydedilir ve \"en son ne zaman bakıldı\" bilgisi elle güncellenir; ürün yalnız en son bakılan tarihi ve o bakışta düşülen notu gösterir.",
+      "rotalar": [
+        "/regulasyonlar"
       ]
     },
     {

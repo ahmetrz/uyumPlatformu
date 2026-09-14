@@ -4,12 +4,12 @@
 
 | Ölçü | Değer |
 | --- | --- |
-| Senaryo | 378 |
-| Testi olan senaryo | 378 |
+| Senaryo | 379 |
+| Testi olan senaryo | 379 |
 | **GAP** | **0** |
 | Hayalet işaret (kütükte olmayan kimlik) | 0 |
 | Kütüksüz test dosyası | 0 |
-| Taranan test dosyası | 246 |
+| Taranan test dosyası | 247 |
 
 ## Katman başına kapsam
 
@@ -26,7 +26,7 @@
 | RESPONSIVE | 9 | 9 | 0 |
 | SCOPE | 34 | 34 | 0 |
 | SERVER | 159 | 159 | 0 |
-| UI | 109 | 109 | 0 |
+| UI | 110 | 110 | 0 |
 | VISUAL | 4 | 4 | 0 |
 | WORKFLOW | 39 | 39 | 0 |
 
@@ -360,6 +360,9 @@
 | `ESL-PRF-001` | Eşleme | SERVER · DOMAIN | `esleme-tezgahi.test.ts` | ikinci yayın v2 açar, v1 arşive geçer ve v1 kuralları AYNEN kalır | evet | geçti |
 | `ESL-PRF-002` | Eşleme | SERVER · DOMAIN | `esleme-tezgahi.test.ts` | önizleme profil, köken ya da red kaydı YAZMAZ | evet | geçti |
 | `SIS-HTA-001` | Sistem | UI | `senaryo-platform.test.ts` | bulunamadı ve hata sayfaları vardır ve dönüş yolu sunar | evet | geçti |
+| `SIS-SAHA-001` | Sistem | UI | `kunye-yolu.test.ts` | ÖLÇÜLEN KUSUR · güç kaydı olmayan altı tesis aynı banda iner ve | evet | geçti |
+| `SIS-SAHA-001` | Sistem | UI | `kunye-yolu.test.ts` | ÜÇ nokta kümelendiğinde üçü de AYRI yola çıkar — tek basamaklı | evet | geçti |
+| `SIS-SAHA-001` | Sistem | UI | `kunye-yolu.test.ts` | YÖNLÜ ÇAKIŞMA · sağa açılan künye ile sola açılan künye | evet | geçti |
 | `SIS-KBK-001` | Sistem | UI · ACCESSIBILITY | `yardim.test.ts` | atla bağı kabuğun ilk çocuğu; tek kabukta TEK `#icerik` sarmalayıcısı var, kabuk main AÇMAZ | evet | geçti |
 | `SIS-ERS-001` | Sistem | ACCESSIBILITY · UI | `yardim.test.ts` | dialog rolü, modal, başlık bağı ve odak tuzağı var | evet | geçti |
 | `SIS-RSP-001` | Sistem | RESPONSIVE · UI | `senaryo-platform.test.ts` | yatay taşma kapısı ölçülen genişlikleri koda gömer | evet | geçti |
@@ -748,10 +751,17 @@
 | `URN-TNK-001` | Sistem | UI · DOMAIN | `bekci/dom-tanik.test.ts` | TANIK ÇIKTISI VAR — yoksa CI kırmızı, yerelde "ölçülmedi" | evet | geçti |
 | `URN-TNK-001` | Sistem | UI · DOMAIN | `bekci/dom-tanik.test.ts` | TANIĞIN ERİŞİMİ DARALMADI — kör tanık sıfır ayrışma bulur | evet | geçti |
 | `URN-TNK-001` | Sistem | UI · DOMAIN | `bekci/dom-tanik.test.ts` | TANIĞIN ERİŞİM SINIRI ÖLÇÜLÜR ve BEYANLIDIR — "ayrışma 0" yetmez | evet | geçti |
+| `URN-TNK-001` | Sistem | UI · DOMAIN | `bekci/dom-tanik.test.ts` | TANIK KAPSAMI TEK YÖNLÜ — oran taban dala göre DÜŞEMEZ | evet | geçti |
+| `URN-TNK-001` | Sistem | UI · DOMAIN | `bekci/dom-tanik.test.ts` | ULAŞILAMAYAN her satır KATEGORİSİYLE beyanlı — kategorisiz "ulaşılamadı" yok | evet | geçti |
 | `URN-TNK-001` | Sistem | UI · DOMAIN | `bekci/dom-tanik.test.ts` | EKRANDA GÖRÜLEN her cümle bir kütükte AÇIKLANIYOR | evet | geçti |
 | `URN-TNK-001` | Sistem | UI · DOMAIN | `bekci/dom-tanik.test.ts` | TANIK KÜTÜĞÜNDE ölü satır YOK | evet | geçti |
 | `URN-TNK-001` | Sistem | UI · DOMAIN | `bekci/dom-tanik.test.ts` | TANIK KÜTÜĞÜNÜN her satırı ÖLÇÜMÜNÜ taşır — tavan SIFIR | evet | geçti |
 | `URN-TNK-001` | Sistem | UI · DOMAIN | `bekci/dom-tanik.test.ts` | ÖLÇÜM referansı GERÇEK: dosya var ve vaka o dosyada | evet | geçti |
+| `URN-TNK-001` | Sistem | UI · DOMAIN | `bekci/dom-tanik.test.ts` | CÜMLESİZ BOŞ YÜZEY YOK — boş kurulumda ölçülür, tavan SIFIR | evet | geçti |
+| `URN-TNK-001` | Sistem | UI · DOMAIN | `bekci/dom-tanik.test.ts` | BOŞ KOŞUMUN ÖNCÜLÜ ÖLÇÜLÜ — veritabanı gerçekten BOŞTU | evet | geçti |
+| `URN-TNK-001` | Sistem | UI · DOMAIN | `bekci/dom-tanik.test.ts` | BOŞ KOŞUMDA atlanan rota da BEYANLI — sessiz daralma yok | evet | geçti |
+| `URN-TNK-001` | Sistem | UI · DOMAIN | `bekci/dom-tanik.test.ts` | DİŞİN POPÜLASYONU ÖLÇÜLÜR — sıfır yüzey tarayan diş sıfır kusur bulur | evet | geçti |
+| `URN-TNK-001` | Sistem | UI · DOMAIN | `bekci/dom-tanik.test.ts` | POZİTİF KONTROL — sıfır popülasyonlu diş SENTETİK sayfada kanıtlanır | evet | geçti |
 | `URN-TNK-001` | Sistem | UI · DOMAIN | `bekci/dom-tanik.test.ts` | TANIK KÜTÜĞÜ CIRCIRDADIR — taban dala göre BÜYÜYEMEZ | evet | geçti |
 | `URN-TNK-001` | Sistem | UI · DOMAIN | `bekci/dom-tanik.test.ts` | ARA DEĞER dolmuş cümle, şablonu AÇIKLAR | evet | geçti |
 | `URN-TNK-001` | Sistem | UI · DOMAIN | `bekci/dom-tanik.test.ts` | BAŞKA bir cümle açıklamaz — ölçüt her şeyi eşleştirmiyor | evet | geçti |
@@ -1193,6 +1203,9 @@
 | `URN-POL-001` | Ürünleştirme | DOMAIN | `bekci/politika-olcumu.test.ts` | SİSTEM iddiası yakalanır | evet | geçti |
 | `URN-POL-001` | Ürünleştirme | DOMAIN | `bekci/politika-olcumu.test.ts` | YORUMDAKİ cümle kütüğe girmez | evet | geçti |
 | `URN-POL-001` | Ürünleştirme | DOMAIN | `bekci/politika-olcumu.test.ts` | JSX parçası cümle sayılmaz | evet | geçti |
+| `URN-POL-001` | Ürünleştirme | DOMAIN | `bekci/politika-olcumu.test.ts` | KİLİT SAYI: aday popülasyonun TAMAMI tavanlı | evet | geçti |
+| `URN-POL-001` | Ürünleştirme | DOMAIN | `bekci/politika-olcumu.test.ts` | ALT KÜMENİN SAYI TAVANI YOK — mayın geri gelmesin | evet | geçti |
+| `URN-POL-001` | Ürünleştirme | DOMAIN | `bekci/politika-olcumu.test.ts` | SINIR GERÇEKTEN BİR SINIR — kör sayı sıfır değil | evet | geçti |
 | `URN-POL-001` | Ürünleştirme | DOMAIN | `bekci/politika-olcumu.test.ts` | AÇGÖZLÜ ALTERNATİF kusuru geri gelmez — uzun eşleşme kısa dizeyi YUTAMAZ | evet | geçti |
 | `URN-POL-001` | Ürünleştirme | DOMAIN | `bekci/politika-olcumu.test.ts` | TÜRKÇE KESME İŞARETİ tırnak değildir — arasındaki dize YUTULMAZ | evet | geçti |
 | `URN-POL-001` | Ürünleştirme | DOMAIN | `bekci/politika-olcumu.test.ts` | KAÇIŞ karakteri dizeyi erken KAPATMAZ | evet | geçti |

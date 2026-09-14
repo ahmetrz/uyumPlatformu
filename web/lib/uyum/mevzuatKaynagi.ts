@@ -36,9 +36,12 @@ export const mevzuatSaglayici: KaynakSaglayici = {
     + 'yöntemi, ve değişikliğin nasıl anlaşılacağı (yayım tarihi alanı, '
     + 'sürüm etiketi ya da içerik özeti). Adresler ÜRÜNLE GELMEZ; kurumun '
     + 'uyum kapsamına göre kurum belirler.',
+  /* Cümlenin "kendiliğinden bağlanmaz / değişiklik yok DEMEZ" yarısı
+     EKRANDA durur (RegulasyonlarIstemci · POL-229) ve sabit onu TEKRAR
+     ETMEZ: ikisi birlikte yazıldığında aynı iddia tek paragrafta iki kez
+     okunuyordu (ölçüldü, 1440×900). Sabit kendi yarısını taşır. */
   bagliDegilkenDavranis: 'Kaynaklar kütüğe ELLE kaydedilir ve "en son ne zaman '
-    + 'bakıldı" bilgisi elle güncellenir. Ürün hiçbir siteye kendiliğinden '
-    + 'bağlanmaz ve "değişiklik yok" DEMEZ — yalnız en son bakılan tarihi '
+    + 'bakıldı" bilgisi elle güncellenir; ürün yalnız en son bakılan tarihi '
     + 've o bakışta düşülen notu gösterir.',
 };
 

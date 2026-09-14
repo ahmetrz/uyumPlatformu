@@ -26,7 +26,7 @@ function ortusenler(noktalar: readonly KunyeNoktasi[], yollar: readonly number[]
   return n;
 }
 
-describe('Künye yolu · çakışma [SIS-SAHA-001]', () => {
+describe('Künye yolu · çakışma', () => {
   it('TEK nokta doğal yerinde kalır — gereksiz kaydırma yok', () => {
     expect(kunyeYollari([{ x: 50, y: 40, yukari: false, sola: false }])).toEqual([0]);
   });
@@ -39,7 +39,7 @@ describe('Künye yolu · çakışma [SIS-SAHA-001]', () => {
     expect(kunyeYollari(n)).toEqual([0, 0]);
   });
 
-  it('ÖLÇÜLEN KUSUR · güç kaydı olmayan altı tesis aynı banda iner ve '
+  it('[SIS-SAHA-001] ÖLÇÜLEN KUSUR · güç kaydı olmayan altı tesis aynı banda iner ve '
     + 'hepsi YUKARI açar — eski kural hiçbirini kaydırmıyordu', () => {
     /* dikey = 8 + √(0/enGuc)·78 = 8 → hepsi `yukari`. Eski kuralda
        `yukari` dalı `kaydir`ı geçersiz kıldığı için altısı da tek
@@ -54,7 +54,7 @@ describe('Künye yolu · çakışma [SIS-SAHA-001]', () => {
     expect(yollar[1]).not.toBe(yollar[2]);
   });
 
-  it('ÜÇ nokta kümelendiğinde üçü de AYRI yola çıkar — tek basamaklı '
+  it('[SIS-SAHA-001] ÜÇ nokta kümelendiğinde üçü de AYRI yola çıkar — tek basamaklı '
     + 'kaydırma ikinci ve üçüncüyü aynı yere koyuyordu', () => {
     const n: KunyeNoktasi[] = [
       { x: 50, y: 40, yukari: false, sola: false },
@@ -87,8 +87,8 @@ describe('Künye yolu · çakışma [SIS-SAHA-001]', () => {
     expect(ortusenler(n, yollar)).toBe(0);
   });
 
-  it('YÖNLÜ ÇAKIŞMA · sağa açılan künye ile sola açılan künye merkezleri '
-    + 'UZAK olsa bile örtüşür — simetrik kural bunu göremiyordu', () => {
+  it('[SIS-SAHA-001] YÖNLÜ ÇAKIŞMA · sağa açılan künye ile sola açılan künye '
+    + 'merkezleri UZAK olsa bile örtüşür — simetrik kural bunu göremiyordu', () => {
     /* ÖLÇÜLEN KUSUR (düzeltme turu, 1440×900): "Saha A-1 İçme Suyu Arıtma"
        (x≈50, sağa açar) ile "Demo Enerji Genel Müdürlük" (x≈88, sola açar)
        hâlâ üst üste biniyordu — |Δx| = 38 ve eski `|Δx| < en` kuralı

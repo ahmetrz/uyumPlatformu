@@ -2261,6 +2261,17 @@
       }
     },
     {
+      "kod": "POL-229",
+      "cumle": "Ürün hiçbir siteye kendiliğinden bağlanmaz ve &quot;değişiklik yok&quot; DEMEZ:",
+      "yer": "app/(kabuk)/(operasyonel)/regulasyonlar/RegulasyonlarIstemci.tsx",
+      "sinif": "POLITIKA",
+      "sonucSinifi": "S3",
+      "olcum": {
+        "dosya": "tests/politika-tanik-acilan.test.ts",
+        "vaka": "EKRANIN cümlesi SAĞLAYICI SABİTİNDEN gelir ve sağlayıcı BAĞLI DEĞİLDİR [SIS-POL-002]"
+      }
+    },
+    {
       "kod": "POL-248",
       "cumle": "Ürün medyayı ENGELLEMEZ — engelleme uç nokta koruma ürününün işidir. Burada tutulan şey kayıttır: kayıtsız medya, envanterin göremediği tek taşıyıcıdır.",
       "yer": "app/(kabuk)/(operasyonel)/tasinabilir-medya/TasinabilirMedyaIstemci.tsx",

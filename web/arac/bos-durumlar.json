@@ -66,7 +66,7 @@
   "satirlar": [
     {
       "yer": "app/(kabuk)/(flagship)/Genel.tsx",
-      "satir": 255,
+      "satir": 256,
       "tur": "satirIci",
       "cumle": "Kapsamınızda … yok — uyum katmanları … kayıtlarından türetilir. {tanimlayabilir ? … tanımla → : Tanımlama yetkisi yöneticinizdedir. }",
       "iyiHaber": false,
@@ -75,7 +75,7 @@
     },
     {
       "yer": "app/(kabuk)/(flagship)/Genel.tsx",
-      "satir": 587,
+      "satir": 588,
       "tur": "satirIci",
       "cumle": "Kapsamınızdaki tesislerde açık bulgu yok; müdahale bekleyen kayıt bulunmuyor. Açık bulgu yok; müdahale bekleyen kayıt bulunmuyor.",
       "iyiHaber": true,
@@ -462,7 +462,7 @@
     },
     {
       "yer": "app/(kabuk)/(operasyonel)/kanitlar/KanitlarIstemci.tsx",
-      "satir": 203,
+      "satir": 215,
       "tur": "BosIlk",
       "cumle": "Kapsamınızda kanıt kaydı yok. ${kapsamDisi} kanıt ${t('tesis')} kapsamınız dışında (bağlantısız ya da başka ${t('tesis', 'yonelme')} bağlı). Kapsamınızda kanıt kaydı yok: yetkiniz olan kapsamda hiçbir kontrole kanıt bağlanmamış. Kanıt kaydı yok: kütüphane boş, hiçbir kontrol kanıtla desteklenmiyor.",
       "iyiHaber": false,
@@ -709,15 +709,6 @@
       "tur": "satirIci",
       "cumle": "İçerik farkı üretilmedi — iki sürümün maddeleri birebir aynı.",
       "iyiHaber": true,
-      "neden": true,
-      "eylem": true
-    },
-    {
-      "yer": "app/(kabuk)/(operasyonel)/regulasyonlar/RegulasyonlarIstemci.tsx",
-      "satir": 760,
-      "tur": "kosullu",
-      "cumle": "Bu regülasyon için kayıtlı resmî kaynak yok — mevzuat değişikliği izlenmiyor.",
-      "iyiHaber": false,
       "neden": true,
       "eylem": true
     },

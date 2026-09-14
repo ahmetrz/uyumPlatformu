@@ -715,9 +715,12 @@ function KaynakBlogu({ reg, yazabilir }: { reg: Reg; yazabilir: boolean }) {
           : ozet.hicBakilmadi > 0 || ozet.adressiz > 0 ? 'var(--unk)' : 'var(--i3)' }}>
         {takipCumlesi(ozet)}
       </p>
+      {/* Cümle TEK KAYNAKTAN gelir. Önce ekranda sabit bir önek vardı
+          ("Ürün hiçbir siteye kendiliğinden bağlanmaz ve … DEMEZ:") ve
+          sağlayıcı sabiti de AYNI cümleyle bitiyordu — aynı iddia tek
+          paragrafta iki kez okunuyordu. */}
       <p className="ab-panel-dip" style={{ margin: '0 0 var(--s14)' }}>
-        Ürün hiçbir siteye kendiliğinden bağlanmaz ve &quot;değişiklik yok&quot;
-        DEMEZ: {mevzuatSaglayici.bagliDegilkenDavranis}
+        {mevzuatSaglayici.bagliDegilkenDavranis}
       </p>
 
       <div style={{ display: 'grid', gap: 'var(--s14)' }}>
@@ -756,12 +759,6 @@ function KaynakBlogu({ reg, yazabilir }: { reg: Reg; yazabilir: boolean }) {
             </div>
           </div>
         ))}
-        {reg.kaynaklar.length === 0 && (
-          <p className="ab-panel-dip" style={{ margin: 0, color: 'var(--unk)' }}>
-            Bu regülasyon için kayıtlı resmî kaynak yok — mevzuat değişikliği
-            izlenmiyor.
-          </p>
-        )}
       </div>
 
       {yazabilir && (

@@ -1,7 +1,7 @@
 {
-  "imza": "fdc7c419366b6f40520e36c1627eeafc",
-  "dosya": 246,
-  "vaka": 4434,
+  "imza": "04f633c0362032322e4d04cdefe57bc8",
+  "dosya": 247,
+  "vaka": 4442,
   "atlanan": 1,
   "dosyalar": {
     "tests/adaptor-yetenekleri.test.ts": {
@@ -534,6 +534,10 @@
     },
     "tests/konum-apianahtar-eylem.test.ts": {
       "vaka": 20,
+      "atlanan": 0
+    },
+    "tests/kunye-yolu.test.ts": {
+      "vaka": 8,
       "atlanan": 0
     },
     "tests/kurucu-hesap.test.ts": {

@@ -2504,7 +2504,11 @@
 .ab-suzgec .mercekler button[aria-pressed='true'] {
   color: var(--murekkep); background: var(--panel2); border-color: var(--i3);
 }
-.ab-suzgec .mercekler button.tasma { border-style: dashed; }
+/* İkincil (taşma) mercek kesikli kenarlıkla ayrılır — iki bant da
+   aynı grameri kullanır: paylaşılan `Filtreler` ve elle çizilen
+   envanter/keşif bandı. */
+.ab-suzgec .mercekler button.tasma,
+.ab-a-suzgec .mercekler button.tasma { border-style: dashed; }
 .ab-suzgec .kapsam {
   margin-left: auto; display: flex; align-items: center; gap: 12px; flex-wrap: wrap;
 }

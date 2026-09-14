@@ -1378,6 +1378,21 @@ export const PLATFORM_SENARYOLARI_6: Senaryo[] = [
     katmanlar: ['UI', 'RESPONSIVE'],
   },
   {
+    id: 'SIS-MRC-001', alan: 'Sistem', rota: '/envanter', eksen: 'arayuz',
+    amac: 'İkincil (taşma) merceğin birincil gibi görünmemesi — sekiz eşit '
+      + 'ağırlıklı düğme, hangisinin günlük iş olduğunu söylemez',
+    rol: 'BT yöneticisi', kapsam: 'kurum geneli',
+    onkosul: 'Envanter ekranı açık; mercek şeridi beş birincil ve üç taşma '
+      + 'merceği taşıyor', veriHali: 'normal',
+    eylem: 'Mercek şeridine bakar',
+    beklenenSonuc: 'Beş birincil mercek düz kenarlıkla, üç taşma merceği '
+      + 'kesikli kenarlıkla çizilir — paylaşılan süzgeç bileşeninin ve '
+      + 'keşif ekranının kullandığı gramerin aynısı',
+    beklenenEkran: 'Envanter süzgeç şeridi',
+    beklenenIz: 'yazma yok', beklenenBildirim: 'yok',
+    katmanlar: ['UI'],
+  },
+  {
     id: 'SIS-KBK-019', alan: 'Sistem', rota: '/uyum', eksen: 'arayuz',
     amac: 'İkincil sıradaki grup yapısının EKRAN OKUYUCUYA da ulaşması — '
       + 'gören kullanıcı grupları dikey çizgiden ayırır, ekran okuyucu o '

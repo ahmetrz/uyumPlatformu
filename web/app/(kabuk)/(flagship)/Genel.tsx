@@ -3,6 +3,7 @@ import Link from 'next/link';
 import { useEffect, useRef, useState, type JSX } from 'react';
 import { kucukGorsel } from '@/lib/gorsel';
 import { SahaArkaPlani } from './SahaArkaPlani';
+import { kunyeYollari } from './kunyeYolu';
 import { tipAdi, tipRengi, uygunRengi } from '@/components/kabuk/tip';
 import type {
   AkisHaftasi, RiskIzgarasi, TesisKarti, TakvimKalemi, TipKatmani,
@@ -642,20 +643,19 @@ function Takimyildizi({ tesisler, gosterim = OLCULMEMIS_VARSAYILAN, serit, panel
   const gucToplami = olculmemisToplami(olculmemis);
   const { gosterilen: ilkAdlar, kalan } = ozetKur(serit.map((s) => s.ad), gosterim);
 
-  /* Künye çakışması — ÖLÇÜLDÜ, varsayılmadı: Saha A-3 (%56 · güç 165)
-     ile Saha C (%67 · güç 135) dikeyde 31px, künye ise 28px yüksek;
-     ikisi birbirinin üstüne biniyordu. Nokta yerini DEĞİŞTİRMEK veriyi
-     bozar, o yüzden yalnız künye kayar: yakın komşusu olan işaret
-     künyesini işaretin altına açar. */
-  const kaydir = olculen.map((s, i) => olculen.some((o, j) => (
-    j < i
-    && Math.abs((o.endeks ?? 0) - (s.endeks ?? 0)) < 20
-    && Math.abs(dikey(o) - dikey(s)) < 11
-  )));
   /* Eksene yakın işaretin künyesi YUKARI açılır: "Demo Enerji Genel Müdürlük" (güç 0)
      künyesi x ekseninin adıyla üst üste biniyordu (ölçüldü, 1366×768).
      Eşik %14 = künye yüksekliği (28px) / tuval yüksekliği (~300px) payı. */
   const yukari = (s: TesisKarti) => dikey(s) < 14;
+  /* Künye çakışması NOKTAYI OYNATMADAN çözülür — kural ve ölçülen kusur
+     `kunyeYolu.ts`te. Nokta ölçülen veridir; yerini değiştirmek grafiği
+     yalan söyletir. */
+  const yollar = kunyeYollari(olculen.map((s) => ({
+    x: s.endeks ?? 0, y: dikey(s), yukari: yukari(s),
+    /* `.sola` eşiği ekranın kendi kuralıyla AYNI olmalı (aşağıda %58);
+       ikisi ayrışırsa kural künyeyi yanlış yöne açık sanır. */
+    sola: (s.endeks ?? 0) > 58,
+  })));
 
   return (
     <div className="ab-b-takim" aria-label={`${tBas('tesis')} takımyıldızı`}>
@@ -730,9 +730,9 @@ function Takimyildizi({ tesisler, gosterim = OLCULMEMIS_VARSAYILAN, serit, panel
                      eksene yakınsa üste; `sola-dar` dar bantta erken sola
                      (kabuk.css, medya). */
                   className={`isaret${x > 58 ? ' sola' : ''}${x > 40 ? ' sola-dar' : ''}${
-                    uygunsuz > 0 ? ' oncelik' : ''}${
-                    yukari(s) ? ' kunye-yukari' : kaydir[i] ? ' kunye-asagi' : ''}`}
-                  style={{ left: `${4 + x * 0.86}%`, bottom: `${dikey(s)}%` }}>
+                    uygunsuz > 0 ? ' oncelik' : ''}${yukari(s) ? ' kunye-yukari' : ''}`}
+                  style={{ left: `${4 + x * 0.86}%`, bottom: `${dikey(s)}%`,
+                    ['--yol' as string]: yollar[i] }}>
                   {uygunsuz > 0 && <span className="halka" aria-hidden />}
                   <span className="kare" aria-hidden
                     style={{ background: tipRengi(s.tipKod) }} />

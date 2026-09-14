@@ -1008,7 +1008,7 @@
   100% { transform: scale(1.6); opacity: 0; }
 }
 .ab-b-takim .kunye {
-  position: absolute; left: 18px; top: -9px; white-space: nowrap; display: grid; gap: 2px;
+  position: absolute; left: 18px; white-space: nowrap; display: grid; gap: 2px;
   /* fotoğraf üstünde okunurluk: hafif zemin gölgesi, kutu yok */
   text-shadow: 0 1px 2px var(--zemin), 0 0 6px var(--zemin);
 }
@@ -1131,10 +1131,14 @@
 .ab-olculmemis-liste a:hover .ad { color: var(--aksan); }
 .ab-olculmemis-liste .guc { font-size: var(--t-code); color: var(--i3); white-space: nowrap; }
 
-/* Yakın komşusu olan işaretin künyesi ALTA, eksene yakın olanın ÜSTE
-   açılır (bkz. Genel.tsx). Bağ çizgisi künyenin üst satırında kalır. */
-.ab-b-takim .isaret.kunye-asagi .kunye { top: 6px; }
-.ab-b-takim .isaret.kunye-yukari .kunye { top: auto; bottom: 4px; }
+/* Künye YOLU: `--yol` 0 künyenin doğal yeri, 1/2/… onu kendi yönünde
+   bir künye boyu (30px) iter. Kuralı ve ölçülen kusuru `kunyeYolu.ts`
+   anlatır. Eksene yakın işaretin künyesi ÜSTE açılır ve yukarı yığılır;
+   öbürleri aşağı yığılır. Bağ çizgisi künyenin üst satırında kalır. */
+.ab-b-takim .kunye { top: calc(-9px + var(--yol, 0) * 30px); }
+.ab-b-takim .isaret.kunye-yukari .kunye {
+  top: auto; bottom: calc(4px + var(--yol, 0) * 30px);
+}
 .ab-b-takim .isaret.kunye-yukari .kunye::before { top: auto; bottom: 6px; }
 
 /* ── Katman paneli ─────────────────────────────────────────────────── */

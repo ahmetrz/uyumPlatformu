@@ -488,6 +488,21 @@ export const PLATFORM_SENARYOLARI: Senaryo[] = [
     katmanlar: ['UI'],
   },
   {
+    id: 'SIS-SAHA-001', alan: 'Sistem', rota: '/', eksen: 'arayuz',
+    amac: 'Saha tuvalindeki her tesis künyesinin OKUNABİLİR kalması — '
+      + 'üst üste binen künye iki tesisin adını tek okunamaz metne çevirir '
+      + 've kullanıcı hangi tesise baktığını bilemez',
+    rol: 'herhangi bir kullanıcı', kapsam: 'kendi kapsamı',
+    onkosul: 'Kurulu gücü kaydedilmemiş birden çok tesis var — hepsi '
+      + 'dikey eksenin aynı bandına iner', veriHali: 'bilinmeyen',
+    eylem: 'Saha ekranını açar',
+    beklenenSonuc: 'Künyeler ayrı yollara açılır; hiçbiri üst üste binmez '
+      + 've NOKTALAR yerinden oynamaz (nokta ölçülen veridir)',
+    beklenenEkran: 'Uyum × güç tuvali',
+    beklenenIz: 'yazma yok', beklenenBildirim: 'yok',
+    katmanlar: ['UI'],
+  },
+  {
     id: 'SIS-KBK-001', alan: 'Sistem', rota: '—', eksen: 'arayuz',
     amac: 'Her ekranda nerede olduğunu bilmek',
     rol: 'herhangi bir kullanıcı', kapsam: 'kendi kapsamı',

@@ -88,6 +88,12 @@ export default function KanitlarIstemci({
   const simdi = useMemo(() => an(), []);
 
   const metrikler = useMemo(() => metrikleriHesapla(kanitlar, simdi, esik), [kanitlar, simdi, esik]);
+  /* "Dosyası yok" kütüğün tamamı için BİR kez sayılır. Sinyal
+     `depoAnahtari`dir: `dosyaYolu` yalnız birinin bir yol YAZDIĞINI
+     söyler, o yolda dosya olduğunu değil. */
+  const dosyasiz = useMemo(
+    () => kanitlar.filter((k) => !k.depoAnahtari).length, [kanitlar],
+  );
   const kesildi = toplam > kanitlar.length;
 
   /* Tip seçenekleri elde duran kütükten türetilir — olmayan tip listeye girmez. */
@@ -120,7 +126,12 @@ export default function KanitlarIstemci({
       durum: im,
       kenar: im,
       konu: k.ad,
-      alt: k.dosyaYolu ? `sürüm ${k.surum} · dosya yolu kayıtlı` : `sürüm ${k.surum} · dosya yolu kayıtlı değil`,
+      /* Dosya durumu satırdan ÇIKTI: kütüğün tamamında aynı olduğu için
+         her satırda okunması karar verdirmiyor, yalnız yer kaplıyordu
+         (ölçüldü: 59 kanıdın 59'u "dosya yolu kayıtlı değil" diyordu).
+         Sayı başlıkta bir kez; kaydın kendi durumu çekmecede DAHA
+         KESİN duruyor ("Bu kanıta dosya yüklenmedi" + yol metni ayrımı). */
+      alt: `sürüm ${k.surum}`,
       hucreler: [
         tipEtiketi(k.tip),
         <TarihHucresi key="t" kanit={k} simdi={simdi} esik={esik} />,
@@ -146,6 +157,7 @@ export default function KanitlarIstemci({
             { deger: metrikler.dolmus, yazi: 'Süresi dolmuş', durum: metrikler.dolmus > 0 ? 'bd' : undefined },
             { deger: metrikler.yenilenmeli, yazi: 'Yenilenmeli', durum: metrikler.yenilenmeli > 0 ? 'md' : undefined },
             { deger: metrikler.bagsiz, yazi: 'Bağlantısız', durum: metrikler.bagsiz > 0 ? 'unk' : undefined },
+            { deger: dosyasiz, yazi: 'Dosyası yok', durum: dosyasiz > 0 ? 'unk' : undefined },
           ]}
         />
 

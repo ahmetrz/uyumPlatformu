@@ -655,11 +655,23 @@ describe('POL-229 · resmî kaynak takibi BAĞLI DEĞİL [SIS-POL-002]', () => {
       await import('@/lib/uyum/mevzuatKaynagi');
     expect(mevzuatSaglayici.bagli, 'sağlayıcı bağlı görünüyor').toBe(false);
     expect(etkinKaynakSaglayici(), 'etkin sağlayıcı var').toBeNull();
-    expect(mevzuatSaglayici.bagliDegilkenDavranis)
-      .toContain('"değişiklik yok" DEMEZ');
+    /* İDDİA EKRANDA, BİR KEZ. Cümle iki parçadır ve ikisi de ölçülür:
+       "kendiliğinden bağlanmaz / değişiklik yok DEMEZ" yarısı ekranın
+       kendi metnidir (POL-229 · politika kütüğünde), sabit ise kaynağın
+       ELLE tutulduğunu söyler. Önce ikisi de tam cümleyi taşıyordu ve
+       aynı iddia tek paragrafta iki kez okunuyordu; tekrar sabitten
+       silindi. Bu vaka ikisini birden tutar — biri düşerse kırmızıdır. */
+    const ekran = kaynakOku('app/(kabuk)/(operasyonel)/regulasyonlar/RegulasyonlarIstemci.tsx');
+    expect(ekran, 'ekran iddiayı artık söylemiyor')
+      .toContain('kendiliğinden bağlanmaz');
+    expect(ekran, 'iddianın "DEMEZ" yarısı düşmüş').toContain('DEMEZ');
+    expect(mevzuatSaglayici.bagliDegilkenDavranis, 'sabit kendi yarısını kaybetmiş')
+      .toContain('ELLE kaydedilir');
+    /* TEKRAR YASAĞI: sabit, ekranın söylediğini ikinci kez söylemez. */
+    expect(mevzuatSaglayici.bagliDegilkenDavranis, 'tekrar geri gelmiş')
+      .not.toContain('kendiliğinden');
     /* BAĞ: ekran bu sabiti RENDER EDİYOR — cümle elle kopyalanmış
        olsaydı sabit değişince ekran eski sözü söylemeye devam ederdi. */
-    const ekran = kaynakOku('app/(kabuk)/(operasyonel)/regulasyonlar/RegulasyonlarIstemci.tsx');
     expect(ekran).toMatch(/mevzuatSaglayici\.bagliDegilkenDavranis/);
   });
 

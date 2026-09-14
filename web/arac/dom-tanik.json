@@ -1,5 +1,5 @@
 {
-  "uretilme": "2026-09-12T17:42:54.403Z",
+  "uretilme": "2026-09-14T12:24:51.104Z",
   "rota": [
     "/",
     "/aktivite",
@@ -316,7 +316,7 @@
       ]
     },
     {
-      "cumle": "Ürün hiçbir siteye kendiliğinden bağlanmaz ve \"değişiklik yok\" DEMEZ: Kaynaklar kütüğe ELLE kaydedilir ve \"en son ne zaman bakıldı\" bilgisi elle güncellenir. Ürün hiçbir siteye kendiliğinden bağlanmaz ve \"değişiklik yok\" DEMEZ — yalnız en son bakılan tarihi ve o bakışta düşülen notu gösterir.",
+      "cumle": "Ürün hiçbir siteye kendiliğinden bağlanmaz ve \"değişiklik yok\" DEMEZ: Kaynaklar kütüğe ELLE kaydedilir ve \"en son ne zaman bakıldı\" bilgisi elle güncellenir; ürün yalnız en son bakılan tarihi ve o bakışta düşülen notu gösterir.",
       "rotalar": [
         "/regulasyonlar"
       ]

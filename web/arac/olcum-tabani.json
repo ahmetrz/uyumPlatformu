@@ -23,7 +23,7 @@
     "gezinme.bant": 7,
     "tasma.olcum": 144,
     "axe.tarama": 216,
-    "bos.durum": 125,
+    "bos.durum": 124,
     "politika.cumle": 220,
     "tanik.rota": 65,
     "tanik.cumle": 43,
@@ -33,10 +33,10 @@
   },
   "dususler": {
     "bos.durum": {
-      "eski": 126,
-      "yeni": 125,
-      "sebep": "VeriTablosu artık KENDİ boş durumunu yazmıyor: sebebini bilmediği bir boşluğa cümle uyduruyordu (tablo süzgeçsiz de boş olabilir). Kap çağıranın cümlesini taşıyor ve sınıf adında bos sözcüğü yok; ölçüm ÇAĞIRANIN yerinde yapılır. Yüzey silindi, körlük değil.",
-      "tarih": "2026-09-11"
+      "eski": 125,
+      "yeni": 124,
+      "sebep": "/regulasyonlar çekmecesindeki 'Bu regülasyon için kayıtlı resmî kaynak yok' paragrafı kaldırıldı: aynı blokta bir üst satırda takipCumlesi(ozet) sıfır kaynakta ZATEN aynı cümleyi yazıyordu ('Kayıtlı resmî kaynak yok — mevzuat değişikliği izlenmiyor.'). İki cümle aynı olguyu söylüyordu; eylem ikisinin de altındaki 'Kaynak ekle' düğmesidir ve yerinde duruyor. Boş durum ORTADAN KALKMADI, TEKRARI kalktı — sebep ve eylem hâlâ ekranda.",
+      "tarih": "2026-09-14"
     }
   }
 }

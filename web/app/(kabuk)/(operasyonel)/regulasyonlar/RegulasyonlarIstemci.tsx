@@ -715,6 +715,10 @@ function KaynakBlogu({ reg, yazabilir }: { reg: Reg; yazabilir: boolean }) {
           : ozet.hicBakilmadi > 0 || ozet.adressiz > 0 ? 'var(--unk)' : 'var(--i3)' }}>
         {takipCumlesi(ozet)}
       </p>
+      {/* İddia BİR KEZ okunur. Önce hem bu önek hem sağlayıcı sabiti
+          aynı cümleyle bitiyordu; tekrar SABİTTEN silindi, ekrandaki
+          metin yerinde kaldı — kaynağı okuyan türetici onu görebilsin
+          (yalnız sabiti render etmek cümleyi ölçülemez hâle getirirdi). */}
       <p className="ab-panel-dip" style={{ margin: '0 0 var(--s14)' }}>
         Ürün hiçbir siteye kendiliğinden bağlanmaz ve &quot;değişiklik yok&quot;
         DEMEZ: {mevzuatSaglayici.bagliDegilkenDavranis}
@@ -756,12 +760,6 @@ function KaynakBlogu({ reg, yazabilir }: { reg: Reg; yazabilir: boolean }) {
             </div>
           </div>
         ))}
-        {reg.kaynaklar.length === 0 && (
-          <p className="ab-panel-dip" style={{ margin: 0, color: 'var(--unk)' }}>
-            Bu regülasyon için kayıtlı resmî kaynak yok — mevzuat değişikliği
-            izlenmiyor.
-          </p>
-        )}
       </div>
 
       {yazabilir && (

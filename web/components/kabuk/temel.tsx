@@ -176,9 +176,14 @@ export function Ipucu({ metin, genis = false, children }: {
 
 type DugmeTuru = 'birincil' | 'ikincil' | 'ret' | 'satir' | 'tam' | 'bilesen';
 
+/* `ComponentProps<'button'>` — `ButtonHTMLAttributes` DEĞİL: ikincisi
+   `ref` taşımaz ve çağıranın düğmeye odak vermesini imkânsız kılar.
+   Kip değiştiren bir ekranda (`/ayarlar`) odağın kipi açan düğmeye geri
+   dönmesi klavye kullanıcısı için tek yoldur; React 19'da `ref` sıradan
+   bir proptur ve `...kalan` ile düğmeye iner. */
 export function Dugme({ tur = 'ikincil', children, className, ...kalan }: {
   tur?: DugmeTuru; children: ReactNode;
-} & React.ButtonHTMLAttributes<HTMLButtonElement>) {
+} & React.ComponentProps<'button'>) {
   return (
     <button type="button"
       className={`ab-dugme${tur === 'ikincil' ? '' : ` ${tur}`}${className ? ` ${className}` : ''}`}

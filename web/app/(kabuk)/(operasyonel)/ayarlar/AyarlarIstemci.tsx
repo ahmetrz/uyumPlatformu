@@ -1,5 +1,5 @@
 'use client';
-import { useState } from 'react';
+import { useEffect, useRef, useState, type RefObject } from 'react';
 import { useSozluk, useTerim } from '@/lib/dil/SozlukSaglayici';
 import Link from 'next/link';
 import { Alan, Dugme, EntegrasyonYok } from '@/components/kabuk/temel';
@@ -69,10 +69,31 @@ export default function AyarlarIstemci({ veri, simdi }: { veri: AyarlarVerisi; s
   );
 }
 
+/* ── Kip değişiminde ODAK ────────────────────────────────────────────
+   Okuma ve düzenleme dalları birbirinin YERİNE geçer: kipi açan düğme
+   DOM'dan silinir ve klavye kullanıcısının odağı gövdeye düşer — o
+   kişi, az önce bastığı düğmenin ne yaptığını göremez ve sekmeye
+   sayfanın başından başlar. Bu yüzden odak açılışta formun İLK alanına,
+   kapanışta kipi açan düğmeye taşınır.
+
+   İLK ÇİZİMDE TAŞINMAZ: ekran açılır açılmaz odağı bir düğmeye çekmek,
+   kullanıcının hiç istemediği bir yere ışınlanması olurdu. */
+function useKipOdagi(
+  acik: boolean,
+  ilkAlan: RefObject<HTMLInputElement | null>,
+  acanDugme: RefObject<HTMLButtonElement | null>,
+) {
+  const ilkCizim = useRef(true);
+  useEffect(() => {
+    if (ilkCizim.current) { ilkCizim.current = false; return; }
+    (acik ? ilkAlan.current : acanDugme.current)?.focus();
+  }, [acik, ilkAlan, acanDugme]);
+}
+
 /* ── Profil ─────────────────────────────────────────────────────────── */
 
 function Profil({ profil }: { profil: AyarlarVerisi['profil'] }) {
-  const { bekliyor, hata, calistir } = useEylem();
+  const { bekliyor, hata, setHata, calistir } = useEylem();
   const [f, setF] = useState({ adSoyad: profil.adSoyad, unvan: profil.unvan ?? '' });
   const [kaydedildi, setKaydedildi] = useState(false);
   /* OKUMA HÂLİ ≠ DÜZENLEME HÂLİ. Ekran açılışta üç giriş alanı (burada
@@ -83,9 +104,15 @@ function Profil({ profil }: { profil: AyarlarVerisi['profil'] }) {
      (`setDuzenle`) ve `/regulasyonlar` (`Kaynak ekle`) böyle çalışır. */
   const [duzenle, setDuzenle] = useState(false);
   const degisti = f.adSoyad.trim() !== profil.adSoyad || (f.unvan.trim() || null) !== profil.unvan;
+  const acRef = useRef<HTMLButtonElement>(null);
+  const ilkAlanRef = useRef<HTMLInputElement>(null);
+  useKipOdagi(duzenle, ilkAlanRef, acRef);
 
+  /* Vazgeçmek DENEMEYİ de siler: kalan hata, üç boş alanın üstünde bir
+     ÖNCEKİ denemeyi anlatır ve kullanıcı onu bu formun cevabı sanar. */
   const vazgec = () => {
     setF({ adSoyad: profil.adSoyad, unvan: profil.unvan ?? '' });
+    setHata(null);
     setDuzenle(false);
   };
 
@@ -120,7 +147,9 @@ function Profil({ profil }: { profil: AyarlarVerisi['profil'] }) {
             </p>
           )}
           <div className="eylem">
-            <Dugme onClick={() => { setDuzenle(true); setKaydedildi(false); }}>
+            <Dugme ref={acRef} onClick={() => {
+              setDuzenle(true); setKaydedildi(false); setHata(null);
+            }}>
               Profili düzenle
             </Dugme>
             <span className="ab-panel-dip">
@@ -135,7 +164,7 @@ function Profil({ profil }: { profil: AyarlarVerisi['profil'] }) {
       ) : (
       <div className="ab-ayar-form">
         <Alan etiket="Ad soyad" zorunlu>
-          <input className="ab-gr" value={f.adSoyad} autoComplete="name" maxLength={120}
+          <input className="ab-gr" ref={ilkAlanRef} value={f.adSoyad} autoComplete="name" maxLength={120}
             onChange={(e) => { setF({ ...f, adSoyad: e.target.value }); setKaydedildi(false); }} />
         </Alan>
         <Alan etiket="Unvan">
@@ -174,7 +203,7 @@ function Profil({ profil }: { profil: AyarlarVerisi['profil'] }) {
 /* ── Parola ─────────────────────────────────────────────────────────── */
 
 function Parola({ parolaVar }: { parolaVar: boolean }) {
-  const { bekliyor, hata, calistir } = useEylem();
+  const { bekliyor, hata, setHata, calistir } = useEylem();
   const [f, setF] = useState({ eski: '', yeni: '', tekrar: '' });
   const [degisti, setDegisti] = useState(false);
   /* OKUMA HÂLİ ≠ DÜZENLEME HÂLİ — Profil ile aynı gerekçe. Burada
@@ -188,8 +217,13 @@ function Parola({ parolaVar }: { parolaVar: boolean }) {
   const gecerli = f.eski.length > 0 && f.yeni.length >= PAROLA_EN_AZ
     && f.tekrar === f.yeni && !ayni;
 
+  const acRef = useRef<HTMLButtonElement>(null);
+  const ilkAlanRef = useRef<HTMLInputElement>(null);
+  useKipOdagi(degistir, ilkAlanRef, acRef);
+
   const vazgec = () => {
     setF({ eski: '', yeni: '', tekrar: '' });
+    setHata(null);
     setDegistir(false);
   };
 
@@ -212,7 +246,9 @@ function Parola({ parolaVar }: { parolaVar: boolean }) {
                 </p>
               )}
               <div className="eylem">
-                <Dugme onClick={() => { setDegistir(true); setDegisti(false); }}>
+                <Dugme ref={acRef} onClick={() => {
+                  setDegistir(true); setDegisti(false); setHata(null);
+                }}>
                   Parolayı değiştir
                 </Dugme>
               </div>
@@ -220,7 +256,7 @@ function Parola({ parolaVar }: { parolaVar: boolean }) {
           ) : (
             <div className="ab-ayar-form">
               <Alan etiket="Mevcut parola" zorunlu>
-                <input className="ab-gr" type="password" autoComplete="current-password"
+                <input className="ab-gr" ref={ilkAlanRef} type="password" autoComplete="current-password"
                   style={{ fontFamily: 'var(--veri)' }} value={f.eski}
                   onChange={(e) => { setF({ ...f, eski: e.target.value }); setDegisti(false); }} />
               </Alan>

@@ -1,7 +1,7 @@
 {
-  "imza": "993f0411c7957a4cf59a845395c3a8f2",
+  "imza": "fb4f6211d0b7fabd0531f0ed2a4cdba9",
   "dosya": 249,
-  "vaka": 4456,
+  "vaka": 4463,
   "atlanan": 1,
   "dosyalar": {
     "tests/adaptor-yetenekleri.test.ts": {
@@ -41,7 +41,7 @@
       "atlanan": 0
     },
     "tests/bekci/ayar-okuma-hali.test.ts": {
-      "vaka": 7,
+      "vaka": 11,
       "atlanan": 0
     },
     "tests/bekci/bildirim-motoru.test.ts": {
@@ -413,7 +413,7 @@
       "atlanan": 0
     },
     "tests/kabuk-gezinme.test.ts": {
-      "vaka": 12,
+      "vaka": 15,
       "atlanan": 0
     },
     "tests/kabuk-inceleme.test.ts": {

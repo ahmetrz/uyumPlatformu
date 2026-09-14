@@ -95,6 +95,49 @@ describe('Ayarlar · okuma hâli düzenleme hâli değildir [SIS-OKM-001]', () =
       .toContain('Vazgeç');
   });
 
+  it.each(KAPILAR)('[SIS-OKM-001] `%s` kipinden vazgeçmek ÖNCEKİ DENEMEYİ de '
+    + 'siler — kalan hata, üç boş alanın üstünde eski bir denemeyi anlatır '
+    + 've kullanıcı onu bu formun cevabı sanar', (bayrak) => {
+    /* Kipi AÇAN düğme de temizler: kip kapanmadan sayfa yenilenirse hata
+       ayakta kalır ve ikinci açılışta yine karşılar. */
+    const { duzenleme } = dallar(KAYNAK, bayrak);
+    const vazgec = KAYNAK.slice(KAYNAK.indexOf('const vazgec = () => {',
+      KAYNAK.indexOf(`[${bayrak}, set`)));
+    expect(vazgec.slice(0, vazgec.indexOf('};')), `${bayrak}: vazgeç hatayı bırakıyor`)
+      .toContain('setHata(null)');
+    expect(duzenleme, `${bayrak}: vazgeç düğmesi vazgec() çağırmıyor`)
+      .toContain('onClick={vazgec}');
+  });
+
+  it('[SIS-OKM-001] kipi AÇAN düğme de hatayı siler — kapanmadan tazelenen '
+    + 'bir ekranda hata ayakta kalır ve ikinci açılışta yine karşılar', () => {
+    KAPILAR.forEach((bayrak) => {
+      const { okuma } = dallar(KAYNAK, bayrak);
+      expect(okuma, `${bayrak}: açan düğme hatayı silmiyor`).toContain('setHata(null)');
+    });
+  });
+
+  it('[SIS-OKM-001] kip değişiminde ODAK taşınır — kipi açan düğme DOM\'dan '
+    + 'silindiğinde klavye kullanıcısının odağı gövdeye düşer', () => {
+    /* Kancanın kendisi: açılışta ilk alana, kapanışta açan düğmeye. */
+    const kanca = KAYNAK.slice(KAYNAK.indexOf('function useKipOdagi('));
+    const govde = kanca.slice(0, kanca.indexOf('\n}'));
+    expect(govde, 'odak açılışta ilk alana gitmiyor').toContain('ilkAlan.current');
+    expect(govde, 'odak kapanışta açan düğmeye dönmüyor').toContain('acanDugme.current');
+    /* İLK ÇİZİMDE TAŞINMAZ: ekran açılır açılmaz odağı bir düğmeye
+       çekmek, kullanıcının hiç istemediği bir yere ışınlanmasıdır.
+       Ölçülen şey BAYRAĞIN ADI DEĞİL, korumanın kendisidir: sabotaj
+       turunda `if (…) return;` satırı silindiğinde `useRef` bildirimi
+       yerinde kaldığı için ada bakan bir iddia yeşil kalıyordu. */
+    const oncesi = govde.slice(0, govde.indexOf('.focus()'));
+    expect(oncesi, 'ilk çizimde odak taşımayı durduran erken çıkış yok')
+      .toMatch(/if\s*\(ilkCizim\.current\)[^\n]*return;/);
+    /* Ve iki bölüm de kancayı ÇAĞIRIR — yazılmış ama çağrılmamış bir
+       kanca hiçbir şey yapmaz. */
+    expect(KAYNAK.match(/useKipOdagi\(/g) ?? [], 'kanca her kipte çağrılmıyor')
+      .toHaveLength(KAPILAR.length + 1);
+  });
+
   it('[SIS-OKM-001] ekrandaki yazılabilir alanların TAMAMI bir kapının '
     + 'arkasında — kapısız yeni bir form buradan geçemez', () => {
     const kapili = KAPILAR.reduce(

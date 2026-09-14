@@ -91,7 +91,7 @@ function damga(iso: string | null): string {
 export default function Kabuk({ veri, children }: { veri: KabukVerisi; children: ReactNode }) {
   const patika = usePathname() ?? '/';
   const yogunluk = yogunlukSec(patika);
-  const ikincil = ikincilSec(patika);
+  const ikincil = ikincilSec(patika, veri.sozluk);
   const ucuncul = ucunculSec(patika);
   /* Kabuk, sağlayıcının KENDİSİDİR: `useTerim()` burada çağrılamaz
      (bağlam bir alt katmanda başlar), sözlük doğrudan veriden okunur. */

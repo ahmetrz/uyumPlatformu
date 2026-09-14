@@ -17,7 +17,7 @@
    Bu dosya SALT SUNUMDUR: URL'ler, RBAC, kapsam ve veri sözleşmeleri
    değişmez. */
 
-import { tBas, type Sozluk } from '@/lib/dil/terimler';
+import { tBas, type Sozluk, type TerimAnahtari } from '@/lib/dil/terimler';
 
 export type Yogunluk = 'amiral' | 'operasyonel' | 'tezgah';
 
@@ -109,7 +109,14 @@ export function alanAktif(alan: Oge, patika: string): boolean {
    Önce `baslik?` diye isteğe bağlı ve GÖRÜNÜR bir alan vardı; hiçbir
    alanda doldurulmamıştı ve doldurulsa da `aria-hidden` ile gizlenirdi
    — yani hem ölü hem erişilemezdi. */
-export const IKINCIL: Record<string, { ad: string; ogeler: Oge[] }[]> = {
+/** İkincil sıradaki grup. `ad` ÇEKİRDEK karşılıktır; `terim` verilmişse
+    ekrana giden ad kiracının sözlüğünden çözülür — alan adlarıyla
+    (`alanlariCoz`) aynı kural. Tek sektöre inen bir kapsamda üst alan
+    "Enerji portföyü" derken grubun "Portföy" demesi, ekran okuyucuya
+    ürünün kendi sözlüğünü YALANLAYAN bir ad duyurur. */
+export type Grup = { ad: string; terim?: TerimAnahtari; ogeler: Oge[] };
+
+export const IKINCIL: Record<string, Grup[]> = {
   '/uyum': [
     { ad: 'Uyum durumu', ogeler: [
       { ad: 'Matris', yol: '/uyum' },
@@ -224,17 +231,19 @@ export const IKINCIL: Record<string, { ad: string; ogeler: Oge[] }[]> = {
     ]},
   ],
   '/portfoy': [
-    { ad: 'Portföy', ogeler: [
+    { ad: 'Portföy', terim: 'portfoy', ogeler: [
       { ad: 'Karşılaştırma', yol: '/portfoy' },
       { ad: 'Harita', yol: '/harita' },
     ]},
   ],
 };
 
-/** Patikanın ikincil sırası; Saha ve yardımcı rotalarda boş dizi. */
-export function ikincilSec(patika: string): { ad: string; ogeler: Oge[] }[] {
+/** Patikanın ikincil sırası; Saha ve yardımcı rotalarda boş dizi.
+    Sözlük verilirse `terim` taşıyan grup adı ondan çözülür. */
+export function ikincilSec(patika: string, sozluk?: Sozluk | null): Grup[] {
   const alan = alanSec(patika);
-  return alan ? (IKINCIL[alan] ?? []) : [];
+  const gruplar = alan ? (IKINCIL[alan] ?? []) : [];
+  return gruplar.map((g) => (g.terim ? { ...g, ad: tBas(sozluk, g.terim) } : g));
 }
 
 /** İkincil öğe aktif mi — kendi yolu ya da alt ekranlarından biri. */

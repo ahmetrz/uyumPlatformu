@@ -1,7 +1,7 @@
 {
-  "imza": "76098a03bb6a68b0ee1e95467db030cf",
-  "dosya": 248,
-  "vaka": 4449,
+  "imza": "993f0411c7957a4cf59a845395c3a8f2",
+  "dosya": 249,
+  "vaka": 4456,
   "atlanan": 1,
   "dosyalar": {
     "tests/adaptor-yetenekleri.test.ts": {
@@ -38,6 +38,10 @@
     },
     "tests/bekci/aktif-suzgec.test.ts": {
       "vaka": 2,
+      "atlanan": 0
+    },
+    "tests/bekci/ayar-okuma-hali.test.ts": {
+      "vaka": 7,
       "atlanan": 0
     },
     "tests/bekci/bildirim-motoru.test.ts": {

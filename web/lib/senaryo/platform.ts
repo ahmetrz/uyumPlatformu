@@ -1393,6 +1393,22 @@ export const PLATFORM_SENARYOLARI_6: Senaryo[] = [
     katmanlar: ['UI'],
   },
   {
+    id: 'SIS-OKM-001', alan: 'Sistem', rota: '/ayarlar', eksen: 'arayuz',
+    amac: 'Okuma hâlinin düzenleme hâlinden ayrılması — ekranın birincil '
+      + 'görevi hesabı OKUMAKTIR, ama açılışta altı giriş alanı çiziliyordu; '
+      + 'parola bölümü, okunacak bir değeri olmadığı için üç BOŞ kutuydu',
+    rol: 'herhangi bir kullanıcı', kapsam: 'kendi kapsamı',
+    onkosul: 'Ayarlar ekranı açık; hesabın parolası tanımlı',
+    veriHali: 'normal',
+    eylem: 'Ekranı açar ve hiçbir şey değiştirmeden profilini okur',
+    beklenenSonuc: 'Profil değerleri okunur biçimde (ad, unvan, e-posta) '
+      + 'gelir ve hiçbir yazma alanı çizilmez; düzenleme ve parola '
+      + 'değişimi kullanıcının kararıyla açılır, Vazgeç ile kapanır',
+    beklenenEkran: 'Ayarlar · profil ve parola bölümleri',
+    beklenenIz: 'yazma yok', beklenenBildirim: 'yok',
+    katmanlar: ['UI'],
+  },
+  {
     id: 'SIS-KBK-019', alan: 'Sistem', rota: '/uyum', eksen: 'arayuz',
     amac: 'İkincil sıradaki grup yapısının EKRAN OKUYUCUYA da ulaşması — '
       + 'gören kullanıcı grupları dikey çizgiden ayırır, ekran okuyucu o '

@@ -13,7 +13,7 @@ it('kapsam dışı varlığa yazılamaz [ENV-YAZ-003]', …)
 Ayrı bir eşleme tablosu tutulsaydı, tablo ilk yeniden adlandırmada
 testten ayrışır ve kimse görmezdi.
 
-Senaryo: **381** · testli: **381** · GAP: **0**
+Senaryo: **382** · testli: **382** · GAP: **0**
 
 ## Aktivite · 2 senaryo
 
@@ -380,7 +380,7 @@ Senaryo: **381** · testli: **381** · GAP: **0**
 | `SAY-KMP-001` | /sayim | BT yöneticisi · kendi tesisi | Kapsamda hiç varlık yok · yok | Sayım açmayı dener | Açılmaz — sıfır paydalı kampanya olamaz | Neden açılmadığı yazılır | yazma yok | yok | `faz-g-varlik.test.ts` |
 | `SAY-KMP-002` | /sayim | BT yöneticisi · kendi tesisi | Satır "bulunamadı" işaretlendi · kısmi | Sonucu kaydeder | Varlık SİLİNMEZ — envanterden düşürme ayrı bir karardır | "Sayılmadı" ile "bulunamadı" ayrı durumlardır | Sayım satırı · guncelleme | yok | `faz-g-eylem.test.ts` |
 
-## Sistem · 70 senaryo
+## Sistem · 71 senaryo
 
 | ID | Rota | Rol · kapsam | Ön koşul · veri | Eylem | Beklenen sonuç | Ekran | Denetim izi | Görev/bildirim | Test |
 | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- |
@@ -420,6 +420,7 @@ Senaryo: **381** · testli: **381** · GAP: **0**
 | `SIS-KBK-016` | /uyum | saha kullanıcısı · tek tesis | Dar bant · uzun içerik | En uzun bağ adı ölçülür | Hiçbir bağ dar bandın yarısını aşmaz | Gezinme etiketi yarım okunmaz | yazma yok | yok | `kabuk-gezinme.test.ts` |
 | `SIS-KBK-017` | /envanter | BT yöneticisi · kurum geneli | Pencere 1024px · Varlık grubu açık · normal | Grubun alt ekranlarının toplam eni hesaplanır | Sıra sığar — saramadığı için sığmak zorundadır | Alt ekranların hepsi görünür | yazma yok | yok | `kabuk-gezinme.test.ts` |
 | `SIS-MRC-001` | /envanter | BT yöneticisi · kurum geneli | Envanter ekranı açık; mercek şeridi beş birincil ve üç taşma merceği taşıyor · normal | Mercek şeridine bakar | Beş birincil mercek düz kenarlıkla, üç taşma merceği kesikli kenarlıkla çizilir — paylaşılan süzgeç bileşeninin ve keşif ekranının kullandığı gramerin aynısı | Envanter süzgeç şeridi | yazma yok | yok | `bekci/mercek-tasmasi.test.ts` · `bekci/mercek-tasmasi.test.ts` · `bekci/mercek-tasmasi.test.ts` · `bekci/mercek-tasmasi.test.ts` |
+| `SIS-OKM-001` | /ayarlar | herhangi bir kullanıcı · kendi kapsamı | Ayarlar ekranı açık; hesabın parolası tanımlı · normal | Ekranı açar ve hiçbir şey değiştirmeden profilini okur | Profil değerleri okunur biçimde (ad, unvan, e-posta) gelir ve hiçbir yazma alanı çizilmez; düzenleme ve parola değişimi kullanıcının kararıyla açılır, Vazgeç ile kapanır | Ayarlar · profil ve parola bölümleri | yazma yok | yok | `bekci/ayar-okuma-hali.test.ts` · `bekci/ayar-okuma-hali.test.ts` · `bekci/ayar-okuma-hali.test.ts` · `bekci/ayar-okuma-hali.test.ts` |
 | `SIS-KBK-019` | /uyum | ekran okuyucu kullanan kullanıcı · kendi kapsamı | Uyum alanı açık; ikincil sıra üç grup taşıyor · normal | Gezinme bölgesini ekran okuyucuyla dolaşır | Her grup kendi ADIYLA duyulur (Uyum durumu · Denetim ve aksiyon · Kayıt ve kanıt); adlar birbirinden farklıdır | İkincil gezinme sırası | yazma yok | yok | `kabuk-gezinme.test.ts` · `kabuk-gezinme.test.ts` · `kabuk-gezinme.test.ts` |
 | `SIS-KBK-018` | — | ürün ekibi · kurum geneli | Yeni bir ekran eklendi · normal | Rota envanteri sayfa ağacıyla karşılaştırılır | Kabuklu her statik sayfa envanterde | Listede olmayan ekran hiçbir kapıdan geçmez | yazma yok | yok | `kabuk-gezinme.test.ts` |
 | `SIS-BSL-001` | — | herhangi bir kullanıcı · kendi kapsamı | Ekranın vurgusu boş kalabiliyor · yok | Ekran açılır ve H1 okunur | Başlık cümle parçası değil | Ekran okuyucu ve arama sonucu anlamlı bir ad görür | yazma yok | yok | `ekran-basligi.test.ts` |

@@ -4,12 +4,12 @@
 
 | Ölçü | Değer |
 | --- | --- |
-| Senaryo | 381 |
-| Testi olan senaryo | 381 |
+| Senaryo | 382 |
+| Testi olan senaryo | 382 |
 | **GAP** | **0** |
 | Hayalet işaret (kütükte olmayan kimlik) | 0 |
 | Kütüksüz test dosyası | 0 |
-| Taranan test dosyası | 248 |
+| Taranan test dosyası | 249 |
 
 ## Katman başına kapsam
 
@@ -26,7 +26,7 @@
 | RESPONSIVE | 9 | 9 | 0 |
 | SCOPE | 34 | 34 | 0 |
 | SERVER | 159 | 159 | 0 |
-| UI | 112 | 112 | 0 |
+| UI | 113 | 113 | 0 |
 | VISUAL | 4 | 4 | 0 |
 | WORKFLOW | 39 | 39 | 0 |
 
@@ -544,6 +544,10 @@
 | `SIS-MRC-001` | Sistem | UI | `bekci/mercek-tasmasi.test.ts` | envanterde taşma düğmesi `tasma` sınıfını taşır | evet | geçti |
 | `SIS-MRC-001` | Sistem | UI | `bekci/mercek-tasmasi.test.ts` | kesikli kenarlık kuralı İKİ bandı da kapsar — tek bandı | evet | geçti |
 | `SIS-MRC-001` | Sistem | UI | `bekci/mercek-tasmasi.test.ts` | taşma listesi BOŞ DEĞİL — boş bir liste bu kuralı | evet | geçti |
+| `SIS-OKM-001` | Sistem | UI | `bekci/ayar-okuma-hali.test.ts` | `%s` kapısının OKUMA dalı yazılabilir alan | evet | geçti |
+| `SIS-OKM-001` | Sistem | UI | `bekci/ayar-okuma-hali.test.ts` | `%s` kapısı KAPALI doğar — `useState(true)` | evet | geçti |
+| `SIS-OKM-001` | Sistem | UI | `bekci/ayar-okuma-hali.test.ts` | `%s` kipinden VAZGEÇİLEBİLİR — açılan bir | evet | geçti |
+| `SIS-OKM-001` | Sistem | UI | `bekci/ayar-okuma-hali.test.ts` | ekrandaki yazılabilir alanların TAMAMI bir kapının | evet | geçti |
 | `SIS-KBK-019` | Sistem | UI · ACCESSIBILITY | `kabuk-gezinme.test.ts` | her ikincil grubun ADI vardır — adsız grup ekran | evet | geçti |
 | `SIS-KBK-019` | Sistem | UI · ACCESSIBILITY | `kabuk-gezinme.test.ts` | bir alanın grup adları BİRBİRİNDEN farklıdır — aynı | evet | geçti |
 | `SIS-KBK-019` | Sistem | UI · ACCESSIBILITY | `kabuk-gezinme.test.ts` | kabuk grubu ROL ve AD ile çizer — ad yalnız görünür | evet | geçti |

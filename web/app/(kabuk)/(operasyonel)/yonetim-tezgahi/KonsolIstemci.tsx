@@ -48,17 +48,17 @@ const MODUL_KOLONLARI: Kolon[] = [
   { baslik: 'Sınıf', genislik: '124px' },
   { baslik: 'Yönetim yeri', genislik: '124px' },
   { baslik: 'Kayıt', genislik: '72px', sag: true },
-  { baslik: 'Açık talep', genislik: '88px', sag: true, ikincil: true },
+  { baslik: 'Açık talep', genislik: '106px', sag: true, ikincil: true },
 ];
 const KAYIT_KOLONLARI: Kolon[] = [
   { baslik: 'Kod', genislik: '150px' },
   { baslik: 'Bağlı', genislik: '72px', sag: true },
-  { baslik: 'Açık talep', genislik: '88px', sag: true, ikincil: true },
+  { baslik: 'Açık talep', genislik: '106px', sag: true, ikincil: true },
 ];
 const AYAR_KOLONLARI: Kolon[] = [
   { baslik: 'Değer', genislik: '150px', sag: true },
   { baslik: 'Kaynak', genislik: '112px' },
-  { baslik: 'Açık talep', genislik: '88px', sag: true, ikincil: true },
+  { baslik: 'Açık talep', genislik: '106px', sag: true, ikincil: true },
 ];
 const TALEP_KOLONLARI: Kolon[] = [
   { baslik: 'Hedef', genislik: '160px' },

@@ -395,6 +395,16 @@ jobs:
         working-directory: web
         run: npm run kanit:kimlik
 
+      # Saha tuvali · SIS-SAHA-001 · SIS-SAHA-002. Aynı sunucuyu kullanır.
+      # Ölçtüğü şeyi KAYNAK ÖLÇEMEZ: künye kuralı saf bir fonksiyondur ve
+      # doğruydu; "yol 9" gerçek tuvalde 303 piksel ediyordu ve künye
+      # başka bir tesis kümesinin içine düşüyordu (bağımsız audit,
+      # 14 Eyl 2026). İlk koşusunda iki kusur buldu: 1280×800'de künye
+      # çakışması ve birim tutarsızlığı (tespit yüzde, yerleştirme piksel).
+      - name: Saha tuvali kanıtı · iki bant
+        working-directory: web
+        run: npm run kanit:tuval
+
       # R1 · mevzuat radarı. Aynı sunucuyu kullanır. Ölçtüğü en pahalı
       # iddia: ENGELLİ ile KARŞILAŞTIRILAMADI ekranda AYRI görünüyor —
       # biri kaynağın kararı (ürün aşmaz), öbürü bizim bilgi eksiğimiz.

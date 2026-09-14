@@ -31,8 +31,8 @@ const GORUNUR_BUTCE = 7;
 
 const KOLONLAR: Kolon[] = [
   { baslik: 'Okunan', genislik: '70px', sag: true },
-  { baslik: 'İşlenecek', genislik: '80px', sag: true },
-  { baslik: 'Elenen', genislik: '64px', sag: true },
+  { baslik: 'İşlenecek', genislik: '96px', sag: true },
+  { baslik: 'Elenen', genislik: '70px', sag: true },
   { baslik: 'Yükleyen', genislik: '150px', ikincil: true },
 ];
 

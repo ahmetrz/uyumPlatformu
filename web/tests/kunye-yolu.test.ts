@@ -91,6 +91,8 @@ describe('Künye yolu · çakışma', () => {
       + 'değişmeli').toBeLessThanOrEqual(3);
     expect(KUNYE_EN_COK_YOL * KUNYE_BOY, 'künye tuvalin üçte birinden '
       + 'uzağa düşebiliyor').toBeLessThanOrEqual(33);
+    /* Yüzde ancak tuvalin yüksekliği sabitse anlamlıdır; taban
+       `.ab-tuval { min-height }` ile kurulur ve ikisi birlikte değişir. */
   });
 
   it('[SIS-SAHA-001] ÖLÇÜLEN KUSUR · künye İŞARETİNDEN KOPAMAZ — sınırsız '

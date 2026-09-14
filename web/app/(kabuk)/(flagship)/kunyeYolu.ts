@@ -50,6 +50,19 @@ export type KunyeNoktasi = {
  *  YETMEDİ: o iki künye hâlâ üst üste biniyordu (ölçüldü, düzeltme turu).
  *  İki satırlık künye 28px ≈ %11 (tuval ~260px). */
 export const KUNYE_EN = 28;
+/* Künye boyu TUVAL YÜZDESİDİR: 34px künye / ~300px tuval ≈ %11.
+   Yüzde olması, sabitin tuval yüksekliğine BAĞIMLI olması demektir ve
+   bu bağımlılık ölçüldü (tuval kanıtı, 1280×800): tuval `flex: 1` ile
+   viewport'tan pay alıyordu ve orada 203px'e iniyordu; aynı künye
+   artık %17 ediyor, kural %11 varsayıp "yeterince uzak" diyor ve iki
+   künye ekranda üst üste biniyordu.
+
+   Sabiti 17'ye çekmek denendi ve GERİ ALINDI: çakışma bitiyordu ama
+   künye–işaret mesafesi 100px'ten 180px'e çıkıyordu — yani kapatılan
+   P0 (künyenin işaretinden kopması) geri geliyordu. İki kusur arasında
+   seçim yapmak yerine varsayım gerçek kılındı: tuval artık tasarlandığı
+   yüksekliğin ALTINA İNEMEZ (`.ab-tuval { min-height }`, kabuk.css) ve
+   %11 her bantta 34px'e karşılık gelir. */
 export const KUNYE_BOY = 11;
 
 /* KÜNYE KENDİ İŞARETİNDEN KOPAMAZ — ölçülen kusur (bağımsız audit,

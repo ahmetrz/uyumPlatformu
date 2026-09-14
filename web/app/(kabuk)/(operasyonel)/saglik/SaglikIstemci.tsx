@@ -48,9 +48,9 @@ import {
 const MOTOR_KOLONLARI: Kolon[] = [
   /* Geçmiş şeridi SON KOŞUDAN ÖNCE gelir: okuyucu önce eğilimi ("beş
      koşudur patlıyor"), sonra son olayın zamanını görür. */
-  { baslik: 'Son 5 koşu', genislik: '52px' },
+  { baslik: 'Son 5 koşu', genislik: '104px' },
   { baslik: 'Son koşu', genislik: '146px' },
-  { baslik: 'İşlenen → üretilen', genislik: '134px', sag: true },
+  { baslik: 'İşlenen → üretilen', genislik: '172px', sag: true },
   { baslik: 'Süre', genislik: '78px', sag: true, ikincil: true },
 ];
 

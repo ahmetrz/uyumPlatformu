@@ -58,7 +58,7 @@ const kolonlar = (tesis: string): Kolon[] => [
   { baslik: tesis, genislik: '132px', siraAnahtari: 'tesis' },
   { baslik: 'Sorumlu', genislik: '140px', ikincil: true },
   { baslik: 'Kanıt', genislik: '106px' },
-  { baslik: 'Değerlendirme', genislik: '116px', siraAnahtari: 'zaman' },
+  { baslik: 'Değerlendirme', genislik: '148px', siraAnahtari: 'zaman' },
 ];
 
 const MERCEKLER = [

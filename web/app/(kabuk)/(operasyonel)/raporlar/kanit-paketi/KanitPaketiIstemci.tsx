@@ -130,9 +130,9 @@ export default function KanitPaketiIstemci({
                 konuBasligi="Kapsam"
                 kolonlar={[
                   { baslik: 'Madde', genislik: '70px', sag: true },
-                  { baslik: 'Açık bulgu', genislik: '90px', sag: true },
-                  { baslik: 'Kökeni yok', genislik: '90px', sag: true },
-                  { baslik: 'Son değerlendirme', genislik: '130px', sag: true, ikincil: true },
+                  { baslik: 'Açık bulgu', genislik: '106px', sag: true },
+                  { baslik: 'Kökeni yok', genislik: '106px', sag: true },
+                  { baslik: 'Son değerlendirme', genislik: '164px', sag: true, ikincil: true },
                 ]}
                 satirlar={tabloSatirlari}
                 secili={secim}

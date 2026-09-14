@@ -216,8 +216,8 @@ export default function DenetimFormlariIstemci({ satirlar, sablonlar, kisitliKap
               kolonlar={[
                 { baslik: 'Kontrol', genislik: '80px', sag: true },
                 { baslik: 'Kapsam dışı', genislik: '110px', sag: true },
-                { baslik: 'Gerekçesiz', genislik: '100px', sag: true },
-                { baslik: 'Değerlendirilmedi', genislik: '140px', sag: true, ikincil: true },
+                { baslik: 'Gerekçesiz', genislik: '106px', sag: true },
+                { baslik: 'Değerlendirilmedi', genislik: '164px', sag: true, ikincil: true },
               ]}
               satirlar={tabloSatirlari}
               secili={secim}

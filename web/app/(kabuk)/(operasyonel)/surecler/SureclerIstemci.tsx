@@ -43,7 +43,7 @@ const KART_BUTCESI = 3;
 
 const KOLONLAR: Kolon[] = [
   { baslik: 'Uyum', genislik: '128px', siraAnahtari: 'uyum' },
-  { baslik: 'Bilinmeyen', genislik: '98px', sag: true, siraAnahtari: 'bilinmeyen' },
+  { baslik: 'Bilinmeyen', genislik: '122px', sag: true, siraAnahtari: 'bilinmeyen' },
   { baslik: 'Denetim', genislik: '116px', siraAnahtari: 'denetim' },
   { baslik: 'Kapsam', genislik: '138px', ikincil: true },
 ];

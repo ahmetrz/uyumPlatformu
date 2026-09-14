@@ -44,7 +44,7 @@ const kolonlar = (tesis: string): Kolon[] => [
   { baslik: 'Adım', genislik: '68px', sag: true },
   { baslik: 'Bağ', genislik: '62px', sag: true },
   { baslik: 'Tek nokta', genislik: '96px', sag: true },
-  { baslik: 'Değerlendirilmedi', genislik: '138px', sag: true, ikincil: true },
+  { baslik: 'Değerlendirilmedi', genislik: '164px', sag: true, ikincil: true },
 ];
 
 const MERCEKLER = [

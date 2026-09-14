@@ -1086,7 +1086,18 @@
 /* Genel tuvalin 420px tabanı burada KALKAR: takımyıldızı yüksekliğini tek
    ekran bütçesinden alır (1366×768'de ≈ 300px). Ölçüldü: taban dururken
    tuval 492/447 taşıyor, x ekseni adı notun altında kalıyordu. */
-.ab-b-takim .ab-tuval-sar > .ab-tuval { margin-top: 0; min-height: 0; flex: 1; }
+/* TUVAL TASARLANDIĞI YÜKSEKLİĞİN ALTINA İNMEZ. `flex: 1` + `min-height:
+   0` tuvali viewport'a bırakıyordu ve 1280×800'de 203px'e iniyordu;
+   künye geometrisi ~300px'e göre ölçülmüştü, o yükseklikte dört künye
+   çakışmadan yerleşemiyordu (tuval kanıtı, ilk koşu). 280px, dört
+   künyenin üç şeritle sığdığı ölçülen tabandır; altına inmek yerine
+   bölüm büyür. */
+.ab-b-takim .ab-tuval-sar > .ab-tuval {
+  margin-top: 0; min-height: 280px; flex: 1;
+  /* Künye şeridi TUVAL YÜKSEKLİĞİNE göre ölçülür (`cqh`); aşağıdaki
+     `--yol` hesabı bunu kullanır. Bkz. o kuralın gerekçesi. */
+  container-type: size; container-name: tuval;
+}
 
 /* ── Başlık satırı: bölüm adı + değerlendirilmemiş özeti ───────────────
    Özet ayrı bir satıra inseydi tuvalden ~42px yükseklik alırdı; 768px'te
@@ -1170,9 +1181,22 @@
    bir künye boyu (30px) iter. Kuralı ve ölçülen kusuru `kunyeYolu.ts`
    anlatır. Eksene yakın işaretin künyesi ÜSTE açılır ve yukarı yığılır;
    öbürleri aşağı yığılır. Bağ çizgisi künyenin üst satırında kalır. */
-.ab-b-takim .kunye { top: calc(-9px + var(--yol, 0) * 30px); }
+/* ŞERİT ADIMI TUVALE GÖREDİR — ölçülen kusur (tuval kanıtı, ilk koşu,
+   1280×800): çakışma TESPİTİ `kunyeYolu.ts`te tuval yüzdesiyle yapılıyor
+   (`KUNYE_BOY = 11`), YERLEŞTİRME ise sabit 30px'ti. İkisi yalnız tuval
+   ~273px yüksekken (30px = %11) örtüşür. 1280×800'de tuval kısalıyor,
+   %11 artık 30px etmiyor ve kural "ayırdım" derken ekranda iki künye
+   üst üste biniyordu. Birim tutarsızlığı bir ölçüm yalanıdır.
+   Adım `11cqh` — tespitin kullandığı birimin ta kendisi — AMA ASLA bir
+   künye boyundan küçük değil. İkinci koşumda ölçüldü: 1280×800'de tuval
+   203px'e iniyor, %11 = 22px ve künye 34px; şerit künyeden dar olunca
+   "ayırdım" diyen kural yine üst üste bindiriyordu. `max()` asimetriyi
+   doğru yöne kuruyor — gerçek ayrım modelin varsaydığından AZ OLAMAZ,
+   çok olabilir. Yüzde `KUNYE_BOY` ile AYNIDIR (11) — ikisi ayrışırsa
+   kural ekranda olmayan bir ayrımı varsayar. */
+.ab-b-takim .kunye { top: calc(-9px + var(--yol, 0) * max(34px, 11cqh)); }
 .ab-b-takim .isaret.kunye-yukari .kunye {
-  top: auto; bottom: calc(4px + var(--yol, 0) * 30px);
+  top: auto; bottom: calc(4px + var(--yol, 0) * max(34px, 11cqh));
 }
 .ab-b-takim .isaret.kunye-yukari .kunye::before { top: auto; bottom: 6px; }
 
@@ -2396,7 +2420,23 @@
    kabı `.ab-vt-sar`: başlık üstte, kod sütunu solda YAPIŞKAN. Yapışkan
    hücre zemini kabuk zeminidir; saydam kalsa altındaki satır metni
    başlığın içinden görünürdü. */
-.ab-vt-sar { overflow: auto; max-height: var(--vt-h, none); min-width: 0; }
+/* KAP SORGUSU — "dar bant" VIEWPORT değil, TABLONUN KABIDIR.
+   Ölçüldü (bağımsız audit, 1440×900): `/prosesler` yan panelli bir
+   ekran; viewport 1440px olmasına rağmen tablonun kabı 570px. `ikincil`
+   kolonlar viewport'a göre düştüğü için 1440'ta düşmüyor, sabit kolonlar
+   558px'i yiyor ve KONU KOLONU — sürecin adı, satırın kimliği — 12px'e
+   çöküyordu. Viewport genişliği tablonun kullanabileceği genişlik
+   DEĞİLDİR; yan panel, ızgara, çekmece hepsi araya girer. */
+.ab-vt-sar {
+  overflow: auto; max-height: var(--vt-h, none); min-width: 0;
+  container-type: inline-size; container-name: vt;
+}
+/* Kap 760px'in altındaysa ikincil kolon düşer — viewport ne olursa olsun.
+   Eşik ölçülen budur: `/prosesler` sabit kolonları 558px ve konu kolonuna
+   okunur bir pay (≈200px) kalması gerekir. */
+@container vt (max-width: 760px) {
+  .ab-vt th.ikincil-k, .ab-vt td.ikincil-k { display: none; }
+}
 /* Kap odak durağıdır (tablo.tsx); halka İÇERİ alınır — dışarıdaki pay
    yapışkan başlığın ve komşu kabuk kenarının altında kalırdı. */
 .ab-vt-sar:focus-visible { outline: 2px solid var(--aksan); outline-offset: -2px; }
@@ -2413,13 +2453,41 @@
   border-bottom: 1px solid var(--hr); font-weight: 400;
   overflow: hidden;
 }
-.ab-vt thead th { white-space: nowrap;
+/* BAŞLIK SARAR, KIRPILMAZ — her bantta. Ölçüldü (bağımsız audit,
+   1440×900): `white-space: nowrap` yüzünden 15 rotada 21 kolon başlığı
+   kendi hücresinin içinde kırpılıyordu; en kötüsü `/prosesler` "İŞ
+   SÜRECİ" (38px kutu, 95px metin — %60'ı görünmüyor) ve `/saglik`
+   "SON 5 KOŞU" (52px / 102px). Başlığı okunamayan bir kolonun sayıları
+   da yorumlanamaz.
+
+   Kural ÜRÜNÜN KENDİ KARARIYDI ve yalnız 1366px altında açılıyordu
+   ("sıralı başlıklar sarar, kırpılmaz"); kırılma noktasının üstünde
+   aynı kusur duruyordu. Genişlik ayarıyla tek tek düzeltmek de yanlış
+   olurdu: etiketler kiracının SÖZLÜĞÜNDEN gelir ve sektöre göre
+   uzunlukları değişir; bugünkü metne göre ölçülen bir genişlik yarın
+   yeniden kırpar. */
+.ab-vt thead th { white-space: normal;
+  /* `hyphens` ÇOK SÖZCÜKLÜ etiketi tireyle böler. `overflow-wrap:
+     anywhere` DENENDİ VE GERİ ALINDI: sözcüğü ortadan kesiyor ve
+     ekranda "İŞ SÜRİ" çıkıyordu — yazım hatası gibi okunan bir kesme,
+     düpedüz kırpmadan beterdir (ölçüldü, /prosesler 1440×900).
+     Başlığı kendi eninden geniş olan kolonlar sarmayla değil, TANIMLI
+     GENİŞLİKLERİYLE düzeltilir; kusur CSS'te değil, 38px'e sıkıştırılmış
+     bir "İş süreci" kolonundadır. */
+  hyphens: auto;
   position: sticky; top: 0; z-index: 2; background: var(--zemin);
   border-bottom: 1px solid var(--murekkep); padding-top: 10px; padding-bottom: 10px;
 }
 .ab-vt th:first-child, .ab-vt td:first-child { position: sticky; left: 0; z-index: 1; background: var(--zemin); padding-left: 10px; }
 .ab-vt thead th:first-child { z-index: 3; }
-.ab-vt .kolonbas { display: inline-flex; align-items: center; gap: 6px; }
+/* Sıralı başlık `inline-flex`tir ve shrink-to-fit genişler: `th`in
+   sabit enini aşıp kırpılıyordu ("BİLİNMEYEN ↕" 98px kutuda 119px).
+   `max-width` onu kaba hapseder, `flex-wrap` ok işaretinin alt satıra
+   inmesine izin verir. */
+.ab-vt .kolonbas {
+  display: inline-flex; align-items: center; gap: 6px;
+  max-width: 100%; flex-wrap: wrap;
+}
 .ab-vt .kolonbas.sirali { background: none; border: 0; padding: 0; cursor: pointer; }
 .ab-vt .kolonbas.sirali:hover, .ab-vt .kolonbas.sirali.etkin { color: var(--murekkep); }
 .ab-vt .kolonbas .ok { font-family: var(--ui); font-size: 11px; color: var(--i3); }
@@ -2519,12 +2587,11 @@
   .ab-vt th, .ab-vt td { overflow: visible; }
 }
 
-/* Dokunmatik / dar bant: sıralı başlıklar sarar, kırpılmaz. */
-@media (max-width: 1366px) {
-  .ab-vt thead th { white-space: normal; }
-  .ab-vt .kolonbas.sirali { text-align: left; }
-  .ab-vt th.sag .kolonbas.sirali { text-align: right; }
-}
+/* Sarma artık her bantta (yukarıda); burada yalnız sıralı başlığın
+   hizası kalıyor — sardığında sola/sağa yaslanmalı ki iki satır
+   birbirinin altına düzgün otursun. */
+.ab-vt .kolonbas.sirali { text-align: left; }
+.ab-vt th.sag .kolonbas.sirali { text-align: right; }
 
 /* ═══ Paylaşılan primitifler ══════════════════════════════════════════
    `components/kabuk/*` bileşenlerinin malzemesi. Tek palet, tek

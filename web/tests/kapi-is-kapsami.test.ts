@@ -121,6 +121,15 @@ const EKLENEN_KAPILAR = [
      hiçbir ekranda görünmediğini ve bağlı olmayan sağlayıcının giriş
      ekranında çıkmadığını tarayıcıda ölçer. */
   'npm run kanit:kimlik',
+  /* SIS-SAHA-001 · SIS-SAHA-002 · saha tuvalinin iki bantta kanıtı.
+     KAYNAĞIN ÖLÇEMEDİĞİ ŞEYİ ölçer: künye yolu saf bir fonksiyondur ve
+     doğruydu, ama "yol 9" gerçek tuvalde 303 piksel ediyor ve künye
+     komşu kümenin içine düşüyordu (bağımsız audit, 14 Eyl 2026). Kaç
+     noktanın hangi yoğunlukta düştüğü ancak gerçek veri ve gerçek tuval
+     geometrisiyle belli olur. İlk koşusunda İKİ kusur buldu: 1280×800'de
+     künye çakışması ve birim tutarsızlığı (tespit tuval yüzdesiyle,
+     yerleştirme sabit pikselle çalışıyordu). */
+  'npm run kanit:tuval',
   /* R1 · mevzuat radarı ekranının iki bantta kanıtı. En pahalı iddia:
      ENGELLİ ile KARŞILAŞTIRILAMADI ekranda AYRI görünüyor. İkisi ayrı
      metriktir çünkü biri kaynağın kararıdır (ürün aşmaz), öbürü bizim
@@ -201,8 +210,11 @@ describe('kapı kümesi bölünmeyle değişmez', () => {
     /* 10 → 12: DOM tanığı ve onun ayrışma bekçisi de canlı sunucu
        ister ve `kapi-rota` işinde koşar.
        12 → 13: boş kurulum koşumu da tarayıcılıdır — ama KENDİ
-       sunucusunu kurar (3211), paylaşılan 3210'u kullanmaz. */
-    expect(tarayicili).toHaveLength(13);
+       sunucusunu kurar (3211), paylaşılan 3210'u kullanmaz.
+       13 → 14: saha tuvali kanıtı (`kanit:tuval`). Kaynağın ölçemediği
+       şeyi ölçer — künye kuralı kaynakta doğruyken gerçek tuvalde
+       303 piksel sapıyordu. */
+    expect(tarayicili).toHaveLength(14);
     expect(new Set(tarayicili.map((a) => a.is)).size).toBe(4);
   });
 

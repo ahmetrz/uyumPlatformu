@@ -96,9 +96,22 @@ export function alanAktif(alan: Oge, patika: string): boolean {
    ray KALDIRILDI; alt ekranlar üçüncül sırada) · Risk 2 · Portföy 2 ·
    Saha yok (Saha'nın tek ekranı kendisidir; tesis detayı şeritten
    açılır). Gruplar saç çizgisiyle ayrılır. */
-export const IKINCIL: Record<string, { baslik?: string; ogeler: Oge[] }[]> = {
+/* Grubun ADI — ekran okuyucu için ZORUNLU, ekranda YAZILMAZ.
+
+   Gören kullanıcı grupları dikey çizgiden ayırır (`.grup + .grup`
+   border-left). Ekran okuyucu kullanan bunu göremez ve `/uyum`un on
+   dokuz bağını TEK bir yığın olarak duyardı. Ad `aria-label` olarak
+   verilir: yapı erişilebilir olur, satırın eni DEĞİŞMEZ — görünür bir
+   başlık sırayı 1978'den 2176'ya çıkarırdı ve iki satır bütçesi 2260;
+   ölçülen karakter genişliği ihtiyatlı bir ALT SINIR olduğu için
+   (6,0 yerine gerçek ~6,34) üçüncü satır riski vardı.
+
+   Önce `baslik?` diye isteğe bağlı ve GÖRÜNÜR bir alan vardı; hiçbir
+   alanda doldurulmamıştı ve doldurulsa da `aria-hidden` ile gizlenirdi
+   — yani hem ölü hem erişilemezdi. */
+export const IKINCIL: Record<string, { ad: string; ogeler: Oge[] }[]> = {
   '/uyum': [
-    { ogeler: [
+    { ad: 'Uyum durumu', ogeler: [
       { ad: 'Matris', yol: '/uyum' },
       { ad: 'Regülasyonlar', yol: '/regulasyonlar' },
       /* P4 · 2.6 · İçerik paketleri Regülasyonlar'ın YANINDA: paket
@@ -123,7 +136,7 @@ export const IKINCIL: Record<string, { baslik?: string; ogeler: Oge[] }[]> = {
          o REGÜLASYONU aktarır, bu KURUMUN CEVABINI. */
       { ad: 'Değerlendirme aktarımı', yol: '/degerlendirme-aktarim' },
     ]},
-    { ogeler: [
+    { ad: 'Denetim ve aksiyon', ogeler: [
       { ad: 'Denetimler', yol: '/denetimler' },
       { ad: 'Bulgular & CAPA', yol: '/bulgular' },
       { ad: 'Projeler', yol: '/projeler' },
@@ -136,7 +149,7 @@ export const IKINCIL: Record<string, { baslik?: string; ogeler: Oge[] }[]> = {
          denetimde istenir; bu grup onun doğal yeri. */
       { ad: 'Yönetim gözden geçirme', yol: '/gozden-gecirme' },
     ]},
-    { ogeler: [
+    { ad: 'Kayıt ve kanıt', ogeler: [
       { ad: 'Raporlar', yol: '/raporlar' },
       { ad: 'Belge kütüğü', yol: '/dokumanlar' },
       { ad: 'Kanıt', yol: '/kanitlar' },
@@ -150,7 +163,7 @@ export const IKINCIL: Record<string, { baslik?: string; ogeler: Oge[] }[]> = {
     ]},
   ],
   '/riskler': [
-    { ogeler: [
+    { ad: 'Risk', ogeler: [
       { ad: 'Risk kütüğü', yol: '/riskler' },
       { ad: 'Bulgular & CAPA', yol: '/bulgular' },
     ]},
@@ -162,7 +175,7 @@ export const IKINCIL: Record<string, { baslik?: string; ogeler: Oge[] }[]> = {
      almaz, Regülasyonlar ve Yedekleme ekranlarındaki eylemden açılır,
      alanı Varlık kalır. */
   '/envanter': [
-    { ogeler: [
+    { ad: 'Varlık operasyonları', ogeler: [
       { ad: 'Envanter', yol: '/envanter', alt: [
         { ad: 'Varlık', yol: '/envanter' },
         { ad: 'Keşif', yol: '/kesif' },
@@ -211,7 +224,7 @@ export const IKINCIL: Record<string, { baslik?: string; ogeler: Oge[] }[]> = {
     ]},
   ],
   '/portfoy': [
-    { ogeler: [
+    { ad: 'Portföy', ogeler: [
       { ad: 'Karşılaştırma', yol: '/portfoy' },
       { ad: 'Harita', yol: '/harita' },
     ]},
@@ -219,7 +232,7 @@ export const IKINCIL: Record<string, { baslik?: string; ogeler: Oge[] }[]> = {
 };
 
 /** Patikanın ikincil sırası; Saha ve yardımcı rotalarda boş dizi. */
-export function ikincilSec(patika: string): { baslik?: string; ogeler: Oge[] }[] {
+export function ikincilSec(patika: string): { ad: string; ogeler: Oge[] }[] {
   const alan = alanSec(patika);
   return alan ? (IKINCIL[alan] ?? []) : [];
 }

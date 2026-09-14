@@ -4,8 +4,8 @@
 
 | Ölçü | Değer |
 | --- | --- |
-| Senaryo | 379 |
-| Testi olan senaryo | 379 |
+| Senaryo | 380 |
+| Testi olan senaryo | 380 |
 | **GAP** | **0** |
 | Hayalet işaret (kütükte olmayan kimlik) | 0 |
 | Kütüksüz test dosyası | 0 |
@@ -15,7 +15,7 @@
 
 | Katman | Senaryo | Testli | GAP |
 | --- | --- | --- | --- |
-| ACCESSIBILITY | 9 | 9 | 0 |
+| ACCESSIBILITY | 10 | 10 | 0 |
 | API | 12 | 12 | 0 |
 | CONCURRENCY | 8 | 8 | 0 |
 | DOMAIN | 229 | 229 | 0 |
@@ -26,7 +26,7 @@
 | RESPONSIVE | 9 | 9 | 0 |
 | SCOPE | 34 | 34 | 0 |
 | SERVER | 159 | 159 | 0 |
-| UI | 110 | 110 | 0 |
+| UI | 111 | 111 | 0 |
 | VISUAL | 4 | 4 | 0 |
 | WORKFLOW | 39 | 39 | 0 |
 
@@ -540,6 +540,9 @@
 | `SIS-KBK-015` | Sistem | UI · RESPONSIVE | `kabuk-gezinme.test.ts` | sararken hiçbir alan iki satırı aşmaz | evet | geçti |
 | `SIS-KBK-016` | Sistem | UI · ACCESSIBILITY | `kabuk-gezinme.test.ts` | hiçbir ikincil bağ adı kırpılacak kadar uzun değil | evet | geçti |
 | `SIS-KBK-017` | Sistem | UI · RESPONSIVE | `kabuk-gezinme.test.ts` | hiçbir Varlık grubu 1024px bandını taşırmaz | evet | geçti |
+| `SIS-KBK-019` | Sistem | UI · ACCESSIBILITY | `kabuk-gezinme.test.ts` | her ikincil grubun ADI vardır — adsız grup ekran | evet | geçti |
+| `SIS-KBK-019` | Sistem | UI · ACCESSIBILITY | `kabuk-gezinme.test.ts` | bir alanın grup adları BİRBİRİNDEN farklıdır — aynı | evet | geçti |
+| `SIS-KBK-019` | Sistem | UI · ACCESSIBILITY | `kabuk-gezinme.test.ts` | kabuk grubu ROL ve AD ile çizer — ad yalnız görünür | evet | geçti |
 | `SIS-KBK-018` | Sistem | UI · DOMAIN | `kabuk-gezinme.test.ts` | app/ altındaki her statik sayfa rotalar.json içinde | evet | geçti |
 | `SIS-BSL-001` | Sistem | UI · ACCESSIBILITY | `ekran-basligi.test.ts` | vurgusuz kalabilen başlık cümle parçası olamaz | evet | geçti |
 | `SIS-BSL-002` | Sistem | UI | `ekran-basligi.test.ts` | künyede ister kodu geçmiyor | evet | geçti |

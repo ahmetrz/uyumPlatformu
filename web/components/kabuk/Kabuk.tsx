@@ -154,9 +154,13 @@ export default function Kabuk({ veri, children }: { veri: KabukVerisi; children:
 
       {ikincil.length > 0 && (
         <nav className="ab-ikincil" aria-label="Bölümler">
-          {ikincil.map((grup, i) => (
-            <div key={grup.baslik ?? i} className="grup">
-              {grup.baslik && <span className="etiket" aria-hidden>{grup.baslik}</span>}
+          {/* Grup ADIYLA duyurulur. Görsel ayrım dikey çizgidir
+              (`.grup + .grup`); ekran okuyucu onu göremez ve `/uyum`un
+              on dokuz bağını TEK yığın olarak duyardı. `aria-label`
+              satırın enini DEĞİŞTİRMEZ — görünür başlık üçüncü satır
+              riski doğuruyordu (bkz. yonler.ts). */}
+          {ikincil.map((grup) => (
+            <div key={grup.ad} className="grup" role="group" aria-label={grup.ad}>
               {grup.ogeler.map((o) => (
                 <Link key={o.yol} href={o.yol}
                   aria-current={ogeAktif(o, patika) ? 'true' : undefined}>

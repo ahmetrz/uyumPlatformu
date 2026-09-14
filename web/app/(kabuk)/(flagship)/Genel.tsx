@@ -634,8 +634,20 @@ function Takimyildizi({ tesisler, gosterim = OLCULMEMIS_VARSAYILAN, serit, panel
   setPanelAcik: (a: boolean) => void;
 }) {
   const { t: terim, tBas } = useTerim();
-  const olculen = tesisler.filter((s) => s.endeks !== null);
   const olculmemis = tesisler.filter((s) => s.endeks === null);
+  /* ÜÇÜNCÜ KÜME — BİLİNMEYEN ≠ SIFIR, İKİNCİ EKSENDE DE.
+     Bu dosyanın kendi başlığı "ölçülmemiş tesis eksene KONMAZ" diyordu
+     ve bunu YALNIZ yatay eksende (uyum endeksi) uyguluyordu. Dikey eksen
+     kurulu güçtür ve `dikey()` gücü olmayan tesisi `√(0/enGuc)` ile
+     TABANA çakıyordu: gücü ÖLÇÜLMEMİŞ tesis, gücü sıfır ÖLÇÜLMÜŞ tesisle
+     aynı yerde duruyordu. Ölçüldü (bağımsız audit, 1440×900): dört tesis
+     tabanda tek noktaya yığılmış, künyeleri şerit şerit yukarı itilmiş ve
+     biri kendi işaretinden 303 piksel uzağa düşmüştü.
+     Bugün: gücü ölçülmemiş tesis tuvale KONMAZ — uyum endeksi ölçülmüş
+     olduğu için yatay yerini korur ve eksenin altında ADI KONMUŞ kendi
+     şeridinde durur. Bilgi kaybolmaz, yalan söylenmez. */
+  const tuvalde = tesisler.filter((s) => s.endeks !== null && s.guc !== null);
+  const gucsuz = tesisler.filter((s) => s.endeks !== null && s.guc === null);
   /* Ölçek TÜM portföyden gelir: eksen ve panel aynı dikey ölçeği
      paylaşmazsa iki taraf karşılaştırılamaz hâle gelir. */
   const enGuc = Math.max(1, ...tesisler.map((s) => s.guc ?? 0));
@@ -650,7 +662,7 @@ function Takimyildizi({ tesisler, gosterim = OLCULMEMIS_VARSAYILAN, serit, panel
   /* Künye çakışması NOKTAYI OYNATMADAN çözülür — kural ve ölçülen kusur
      `kunyeYolu.ts`te. Nokta ölçülen veridir; yerini değiştirmek grafiği
      yalan söyletir. */
-  const yollar = kunyeYollari(olculen.map((s) => ({
+  const yerler = kunyeYollari(tuvalde.map((s) => ({
     x: s.endeks ?? 0, y: dikey(s), yukari: yukari(s),
     /* `.sola` eşiği ekranın kendi kuralıyla AYNI olmalı (aşağıda %58);
        ikisi ayrışırsa kural künyeyi yanlış yöne açık sanır. */
@@ -718,8 +730,9 @@ function Takimyildizi({ tesisler, gosterim = OLCULMEMIS_VARSAYILAN, serit, panel
       ) : (
         <div className="ab-tuval-sar">
           <div className="ab-tuval">
-            {olculen.map((s, i) => {
+            {tuvalde.map((s, i) => {
               const x = s.endeks!;
+              const yer = yerler[i];
               const uygunsuz = s.sayim.uyumsuz ?? 0;
               return (
                 <Link key={s.id} href={`/tesisler/${s.id}`}
@@ -729,10 +742,12 @@ function Takimyildizi({ tesisler, gosterim = OLCULMEMIS_VARSAYILAN, serit, panel
                      Künye yönü: %58'in sağında sola, komşusu varsa alta,
                      eksene yakınsa üste; `sola-dar` dar bantta erken sola
                      (kabuk.css, medya). */
-                  className={`isaret${x > 58 ? ' sola' : ''}${x > 40 ? ' sola-dar' : ''}${
+                  /* Yan, kuralın SEÇTİĞİ yandır: doğal yanı dolu bir künye
+                     öbür yana geçer ve işaretine yakın kalır. */
+                  className={`isaret${yer.sola ? ' sola' : ''}${x > 40 ? ' sola-dar' : ''}${
                     uygunsuz > 0 ? ' oncelik' : ''}${yukari(s) ? ' kunye-yukari' : ''}`}
                   style={{ left: `${4 + x * 0.86}%`, bottom: `${dikey(s)}%`,
-                    ['--yol' as string]: yollar[i] }}>
+                    ['--yol' as string]: yer.yol }}>
                   {uygunsuz > 0 && <span className="halka" aria-hidden />}
                   <span className="kare" aria-hidden
                     style={{ background: tipRengi(s.tipKod) }} />
@@ -759,6 +774,46 @@ function Takimyildizi({ tesisler, gosterim = OLCULMEMIS_VARSAYILAN, serit, panel
             <span className="mono eksenad y">↑ kurulu güç</span>
             <span className="mono hedef" aria-hidden>↗ güçlü ve uyumlu</span>
           </div>
+          {gucsuz.length > 0 && (
+            /* GÜCÜ ÖLÇÜLMEMİŞ ŞERİDİ — eksenin ALTINDA, adı konmuş.
+               Bu tesislerin uyum endeksi ÖLÇÜLDÜ, kurulu gücü ölçülmedi.
+
+               BİÇİM NEDEN LİSTE, KONUMLU DAĞILIM DEĞİL: ilk yazımda
+               işaretler yatay eksene (uyum endeksi) oturtuldu ve künyeler
+               yanlarına yazıldı. Ölçüldü (1440×900): şerit TEK SATIR
+               olduğu için dört künye aynı Y'de çakıştı ve okunamaz bir
+               metin çıktı — tuvalde düzelttiğim kusurun aynısını şeridin
+               içinde yeniden ürettim. Kaldı ki tuvalin sorduğu soru
+               "güçlü mü ve uyumlu mu"dur; gücü ölçülmemiş bir tesis o
+               soruyu yanıtlayamaz, yatay yerini korumak onu hâlâ tuvalin
+               parçasıymış gibi gösterir. Bugün: sıralı, sıkışık bir
+               liste — en düşük endeks önce, yani karar sırasıyla. */
+            <div className="ab-gucsuz">
+              <p className="mono etiket">
+                Kurulu güç ölçülmedi · {gucsuz.length} {terim('tesis')}
+                <span className="not"> — uyum endeksi ölçüldü, dikey eksende yeri yok</span>
+              </p>
+              <ul className="serit">
+                {[...gucsuz].sort((a, b) => (a.endeks ?? 0) - (b.endeks ?? 0)).map((g) => {
+                  const uygunsuz = g.sayim.uyumsuz ?? 0;
+                  return (
+                    <li key={g.id}>
+                      <Link href={`/tesisler/${g.id}`}
+                        className={uygunsuz > 0 ? 'oncelik' : undefined}>
+                        <span className="kare" aria-hidden
+                          style={{ background: tipRengi(g.tipKod) }} />
+                        <span className="ad">{g.ad}</span>
+                        <span className="mono deger">%{g.endeks}</span>
+                        {uygunsuz > 0 && (
+                          <span className="mono uygunsuz">{uygunsuz} uygunsuz</span>
+                        )}
+                      </Link>
+                    </li>
+                  );
+                })}
+              </ul>
+            </div>
+          )}
         </div>
       )}
 

@@ -51,7 +51,10 @@ const KANIT_TIPLERI = ['politika', 'kayit', 'konfigurasyon', 'ekran_goruntusu', 
 
 const KOLONLAR: Kolon[] = [
   { baslik: 'Tip', siraAnahtari: 'tip', genislik: '132px', ikincil: true },
-  { baslik: 'Tarih', siraAnahtari: 'tarih', genislik: '170px' },
+  /* 170px'te "21 Tem 2025 → 3 A…" diye kırpılıyordu ve kırpılan şey
+     BİTİŞ tarihiydi — satırın karar verdiren değeri. Bağlı kayıt kolonu
+     tekrarı bırakınca açılan yer buraya verildi. */
+  { baslik: 'Tarih', siraAnahtari: 'tarih', genislik: '198px' },
   { baslik: 'Bağlı kayıt', siraAnahtari: 'bagli', genislik: 'minmax(150px, 0.8fr)' },
   { baslik: 'Yükleyen', siraAnahtari: 'yukleyen', genislik: '126px', ikincil: true },
 ];
@@ -126,12 +129,12 @@ export default function KanitlarIstemci({
       durum: im,
       kenar: im,
       konu: k.ad,
-      /* Dosya durumu satırdan ÇIKTI: kütüğün tamamında aynı olduğu için
-         her satırda okunması karar verdirmiyor, yalnız yer kaplıyordu
-         (ölçüldü: 59 kanıdın 59'u "dosya yolu kayıtlı değil" diyordu).
-         Sayı başlıkta bir kez; kaydın kendi durumu çekmecede DAHA
-         KESİN duruyor ("Bu kanıta dosya yüklenmedi" + yol metni ayrımı). */
-      alt: `sürüm ${k.surum}`,
+      /* ALT SATIR YOK — bilerek. Önce dosya durumu yazıyordu (59 satırın
+         59'u aynı cümle), sonra yerine "sürüm N" kondu. İkisi de L3
+         metadatadır ve listede hiçbir kararı değiştirmez; sürüm numarası
+         çekmecede ÜÇ yerde durur (başlık `· vN`, "Sürüm" alanı, sürüm
+         geçmişi). Alt satırı kaldırmak satırı tek satıra indiriyor:
+         37 satırlık listede ölçülen kazanç ~%18 dikey alan, kayıp sıfır. */
       hucreler: [
         tipEtiketi(k.tip),
         <TarihHucresi key="t" kanit={k} simdi={simdi} esik={esik} />,
@@ -157,7 +160,13 @@ export default function KanitlarIstemci({
             { deger: metrikler.dolmus, yazi: 'Süresi dolmuş', durum: metrikler.dolmus > 0 ? 'bd' : undefined },
             { deger: metrikler.yenilenmeli, yazi: 'Yenilenmeli', durum: metrikler.yenilenmeli > 0 ? 'md' : undefined },
             { deger: metrikler.bagsiz, yazi: 'Bağlantısız', durum: metrikler.bagsiz > 0 ? 'unk' : undefined },
-            { deger: dosyasiz, yazi: 'Dosyası yok', durum: dosyasiz > 0 ? 'unk' : undefined },
+            /* SAYI ÖLÇÜLDÜ — bilinmeyen değil. `unk` mürekkebi "bu değeri
+             bilmiyoruz" der; burada değer biliniyor (59 kanıtın 59'unda
+             depo anahtarı yok). Dosyasızlık tek başına bir kusur da
+             değildir: kanıt kütükte tutulan bir belgeye işaret ediyor
+             olabilir. Bu yüzden sayı NÖTR durur — ne bilinmeyen, ne
+             kırmızı; kararı okuyan verir. */
+          { deger: dosyasiz, yazi: 'Dosyası yok' },
           ]}
         />
 
@@ -421,6 +430,14 @@ function TarihHucresi({ kanit, simdi, esik }: { kanit: KanitSatiri; simdi: numbe
 }
 
 /** Bağlı kayıt: ilk bağın kodu + sayı özeti; bağ yoksa bilinmeyen elması. */
+/* ÖLÇÜLEN KUSUR (bağımsız audit, 1440×900): "Bağlı kayıt" kolonu, temsilî
+   kaydın kodunu yazıyordu ve kanıt adı çoğu kez ZATEN o kodla başlıyordu
+   ("EPDK-SYM-8.1.2 · SAHA-A2 kaydı" → "EPDK-SYM-8.1.2 · SAHA-A2 · 1 madde").
+   Ekranda görünen dokuz satırın YEDİSİ aynı tanımlayıcıyı iki kez taşıyordu;
+   tekrar eden bir değerin ayrı bir karar amacı yoksa bilişsel yük kusurudur.
+   Bugün: temsilî kod YALNIZ başlıkta yoksa yazılır — özet ("1 madde ·
+   1 tesis") her zaman durur, çünkü onu başlık söylemez. Kural veriye
+   uyarlanır: kanıtını kodla adlandırmayan kiracıda kod görünmeye devam eder. */
 function BagHucresi({ kanit }: { kanit: KanitSatiri }) {
   const sozluk = useSozluk();
   if (!bagliMi(kanit)) {
@@ -435,10 +452,12 @@ function BagHucresi({ kanit }: { kanit: KanitSatiri }) {
     ?? (kanit.maddeler[0] ? `${kanit.maddeler[0].maddeKod} · ${kanit.maddeler[0].tesisKod}` : null)
     ?? kanit.tesisler[0]?.kod
     ?? `${kanit.varlikSayisi} varlık`;
+  const ozet = baglantiOzeti(kanit, sozluk);
+  const tekrar = kanit.ad.includes(ilk);
   return (
-    <span style={KIRP} title={baglantiOzeti(kanit, sozluk)}>
-      {ilk}
-      <span style={{ color: 'var(--i3)' }}> · {baglantiOzeti(kanit, sozluk)}</span>
+    <span style={KIRP} title={tekrar ? `${ilk} · ${ozet}` : ozet}>
+      {!tekrar && ilk}
+      <span style={{ color: 'var(--i3)' }}>{tekrar ? ozet : ` · ${ozet}`}</span>
     </span>
   );
 }

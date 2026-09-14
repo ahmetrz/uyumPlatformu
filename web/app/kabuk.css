@@ -628,11 +628,19 @@
     box-shadow: -12px 0 12px -12px var(--zemin);
   }
 }
+/* GRUP SINIRI GÖRÜNÜR OLMAK ZORUNDA. Ölçüldü (bağımsız audit, 1440×900):
+   `/uyum` sırası 19 sekme ve İKİ SATIR; gruplar `aria-label` ile ekran
+   okuyucuya ulaşıyordu ama gören kullanıcı için sınır `--hr2` renginde
+   1px'lik bir çizgiydi ve sarma yüzünden satır başına düşünce kap
+   kenarından ayırt edilemiyordu. Sonuç: 19 düz sekme. Sınır artık hem
+   daha görünür (`--hr`) hem daha geniş nefes alıyor; genişlik maliyeti
+   grup başına 12px ve iki satır bütçesi korunuyor (ölçüm aşağıda). */
 .ab-ikincil .grup {
-  display: flex; align-items: stretch; gap: 2px; padding: 0 8px;
+  display: flex; align-items: stretch; gap: 2px; padding: 0 14px;
   min-height: 36px;
 }
-.ab-ikincil .grup + .grup { border-left: 1px solid var(--hr2); }
+.ab-ikincil .grup:first-child { padding-left: 0; }
+.ab-ikincil .grup + .grup { border-left: 1px solid var(--hr); }
 .ab-ikincil .grup > .etiket { align-self: center; margin-right: 6px; color: var(--i3); white-space: nowrap; }
 .ab-ikincil a {
   display: flex; align-items: center; padding: 0 10px; white-space: nowrap;
@@ -1027,6 +1035,33 @@
 .ab-b-takim .isaret.oncelik .kunye .alt { color: var(--i2); }
 .ab-b-takim .isaret:hover .kunye .ad { color: var(--aksan); }
 
+/* ── Kurulu gücü ölçülmemiş şeridi ─────────────────────────────────
+   Tuvalin dikey ekseni kurulu güçtür; gücü ÖLÇÜLMEMİŞ tesis o eksende
+   bir yere konamaz. Eksenin altında, kesikli bir çizgiyle ayrılmış kendi
+   şeridinde durur: yatay yeri (uyum endeksi) GERÇEKTİR, dikey yeri
+   yoktur ve şeridin adı bunu yazar. Ölçüldü (bağımsız audit): tabana
+   çakılan dört tesis hem "gücü sıfır" yalanını söylüyor hem künyeleri
+   şerit şerit yukarı itip başka kümelerin içine düşürüyordu. */
+.ab-b-takim .ab-gucsuz { flex: none; margin-top: 10px; padding-top: 8px; border-top: 1px dashed var(--hr2); }
+.ab-b-takim .ab-gucsuz .etiket { margin: 0 0 6px; font-size: 11px; color: var(--i3); letter-spacing: .04em; }
+.ab-b-takim .ab-gucsuz .not { color: var(--i3); }
+.ab-b-takim .ab-gucsuz .serit {
+  margin: 0; padding: 0; list-style: none;
+  display: flex; flex-wrap: wrap; gap: 4px 18px;
+}
+.ab-b-takim .ab-gucsuz .serit a {
+  display: inline-flex; align-items: baseline; gap: 6px;
+  color: var(--i3); text-decoration: none; font-size: 13px;
+}
+.ab-b-takim .ab-gucsuz .serit a:hover .ad { color: var(--aksan); }
+.ab-b-takim .ab-gucsuz .serit a.oncelik .ad { color: var(--murekkep); }
+.ab-b-takim .ab-gucsuz .serit .kare {
+  width: 7px; height: 7px; transform: rotate(45deg); flex: none; align-self: center;
+}
+.ab-b-takim .ab-gucsuz .serit .ad { font-family: var(--gorunum); color: var(--i2); }
+.ab-b-takim .ab-gucsuz .serit .deger { font-size: 12px; }
+.ab-b-takim .ab-gucsuz .serit .uygunsuz { font-size: 11px; color: var(--bd); }
+
 /* ── Değerlendirilmemiş şeridi ──────────────────────────────────────
    Hiç değerlendirilmemiş tesisin uyum endeksi YOKTUR; eksende bir yere
    konamaz (bkz. Genel.tsx · Takimyildizi). Bu yüzden tuvalin YANINDA
@@ -1305,31 +1340,49 @@
 .ab-b-portfoy-govde .kimlik .dip { margin: 26px 0 0; font-size: var(--t-code); color: var(--i3); }
 
 .ab-b-portfoy-govde .plakalar { min-width: 0; }
+/* ── KARŞILAŞTIRMA SATIRI ────────────────────────────────────────────
+   ÖLÇÜLEN KUSUR (bağımsız audit, 1440×900): plaka 156px yüksekliğinde,
+   28px tipografiyle ve tam boy fotoğrafla çiziliyordu. 24 tesis = 3 744px
+   = 4,3 EKRAN. Ekranın adı "Karşılaştırma" ama görüntü alanına DÖRT tesis
+   sığıyordu: kullanıcı yirmi dördü karşılaştırmak için dört ekran kaydırıp
+   sayıları ezberlemek zorundaydı — yani ekran, adını taşıdığı işi
+   yapamıyordu. Bilgi eksik değildi; bilgi YOĞUNLUĞU yanlıştı.
+
+   Bugün satır 56px: aynı yedi değer (tip · bölge · ad · ölçü · uyum ·
+   bulgu · risk) duruyor, fotoğraf kimliği 72px'lik şeritte korunuyor ve
+   görüntü alanına ~14 tesis giriyor. Hiçbir alan kaldırılmadı. */
 .ab-b-portfoy-govde .plaka {
-  position: relative; display: flex; align-items: flex-end; gap: 24px;
-  min-height: 156px; padding: 20px 32px;
+  position: relative; display: flex; align-items: center; gap: 20px;
+  min-height: 56px; padding: 8px 32px 8px 0;
   border-bottom: 1px solid var(--hr); border-left: 3px solid transparent;
   overflow: hidden;
 }
+/* Fotoğraf KİMLİK taşır ve kalır — ama satırın zemini değil, solundaki
+   72px'lik şerittir: zemin olarak sayıların kontrastını düşürüyordu. */
 .ab-b-portfoy-govde .plaka > img {
-  position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover;
-  opacity: .30; filter: grayscale(.5); transition: opacity .5s ease;
+  flex: none; width: 72px; height: 40px; object-fit: cover;
+  opacity: .72; filter: grayscale(.4); transition: opacity .3s ease;
 }
-.ab-b-portfoy-govde .plaka:hover > img, .ab-b-portfoy-govde .plaka.secili > img { opacity: .52; }
-.ab-b-portfoy-govde .plaka .fotoyok { position: absolute; inset: 0; background: var(--panel); }
-.ab-b-portfoy-govde .plaka > .perde {
-  position: absolute; inset: 0;
-  background: linear-gradient(90deg, var(--zemin) 0%,
-    color-mix(in srgb, var(--zemin) 62%, transparent) 60%,
-    color-mix(in srgb, var(--zemin) 88%, transparent) 100%);
-}
+.ab-b-portfoy-govde .plaka:hover > img, .ab-b-portfoy-govde .plaka.secili > img { opacity: 1; }
+.ab-b-portfoy-govde .plaka .fotoyok { flex: none; width: 72px; height: 40px; background: var(--panel); }
+.ab-b-portfoy-govde .plaka > .perde { display: none; }
 .ab-b-portfoy-govde .plaka.secili { background: var(--panel2); }
-.ab-b-portfoy-govde .plaka .icerik { position: relative; flex: 1; min-width: 0; display: grid; gap: 3px; }
-.ab-b-portfoy-govde .plaka .tip { font-size: var(--t-code); letter-spacing: .16em; text-transform: uppercase; }
-.ab-b-portfoy-govde .plaka .ad {
-  font-family: var(--gorunum); font-size: 28px; line-height: 1.05; text-transform: uppercase;
+.ab-b-portfoy-govde .plaka .icerik {
+  position: relative; flex: 1; min-width: 0;
+  display: grid; grid-template-columns: minmax(0, 1fr); gap: 1px;
 }
-.ab-b-portfoy-govde .plaka .guc { font-size: 11px; color: var(--i2); }
+.ab-b-portfoy-govde .plaka .tip {
+  font-size: 10.5px; letter-spacing: .14em; text-transform: uppercase;
+  white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+}
+.ab-b-portfoy-govde .plaka .ad {
+  font-family: var(--gorunum); font-size: 16px; line-height: 1.15; text-transform: uppercase;
+  white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+}
+.ab-b-portfoy-govde .plaka .guc {
+  font-size: 11px; color: var(--i2);
+  white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+}
 /* Sayı kolonları SABİT genişliktedir: kaş yukarıda tek satır olarak
    yazıldığı için plakadaki sayının onun altına düşmesi gerekir. İçerik
    genişliğine bırakılsaydı "%100" ile "8" farklı yerlere hizalanır ve
@@ -1338,17 +1391,38 @@
   position: relative; flex: none; display: flex; gap: 26px; text-align: right;
 }
 .ab-b-portfoy-govde .plaka .sayilar > .deger { min-width: 46px; }
+/* KAŞ YAPIŞKAN: 24 satırlık bir karşılaştırmada dördüncü satırdan sonra
+   kolon adı ekrandan çıkıyordu ve "%50 · 2 · 1" hangi kolon olduğu
+   bilinmeyen üç sayıya dönüşüyordu (ölçüldü, 1440×900). */
 .ab-b-portfoy-govde .plaka-kas {
+  position: sticky; top: 0; z-index: 2;
   display: flex; gap: 26px; justify-content: flex-end;
   padding: var(--s8) 32px; border-bottom: 1px solid var(--hr);
+  background: var(--zemin);
 }
 .ab-b-portfoy-govde .plaka-kas .etiket { min-width: 46px; text-align: right; }
 .ab-b-portfoy-govde .plaka .sayilar .deger {
-  display: block; font-family: var(--veri); font-size: 17px;
+  display: block; font-family: var(--veri); font-size: 15px;
   font-variant-numeric: tabular-nums;
 }
+/* ÖLÇÜLMEDİ ≠ SIFIR: "—" bilinmeyen mürekkebini taşır, "0" taşımaz.
+   Aynı satırda ikisi ayrımsız durunca "—" başarı gibi okunuyordu. */
+.ab-b-portfoy-govde .plaka .sayilar .deger.olculmedi { color: var(--i3); }
 .ab-b-portfoy-govde .plaka .sayilar .deger.vurgu { color: var(--bd); }
 .ab-b-portfoy-govde .plaka .sayilar .etiket { display: block; margin-top: 4px; }
+/* DAR BANTTA SIKIŞTIRMA YOK. Ölçüldü (taşma kapısı, 375px): 56px'lik
+   karşılaştırma satırı telefonda `span.olcu`yu 50px'e eziyor ve ölçü
+   metni kırpılıyordu — "dar ekranda anlamsız yatay sıkıştırma yapmak
+   yerine bilgi önceliğine göre içerik azalt" kuralının ihlali. Orada
+   satır SARAR: küçük görsel ve sayılar üstte, künye altta; hiçbir değer
+   düşmez, hiçbiri kırpılmaz. */
+@media (max-width: 720px) {
+  .ab-b-portfoy-govde .plaka { flex-wrap: wrap; row-gap: 6px; padding-right: 16px; }
+  .ab-b-portfoy-govde .plaka .icerik { flex: 1 1 100%; order: 2; }
+  .ab-b-portfoy-govde .plaka .sayilar { order: 1; margin-left: auto; }
+  .ab-b-portfoy-govde .plaka .guc { white-space: normal; }
+}
+
 /* Seçili ölçüte göre EN ZAYIF plaka. Sol kenar uygunsuz rengini alır,
    plakanın içinde "en zayıf · <neden>" sözcüğü yazılır (renk tek başına
    anlatmaz). Seçili plakanın aksan kenarı ile çakışmasın diye zayıflık
@@ -1357,7 +1431,7 @@
   border-left-color: var(--bd); box-shadow: inset 4px 0 0 var(--zemin), inset 5px 0 0 var(--bd);
 }
 .ab-b-portfoy-govde .plaka .zayif {
-  display: inline-block; margin-left: 10px; padding: 1px 6px;
+  display: inline-block; margin-left: 8px; padding: 0 5px;
   font-size: 11px; letter-spacing: .08em; text-transform: uppercase;
   color: var(--bd); border: 1px solid var(--bd);
 }

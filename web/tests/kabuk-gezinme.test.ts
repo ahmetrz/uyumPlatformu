@@ -155,6 +155,83 @@ const UC_KAP_DOLGUSU = 40;
 const UC_GRUPAD_EK = 28;
 
 describe('kabuk · üçüncül sıra en dar masaüstünde sığar', () => {
+  /* ── Grup yapısı ekran okuyucuya ULAŞIR ───────────────────────────
+     Gören kullanıcı grupları dikey çizgiden ayırır (`.grup + .grup`
+     border-left). Ekran okuyucu o çizgiyi göremez; grup bir rol ve ad
+     taşımazsa `/uyum`un on dokuz bağı TEK yığın olarak duyulur.
+
+     Önce `baslik?` diye İSTEĞE BAĞLI ve GÖRÜNÜR bir alan vardı; hiçbir
+     alanda doldurulmamıştı (ölü kod) ve doldurulsa da `aria-hidden` ile
+     gizleniyordu — yani hem ölü hem erişilemezdi. Ad bugün ZORUNLU ve
+     `aria-label` olarak veriliyor: satırın eni değişmez. */
+  it('[SIS-KBK-019] her ikincil grubun ADI vardır — adsız grup ekran '
+    + 'okuyucuda ayrımsız bir yığın olur', async () => {
+    const { IKINCIL } = await import('@/components/kabuk/yonler');
+    const adsiz: string[] = [];
+    for (const [alan, gruplar] of Object.entries(IKINCIL)) {
+      gruplar.forEach((g, i) => {
+        if (!(g.ad ?? '').trim()) adsiz.push(`${alan}[${i}]`);
+      });
+    }
+    expect(adsiz, `adsız grup: ${adsiz.join(' ')}`).toEqual([]);
+  });
+
+  it('[SIS-KBK-019] bir alanın grup adları BİRBİRİNDEN farklıdır — aynı '
+    + 'ad iki grubu tek grup gibi duyurur', async () => {
+    const { IKINCIL } = await import('@/components/kabuk/yonler');
+    for (const [alan, gruplar] of Object.entries(IKINCIL)) {
+      const adlar = gruplar.map((g) => g.ad);
+      expect(new Set(adlar).size, `${alan}: yinelenen grup adı`).toBe(adlar.length);
+    }
+  });
+
+  it('[SIS-KBK-019] TERİMLİ grup adı kiracının SÖZLÜĞÜNDEN çözülür — üst '
+    + 'alan "Enerji portföyü" derken grubun "Portföy" demesi, ekran '
+    + 'okuyucuya ürünün kendi sözlüğünü yalanlayan bir ad duyurur', async () => {
+    const { alanlariCoz, ikincilSec } = await import('@/components/kabuk/yonler');
+    const sozluk = { portfoy: { tekil: 'enerji portföyü' } };
+
+    const alan = alanlariCoz(sozluk).find((a) => a.yol === '/portfoy');
+    const grup = ikincilSec('/portfoy', sozluk)[0];
+    expect(grup.ad, 'grup adı sözlükten çözülmüyor').toBe(alan?.ad);
+
+    /* Sözlük yoksa ÇEKİRDEK karşılık kalır — uydurma yok. */
+    expect(ikincilSec('/portfoy')[0].ad).toBe('Portföy');
+    expect(ikincilSec('/portfoy', null)[0].ad).toBe('Portföy');
+  });
+
+  it('[SIS-KBK-019] terimsiz grup adı sözlükle DEĞİŞMEZ — çekirdek kavram '
+    + 'sektör paketinden ad almaz', async () => {
+    const { ikincilSec } = await import('@/components/kabuk/yonler');
+    const sozluk = { portfoy: { tekil: 'enerji portföyü' }, tesis: { tekil: 'santral' } };
+    const once = ikincilSec('/uyum').map((g) => g.ad);
+    expect(ikincilSec('/uyum', sozluk).map((g) => g.ad)).toEqual(once);
+  });
+
+  it('[SIS-KBK-019] kabuk sözlüğü ikincil sıraya GERÇEKTEN geçirir — saf '
+    + 'fonksiyonun çözebiliyor olması, çağrı yerinin çözdüğü anlamına '
+    + 'gelmez (sabotaj turunda yakalandı: kanca doğruydu, kablo yoktu)', () => {
+    const kabuk = readFileSync('components/kabuk/Kabuk.tsx', 'utf8');
+    expect(kabuk, 'ikincil sıra sözlüksüz çağrılıyor')
+      .toMatch(/ikincilSec\(patika,\s*veri\.sozluk\)/);
+    /* Alan adı ile grup adı AYNI kaynaktan konuşur; ikisi ayrışırsa
+       ekran okuyucu "Enerji portföyü → Portföy" duyar. */
+    expect(kabuk, 'alan adı başka bir sözlükten çözülüyor')
+      .toMatch(/alanlariCoz\(veri\.sozluk\)/);
+  });
+
+  it('[SIS-KBK-019] kabuk grubu ROL ve AD ile çizer — ad yalnız görünür '
+    + 'bir etiket olarak kalırsa erişilebilir olmaz', () => {
+    const kabuk = readFileSync('components/kabuk/Kabuk.tsx', 'utf8');
+    expect(kabuk, 'grup rolü yok').toContain('role="group"');
+    expect(kabuk, 'grup adı aria-label değil').toContain('aria-label={grup.ad}');
+    /* Eski ölü dal geri gelmesin: görünür başlık sırayı 2176'ya çıkarır
+       ve iki satır bütçesi 2260'tır — ölçüm ihtiyatlı bir ALT SINIR
+       kullandığı için gerçek metriklerde üçüncü satır riski vardı. */
+    expect(kabuk, 'ölü görünür-başlık dalı geri gelmiş')
+      .not.toContain('grup.baslik');
+  });
+
   it('hiçbir Varlık grubu 1024px bandını taşırmaz [SIS-KBK-017]', async () => {
     const { IKINCIL } = await import('@/components/kabuk/yonler');
     const tasan: string[] = [];

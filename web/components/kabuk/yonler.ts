@@ -17,7 +17,7 @@
    Bu dosya SALT SUNUMDUR: URL'ler, RBAC, kapsam ve veri sözleşmeleri
    değişmez. */
 
-import { tBas, type Sozluk } from '@/lib/dil/terimler';
+import { tBas, type Sozluk, type TerimAnahtari } from '@/lib/dil/terimler';
 
 export type Yogunluk = 'amiral' | 'operasyonel' | 'tezgah';
 
@@ -96,9 +96,29 @@ export function alanAktif(alan: Oge, patika: string): boolean {
    ray KALDIRILDI; alt ekranlar üçüncül sırada) · Risk 2 · Portföy 2 ·
    Saha yok (Saha'nın tek ekranı kendisidir; tesis detayı şeritten
    açılır). Gruplar saç çizgisiyle ayrılır. */
-export const IKINCIL: Record<string, { baslik?: string; ogeler: Oge[] }[]> = {
+/* Grubun ADI — ekran okuyucu için ZORUNLU, ekranda YAZILMAZ.
+
+   Gören kullanıcı grupları dikey çizgiden ayırır (`.grup + .grup`
+   border-left). Ekran okuyucu kullanan bunu göremez ve `/uyum`un on
+   dokuz bağını TEK bir yığın olarak duyardı. Ad `aria-label` olarak
+   verilir: yapı erişilebilir olur, satırın eni DEĞİŞMEZ — görünür bir
+   başlık sırayı 1978'den 2176'ya çıkarırdı ve iki satır bütçesi 2260;
+   ölçülen karakter genişliği ihtiyatlı bir ALT SINIR olduğu için
+   (6,0 yerine gerçek ~6,34) üçüncü satır riski vardı.
+
+   Önce `baslik?` diye isteğe bağlı ve GÖRÜNÜR bir alan vardı; hiçbir
+   alanda doldurulmamıştı ve doldurulsa da `aria-hidden` ile gizlenirdi
+   — yani hem ölü hem erişilemezdi. */
+/** İkincil sıradaki grup. `ad` ÇEKİRDEK karşılıktır; `terim` verilmişse
+    ekrana giden ad kiracının sözlüğünden çözülür — alan adlarıyla
+    (`alanlariCoz`) aynı kural. Tek sektöre inen bir kapsamda üst alan
+    "Enerji portföyü" derken grubun "Portföy" demesi, ekran okuyucuya
+    ürünün kendi sözlüğünü YALANLAYAN bir ad duyurur. */
+export type Grup = { ad: string; terim?: TerimAnahtari; ogeler: Oge[] };
+
+export const IKINCIL: Record<string, Grup[]> = {
   '/uyum': [
-    { ogeler: [
+    { ad: 'Uyum durumu', ogeler: [
       { ad: 'Matris', yol: '/uyum' },
       { ad: 'Regülasyonlar', yol: '/regulasyonlar' },
       /* P4 · 2.6 · İçerik paketleri Regülasyonlar'ın YANINDA: paket
@@ -123,7 +143,7 @@ export const IKINCIL: Record<string, { baslik?: string; ogeler: Oge[] }[]> = {
          o REGÜLASYONU aktarır, bu KURUMUN CEVABINI. */
       { ad: 'Değerlendirme aktarımı', yol: '/degerlendirme-aktarim' },
     ]},
-    { ogeler: [
+    { ad: 'Denetim ve aksiyon', ogeler: [
       { ad: 'Denetimler', yol: '/denetimler' },
       { ad: 'Bulgular & CAPA', yol: '/bulgular' },
       { ad: 'Projeler', yol: '/projeler' },
@@ -136,7 +156,7 @@ export const IKINCIL: Record<string, { baslik?: string; ogeler: Oge[] }[]> = {
          denetimde istenir; bu grup onun doğal yeri. */
       { ad: 'Yönetim gözden geçirme', yol: '/gozden-gecirme' },
     ]},
-    { ogeler: [
+    { ad: 'Kayıt ve kanıt', ogeler: [
       { ad: 'Raporlar', yol: '/raporlar' },
       { ad: 'Belge kütüğü', yol: '/dokumanlar' },
       { ad: 'Kanıt', yol: '/kanitlar' },
@@ -150,7 +170,7 @@ export const IKINCIL: Record<string, { baslik?: string; ogeler: Oge[] }[]> = {
     ]},
   ],
   '/riskler': [
-    { ogeler: [
+    { ad: 'Risk', ogeler: [
       { ad: 'Risk kütüğü', yol: '/riskler' },
       { ad: 'Bulgular & CAPA', yol: '/bulgular' },
     ]},
@@ -162,7 +182,7 @@ export const IKINCIL: Record<string, { baslik?: string; ogeler: Oge[] }[]> = {
      almaz, Regülasyonlar ve Yedekleme ekranlarındaki eylemden açılır,
      alanı Varlık kalır. */
   '/envanter': [
-    { ogeler: [
+    { ad: 'Varlık operasyonları', ogeler: [
       { ad: 'Envanter', yol: '/envanter', alt: [
         { ad: 'Varlık', yol: '/envanter' },
         { ad: 'Keşif', yol: '/kesif' },
@@ -211,17 +231,19 @@ export const IKINCIL: Record<string, { baslik?: string; ogeler: Oge[] }[]> = {
     ]},
   ],
   '/portfoy': [
-    { ogeler: [
+    { ad: 'Portföy', terim: 'portfoy', ogeler: [
       { ad: 'Karşılaştırma', yol: '/portfoy' },
       { ad: 'Harita', yol: '/harita' },
     ]},
   ],
 };
 
-/** Patikanın ikincil sırası; Saha ve yardımcı rotalarda boş dizi. */
-export function ikincilSec(patika: string): { baslik?: string; ogeler: Oge[] }[] {
+/** Patikanın ikincil sırası; Saha ve yardımcı rotalarda boş dizi.
+    Sözlük verilirse `terim` taşıyan grup adı ondan çözülür. */
+export function ikincilSec(patika: string, sozluk?: Sozluk | null): Grup[] {
   const alan = alanSec(patika);
-  return alan ? (IKINCIL[alan] ?? []) : [];
+  const gruplar = alan ? (IKINCIL[alan] ?? []) : [];
+  return gruplar.map((g) => (g.terim ? { ...g, ad: tBas(sozluk, g.terim) } : g));
 }
 
 /** İkincil öğe aktif mi — kendi yolu ya da alt ekranlarından biri. */

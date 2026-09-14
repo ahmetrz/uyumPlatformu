@@ -1378,6 +1378,52 @@ export const PLATFORM_SENARYOLARI_6: Senaryo[] = [
     katmanlar: ['UI', 'RESPONSIVE'],
   },
   {
+    id: 'SIS-MRC-001', alan: 'Sistem', rota: '/envanter', eksen: 'arayuz',
+    amac: 'İkincil (taşma) merceğin birincil gibi görünmemesi — sekiz eşit '
+      + 'ağırlıklı düğme, hangisinin günlük iş olduğunu söylemez',
+    rol: 'BT yöneticisi', kapsam: 'kurum geneli',
+    onkosul: 'Envanter ekranı açık; mercek şeridi beş birincil ve üç taşma '
+      + 'merceği taşıyor', veriHali: 'normal',
+    eylem: 'Mercek şeridine bakar',
+    beklenenSonuc: 'Beş birincil mercek düz kenarlıkla, üç taşma merceği '
+      + 'kesikli kenarlıkla çizilir — paylaşılan süzgeç bileşeninin ve '
+      + 'keşif ekranının kullandığı gramerin aynısı',
+    beklenenEkran: 'Envanter süzgeç şeridi',
+    beklenenIz: 'yazma yok', beklenenBildirim: 'yok',
+    katmanlar: ['UI'],
+  },
+  {
+    id: 'SIS-OKM-001', alan: 'Sistem', rota: '/ayarlar', eksen: 'arayuz',
+    amac: 'Okuma hâlinin düzenleme hâlinden ayrılması — ekranın birincil '
+      + 'görevi hesabı OKUMAKTIR, ama açılışta altı giriş alanı çiziliyordu; '
+      + 'parola bölümü, okunacak bir değeri olmadığı için üç BOŞ kutuydu',
+    rol: 'herhangi bir kullanıcı', kapsam: 'kendi kapsamı',
+    onkosul: 'Ayarlar ekranı açık; hesabın parolası tanımlı',
+    veriHali: 'normal',
+    eylem: 'Ekranı açar ve hiçbir şey değiştirmeden profilini okur',
+    beklenenSonuc: 'Profil değerleri okunur biçimde (ad, unvan, e-posta) '
+      + 'gelir ve hiçbir yazma alanı çizilmez; düzenleme ve parola '
+      + 'değişimi kullanıcının kararıyla açılır, Vazgeç ile kapanır',
+    beklenenEkran: 'Ayarlar · profil ve parola bölümleri',
+    beklenenIz: 'yazma yok', beklenenBildirim: 'yok',
+    katmanlar: ['UI'],
+  },
+  {
+    id: 'SIS-KBK-019', alan: 'Sistem', rota: '/uyum', eksen: 'arayuz',
+    amac: 'İkincil sıradaki grup yapısının EKRAN OKUYUCUYA da ulaşması — '
+      + 'gören kullanıcı grupları dikey çizgiden ayırır, ekran okuyucu o '
+      + 'çizgiyi göremez ve on dokuz bağı tek yığın olarak duyar',
+    rol: 'ekran okuyucu kullanan kullanıcı', kapsam: 'kendi kapsamı',
+    onkosul: 'Uyum alanı açık; ikincil sıra üç grup taşıyor',
+    veriHali: 'normal',
+    eylem: 'Gezinme bölgesini ekran okuyucuyla dolaşır',
+    beklenenSonuc: 'Her grup kendi ADIYLA duyulur (Uyum durumu · Denetim ve '
+      + 'aksiyon · Kayıt ve kanıt); adlar birbirinden farklıdır',
+    beklenenEkran: 'İkincil gezinme sırası',
+    beklenenIz: 'yazma yok', beklenenBildirim: 'yok',
+    katmanlar: ['UI', 'ACCESSIBILITY'],
+  },
+  {
     id: 'SIS-KBK-018', alan: 'Sistem', rota: '—', eksen: 'arayuz',
     amac: 'Hiçbir ekranın kalite kapılarının dışında kalmaması',
     rol: 'ürün ekibi', kapsam: 'kurum geneli',

@@ -1,7 +1,7 @@
 {
-  "imza": "e7d092f9f456bf0f87baf6a5d503c4b0",
-  "dosya": 247,
-  "vaka": 4442,
+  "imza": "fb4f6211d0b7fabd0531f0ed2a4cdba9",
+  "dosya": 249,
+  "vaka": 4463,
   "atlanan": 1,
   "dosyalar": {
     "tests/adaptor-yetenekleri.test.ts": {
@@ -38,6 +38,10 @@
     },
     "tests/bekci/aktif-suzgec.test.ts": {
       "vaka": 2,
+      "atlanan": 0
+    },
+    "tests/bekci/ayar-okuma-hali.test.ts": {
+      "vaka": 11,
       "atlanan": 0
     },
     "tests/bekci/bildirim-motoru.test.ts": {
@@ -86,6 +90,10 @@
     },
     "tests/bekci/kurgusal-adlar.test.ts": {
       "vaka": 17,
+      "atlanan": 0
+    },
+    "tests/bekci/mercek-tasmasi.test.ts": {
+      "vaka": 4,
       "atlanan": 0
     },
     "tests/bekci/muafiyet-canli.test.ts": {
@@ -405,7 +413,7 @@
       "atlanan": 0
     },
     "tests/kabuk-gezinme.test.ts": {
-      "vaka": 9,
+      "vaka": 15,
       "atlanan": 0
     },
     "tests/kabuk-inceleme.test.ts": {

@@ -204,9 +204,23 @@ export default function EnvanterIstemci({
 
       {/* ── Süzgeç şeridi ────────────────────────────────────────────── */}
       <div className="ab-a-suzgec">
+        {/* TAŞMA MERCEKLERİ BİRİNCİL DEĞİLDİR ve öyle görünmemelidir.
+            `MERCEK_TASMA` adı ve gerekçesi (mantik.ts) bu üçünün ikincil
+            olduğunu zaten söylüyordu — ömür soruları asıl sahibi `/omur`
+            ekranındadır, burada yalnız daraltmaya yarar. Ekran ise sekiz
+            merceği AYNI ağırlıkta basıyordu. Ürünün kendi kalıbı bunu
+            kesikli kenarlıkla ayırır: paylaşılan `Filtreler` bileşeni
+            (28 ekran) ve `/kesif` böyle yapar; `/envanter` tek istisnaydı. */}
         <div className="mercekler" role="group" aria-label="Mercek">
-          {[...MERCEKLER, ...MERCEK_TASMA].map((o) => (
+          {MERCEKLER.map((o) => (
             <button key={o.id} type="button" aria-pressed={mercek === o.id}
+              onClick={() => { setMercek(o.id); setKuyrukAcik(false); }}>
+              {o.ad}
+            </button>
+          ))}
+          {MERCEK_TASMA.map((o) => (
+            <button key={o.id} type="button" className="tasma"
+              aria-pressed={mercek === o.id}
               onClick={() => { setMercek(o.id); setKuyrukAcik(false); }}>
               {o.ad}
             </button>

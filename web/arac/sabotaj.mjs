@@ -180,10 +180,94 @@ const SABOTAJLAR = [
     testler: ['tests/kabuk-gezinme.test.ts'],
   },
   {
+    ad: 'Dar bantta sıra artık katlanmıyor',
+    kural: 'Üçten çok bağ taşıyan ikincil sıra dar bantta katlanır',
+    dosya: 'components/kabuk/yonler.ts',
+    ara: 'export const DAR_BANT_BAG_TAVANI = 3;',
+    yaz: 'export const DAR_BANT_BAG_TAVANI = 500;',
+    testler: ['tests/kabuk-gezinme.test.ts'],
+  },
+  {
+    ad: 'Katlama eşiği gerçek bir sıranın tam üstüne çekildi',
+    kural: 'Eşik hiçbir sıranın tam üstünde durmaz — bir bağ eklenince davranış sessizce değişmez',
+    dosya: 'components/kabuk/yonler.ts',
+    ara: 'export const DAR_BANT_BAG_TAVANI = 3;',
+    yaz: 'export const DAR_BANT_BAG_TAVANI = 2;',
+    testler: ['tests/kabuk-gezinme.test.ts'],
+  },
+  {
+    ad: 'Aktif bölüm grubunu değil ilk grubu döndürüyor',
+    kural: 'Bölüm seçici düğmesi BULUNULAN grubu yazar',
+    dosya: 'components/kabuk/yonler.ts',
+    ara: `  for (const grup of gruplar) {
+    const oge = grup.ogeler.find((o) => ogeAktif(o, patika));
+    if (oge) return { grup, oge };
+  }
+  return null;`,
+    yaz: `  for (const grup of gruplar) {
+    const oge = grup.ogeler.find((o) => ogeAktif(o, patika));
+    if (oge) return { grup: gruplar[0], oge };
+  }
+  return null;`,
+    testler: ['tests/kabuk-gezinme.test.ts'],
+  },
+  {
+    ad: 'Katlanan sıranın grupları dar bantta yeniden görünüyor',
+    kural: 'Katlanan sıra dar bantta gizlenir; iki yüzey birden çizilmez',
+    dosya: 'app/kabuk.css',
+    ara: '  .ab-ikincil[data-katlanir] > .grup { display: none; }',
+    yaz: '  .ab-ikincil[data-katlanir] > .grup { display: flex; }',
+    testler: ['tests/kabuk-gezinme.test.ts'],
+  },
+  {
+    ad: 'Bölüm seçici geniş ekranda da çiziliyor',
+    kural: 'Seçici YALNIZ dar bantta görünür',
+    dosya: 'app/kabuk.css',
+    ara: '.ab-bolum { display: none; }',
+    yaz: '.ab-bolum { display: flex; }',
+    testler: ['tests/kabuk-gezinme.test.ts'],
+  },
+  {
+    ad: 'Üçüncül sıra yine sıfırdan açılıyor',
+    kural: 'Aktif alt ekran sıranın görünür penceresinde açılır',
+    dosya: 'components/kabuk/Kabuk.tsx',
+    ara: '    if (sol < sira.scrollLeft) sira.scrollLeft = Math.max(0, sol - 20);',
+    yaz: '    if (false) sira.scrollLeft = Math.max(0, sol - 20);',
+    testler: ['tests/kabuk-gezinme.test.ts'],
+  },
+  {
+    ad: 'Üçüncül sıra sayfanın kendisini kaydırıyor',
+    kural: 'Sıra KENDİ kutusunda kayar, sayfayı itmez',
+    dosya: 'components/kabuk/Kabuk.tsx',
+    ara: `    if (sol < sira.scrollLeft) sira.scrollLeft = Math.max(0, sol - 20);
+    else if (sag > sira.scrollLeft + sira.clientWidth) {
+      sira.scrollLeft = sag - sira.clientWidth + 20;
+    }`,
+    yaz: '    aktif.scrollIntoView({ inline: \'center\' });',
+    testler: ['tests/kabuk-gezinme.test.ts'],
+  },
+  {
+    ad: 'Ölü dar bant kuralı geri geldi',
+    kural: 'Dar bant için yazılan bir kural gerçekten uygulanır',
+    dosya: 'app/kabuk.css',
+    ara: `@media (max-width: 620px) {
+  .ab-mercek-dar select { max-width: 118px; }
+}`,
+    yaz: `@media (max-width: 620px) {
+  .ab-mercek-dar select { max-width: 118px; }
+  .ab-hesap-dugme .kisi { display: none; }
+}`,
+    testler: ['tests/bekci/olu-bant-kurali.test.ts'],
+  },
+  {
     ad: 'Bir ekran rota envanterinden düştü',
     kural: 'app/ altındaki her kabuklu sayfa kalite kapılarının listesinde',
     dosya: 'arac/rotalar.json',
-    ara: '"/degerlendirme-aktarim", ',
+    /* Çapa dosyanın GERÇEK biçimini izler: `rotalar.json` satır başına
+       tek rota yazar. Eski çapa virgülden sonra boşluk bekliyordu ve
+       biçim değişince HİÇBİR ŞEYE eşleşmiyordu — sabotaj "hedef yok"
+       diyordu, yani bu kural ölçülmüyordu (mobil audit turunda ölçüldü). */
+    ara: '  "/degerlendirme-aktarim",\n',
     yaz: '',
     testler: ['tests/kabuk-gezinme.test.ts'],
   },
@@ -218,11 +302,14 @@ const SABOTAJLAR = [
     ad: 'Boş durum yeniden "ne yapabilirim" demiyor',
     kural: 'Her bozuk durum bloğu eylem ya da beklenen-durum taşır',
     dosya: 'app/(kabuk)/(operasyonel)/sayim/SayimIstemci.tsx',
-    ara: `          <BosIlk cumle="Hiç envanter sayımı açılmadı."
-            eylem={yazabilir
+    /* Cümle R-G ile UZADI ("sebebini söyler") ve çapa güncellenmedi;
+       kural o günden beri ölçülmüyordu. Çapa artık eylem yuvasını
+       hedefler, cümlenin kendisini değil — cümle yeniden uzarsa sabotaj
+       ayakta kalır, kural ölçülmeye devam eder. */
+    ara: `            eylem={yazabilir
               ? <Dugme tur="birincil" onClick={() => setFormAcik(true)}>Sayım aç</Dugme>
               : undefined} />`,
-    yaz: '          <BosIlk cumle="Hiç envanter sayımı açılmadı." />',
+    yaz: '            />',
     testler: ['tests/eylem-dili.test.ts'],
   },
   {

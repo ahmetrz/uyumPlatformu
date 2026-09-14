@@ -294,3 +294,131 @@ describe('rota envanteri · hiçbir ekran kapıların dışında kalmaz', () => 
     expect(beklenen.filter((y) => !kayitli.has(y))).toEqual([]);
   });
 });
+
+/* ── DAR BANTTA SIRA KATLANIR ─────────────────────────────────────────
+   Ölçülen kusur (mobil audit, 375×812): dokunmatik bantta ikincil sıra
+   yatay kayıyordu ve 45 kayan rotanın 24'ünde AKTİF SEKME EKRANIN
+   DIŞINDAYDI — `/egitimler`'de sıranın 1 982'nci pikselinde, beş ekran
+   ötede. "Neredeyim" sorusu bakarak cevaplanamıyordu. Üstelik `/uyum`
+   sırasının on dokuz bağından ÜÇÜ görünüyordu (%16).
+
+   Kural saf bir fonksiyondadır (`katlanirMi`) ve burada gerçek gezinme
+   yapısına karşı sınanır: eşik uydurulmuş bir sayı değil, ürünün
+   ÖLÇÜLEN sıralarını ikiye ayıran sınırdır. */
+describe('kabuk · dar bantta ikincil sıra katlanır', () => {
+  it('üçten çok bağ taşıyan sıra KATLANIR [SIS-KBK-022]', async () => {
+    const { ikincilSec, katlanirMi } = await import('@/components/kabuk/yonler');
+    /* 375px'e sığmayan iki sıra: Uyum 19 bağ (2 111px) · Varlık 5 bağ (519px). */
+    expect(katlanirMi(ikincilSec('/uyum'))).toBe(true);
+    expect(katlanirMi(ikincilSec('/envanter'))).toBe(true);
+  });
+
+  it('375px’e SIĞAN sıra katlanmaz — bugünkü davranış korunur [SIS-KBK-023]', async () => {
+    const { ikincilSec, katlanirMi } = await import('@/components/kabuk/yonler');
+    /* İkisi de iki bağ; ölçüldü, 375px'te kaymıyorlar. */
+    expect(katlanirMi(ikincilSec('/riskler'))).toBe(false);
+    expect(katlanirMi(ikincilSec('/portfoy'))).toBe(false);
+    /* Alanı olmayan rotada sıra YOKTUR; boş sıra katlanmaz. */
+    expect(katlanirMi(ikincilSec('/'))).toBe(false);
+  });
+
+  it('eşik ürünün sıralarını İKİYE ayırır — ortada sıra yok [SIS-KBK-024]', async () => {
+    const { IKINCIL, DAR_BANT_BAG_TAVANI } = await import('@/components/kabuk/yonler');
+    const sayilar = Object.values(IKINCIL)
+      .map((g) => g.reduce((n, x) => n + x.ogeler.length, 0))
+      .sort((a, b) => a - b);
+    /* Eşiğin İKİ YANINDA da gerçek sıra olmalı: bir yanı boş kalırsa
+       kural ölçülmemiş bir varsayımdır, sınır değil. */
+    expect(sayilar.some((n) => n <= DAR_BANT_BAG_TAVANI), 'katlanmayan sıra yok').toBe(true);
+    expect(sayilar.some((n) => n > DAR_BANT_BAG_TAVANI), 'katlanan sıra yok').toBe(true);
+    /* Eşik hiçbir gerçek sıranın TAM ÜSTÜNDE durmaz: tavana eşit bir sıra
+       olsaydı bir bağ eklendiği gün davranış sessizce değişirdi. */
+    expect(sayilar).not.toContain(DAR_BANT_BAG_TAVANI);
+  });
+
+  it('aktif bölüm grubuyla birlikte bulunur — "neredeyim" [SIS-KBK-025]', async () => {
+    const { ikincilSec, aktifBolum } = await import('@/components/kabuk/yonler');
+    const gruplar = ikincilSec('/uyum');
+    /* Kusurun doğduğu rota: sıranın en sonundaki bağ. */
+    const son = aktifBolum(gruplar, '/egitimler');
+    expect(son?.grup.ad).toBe('Kayıt ve kanıt');
+    expect(son?.oge.ad).toBe('Eğitim kütüğü');
+    /* Alt ekranı olan öğede de grup bulunur (üçüncül sıra, Varlık). */
+    const alt = aktifBolum(ikincilSec('/envanter'), '/kesif');
+    expect(alt?.oge.yol).toBe('/envanter');
+    /* Bu alanda olmayan bir patika aktif bölüm VERMEZ — düğme o zaman
+       alan adını yazar, uydurma bir bölüm değil. */
+    expect(aktifBolum(gruplar, '/envanter')).toBeNull();
+  });
+
+  it('katlanan sıra CSS’te gizlenir, seçici yalnız dar bantta çizilir [SIS-KBK-026]', () => {
+    const bloklar = css.match(/@media[^{]*\{(?:[^{}]|\{[^{}]*\})*\}/g) ?? [];
+    const dar = bloklar.filter((b) => /max-width:\s*700px/.test(b)).join('\n');
+    /* Bant kararı CSS'in: bileşen bandı ölçseydi sunucu geniş bandı
+       çizer, istemci dar bandı düzeltirdi. */
+    expect(dar).toMatch(/\.ab-ikincil\[data-katlanir\]\s*>\s*\.grup\s*\{[^}]*display:\s*none/);
+    expect(dar).toMatch(/\.ab-bolum\s*\{[^}]*display:\s*flex/);
+    /* Geniş ekranda seçici YOKTUR: medyasız temel kural onu gizler. */
+    const medyasiz = css.replace(/@media[^{]*\{(?:[^{}]|\{[^{}]*\})*\}/g, '');
+    expect(medyasiz).toMatch(/\n\.ab-bolum\s*\{[^}]*display:\s*none/);
+  });
+});
+
+/* ── KATLANAN SIRANIN TARAYICI KAPISI KÖR OLAMAZ ──────────────────────
+   Katlamanın GERÇEK ölçüsü tarayıcıdadır (`arac/gezinme-testi.mjs`,
+   `kapi-gezinme`): 375px'te seçici dokunulur, panel açılır, son gruptaki
+   bölüme varılır. Burada ölçülen o değil, kapının KENDİSİDİR — kapı bir
+   sınıf adına bakıyor ve bileşen o adı değiştirirse kapı hiçbir şey
+   bulamadan yeşil yanardı. Seçiciler iki dosyada da AYNI olmak zorunda. */
+describe('kabuk · katlama kapısı bileşene bağlı', () => {
+  const kapi = readFileSync('arac/gezinme-testi.mjs', 'utf8');
+  const bilesen = readFileSync('components/kabuk/BolumSecici.tsx', 'utf8');
+
+  it('kapı katlanan sırayı GERÇEKTEN sürüyor [SIS-KBK-027]', () => {
+    /* Hedef son grubun son bağıdır: kusurun doğduğu, yatay sırada
+       1 982'nci pikseldeki bağ. */
+    expect(kapi).toMatch(/KATLAMA\s*=\s*\{[^}]*rota:\s*'\/uyum'[^}]*hedef:\s*'\/egitimler'/);
+    /* Panel açılır, bağ sayılır, grup başlığı aranır, dokunularak
+       gidilir ve panelin KAPANDIĞI doğrulanır — dördü de kapıda. */
+    expect(kapi).toMatch(/\.ab-bolum-dugme/);
+    expect(kapi).toMatch(/panelBaglari/);
+    expect(kapi).toMatch(/görünür grup başlığı/);
+    expect(kapi).toMatch(/panel açık kaldı/);
+    /* SIFIR ÖLÇÜM KIRMIZIDIR: seçici bulunamazsa kapı sessizce geçmez. */
+    expect(kapi).toMatch(/olculenKatlama === 0[\s\S]{0,200}process\.exitCode = 1/);
+  });
+
+  it('üçüncül sıra aktif ekranı GÖRÜNÜR açar — ve sayfayı itmez [SIS-KBK-029]', () => {
+    const kabuk = readFileSync('components/kabuk/Kabuk.tsx', 'utf8');
+    /* Kaydırma YALNIZ sıranın kendi kutusunda olur. `scrollIntoView`
+       ataları da kaydırır ve ekranı başlıktan aşağı iterdi; ölçüm bunu
+       kapıda da sınıyor ama kaynakta da yasaktır. */
+    expect(kabuk).toMatch(/ucunculKok/);
+    expect(kabuk).toMatch(/sira\.scrollLeft\s*=/);
+    expect(kabuk, 'scrollIntoView atalara dokunur — sayfayı iter')
+      .not.toMatch(/ucuncul[\s\S]{0,400}scrollIntoView/);
+    /* Yumuşak geçiş YOK: bu bir animasyon değil açılış konumudur. */
+    expect(kabuk).not.toMatch(/scrollLeft[\s\S]{0,120}behavior/);
+    /* Görünür olan öğe OYNATILMAZ: her rota değişiminde sırayı zıplatmak
+       da bir kusurdur; koşul iki yönlü. */
+    expect(kabuk).toMatch(/if \(sol < sira\.scrollLeft\)[\s\S]{0,240}else if \(sag >/);
+    /* Kapı bunu üç rotada sürer ve sıfır ölçüm kırmızı yakar. */
+    expect(kapi).toMatch(/UCUNCUL_ROTALARI\s*=\s*\[[^\]]*'\/tedarikciler'/);
+    expect(kapi).toMatch(/görünür alanın DIŞINDA/);
+    expect(kapi).toMatch(/sayfayı kaydırdı/);
+    expect(kapi).toMatch(/olculenUcuncul === 0[\s\S]{0,200}process\.exitCode = 1/);
+  });
+
+  it('kapının seçicileri bileşenin GERÇEK sınıflarıyla aynı [SIS-KBK-028]', () => {
+    /* Kapı bu üç seçiciye bakıyor; üçü de bileşende birebir olmalı.
+       Bir yeniden adlandırma iki dosyadan yalnız birini değiştirirse
+       kapı kör kalır ve kör kapı her zaman yeşildir. */
+    for (const sec of ['ab-bolum-dugme', 'ab-bolum-menu', 'baslik']) {
+      expect(kapi, `kapı "${sec}" seçicisini kullanmıyor`).toContain(sec);
+      expect(bilesen, `bileşende "${sec}" sınıfı yok`).toContain(sec);
+    }
+    /* Panel öğeleri `role="menuitem"` taşır — kapı onu sayıyor. */
+    expect(kapi).toContain('[role="menuitem"]');
+    expect(bilesen).toContain("role=\"menuitem\"");
+  });
+});

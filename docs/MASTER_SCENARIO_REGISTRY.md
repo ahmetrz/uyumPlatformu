@@ -13,7 +13,7 @@ it('kapsam dışı varlığa yazılamaz [ENV-YAZ-003]', …)
 Ayrı bir eşleme tablosu tutulsaydı, tablo ilk yeniden adlandırmada
 testten ayrışır ve kimse görmezdi.
 
-Senaryo: **383** · testli: **383** · GAP: **0**
+Senaryo: **393** · testli: **393** · GAP: **0**
 
 ## Aktivite · 2 senaryo
 
@@ -380,7 +380,7 @@ Senaryo: **383** · testli: **383** · GAP: **0**
 | `SAY-KMP-001` | /sayim | BT yöneticisi · kendi tesisi | Kapsamda hiç varlık yok · yok | Sayım açmayı dener | Açılmaz — sıfır paydalı kampanya olamaz | Neden açılmadığı yazılır | yazma yok | yok | `faz-g-varlik.test.ts` |
 | `SAY-KMP-002` | /sayim | BT yöneticisi · kendi tesisi | Satır "bulunamadı" işaretlendi · kısmi | Sonucu kaydeder | Varlık SİLİNMEZ — envanterden düşürme ayrı bir karardır | "Sayılmadı" ile "bulunamadı" ayrı durumlardır | Sayım satırı · guncelleme | yok | `faz-g-eylem.test.ts` |
 
-## Sistem · 72 senaryo
+## Sistem · 82 senaryo
 
 | ID | Rota | Rol · kapsam | Ön koşul · veri | Eylem | Beklenen sonuç | Ekran | Denetim izi | Görev/bildirim | Test |
 | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- |
@@ -423,6 +423,16 @@ Senaryo: **383** · testli: **383** · GAP: **0**
 | `SIS-SAHA-002` | / | BT direktörü · kurum geneli | Saha ekranı açık; portföyde kurulu gücü kayıtlı olmayan tesis var ve uyum endeksi ölçülmüş · kısmi | Uyum × güç tuvaline bakar | Gücü ölçülmemiş tesis tuvalin tabanına konmaz; eksenin altında "Kurulu güç ölçülmedi" başlıklı kendi şeridinde, adı, uyum endeksi ve uygunsuz sayısıyla ve en düşük endeks önce olacak şekilde listelenir | Saha · uyum × güç tuvali | yazma yok | yok | `bekci/tuval-bilinmeyen.test.ts` · `bekci/tuval-bilinmeyen.test.ts` · `bekci/tuval-bilinmeyen.test.ts` · `bekci/tuval-bilinmeyen.test.ts` |
 | `SIS-OKM-001` | /ayarlar | herhangi bir kullanıcı · kendi kapsamı | Ayarlar ekranı açık; hesabın parolası tanımlı · normal | Ekranı açar ve hiçbir şey değiştirmeden profilini okur | Profil değerleri okunur biçimde (ad, unvan, e-posta) gelir ve hiçbir yazma alanı çizilmez; düzenleme ve parola değişimi kullanıcının kararıyla açılır, Vazgeç ile kapanır | Ayarlar · profil ve parola bölümleri | yazma yok | yok | `bekci/ayar-okuma-hali.test.ts` · `bekci/ayar-okuma-hali.test.ts` · `bekci/ayar-okuma-hali.test.ts` · `bekci/ayar-okuma-hali.test.ts` · `bekci/ayar-okuma-hali.test.ts` · `bekci/ayar-okuma-hali.test.ts` · `bekci/ayar-okuma-hali.test.ts` |
 | `SIS-KBK-019` | /uyum | ekran okuyucu kullanan kullanıcı · kendi kapsamı | Uyum alanı açık; ikincil sıra üç grup taşıyor · normal | Gezinme bölgesini ekran okuyucuyla dolaşır | Her grup kendi ADIYLA duyulur (Uyum durumu · Denetim ve aksiyon · Kayıt ve kanıt); adlar birbirinden farklıdır | İkincil gezinme sırası | yazma yok | yok | `kabuk-gezinme.test.ts` · `kabuk-gezinme.test.ts` · `kabuk-gezinme.test.ts` · `kabuk-gezinme.test.ts` · `kabuk-gezinme.test.ts` · `kabuk-gezinme.test.ts` |
+| `SIS-KBK-020` | — | ürün ekibi · kurum geneli | Kabuk CSS’inde dar bant blokları var · normal | Kabuk CSS’i okunur; her dar bant bildirimi, aynı seçiciyi aynı özellikle ezen SONRAKİ bir kurala karşı sınanır | Tarama sıfırdan çok bildirim görür ve tabanın altına düşmez | Kör bir ayrıştırıcı "ölü kural yok" diyemez | yazma yok | yok | `bekci/olu-bant-kurali.test.ts` |
+| `SIS-KBK-021` | — | ürün ekibi · kurum geneli | Bir dar bant bloğuna bildirim eklendi · normal | Bildirim, medyasız ya da daha GENİŞ bir max-width taşıyan sonraki bir kuralla karşılaştırılır | Ölü bildirim sayısı SIFIR; gerekçeli istisna yok — çalışmayan bir kuralın gerekçesi olamaz | Yazılan iyileştirme ekranda gerçekten var | yazma yok | yok | `bekci/olu-bant-kurali.test.ts` |
+| `SIS-KBK-022` | /uyum | telefonla bakan kullanıcı · kendi kapsamı | Uyum alanı açık; ikincil sıra on dokuz bağ taşıyor · normal | Ekranı 375px genişlikte açar | Sıra yatay kaymaz; tek bir düğme aktif grubu ve aktif bölümü yazar | İkincil sıra · bölüm seçici | yazma yok | yok | `kabuk-gezinme.test.ts` |
+| `SIS-KBK-023` | /riskler | telefonla bakan kullanıcı · kendi kapsamı | Risk alanı açık; ikincil sıra iki bağ taşıyor · normal | Ekranı 375px genişlikte açar | İki bağ da doğrudan görünür; katlama yok, ek dokunuş yok | İkincil sıra · düz | yazma yok | yok | `kabuk-gezinme.test.ts` |
+| `SIS-KBK-024` | — | ürün ekibi · kurum geneli | İkincil sıralar iki · beş · on dokuz bağ taşıyor · normal | Eşik, ürünün gerçek sıralarına karşı sınanır | Eşiğin iki yanında da gerçek sıra var ve hiçbir sıra eşiğin tam üstünde durmuyor | Bir bağ eklendiği gün davranış sessizce değişmez | yazma yok | yok | `kabuk-gezinme.test.ts` |
+| `SIS-KBK-025` | /egitimler | telefonla bakan kullanıcı · kendi kapsamı | Sıranın en sonundaki bölüm açık · normal | Bölüm seçici düğmesini okur | Düğme "Kayıt ve kanıt › Eğitim kütüğü" der; alan dışı bir patikada uydurma bölüm yazmaz, alan adını yazar | Bölüm seçici düğmesi | yazma yok | yok | `kabuk-gezinme.test.ts` |
+| `SIS-KBK-026` | /uyum | ürün ekibi · kurum geneli | Katlanan bir sıra var · normal | Kabuk CSS’i okunur | Seçici geniş ekranda gizli, dar bantta görünür; katlanan sıranın grupları yalnız dar bantta düşer | Her bant tek bir yüzey gösterir | yazma yok | yok | `kabuk-gezinme.test.ts` |
+| `SIS-KBK-027` | /uyum | telefonla bakan kullanıcı · kendi kapsamı | Uyum alanı 375px’te açık; sıra katlanmış · normal | Bölüm seçiciyi dokunarak açar ve son gruptaki bir bölüme dokunur | Panel üç grubu başlıklarıyla dikey listeler, aktif bölüm işaretli gelir, dokunulan bölüme gidilir ve panel kapanır | Bölüm paneli | yazma yok | yok | `kabuk-gezinme.test.ts` |
+| `SIS-KBK-028` | — | ürün ekibi · kurum geneli | Gezinme kapısı bölüm seçicisini sürüyor · normal | Kapının kullandığı seçiciler bileşenin gerçek sınıflarıyla karşılaştırılır | Üç sınıf da iki dosyada birebir; sıfır ölçüm kırmızı yakar | Kör bir kapı yeşil yanamaz | yazma yok | yok | `kabuk-gezinme.test.ts` |
+| `SIS-KBK-029` | /tedarikciler | telefonla bakan kullanıcı · kendi kapsamı | Varlık alanında bir grubun son alt ekranı açık · normal | Ekranı 375px genişlikte açar | Aktif alt ekran sıranın görünür penceresinde gelir; sayfanın kendisi kaymaz ve zaten görünür olan oynatılmaz | Üçüncül gezinme sırası | yazma yok | yok | `kabuk-gezinme.test.ts` |
 | `SIS-KBK-018` | — | ürün ekibi · kurum geneli | Yeni bir ekran eklendi · normal | Rota envanteri sayfa ağacıyla karşılaştırılır | Kabuklu her statik sayfa envanterde | Listede olmayan ekran hiçbir kapıdan geçmez | yazma yok | yok | `kabuk-gezinme.test.ts` |
 | `SIS-BSL-001` | — | herhangi bir kullanıcı · kendi kapsamı | Ekranın vurgusu boş kalabiliyor · yok | Ekran açılır ve H1 okunur | Başlık cümle parçası değil | Ekran okuyucu ve arama sonucu anlamlı bir ad görür | yazma yok | yok | `ekran-basligi.test.ts` |
 | `SIS-BSL-002` | — | herhangi bir kullanıcı · kendi kapsamı | Ekran bir isterden doğmuş · normal | Ekran künyesi okunur | Künyede UY-/OT- kodu geçmez | Kod ürün belgesinde kalır | yazma yok | yok | `ekran-basligi.test.ts` |

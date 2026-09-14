@@ -251,6 +251,49 @@ export function ogeAktif(o: Oge, patika: string): boolean {
   return aktifMi(o.yol, patika) || (o.alt ?? []).some((a) => aktifMi(a.yol, patika));
 }
 
+/* ── DAR BANTTA İKİNCİL SIRA KATLANIR ─────────────────────────────────
+   ÖLÇÜLEN KUSUR (mobil audit, 375×812, 77 rota): ikincil sıra dokunmatik
+   bantta yatay KAYIYORDU ve gerekçesi "parmakla kaydırmak beklenen
+   jesttir" diye yazılıydı. Gerekçe, NEREYE kaydıracağını bilen bir
+   kullanıcıyı varsayıyordu; ölçüm tersini söyledi:
+
+     · Kayan 45 rotanın 24'ünde AKTİF SEKME EKRANIN DIŞINDAYDI. En kötüsü
+       `/egitimler`: aktif sekme sıranın 1 982'nci pikselinde, yani beş
+       ekran ötede. Kullanıcı "neredeyim" sorusuna bakarak cevap veremez.
+     · `/uyum` sırası 2 111px ve 375px'te ON DOKUZ BAĞIN ÜÇÜ görünüyor
+       (%16). Kalan on altısı keşfedilmeyi bekliyor.
+     · Grup adları (`aria-label`) yalnız ekran okuyucuya ulaşıyor; GÖREN
+       kullanıcı üç çıplak sekme görüyor, hiyerarşiyi göremiyor.
+
+   Bugün dar bantta sıra KATLANIR: tek bir düğme "hangi gruptayım ·
+   hangi bölümdeyim" der, dokunulunca bütün bölümler GRUPLANMIŞ ve dikey
+   okunur. Hiçbir rota gizlenmez — ulaşım yolu değişir; yatay körlemesine
+   arama yerine tek dokunuş.
+
+   EŞİK ÖLÇÜLDÜ, uydurulmadı: 375px'te sıra üç-dört bağ gösteriyor
+   (ölçüldü: 19 bağlık sırada 3, 5 bağlıkta 4). Ürünün ikincil sıraları
+   iki · beş · on dokuz bağ taşıyor; iki bağlık sıra 375px'e SIĞIYOR
+   (ölçüldü: kaymıyor), beş bağlık sıra 519px ile sığmıyor. Tavan bu iki
+   ölçümün arasındadır ve ÜÇTÜR: üçten çok bağ taşıyan sıra katlanır.
+   Katlanmayan sıra bugünkü davranışını aynen korur. */
+export const DAR_BANT_BAG_TAVANI = 3;
+
+/** Dar bantta (≤700px) sıra katlanır mı — bağ sayısı tavanı aşıyorsa. */
+export function katlanirMi(gruplar: readonly Grup[]): boolean {
+  return gruplar.reduce((n, g) => n + g.ogeler.length, 0) > DAR_BANT_BAG_TAVANI;
+}
+
+/** Patikanın aktif ikincil öğesi ve onu taşıyan grup; yoksa `null`.
+    Katlanmış sıranın düğmesi "neredeyim" sorusunu bununla cevaplar. */
+export function aktifBolum(gruplar: readonly Grup[], patika: string):
+{ grup: Grup; oge: Oge } | null {
+  for (const grup of gruplar) {
+    const oge = grup.ogeler.find((o) => ogeAktif(o, patika));
+    if (oge) return { grup, oge };
+  }
+  return null;
+}
+
 /** Patikanın üçüncül sırası: aktif ikincil öğenin alt ekranları (yoksa null). */
 export function ucunculSec(patika: string): { grup: Oge; ogeler: Oge[] } | null {
   for (const g of ikincilSec(patika)) {

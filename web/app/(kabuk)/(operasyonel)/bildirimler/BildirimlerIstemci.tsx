@@ -35,7 +35,7 @@ import {
 const KOLONLAR: Kolon[] = [
   { baslik: 'Tip', genislik: '110px' },
   { baslik: 'Kaynak', genislik: '150px', ikincil: true },
-  { baslik: 'Bekleyen gün', genislik: '100px', sag: true },
+  { baslik: 'Bekleyen gün', genislik: '122px', sag: true },
   { baslik: 'Yazıldı', genislik: '120px', sag: true, ikincil: true },
 ];
 

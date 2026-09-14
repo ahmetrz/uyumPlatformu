@@ -26,7 +26,7 @@ import { SOZLESME_SURUMU, UC_YOLU } from '@/lib/api/sozlesme';
 const KOLONLAR = [
   { baslik: 'Yol', genislik: '1fr' },
   { baslik: 'Yöntem', genislik: '84px' },
-  { baslik: 'Erişen anahtar', genislik: '132px', sag: true },
+  { baslik: 'Erişen anahtar', genislik: '140px', sag: true },
 ];
 
 export default function ApiSozlesmesiIstemci({

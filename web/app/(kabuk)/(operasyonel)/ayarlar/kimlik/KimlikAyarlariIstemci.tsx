@@ -37,7 +37,7 @@ import {
 const KOLONLAR: Kolon[] = [
   { baslik: 'Issuer', genislik: '260px', ikincil: true },
   { baslik: 'Durum', genislik: '250px' },
-  { baslik: 'Bağlı kullanıcı', genislik: '120px', sag: true },
+  { baslik: 'Bağlı kullanıcı', genislik: '148px', sag: true },
 ];
 
 export default function KimlikAyarlariIstemci({ veri, yazabilir }: {

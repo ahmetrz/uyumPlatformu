@@ -38,7 +38,7 @@ const GORUNUR_BUTCE = 7;
 const KOLONLAR: Kolon[] = [
   { baslik: 'Rol', genislik: '150px', siraAnahtari: 'rol' },
   { baslik: 'Kapsam', genislik: '178px' },
-  { baslik: 'Yetki', genislik: '58px', sag: true, siraAnahtari: 'yetki' },
+  { baslik: 'Yetki', genislik: '80px', sag: true, siraAnahtari: 'yetki' },
   { baslik: 'Unvan', genislik: '176px', ikincil: true },
 ];
 

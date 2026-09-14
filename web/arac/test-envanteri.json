@@ -1,7 +1,7 @@
 {
-  "imza": "fb4f6211d0b7fabd0531f0ed2a4cdba9",
-  "dosya": 249,
-  "vaka": 4463,
+  "imza": "f260598f9586a8dda54ba44401f4addb",
+  "dosya": 250,
+  "vaka": 4469,
   "atlanan": 1,
   "dosyalar": {
     "tests/adaptor-yetenekleri.test.ts": {
@@ -146,6 +146,10 @@
     },
     "tests/bekci/terim-dogrulama.test.ts": {
       "vaka": 21,
+      "atlanan": 0
+    },
+    "tests/bekci/tuval-bilinmeyen.test.ts": {
+      "vaka": 4,
       "atlanan": 0
     },
     "tests/bekci/yumusak-silme-sayimi.test.ts": {
@@ -545,7 +549,7 @@
       "atlanan": 0
     },
     "tests/kunye-yolu.test.ts": {
-      "vaka": 8,
+      "vaka": 10,
       "atlanan": 0
     },
     "tests/kurucu-hesap.test.ts": {

@@ -75,7 +75,7 @@ const DURUM_SOZU: Record<string, string> = {
 
 const KOLONLAR: Kolon[] = [
   { baslik: 'Satır', genislik: '64px', sag: true },
-  { baslik: 'Geçerli', genislik: '70px', sag: true },
+  { baslik: 'Geçerli', genislik: '80px', sag: true },
   { baslik: 'Hata', genislik: '60px', sag: true },
   { baslik: 'Yükleyen', genislik: '150px', ikincil: true },
 ];

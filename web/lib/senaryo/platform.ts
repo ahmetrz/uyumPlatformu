@@ -1393,6 +1393,23 @@ export const PLATFORM_SENARYOLARI_6: Senaryo[] = [
     katmanlar: ['UI'],
   },
   {
+    id: 'SIS-SAHA-002', alan: 'Sistem', rota: '/', eksen: 'veri',
+    amac: 'Kurulu gücü ÖLÇÜLMEMİŞ tesisin, gücü sıfır ölçülmüş tesisle '
+      + 'aynı yerde görünmemesi — tuvalin dikey ekseni kurulu güçtür ve '
+      + 'ölçülmemiş bir değerin o eksende yeri yoktur',
+    rol: 'BT direktörü', kapsam: 'kurum geneli',
+    onkosul: 'Saha ekranı açık; portföyde kurulu gücü kayıtlı olmayan '
+      + 'tesis var ve uyum endeksi ölçülmüş', veriHali: 'kısmi',
+    eylem: 'Uyum × güç tuvaline bakar',
+    beklenenSonuc: 'Gücü ölçülmemiş tesis tuvalin tabanına konmaz; eksenin '
+      + 'altında "Kurulu güç ölçülmedi" başlıklı kendi şeridinde, adı, uyum '
+      + 'endeksi ve uygunsuz sayısıyla ve en düşük endeks önce olacak '
+      + 'şekilde listelenir',
+    beklenenEkran: 'Saha · uyum × güç tuvali',
+    beklenenIz: 'yazma yok', beklenenBildirim: 'yok',
+    katmanlar: ['UI', 'DOMAIN'],
+  },
+  {
     id: 'SIS-OKM-001', alan: 'Sistem', rota: '/ayarlar', eksen: 'arayuz',
     amac: 'Okuma hâlinin düzenleme hâlinden ayrılması — ekranın birincil '
       + 'görevi hesabı OKUMAKTIR, ama açılışta altı giriş alanı çiziliyordu; '

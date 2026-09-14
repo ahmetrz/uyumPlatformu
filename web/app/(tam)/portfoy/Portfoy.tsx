@@ -325,7 +325,11 @@ export default function Portfoy({
                   </span>
                 </span>
                 <span className="sayilar">
-                  <span className="deger"
+                  {/* ÖLÇÜLMEDİ ≠ SIFIR: "—" bilinmeyen mürekkebini taşır;
+                      "0" ölçülmüş sıfırdır ve tam mürekkeple durur. */}
+                  <span className={`deger${s.uyumYuzde === null ? ' olculmedi' : ''}`}
+                    title={s.uyumYuzde === null
+                      ? 'Uyum endeksi ölçülmedi — sıfır değil' : undefined}
                     aria-label={s.uyumYuzde === null
                       ? 'Uyum endeksi ölçülmedi'
                       : `Uyum endeksi yüzde ${s.uyumYuzde}`}>

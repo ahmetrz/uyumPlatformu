@@ -4,12 +4,12 @@
 
 | Ölçü | Değer |
 | --- | --- |
-| Senaryo | 382 |
-| Testi olan senaryo | 382 |
+| Senaryo | 383 |
+| Testi olan senaryo | 383 |
 | **GAP** | **0** |
 | Hayalet işaret (kütükte olmayan kimlik) | 0 |
 | Kütüksüz test dosyası | 0 |
-| Taranan test dosyası | 249 |
+| Taranan test dosyası | 250 |
 
 ## Katman başına kapsam
 
@@ -18,7 +18,7 @@
 | ACCESSIBILITY | 10 | 10 | 0 |
 | API | 12 | 12 | 0 |
 | CONCURRENCY | 8 | 8 | 0 |
-| DOMAIN | 229 | 229 | 0 |
+| DOMAIN | 230 | 230 | 0 |
 | ENGINE | 38 | 38 | 0 |
 | INTEGRATION | 43 | 43 | 0 |
 | MIGRATION | 10 | 10 | 0 |
@@ -26,7 +26,7 @@
 | RESPONSIVE | 9 | 9 | 0 |
 | SCOPE | 34 | 34 | 0 |
 | SERVER | 159 | 159 | 0 |
-| UI | 113 | 113 | 0 |
+| UI | 114 | 114 | 0 |
 | VISUAL | 4 | 4 | 0 |
 | WORKFLOW | 39 | 39 | 0 |
 
@@ -361,7 +361,9 @@
 | `ESL-PRF-002` | Eşleme | SERVER · DOMAIN | `esleme-tezgahi.test.ts` | önizleme profil, köken ya da red kaydı YAZMAZ | evet | geçti |
 | `SIS-HTA-001` | Sistem | UI | `senaryo-platform.test.ts` | bulunamadı ve hata sayfaları vardır ve dönüş yolu sunar | evet | geçti |
 | `SIS-SAHA-001` | Sistem | UI | `kunye-yolu.test.ts` | ÖLÇÜLEN KUSUR · güç kaydı olmayan altı tesis aynı banda iner ve | evet | geçti |
-| `SIS-SAHA-001` | Sistem | UI | `kunye-yolu.test.ts` | ÜÇ nokta kümelendiğinde üçü de AYRI yola çıkar — tek basamaklı | evet | geçti |
+| `SIS-SAHA-001` | Sistem | UI | `kunye-yolu.test.ts` | ÜÇ nokta kümelendiğinde künyeler AYRILIR ama hiçbiri | evet | geçti |
+| `SIS-SAHA-001` | Sistem | UI | `kunye-yolu.test.ts` | TAVANIN KENDİSİ SINIRLIDIR — sabotaj turunda yakalandı: | evet | geçti |
+| `SIS-SAHA-001` | Sistem | UI | `kunye-yolu.test.ts` | ÖLÇÜLEN KUSUR · künye İŞARETİNDEN KOPAMAZ — sınırsız | evet | geçti |
 | `SIS-SAHA-001` | Sistem | UI | `kunye-yolu.test.ts` | YÖNLÜ ÇAKIŞMA · sağa açılan künye ile sola açılan künye | evet | geçti |
 | `SIS-KBK-001` | Sistem | UI · ACCESSIBILITY | `yardim.test.ts` | atla bağı kabuğun ilk çocuğu; tek kabukta TEK `#icerik` sarmalayıcısı var, kabuk main AÇMAZ | evet | geçti |
 | `SIS-ERS-001` | Sistem | ACCESSIBILITY · UI | `yardim.test.ts` | dialog rolü, modal, başlık bağı ve odak tuzağı var | evet | geçti |
@@ -544,12 +546,22 @@
 | `SIS-MRC-001` | Sistem | UI | `bekci/mercek-tasmasi.test.ts` | envanterde taşma düğmesi `tasma` sınıfını taşır | evet | geçti |
 | `SIS-MRC-001` | Sistem | UI | `bekci/mercek-tasmasi.test.ts` | kesikli kenarlık kuralı İKİ bandı da kapsar — tek bandı | evet | geçti |
 | `SIS-MRC-001` | Sistem | UI | `bekci/mercek-tasmasi.test.ts` | taşma listesi BOŞ DEĞİL — boş bir liste bu kuralı | evet | geçti |
+| `SIS-SAHA-002` | Sistem | UI · DOMAIN | `bekci/tuval-bilinmeyen.test.ts` | tuvale YALNIZ gücü ölçülmüş tesis girer — `guc === null` | evet | geçti |
+| `SIS-SAHA-002` | Sistem | UI · DOMAIN | `bekci/tuval-bilinmeyen.test.ts` | gücü ölçülmemiş tesis EKRANDAN DÜŞMEZ — ayrı şeridinde | evet | geçti |
+| `SIS-SAHA-002` | Sistem | UI · DOMAIN | `bekci/tuval-bilinmeyen.test.ts` | şerit KONUMLU DAĞILIM DEĞİL — tek satırlık bir bantta | evet | geçti |
+| `SIS-SAHA-002` | Sistem | UI · DOMAIN | `bekci/tuval-bilinmeyen.test.ts` | şerit KARAR SIRASINDA — en düşük endeks önce; | evet | geçti |
 | `SIS-OKM-001` | Sistem | UI | `bekci/ayar-okuma-hali.test.ts` | `%s` kapısının OKUMA dalı yazılabilir alan | evet | geçti |
 | `SIS-OKM-001` | Sistem | UI | `bekci/ayar-okuma-hali.test.ts` | `%s` kapısı KAPALI doğar — `useState(true)` | evet | geçti |
 | `SIS-OKM-001` | Sistem | UI | `bekci/ayar-okuma-hali.test.ts` | `%s` kipinden VAZGEÇİLEBİLİR — açılan bir | evet | geçti |
+| `SIS-OKM-001` | Sistem | UI | `bekci/ayar-okuma-hali.test.ts` | `%s` kipinden vazgeçmek ÖNCEKİ DENEMEYİ de | evet | geçti |
+| `SIS-OKM-001` | Sistem | UI | `bekci/ayar-okuma-hali.test.ts` | kipi AÇAN düğme de hatayı siler — kapanmadan tazelenen | evet | geçti |
+| `SIS-OKM-001` | Sistem | UI | `bekci/ayar-okuma-hali.test.ts` | kip değişiminde ODAK taşınır — kipi açan düğme DOM\'dan | evet | geçti |
 | `SIS-OKM-001` | Sistem | UI | `bekci/ayar-okuma-hali.test.ts` | ekrandaki yazılabilir alanların TAMAMI bir kapının | evet | geçti |
 | `SIS-KBK-019` | Sistem | UI · ACCESSIBILITY | `kabuk-gezinme.test.ts` | her ikincil grubun ADI vardır — adsız grup ekran | evet | geçti |
 | `SIS-KBK-019` | Sistem | UI · ACCESSIBILITY | `kabuk-gezinme.test.ts` | bir alanın grup adları BİRBİRİNDEN farklıdır — aynı | evet | geçti |
+| `SIS-KBK-019` | Sistem | UI · ACCESSIBILITY | `kabuk-gezinme.test.ts` | TERİMLİ grup adı kiracının SÖZLÜĞÜNDEN çözülür — üst | evet | geçti |
+| `SIS-KBK-019` | Sistem | UI · ACCESSIBILITY | `kabuk-gezinme.test.ts` | terimsiz grup adı sözlükle DEĞİŞMEZ — çekirdek kavram | evet | geçti |
+| `SIS-KBK-019` | Sistem | UI · ACCESSIBILITY | `kabuk-gezinme.test.ts` | kabuk sözlüğü ikincil sıraya GERÇEKTEN geçirir — saf | evet | geçti |
 | `SIS-KBK-019` | Sistem | UI · ACCESSIBILITY | `kabuk-gezinme.test.ts` | kabuk grubu ROL ve AD ile çizer — ad yalnız görünür | evet | geçti |
 | `SIS-KBK-018` | Sistem | UI · DOMAIN | `kabuk-gezinme.test.ts` | app/ altındaki her statik sayfa rotalar.json içinde | evet | geçti |
 | `SIS-BSL-001` | Sistem | UI · ACCESSIBILITY | `ekran-basligi.test.ts` | vurgusuz kalabilen başlık cümle parçası olamaz | evet | geçti |

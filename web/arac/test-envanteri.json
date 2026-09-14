@@ -1,7 +1,7 @@
 {
-  "imza": "59eb7e51a54cea5dab70a0366d94e64b",
-  "dosya": 251,
-  "vaka": 4479,
+  "imza": "be70bd5452860b274755b4f04ca9800e",
+  "dosya": 252,
+  "vaka": 4483,
   "atlanan": 1,
   "dosyalar": {
     "tests/adaptor-yetenekleri.test.ts": {
@@ -386,6 +386,10 @@
     },
     "tests/guvenlik-negatif.test.ts": {
       "vaka": 38,
+      "atlanan": 0
+    },
+    "tests/harita-dokunma.test.ts": {
+      "vaka": 4,
       "atlanan": 0
     },
     "tests/harita-mantik.test.ts": {

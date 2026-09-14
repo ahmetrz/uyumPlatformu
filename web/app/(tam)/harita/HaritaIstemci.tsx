@@ -1,7 +1,7 @@
 'use client';
 import { useSozluk, useTerim } from '@/lib/dil/SozlukSaglayici';
 import { olculenYazi } from '@/lib/alan/oznitelik';
-import { useMemo, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import Link from 'next/link';
 import { Alan, Dugme, Hata, Im, BosIlk } from '@/components/kabuk/temel';
 import { EkranBasligi } from '@/components/kabuk/ekran';
@@ -38,6 +38,36 @@ export default function HaritaIstemci({
 
   const yerlesim = useMemo(() => yerlesimKur(satirlar), [satirlar]);
   const isaretler = useMemo(() => yiginKaydir(yerlesim.isaretler), [yerlesim]);
+
+  /* ── VURUŞ ALANI CSS PİKSELİNDE ÖLÇÜLÜR, KULLANICI BİRİMİNDE DEĞİL ──
+     ÖLÇÜLEN KUSUR (mobil audit, 375×812): işaretin vuruş dairesi
+     `r = max(isaret.r, 11)` ile KULLANICI BİRİMİNDE veriliyordu. Tuval
+     960 birim geniş ve `width: 100%` ile çiziliyor; dar bantta ölçek
+     düşünce o yarıçap da düşüyor ve daire ekranda 11px ÇAP olarak
+     çıkıyordu — ürünün beyan ettiği WCAG 2.2 AA 24×24 eşiğinin yarısından
+     az. Yazan kişi 11'i piksel sanmıştı; SVG onu tuvalin ölçeğiyle
+     çarpıyordu. Bir ölçünün başka bir şeye SESSİZCE bağlı olması.
+
+     Bugün ölçek çalışma anında ölçülür ve yarıçap ondan TÜRETİLİR:
+     hangi genişlikte olursa olsun daire 24 CSS pikselidir. Sunucuda
+     ölçek bilinemez; varsayılan 1 bugünkü davranıştır ve daire şeffaf
+     olduğu için ilk karede görünen hiçbir şey değişmez. */
+  const tuvalKok = useRef<SVGSVGElement>(null);
+  const [olcek, setOlcek] = useState(1);
+  useEffect(() => {
+    const svg = tuvalKok.current;
+    if (!svg || typeof ResizeObserver === 'undefined') return;
+    const olc = () => {
+      const en = svg.getBoundingClientRect().width;
+      if (en > 0) setOlcek(TUVAL.en / en);
+    };
+    olc();
+    const g = new ResizeObserver(olc);
+    g.observe(svg);
+    return () => g.disconnect();
+  }, []);
+  /* 12 CSS px yarıçap = 24 CSS px çap. */
+  const vurusR = 12 * olcek;
   const olculer = useMemo(() => olcu(yerlesim), [yerlesim]);
   const izgara = useMemo(() => kilavuz(), []);
   const baslik = baslikMetni(olculer, useSozluk());
@@ -99,7 +129,7 @@ export default function HaritaIstemci({
               + `${olculer.yaklasik} il merkezine yaklaşık. `
               + 'Her işaret bir düğmedir; sekme ile gezilir, Enter ile künyesi açılır.'}
           </p>
-          <svg viewBox={`0 0 ${TUVAL.en} ${TUVAL.boy}`} role="group"
+          <svg ref={tuvalKok} viewBox={`0 0 ${TUVAL.en} ${TUVAL.boy}`} role="group"
             aria-label={`${tBas('tesis')} konumları · enlem/boylam çerçevesi`}>
 
             {/* Ülke sınırı — kılavuzun ÜSTÜNDE, işaretlerin ALTINDA.
@@ -134,7 +164,7 @@ export default function HaritaIstemci({
             </g>
 
             {isaretler.map((i) => (
-              <IsaretDugumu key={i.id} isaret={i}
+              <IsaretDugumu key={i.id} isaret={i} vurusR={vurusR}
                 secili={secili === i.id}
                 sec={() => setSecili((o) => (o === i.id ? null : i.id))} />
             ))}
@@ -173,23 +203,49 @@ export default function HaritaIstemci({
               duzenle={() => setDuzenlenen(secilen.id)}
               kapat={() => setSecili(null)}
             />
-          ) : (
-            <div className="ab-harita-bos">
-              <p className="etiket">Seçili {terim('tesis')}</p>
-              <p className="cumle">
-                Bir işarete tıklayın: künye, koordinat kaynağı ve açık kayıt
-                sayıları burada açılır.
-                {/* Sistem işaret listesini ZATEN elinde tutuyor: "tıklayın"
-                    deyip seçtirmemek, kullanıcıyı haritada aramaya bırakır. */}
-                {isaretler.length > 0 && (
-                  <button type="button" className="ab-dugme satir"
-                    onClick={() => setSecili(isaretler[0].id)}>
-                    İlk {terim('tesis')} künyesini aç
+          ) : null}
+
+          {/* ── İŞARETİN DOKUNULABİLİR KARŞILIĞI ────────────────────────
+              ÖLÇÜLEN KUSUR (mobil audit, 375×812): haritaya varmanın TEK
+              yolu 11 piksellik bir noktaya dokunmaktı. İşaret küçük
+              KALMAK ZORUNDA — konum ölçülen veridir, büyütmek onu yanlış
+              yere taşır (WCAG 2.5.8 "temel" istisnası tam olarak bu) —
+              ama küçük bir hedefin TEK yol olması ayrı bir kusurdur ve
+              istisna onu örtmez: her yolun dokunulabilir bir karşılığı
+              olmalıdır.
+
+              Panel eskiden BOŞTU ve "bir işarete tıklayın" diyordu; oysa
+              sistem listeyi zaten elinde tutuyordu. Bugün o liste panelin
+              kendisidir: her satır 40px'lik bir hedef, seçim haritada
+              yanar, künye üstte açılır. Dar bantta işaret ETİKETLERİ
+              gizlendiği için (okunmaz bir yığın olurlardı) ad, kod ve
+              uyum oranını gören tek yüzey de burasıdır.
+
+              Satır GEZİNMEZ, SEÇER: künye yanında açılır, kullanıcı
+              haritadan kopmaz. Tesisin kendi ekranına giden bağ künyenin
+              içindedir — kademeli açılım sırası bozulmaz. */}
+          <div className="ab-harita-secim">
+            <p className="etiket">
+              {isaretler.length} {terim('tesis')} · haritada
+            </p>
+            <ul className="ab-harita-liste secilir">
+              {isaretler.map((i) => (
+                <li key={i.id}>
+                  <button type="button"
+                    className={`satirdugme${secili === i.id ? ' secili' : ''}`}
+                    aria-pressed={secili === i.id}
+                    onClick={() => setSecili((o) => (o === i.id ? null : i.id))}>
+                    <Im durum={i.durum} ad={DURUM_ADI[i.durum]} />
+                    <span className="ad">{i.ad}</span>
+                    <span className="mono kod">{i.kod}</span>
+                    <span className="mono yer">
+                      {i.uyumYuzde === null ? 'ölçülmedi' : `%${i.uyumYuzde}`}
+                    </span>
                   </button>
-                )}
-              </p>
-            </div>
-          )}
+                </li>
+              ))}
+            </ul>
+          </div>
         </div>
 
         {yerlesim.yerlestirilemeyen.length > 0 && (
@@ -226,11 +282,18 @@ export default function HaritaIstemci({
   );
 }
 
+/* Durum glifinin okunur karşılığı — renk TEK KANAL değildir ve liste
+   satırı ekran okuyucuya da aynı şeyi söylemelidir. */
+const DURUM_ADI: Record<string, string> = {
+  ok: 'uyum %85 ve üzeri', md: 'uyum %60–84', bd: 'uyum %60 altı',
+  unk: 'uyum ölçülmedi',
+};
+
 /* ── İşaret ───────────────────────────────────────────────────────────
    Düğme: klavyeyle gezilebilir, `aria-pressed` seçimi taşır. Yaklaşık
    konum kesik çizgiyle ve boş içle ayrılır — renk tek kanal değildir. */
-function IsaretDugumu({ isaret, secili, sec }: {
-  isaret: Isaret; secili: boolean; sec: () => void;
+function IsaretDugumu({ isaret, vurusR, secili, sec }: {
+  isaret: Isaret; vurusR: number; secili: boolean; sec: () => void;
 }) {
   const uyum = isaret.uyumYuzde === null ? 'ölçülmedi' : `%${isaret.uyumYuzde}`;
   const yer = isaret.kaynak === 'dogrulanmis' ? 'doğrulanmış konum'
@@ -240,7 +303,7 @@ function IsaretDugumu({ isaret, secili, sec }: {
     <g className={`isaret d-${isaret.durum} k-${isaret.kaynak}${secili ? ' secili' : ''}`}>
       <circle cx={isaret.x} cy={isaret.y} r={isaret.r} className="halka" />
       <circle
-        cx={isaret.x} cy={isaret.y} r={Math.max(isaret.r, 11)}
+        cx={isaret.x} cy={isaret.y} r={Math.max(isaret.r, vurusR)}
         className="vurus" role="button" tabIndex={0}
         aria-pressed={secili}
         aria-label={`${isaret.ad} · ${isaret.konum ?? 'konum yok'} · uyum ${uyum} · ${yer}`}

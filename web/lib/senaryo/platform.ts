@@ -597,6 +597,36 @@ export const PLATFORM_SENARYOLARI: Senaryo[] = [
     beklenenIz: 'yazma yok', beklenenBildirim: 'yok',
     katmanlar: ['DOMAIN', 'UI'],
   },
+  {
+    id: 'HRT-DOK-010', alan: 'Harita', rota: '/harita', eksen: 'arayuz',
+    amac: 'İşaretin dokunulabilir olması — ölçüldü: vuruş dairesi SVG '
+      + 'kullanıcı biriminde veriliyordu ve 375px’te ekranda 11px ÇAP '
+      + 'oluyordu, beyan edilen WCAG 2.2 AA eşiğinin yarısından az',
+    rol: 'telefonla bakan kullanıcı', kapsam: 'kurum geneli',
+    onkosul: 'Haritaya yerleşen tesis var', veriHali: 'normal',
+    eylem: 'Haritayı 375px ve 1440px genişlikte açar',
+    beklenenSonuc: 'Her işaretin vuruş alanı iki bantta da en az 24 CSS '
+      + 'piksel; yarıçap tuvalin ölçeğinden TÜRETİLİR, sabit yazılmaz',
+    beklenenEkran: 'Harita tuvali',
+    beklenenIz: 'yazma yok', beklenenBildirim: 'yok',
+    katmanlar: ['UI', 'ACCESSIBILITY'],
+  },
+  {
+    id: 'HRT-DOK-011', alan: 'Harita', rota: '/harita', eksen: 'arayuz',
+    amac: 'Küçük bir hedefin TEK yol olmaması — işaret küçük kalmak '
+      + 'zorunda (konum ölçülen veridir) ama bu, ona ulaşmanın başka '
+      + 'yolu olmamasını meşru kılmaz',
+    rol: 'telefonla bakan kullanıcı', kapsam: 'kurum geneli',
+    onkosul: 'Panel eskiden boştu ve "bir işarete tıklayın" diyordu',
+    veriHali: 'normal',
+    eylem: 'Panel listesinden bir satıra dokunur',
+    beklenenSonuc: 'Listede haritadaki her işaret için bir satır var, her '
+      + 'satır en az 24px, dokunulan satır haritadaki işareti seçer ve '
+      + 'künyeyi açar; seçim iki yüzeyde birden işaretlidir',
+    beklenenEkran: 'Harita yan paneli · tesis listesi',
+    beklenenIz: 'yazma yok', beklenenBildirim: 'yok',
+    katmanlar: ['UI', 'ACCESSIBILITY'],
+  },
 
   /* ── Yardım ─────────────────────────────────────────────────────── */
   {

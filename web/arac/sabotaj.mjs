@@ -247,6 +247,22 @@ const SABOTAJLAR = [
     testler: ['tests/kabuk-gezinme.test.ts'],
   },
   {
+    ad: 'Harita vuruş alanı yine kullanıcı biriminde',
+    kural: 'İşaretin vuruş alanı ekranda 24 CSS pikselidir',
+    dosya: 'app/(tam)/harita/HaritaIstemci.tsx',
+    ara: '  const vurusR = 12 * olcek;',
+    yaz: '  const vurusR = 11;',
+    testler: ['tests/harita-dokunma.test.ts'],
+  },
+  {
+    ad: 'Harita listesi kaldırıldı — küçük hedef yine TEK yol',
+    kural: 'İşarete ulaşmanın dokunulabilir bir karşılığı vardır',
+    dosya: 'app/(tam)/harita/HaritaIstemci.tsx',
+    ara: '            <ul className="ab-harita-liste secilir">',
+    yaz: '            <ul className="ab-harita-liste secilir" hidden>',
+    testler: ['tests/harita-dokunma.test.ts'],
+  },
+  {
     ad: 'Ölü dar bant kuralı geri geldi',
     kural: 'Dar bant için yazılan bir kural gerçekten uygulanır',
     dosya: 'app/kabuk.css',

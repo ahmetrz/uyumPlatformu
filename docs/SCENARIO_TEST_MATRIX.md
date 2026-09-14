@@ -4,18 +4,18 @@
 
 | Ölçü | Değer |
 | --- | --- |
-| Senaryo | 393 |
-| Testi olan senaryo | 393 |
+| Senaryo | 395 |
+| Testi olan senaryo | 395 |
 | **GAP** | **0** |
 | Hayalet işaret (kütükte olmayan kimlik) | 0 |
 | Kütüksüz test dosyası | 0 |
-| Taranan test dosyası | 251 |
+| Taranan test dosyası | 252 |
 
 ## Katman başına kapsam
 
 | Katman | Senaryo | Testli | GAP |
 | --- | --- | --- | --- |
-| ACCESSIBILITY | 12 | 12 | 0 |
+| ACCESSIBILITY | 14 | 14 | 0 |
 | API | 12 | 12 | 0 |
 | CONCURRENCY | 8 | 8 | 0 |
 | DOMAIN | 230 | 230 | 0 |
@@ -26,7 +26,7 @@
 | RESPONSIVE | 9 | 9 | 0 |
 | SCOPE | 34 | 34 | 0 |
 | SERVER | 159 | 159 | 0 |
-| UI | 124 | 124 | 0 |
+| UI | 126 | 126 | 0 |
 | VISUAL | 4 | 4 | 0 |
 | WORKFLOW | 39 | 39 | 0 |
 
@@ -376,6 +376,9 @@
 | `PRT-OZT-003` | Portföy | DOMAIN · UI | `ekran-mantik-72.test.ts` | sözlükten işaretli satır sektörün sözcüğünü alır, ötekiler kendi adını | evet | geçti |
 | `PRT-OZT-003` | Portföy | DOMAIN · UI | `ekran-mantik-72.test.ts` | hiçbir sıralama satırı sektör sözcüğünü SABİT taşımaz | evet | geçti |
 | `HRT-KNM-001` | Harita | DOMAIN · UI | `harita-mantik.test.ts` | koordinatı olan yerleşir, ili olan YAKLAŞIK, ikisi de yoksa haritada YOK | evet | geçti |
+| `HRT-DOK-010` | Harita | UI · ACCESSIBILITY | `harita-dokunma.test.ts` | vuruş yarıçapı ÖLÇEKTEN türetilir, sabit yazılmaz | evet | geçti |
+| `HRT-DOK-011` | Harita | UI · ACCESSIBILITY | `harita-dokunma.test.ts` | işarete ulaşmanın dokunulabilir karşılığı VAR | evet | geçti |
+| `HRT-DOK-011` | Harita | UI · ACCESSIBILITY | `harita-dokunma.test.ts` | tarayıcı kapısı KÖR değil — seçicileri ekrana bağlı | evet | geçti |
 | `YRD-SOR-001` | Yardım | DOMAIN · UI | `yardim.test.ts` | listedeki genel kısayolların her biri kaynakta bağlıdır | evet | geçti |
 | `OTR-HSP-001` | Oturum | SERVER · DOMAIN | `hesap.test.ts` | alt sınır 12 karakter; kısa parola kusur cümlesi üretir, boş alan susar | evet | geçti |
 | `OTR-HSP-002` | Oturum | SERVER · RBAC | `oturum-yasam-dongusu.test.ts` | başka kullanıcının oturumuna DOKUNMAZ | evet | geçti |

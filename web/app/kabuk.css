@@ -2339,12 +2339,6 @@
 .ab-harita-govde > .ab-harita-eksik,
 .ab-harita-govde > .ab-harita-form { grid-column: 1 / -1; }
 .ab-harita-yan { min-width: 0; }
-.ab-harita-bos {
-  padding: var(--s14) var(--s16);
-  background: var(--panel); border-left: 2px solid var(--hr2);
-}
-.ab-harita-bos > .etiket { display: block; margin: 0 0 var(--s10); }
-.ab-harita-bos .cumle { margin: 0; font-size: var(--t-field); line-height: 1.6; color: var(--i3); }
 
 /* İşaret etiketi — ad ipucunda yaşayamaz. */
 .ab-harita-tuval .etiketler text {
@@ -2416,6 +2410,47 @@
 .ab-harita-liste .ad:hover { border-bottom-color: var(--aksan); }
 .ab-harita-liste .kod { font-size: var(--t-code-lg); color: var(--i3); }
 .ab-harita-liste .yer { margin-left: auto; font-size: var(--t-code); color: var(--i3); }
+
+/* ── SEÇİLEBİLİR HARİTA LİSTESİ ───────────────────────────────────────
+   İşaretin dokunulabilir karşılığı (gerekçe `HaritaIstemci.tsx`).
+   Satır 40px: ürünün beyan ettiği WCAG 2.2 AA eşiğinin (24px) üstünde
+   ve dokunmatik bantta rahat. Seçili satır bakır şeritle işaretlenir —
+   haritadaki seçimle AYNI kanal, tek renge bağlı değil (`aria-pressed`
+   ekran okuyucuya söyler). */
+.ab-harita-secim { margin-top: var(--s16); }
+.ab-harita-secim > .etiket { display: block; margin-bottom: var(--s8); color: var(--i3); }
+.ab-harita-liste.secilir li { padding: 0; }
+.ab-harita-liste .satirdugme {
+  display: flex; align-items: center; gap: var(--s10); width: 100%;
+  min-height: 40px; padding: 0 var(--s8); text-align: left;
+  background: none; border: 0; cursor: pointer; font: inherit;
+  font-size: var(--t-field); color: var(--i2);
+}
+.ab-harita-liste .satirdugme:hover { background: var(--panel2); color: var(--murekkep); }
+.ab-harita-liste .satirdugme .ad {
+  flex: 1 1 auto; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+  color: var(--murekkep); border-bottom: 0;
+}
+.ab-harita-liste .satirdugme.secili {
+  background: var(--panel2); box-shadow: inset 3px 0 0 var(--aksan);
+}
+.ab-harita-liste .satirdugme.secili .ad { color: var(--murekkep); }
+/* LİSTE KENDİ İÇİNDE KAYMAZ — SAYFAYLA BİRLİKTE AKAR. İlk yazımda
+   `max-height: 46dvh; overflow-y: auto` vardı ve gerekçesi "liste
+   ekranın tamamını yutmasın, harita görünür kalsın"dı. İki ölçüm de
+   gerekçeyi çürüttü:
+
+     · Dar bantta panel haritanın ALTINDA duruyor (tek kolon); listeye
+       vardığınızda harita zaten ekranda değil. Geniş bantta panel yan
+       kolondur ve harita yanında durur — ikisinde de kısıtlamanın
+       koruduğu bir şey yok.
+     · Taşma kapısı KIRMIZI yaktı: kap `overflow-y` ile görüntüyü
+       kırpıyor ama satırların kutuları akışta kabın dışına taşıyor ve
+       alttaki "yerleştirilemedi" bloğuyla 24 çift üretiyordu (375 ve
+       768px). Görünmeyen bir çakışma, geometride gerçek bir çakışmadır.
+
+   Üstüne, dikey kaydıran bir sayfanın içine ikinci bir dikey kaydırma
+   koymak kaydırmayı hapseder. Kısıt kaldırıldı. */
 
 .ab-harita-form { display: grid; gap: var(--s12); max-width: 520px; }
 .ab-harita-form .ikili { display: grid; grid-template-columns: 1fr 1fr; gap: var(--s12); }

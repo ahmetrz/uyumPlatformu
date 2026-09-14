@@ -13,7 +13,7 @@ it('kapsam dışı varlığa yazılamaz [ENV-YAZ-003]', …)
 Ayrı bir eşleme tablosu tutulsaydı, tablo ilk yeniden adlandırmada
 testten ayrışır ve kimse görmezdi.
 
-Senaryo: **393** · testli: **393** · GAP: **0**
+Senaryo: **395** · testli: **395** · GAP: **0**
 
 ## Aktivite · 2 senaryo
 
@@ -176,11 +176,13 @@ Senaryo: **393** · testli: **393** · GAP: **0**
 | `GZD-KRR-001` | /gozden-gecirme | uyum yöneticisi · kurum geneli | Karara bağlı görev açık · normal | Kararı tamamlandı olarak işaretler | Bağlı görev de kapanır — iş iki yerde ayrı ayrı kapatılmaz | Görev kuyruğunda kalmaz | GozdenGecirmeKarari · guncelleme (durum) | yok | `ters-kapsam-eylem.test.ts` |
 | `GZD-KRR-002` | /gozden-gecirme | uyum yöneticisi · kurum geneli | Gerekçe girilmemiş · kısmi | Kararı gerekçesiz iptal etmeyi dener | Reddedilir — iptal gerekçe ister | Eksik alan adlandırılır | yazma yok | yok | `ters-kapsam-eylem.test.ts` |
 
-## Harita · 2 senaryo
+## Harita · 4 senaryo
 
 | ID | Rota | Rol · kapsam | Ön koşul · veri | Eylem | Beklenen sonuç | Ekran | Denetim izi | Görev/bildirim | Test |
 | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- |
 | `HRT-KNM-001` | /harita | kurum yöneticisi · kurum geneli | Koordinatı olmayan tesis var · kısmi | Haritayı açar | Koordinatsız tesis uydurma bir yere KONMAZ | Listede ayrıca sayılır | yazma yok | yok | `harita-mantik.test.ts` |
+| `HRT-DOK-010` | /harita | telefonla bakan kullanıcı · kurum geneli | Haritaya yerleşen tesis var · normal | Haritayı 375px ve 1440px genişlikte açar | Her işaretin vuruş alanı iki bantta da en az 24 CSS piksel; yarıçap tuvalin ölçeğinden TÜRETİLİR, sabit yazılmaz | Harita tuvali | yazma yok | yok | `harita-dokunma.test.ts` |
+| `HRT-DOK-011` | /harita | telefonla bakan kullanıcı · kurum geneli | Panel eskiden boştu ve "bir işarete tıklayın" diyordu · normal | Panel listesinden bir satıra dokunur | Listede haritadaki her işaret için bir satır var, her satır en az 24px, dokunulan satır haritadaki işareti seçer ve künyeyi açar; seçim iki yüzeyde birden işaretlidir | Harita yan paneli · tesis listesi | yazma yok | yok | `harita-dokunma.test.ts` · `harita-dokunma.test.ts` |
 | `KNM-KRD-001` | /tesisler/[id] | tesis sorumlusu · kendi tesisi | Yalnız enlem girildi · kısmi | Koordinatı kaydetmeyi dener | YARIM koordinat reddedilir | Silme meşrudur; iki alan birlikte boşaltılabilir | Tesis · guncelleme | yok | `konum-apianahtar-eylem.test.ts` |
 
 ## İçe aktarım · 2 senaryo

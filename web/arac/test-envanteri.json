@@ -1,7 +1,7 @@
 {
-  "imza": "072d4c490754d822f12c4b4551cf9534",
-  "dosya": 252,
-  "vaka": 4490,
+  "imza": "6b864ab0785fd07611e64c66e9249495",
+  "dosya": 253,
+  "vaka": 4501,
   "atlanan": 1,
   "dosyalar": {
     "tests/adaptor-yetenekleri.test.ts": {
@@ -922,6 +922,10 @@
     },
     "tests/uyum-metin-durumu.test.ts": {
       "vaka": 2,
+      "atlanan": 0
+    },
+    "tests/uyum-odak.test.ts": {
+      "vaka": 11,
       "atlanan": 0
     },
     "tests/uyum-taslak-serit.test.ts": {

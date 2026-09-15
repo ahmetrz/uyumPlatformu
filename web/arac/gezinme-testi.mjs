@@ -24,7 +24,7 @@ import { sebepBayragi, tabanDogrula, tabanYaz } from './olcum-tabani.mjs';
      4. KLAVYE — kardeş bağlantı sekmeyle odaklanır, Enter gider.
      5. Sayfa hatası yok.
      6. KATLANAN SIRA HİÇBİR ROTAYI GİZLEMEZ — dar bantta ikincil sıra
-        bölüm seçiciye katlanır (ölçüldü: 375px'te on dokuz bağın üçü
+        bölüm seçiciye katlanır (ölçüldü: 375px'te Uyum'un o günkü on dokuz bağının üçü
         görünüyordu, 45 kayan rotanın 24'ünde aktif sekme ekran
         dışındaydı). Katlama bir GİZLEME değilse, katlanmış sıranın en
         SONUNDAKİ bölüme dokunarak varılabilmelidir. Vaka yalnız sıranın
@@ -75,17 +75,23 @@ const BANTLAR = process.argv.includes('--hizli')
 const BASLANGIC = '/riskler';
 const KARDES = '/bulgular';
 
-/* Katlanan sıranın ölçüldüğü rota ve hedef. `/uyum` on dokuz bağ ve üç
-   grup taşır; hedef SON grubun SON bağıdır — yatay kayan sırada 1 982'nci
-   pikselde duran, kusurun doğduğu bağ. */
-const KATLAMA = { rota: '/uyum', hedef: '/egitimler', enAzBag: 19 };
+/* Katlanan sıranın ölçüldüğü rota ve hedef. Kusur `/uyum`da doğdu (on
+   dokuz bağ, yatay sırada 1 982'nci piksel); odak turunda Uyum sırası
+   Varlık'ın iki kademeli gramerine geçti ve ÜÇ bağa indi — artık
+   katlanmaz. Bugün 375px'e sığmayan tek sıra Varlık'tır (beş bağ,
+   519px); hedef sıranın SON bağıdır. Katlama davranışı rotaya değil
+   bağ sayısına bağlıdır; bu yüzden ölçüm yeri veriyle taşındı. */
+const KATLAMA = { rota: '/envanter', hedef: '/olaylar', enAzBag: 5 };
 let olculenKatlama = 0;
 
 /* Üçüncül sıranın ölçüldüğü rotalar: ölçümde aktif ekranı görünür alanın
    DIŞINDA kalan altı rotanın ikisi (`/tedarikciler` 537px, `/esleme`
    330px) ve sıranın BAŞINDAKİ bir rota (`/envanter`) — sonuncusu
-   düzeltmenin, zaten görünür olanı gereksiz yere OYNATMADIĞINI ölçer. */
-const UCUNCUL_ROTALARI = ['/tedarikciler', '/esleme', '/envanter'];
+   düzeltmenin, zaten görünür olanı gereksiz yere OYNATMADIĞINI ölçer.
+   `/egitimler` odak turuyla eklendi: Uyum'un üçüncül sırası yeni ve bu
+   rota o sıranın SON bağıdır (eskiden ikincil sıranın 1 982'nci
+   pikselindeki bağ). */
+const UCUNCUL_ROTALARI = ['/tedarikciler', '/esleme', '/envanter', '/egitimler'];
 let olculenUcuncul = 0;
 
 /* Kabuklar arası tur: her adım "buradayım → alan bağlantısına dokun →
@@ -213,7 +219,13 @@ for (const bant of BANTLAR) {
       /* Grup başlıkları GÖRÜNÜR olmalı: kusurun yarısı buydu — gruplar
          yalnız `aria-label` ile duyuluyor, gören kullanıcıya ulaşmıyordu. */
       const baslik = await s.locator('.ab-bolum-menu .baslik').count();
-      if (baslik < 2) bildir(bant.ad, `katlanan sıra: görünür grup başlığı ${baslik} (en az 2)`);
+      const grup = await s.locator('.ab-bolum-menu [role="group"]').count();
+      /* Ölçü "en az iki" DEĞİL, "her grubun bir başlığı var": tek gruplu
+         bir sıra da katlanır (Varlık) ve sabit bir sayı orada ya boş
+         yanar ya körleşir. */
+      if (baslik < 1 || baslik !== grup) {
+        bildir(bant.ad, `katlanan sıra: görünür grup başlığı ${baslik}, grup ${grup} (her grubun başlığı olmalı)`);
+      }
       await dokunVeVar(s, bant.ad,
         s.locator(`.ab-bolum-menu [role="menuitem"][href="${KATLAMA.hedef}"]`),
         KATLAMA.hedef, 'katlanan sıra (dokunmatik)');

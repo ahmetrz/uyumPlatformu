@@ -66,7 +66,7 @@
   "satirlar": [
     {
       "yer": "app/(kabuk)/(flagship)/Genel.tsx",
-      "satir": 256,
+      "satir": 267,
       "tur": "satirIci",
       "cumle": "Kapsamınızda … yok — uyum katmanları … kayıtlarından türetilir. {tanimlayabilir ? … tanımla → : Tanımlama yetkisi yöneticinizdedir. }",
       "iyiHaber": false,
@@ -75,7 +75,7 @@
     },
     {
       "yer": "app/(kabuk)/(flagship)/Genel.tsx",
-      "satir": 588,
+      "satir": 599,
       "tur": "satirIci",
       "cumle": "Kapsamınızdaki tesislerde açık bulgu yok; müdahale bekleyen kayıt bulunmuyor. Açık bulgu yok; müdahale bekleyen kayıt bulunmuyor.",
       "iyiHaber": true,
@@ -84,7 +84,7 @@
     },
     {
       "yer": "app/(kabuk)/(flagship)/Genel.tsx",
-      "satir": 723,
+      "satir": 734,
       "tur": "satirIci",
       "cumle": "Kapsamınızda … yok — uyum tuvali … kayıtlarından çizilir. {tanimlayabilir ? … tanımla → : Tanımlama yetkisi yöneticinizdedir. }",
       "iyiHaber": false,
@@ -921,7 +921,7 @@
     },
     {
       "yer": "app/(kabuk)/(operasyonel)/uyum/UyumIstemci.tsx",
-      "satir": 350,
+      "satir": 397,
       "tur": "satirIci",
       "cumle": "Bu çerçevede uygulanabilir kontrol bulunmuyor — ya uygulanabilirlik kararı hiç verilmedi ya da maddelerin tamamı kapsam dışı bırakıldı; ikisi de &quot;uyumlu&quot; demek değildir. Çerçeveyi aç",
       "iyiHaber": false,
@@ -930,7 +930,7 @@
     },
     {
       "yer": "app/(kabuk)/(operasyonel)/uyum/UyumIstemci.tsx",
-      "satir": 421,
+      "satir": 473,
       "tur": "satirIci",
       "cumle": "Bu çerçevenin yürüyen uyum süreci yok — eğilim tutulmuyor. … Uyum süreci aç",
       "iyiHaber": false,
@@ -939,7 +939,7 @@
     },
     {
       "yer": "app/(kabuk)/(operasyonel)/uyum/UyumIstemci.tsx",
-      "satir": 427,
+      "satir": 479,
       "tur": "satirIci",
       "cumle": "Henüz anlık görüntü yok — ilk anlık motor çalışınca düşer. … Motor durumunu gör",
       "iyiHaber": false,

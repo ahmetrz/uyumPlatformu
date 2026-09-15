@@ -183,7 +183,7 @@ const SABOTAJLAR = [
     ad: 'Dar bantta sıra artık katlanmıyor',
     kural: 'Üçten çok bağ taşıyan ikincil sıra dar bantta katlanır',
     dosya: 'components/kabuk/yonler.ts',
-    ara: 'export const DAR_BANT_BAG_TAVANI = 3;',
+    ara: 'export const DAR_BANT_BAG_TAVANI = 4;',
     yaz: 'export const DAR_BANT_BAG_TAVANI = 500;',
     testler: ['tests/kabuk-gezinme.test.ts'],
   },
@@ -191,7 +191,7 @@ const SABOTAJLAR = [
     ad: 'Katlama eşiği gerçek bir sıranın tam üstüne çekildi',
     kural: 'Eşik hiçbir sıranın tam üstünde durmaz — bir bağ eklenince davranış sessizce değişmez',
     dosya: 'components/kabuk/yonler.ts',
-    ara: 'export const DAR_BANT_BAG_TAVANI = 3;',
+    ara: 'export const DAR_BANT_BAG_TAVANI = 4;',
     yaz: 'export const DAR_BANT_BAG_TAVANI = 2;',
     testler: ['tests/kabuk-gezinme.test.ts'],
   },
@@ -268,6 +268,69 @@ const SABOTAJLAR = [
     dosya: 'arac/erisim-axe.mjs',
     ara: "const ETIKETLER = ['wcag2a', 'wcag2aa', 'wcag22aa'];",
     yaz: "const ETIKETLER = ['wcag2a', 'wcag2aa'];",
+    testler: ['tests/kabuk-gezinme.test.ts'],
+  },
+  /* ── Odak ve hiyerarşi turu (15 Eyl 2026) ────────────────────────
+     Kullanıcı geri bildirimiyle ölçülen kusur: "her tarafta metin,
+     nereye odaklanacağımı anlamıyorum". Aşağıdaki her sabotaj, ekranı
+     ESKİ hâline döndüren tek bir değişikliktir; kırmızı yakmıyorsa test
+     kararı sabitlememiş demektir. */
+  {
+    ad: 'Uyum üçüncül sırasından bir rota düştü',
+    kural: 'Yeniden gruplama ulaşım yolunu değiştirir, kapsamı değil — on dokuz rota on dokuz kalır',
+    dosya: 'components/kabuk/yonler.ts',
+    ara: "        { ad: 'Eğitim kütüğü', yol: '/egitimler' },",
+    yaz: '        // SABOTAJ: rota sıradan düştü',
+    testler: ['tests/uyum-odak.test.ts'],
+  },
+  {
+    ad: 'Ekran başlığı yeniden BÜYÜK HARF',
+    kural: 'Başlık cümle düzenindedir; 74 büyük harfli etiketten ayrı sesle konuşur',
+    dosya: 'app/kabuk.css',
+    ara: `.ab-lede h1 {
+  margin: 0; font-family: var(--gorunum); font-weight: 500;`,
+    yaz: `.ab-lede h1 {
+  margin: 0; font-family: var(--gorunum); font-weight: 500; text-transform: uppercase;`,
+    testler: ['tests/uyum-odak.test.ts'],
+  },
+  {
+    ad: 'Matris yeniden kod sırasında açılıyor',
+    kural: 'Varsayılan sıra ÖNEMDİR: uygunsuz satır kalabalığın içinden çıkar',
+    dosya: 'app/(kabuk)/(operasyonel)/uyum/UyumIstemci.tsx',
+    ara: "  const [sira, setSira] = useState<'onem' | 'kod'>('onem');",
+    yaz: "  const [sira, setSira] = useState<'onem' | 'kod'>('kod');",
+    testler: ['tests/uyum-odak.test.ts'],
+  },
+  {
+    ad: 'Okuma anahtarı yeniden hep açık',
+    kural: 'Lejant varsayılan kapalıdır; her açılışta dört durum çizerek dikkat çalmaz',
+    dosya: 'app/(kabuk)/(operasyonel)/uyum/UyumIstemci.tsx',
+    ara: '        <details className="bolum anahtar-kutu">',
+    yaz: '        <details className="bolum anahtar-kutu" open>',
+    testler: ['tests/uyum-odak.test.ts'],
+  },
+  {
+    ad: 'Eğilim şeridi matrisin altından kaldırıldı',
+    kural: 'Matris ekranın ilk gövdesidir; eğilim ondan SONRA gelir ve silinmez',
+    dosya: 'app/(kabuk)/(operasyonel)/uyum/UyumIstemci.tsx',
+    ara: '        <EgilimSeridi noktalar={egilim} surecVar={surecId !== null} bugun={m.endeks} />',
+    yaz: '        {/* SABOTAJ: şerit kaldırıldı */}',
+    testler: ['tests/uyum-odak.test.ts'],
+  },
+  {
+    ad: 'Tekdüze kapsam kolonu yeniden çiziliyor',
+    kural: 'Bir şey söylemeyen kolon çizilmez; ölçüt veriden gelir',
+    dosya: 'app/(kabuk)/(operasyonel)/uyum/UyumIstemci.tsx',
+    ara: '  const kapsamTekduze = satirlar.every((s) => s.kapsamda === tesisler.length);',
+    yaz: '  const kapsamTekduze = false;',
+    testler: ['tests/uyum-odak.test.ts'],
+  },
+  {
+    ad: 'Kusurun doğduğu bağ tarayıcı kapısından düştü',
+    kural: '`/egitimler` katlanan sıradan üçüncül sıraya taşındı, ölçümden DÜŞMEDİ',
+    dosya: 'arac/gezinme-testi.mjs',
+    ara: "const UCUNCUL_ROTALARI = ['/tedarikciler', '/esleme', '/envanter', '/egitimler'];",
+    yaz: "const UCUNCUL_ROTALARI = ['/tedarikciler', '/esleme', '/envanter'];",
     testler: ['tests/kabuk-gezinme.test.ts'],
   },
   {

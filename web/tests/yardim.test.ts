@@ -147,11 +147,13 @@ describe('Atla bağı + tek main', () => {
 });
 
 describe('Gezinme kayıtları · /kanitlar, /ayarlar, /yardim', () => {
-  it('/kanitlar Uyum alanına düşer ve ikincil sıranın üçüncü (kayıt) grubunda durur', () => {
+  it('/kanitlar Uyum alanına düşer ve "Kayıt ve kanıt" öğesinin üçüncül sırasında durur', () => {
     expect(alanSec('/kanitlar')).toBe('/uyum');
     expect(alanSec('/kanitlar/abc')).toBe('/uyum');
-    const kayit = IKINCIL['/uyum'][2];
-    expect(kayit.ogeler).toContainEqual({ ad: 'Kanıt', yol: '/kanitlar' });
+    /* Uyum sırası iki kademeli (odak turu): kayıt ekranları "Kayıt ve
+       kanıt" ikincil öğesinin alt sırasındadır, ayrı bir grup değil. */
+    const kayit = IKINCIL['/uyum'].flatMap((g) => g.ogeler).find((o) => o.ad === 'Kayıt ve kanıt');
+    expect(kayit?.alt).toContainEqual({ ad: 'Kanıt', yol: '/kanitlar' });
   });
 
   it('/ayarlar ve /yardim alansız yardımcı rotadır (operasyonel yoğunluk) ve ÜST ÇUBUK bağıdır', () => {

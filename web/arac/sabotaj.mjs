@@ -649,6 +649,53 @@ const SABOTAJLAR = [
     yaz: '      aday = ad;',
     testler: ['tests/saha-sadelestirme.test.ts'],
   },
+  /* ── Kaydırma çubuğu kararı (15 Eyl 2026) ─────────────────────────── */
+  {
+    ad: 'Kaydırma çubuğu kararı kabuk kökünden kaldırıldı',
+    kural: 'Çubuk kararı `.ab`te bir kez verilir ve kalıtımla her kayan kaba iner',
+    dosya: 'app/kabuk.css',
+    ara: '  scrollbar-color: var(--cubuk) transparent;',
+    yaz: '  /* karar kaldırıldı */',
+    testler: ['tests/bekci/kaydirma-cubugu.test.ts'],
+  },
+  {
+    /* ÖLÇÜLDÜ: `scrollbar-width` kalıtımsızdır; kural yalnız `.ab`te
+       kalırsa şeridin hesaplanan değeri `auto` döner — çubuk işletim
+       sisteminin kalınlığında çizilir ve kusur geri gelir. */
+    ad: 'Çubuk inceliği yalnız kabuk köküne yazıldı (kalıtımsız özellik)',
+    kural: '`scrollbar-width` kalıtımsızdır: kabuğun altındaki her öğeye yazılır',
+    dosya: 'app/kabuk.css',
+    ara: '.ab, .ab * { scrollbar-width: thin; }',
+    yaz: '.ab { scrollbar-width: thin; }',
+    testler: ['tests/bekci/kaydirma-cubugu.test.ts'],
+  },
+  {
+    ad: 'Belge kökünün çubuk rengi jetondan saptı',
+    kural: 'Belge kökündeki literal `--cubuk` jetonuyla AYNIDIR',
+    dosya: 'app/globals.css',
+    ara: '  scrollbar-color: #6A7679 transparent;',
+    yaz: '  scrollbar-color: #8D9497 transparent;',
+    testler: ['tests/bekci/kaydirma-cubugu.test.ts'],
+  },
+  {
+    ad: 'İçerik kabının çubuğu gizlendi',
+    kural: 'Çubuk yalnız gezinme sıralarında gizlenir; içerik kabında tek affordanstır',
+    dosya: 'app/kabuk.css',
+    ara: '  display: flex; overflow-x: auto; scroll-snap-type: x proximity;',
+    yaz: '  display: flex; overflow-x: auto; scroll-snap-type: x proximity; scrollbar-width: none;',
+    testler: ['tests/bekci/kaydirma-cubugu.test.ts'],
+  },
+  {
+    ad: 'Çubuk rengi kontrol eşiğinin altına çekildi',
+    kural: 'Çubuk başparmağı bir kontroldür: dört zeminde 3:1',
+    dosya: 'app/kabuk.css',
+    /* 3:1 eşiğini `arac/kontrast.mjs` (CLI, `tasarim:kapi`) ölçer; sabotaj
+       koşucusu vitest koştuğu için burada belge sapması ve jeton eşitliği
+       dişleri yakalar — ikisi de aynı değişikliği kırmızı yakar. */
+    ara: '  --cubuk: #6A7679;',
+    yaz: '  --cubuk: #3A4245;',
+    testler: ['tests/tasarim-belgesi.test.ts', 'tests/bekci/kaydirma-cubugu.test.ts'],
+  },
   {
     ad: 'Etiketin küresel benzersizlik güvencesi kaldırıldı',
     kural: 'İki tip hiçbir zaman aynı etiketle çizilmez — kiracı adı üretilen etiketle çakışsa da',

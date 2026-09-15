@@ -864,6 +864,22 @@ export const PLATFORM_SENARYOLARI: Senaryo[] = [
     katmanlar: ['UI', 'DOMAIN'],
   },
   {
+    id: 'SIS-CBK-001', alan: 'Sistem', rota: '/', eksen: 'arayuz',
+    amac: 'Kaydırma çubuğu ürünün dışında kalmıştı: ana sayfada kayan tek kap '
+      + '(tesis şeridi, 3 624px taşma) çubuk için hiçbir karar taşımıyordu, '
+      + 'işletim sistemi kalın ve yuvarlak uçlu açık gri bir başparmak çiziyordu',
+    rol: 'yönetici', kapsam: 'kurum geneli',
+    onkosul: 'Saha açık; kayan kap var (tesis şeridi taşıyor)', veriHali: 'normal',
+    eylem: 'Fareyle şeridi kaydırır; klasik kaydırma çubuğu çizen bir masaüstü tarayıcıda bakar',
+    beklenenSonuc: 'Çubuk ince ve palet içinde (`--cubuk`); karar `.ab` kökünde '
+      + 'bir kez verilir ve her kayan kaba kalıtımla iner; belge kökü aynı değeri '
+      + 'taşır; çubuk gizlenmez (kayan içeriğin tek işareti) ve klasik kipe '
+      + 'düşüren `::-webkit-scrollbar` renk/boy kuralı yoktur',
+    beklenenEkran: 'Saha · tesis şeridi ve kabuğun tüm kayan kapları',
+    beklenenIz: 'yazma yok', beklenenBildirim: 'yok',
+    katmanlar: ['UI', 'ACCESSIBILITY'],
+  },
+  {
     id: 'SIS-SAHA-020', alan: 'Sistem', rota: '/', eksen: 'arayuz',
     amac: 'Saha ekranındaki "+N diğer" bağının parmakla vurulabilmesi — '
       + 'ölçüldü: satır 20px idi, ürünün beyan ettiği WCAG 2.2 AA 24×24 '

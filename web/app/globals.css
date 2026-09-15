@@ -25,7 +25,16 @@
 
 * { box-sizing: border-box; }
 html, body { margin: 0; padding: 0; }
-html { color-scheme: dark; }
+/* Belge kökü: koyu tema + kaydırma çubuğu. Değer LİTERALDİR çünkü belge
+   katmanı `.ab` jetonlarını göremez; `--cubuk` ile eşitliği bir bekçi
+   tutar (`tests/bekci/kaydirma-cubugu.test.ts`). Bu satır operasyonel
+   ekranların DİKEY belge çubuğunu ve giriş ekranını kapsar — kabuk
+   içindeki kaplar kararı `.ab`ten kalıtımla alır. */
+html {
+  color-scheme: dark;
+  scrollbar-width: thin;
+  scrollbar-color: #6A7679 transparent;
+}
 
 body {
   background: #0D1012;

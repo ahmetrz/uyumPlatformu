@@ -313,6 +313,11 @@
   --hr: #1C2123;
   --hr2: #272D2F;
   --aksan: #C2703E;   /* bakır */
+  /* Kaydırma çubuğu başparmağı — METİN değil KONTROL: eşiği 3:1 (IRI).
+     Ölçüldü: dört zeminde 4,18 / 4,01 / 3,81 / 3,96. Değer kontrast
+     kapısında (`arac/kontrast.mjs`) durur ve sessizce koyulaşamaz;
+     `globals.css` belge kökünde aynı değeri LİTERAL taşır (bekçi eşitler). */
+  --cubuk: #6A7679;
   --ok: #6FA07E;
   --md: #D9A03C;
   /* Prototipte #D14A3A → 4,04:1. Ton korunarak açıldı → 4,74:1. */
@@ -359,7 +364,41 @@
   display: grid; min-height: 100dvh;
   grid-template-rows: 56px auto auto minmax(0, 1fr) auto auto;
   grid-template-columns: minmax(0, 1fr);
+  /* ── KAYDIRMA ÇUBUĞU DA ÜRÜNÜN PARÇASIDIR ───────────────────────────
+     Ölçüldü (15 Eyl 2026, kullanıcı geri bildirimi "anasayfadaki kaydırma
+     çubuğu siteyle uyumsuz görünüyor"): ana sayfada kayan TEK kap tesis
+     şeridiydi (3 624px taşma) ve kaydırma çubuğu için hiçbir kararı
+     yoktu — `scrollbar-width: auto`, `scrollbar-color: auto`. Çubuğu
+     işletim sistemi çiziyordu: 15px kalınlıkta, yuvarlak uçlu, açık gri
+     bir başparmak. Ürün radius 0, saç çizgisi ve ölçülü mürekkeple
+     kurulu; o çubuk ekrandaki en parlak ve en yuvarlak nesneydi.
+
+     Karar KABUĞUN TAMAMI içindir, tek kap için değil: `scrollbar-width`
+     ve `scrollbar-color` KALITIMLIDIR, bu yüzden `.ab` altındaki her
+     kayan kap aynı çubuğu alır ve bir sonraki kayan kap kararsız
+     doğmaz. Kural iki satırdır, çünkü ikiden çok mekanizma (bir de
+     `::-webkit-scrollbar`) iki ayrı kaynak demektir.
+
+     `::-webkit-scrollbar` BİLEREK YOK: Chromium'da o seçiciyi tanımlamak
+     çubuğu örtüşen (overlay) kipten KLASİK kipe düşürür — çubuk her
+     platformda kalıcı olarak yer kaplar ve fotoğrafik alandan 8px
+     çalardı. Standart iki özellik örtüşen çubuğu da boyar.
+
+     ÇUBUK GİZLENMEZ: bu depo o dersi ölçtü (`.ab-ikincil` · 1440px'te
+     gizli çubuk üç ekranı bulunamaz kılmıştı). Şeritteki çubuk, fare
+     kullanan birine 24 kartın varlığını söyleyen tek işarettir. */
+  scrollbar-color: var(--cubuk) transparent;
 }
+/* ── İKİ ÖZELLİK, İKİ KURAL — ÇÜNKÜ BİRİ KALITIMSIZ ───────────────────
+   `scrollbar-color` KALITIMLIDIR, `scrollbar-width` DEĞİLDİR. İlk yazım
+   ikisini de yalnız `.ab`e koydu ve tarayıcıda ölçüldü: şeridin hesaplanan
+   değeri `auto / rgb(106,118,121)` çıktı — renk indi, GENİŞLİK İNMEDİ,
+   yani çubuk hâlâ işletim sisteminin kalınlığındaydı. Kusur tam da
+   düzeltmeye geldiğimiz kusurdu ve KAYNAĞA bakan bir bekçi onu göremez;
+   ancak hesaplanan değeri okuyan tarayıcı ölçümü gösterdi.
+   Bu yüzden genişlik kabuğun ALTINDAKİ HER ÖĞEYE yazılır: kural bir kez
+   durur, bir sonraki kayan kap kararsız doğmaz. */
+.ab, .ab * { scrollbar-width: thin; }
 /* ── SATIRLAR AÇIKÇA BAĞLANIR (R0-10) ─────────────────────────────────
    ÖLÇÜLDÜ: `/` ekranı tek ekran sözleşmesini üç bantta da TAM 3px
    ihlal ediyordu (1366×768 → 771/768 · 1440×900 → 903/900 · 1280×800 →
@@ -2042,9 +2081,10 @@
 /* Mercek düğmeleri bir SIRADIR: sarılırsa bitişik kenarlıklar kırılır ve
    grup tek bir kontrol gibi okunmaz. Bu yüzden sarılmaz, KENDİ kabında
    kayar — sayfanın gövdesi yana kaymaz. */
+/* Çubuk kararı `.ab`ten KALITIMLA gelir; burada ikinci bir kaynak yoktu
+   ama vardı (`scrollbar-width: thin` tek başına) — kaldırıldı. */
 .ab-a-suzgec .mercekler {
   display: flex; max-width: 100%; overflow-x: auto; flex: 0 1 auto;
-  scrollbar-width: thin;
 }
 .ab-a-suzgec .mercekler button { flex: none; white-space: nowrap; }
 .ab-a-suzgec .mercekler button {

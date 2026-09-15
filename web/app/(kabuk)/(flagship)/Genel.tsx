@@ -4,6 +4,7 @@ import { useEffect, useRef, useState, type JSX } from 'react';
 import { kucukGorsel } from '@/lib/gorsel';
 import { SahaArkaPlani } from './SahaArkaPlani';
 import { kunyeYollari } from './kunyeYolu';
+import { tipEtiketleri } from './tipEtiketi';
 import { tipAdi, tipRengi, uygunRengi } from '@/components/kabuk/tip';
 import type {
   AkisHaftasi, RiskIzgarasi, TesisKarti, TakvimKalemi, TipKatmani,
@@ -20,8 +21,8 @@ import { useTerim } from '@/lib/dil/SozlukSaglayici';
    SAHA — ANA EKRAN · ENERGY INTELLIGENCE
 
    Görsel kök: `b-executive.html` (ORIGINAL_DESIGN_IMPLEMENTATION_MAP.md §2);
-   Eylül 2026 UX denetimi (docs/UX_DENETIM_2026-09.md §6–§8) ölçüsünü
-   yeniden kurdu.
+   Eylül 2026 UX denetimi (#65 · envanter ve audit; ayrı belge yok, ölçüm
+   PR gövdelerinde durur) ölçüsünü yeniden kurdu.
 
    ── TEK EKRAN SÖZLEŞMESİ ──────────────────────────────────────────────
    1366×768 / 1440×900 / 1280×800'de `scrollHeight === innerHeight`:
@@ -196,6 +197,9 @@ export default function Genel({
   const { t: terim, tBas } = useTerim();
   const olculmemisSerit = olculmemisSirali(tesisler);
   const [olculmemisAcik, setOlculmemisAcik] = useState(false);
+  /* Aynı görünen adı taşıyan iki tip (enerji · su "Merkez BT") sektörle
+     ayrılır; çakışma yoksa ad olduğu gibi kalır (`tipEtiketi.ts`). */
+  const tipEtiketi = tipEtiketleri(tipler);
 
   return (
     <main className="ab-b-saha ab-b-genel">
@@ -275,7 +279,7 @@ export default function Genel({
               {tipler.slice(0, KATMAN_TAVANI).map((t) => (
                 <div key={t.kod} className="katman">
                   <div className="bas">
-                    <span className="ad">{tipAdi(t.kod, t.ad)}</span>
+                    <span className="ad">{tipEtiketi.get(t.kod) ?? tipAdi(t.kod, t.ad)}</span>
                     <span className="mono deger">{t.endeks === null ? '—' : `%${t.endeks}`}</span>
                   </div>
                   {/* Güç YAZISI birimiyle veriden gelir; birimler
@@ -292,9 +296,15 @@ export default function Genel({
                 </div>
               ))}
               {tipler.length > KATMAN_TAVANI && (
-                <p className="mono kalan">
-                  {tipler.slice(KATMAN_TAVANI).map((t) => tipAdi(t.kod, t.ad)).join(' · ')}
-                  {' — '}{tipler.slice(KATMAN_TAVANI).reduce((a, t) => a + t.tesisSayisi, 0)}{' '}{terim('tesis')}
+                /* Kalan tipler SAYIYLA: yedi tip adı üç satır 11px mono
+                   tutuyordu ve panelin sorusuna ("hangi tip en zayıf?")
+                   cevap taşımıyordu. Adlar `title`ta durur, karar
+                   yüzeyinde yalnız sayı (SAH-SDL-001). */
+                <p className="mono kalan"
+                  title={tipler.slice(KATMAN_TAVANI)
+                    .map((t) => tipEtiketi.get(t.kod) ?? tipAdi(t.kod, t.ad)).join(' · ')}>
+                  Diğer {tipler.length - KATMAN_TAVANI} tip
+                  {' · '}{tipler.slice(KATMAN_TAVANI).reduce((a, t) => a + t.tesisSayisi, 0)}{' '}{terim('tesis')}
                 </p>
               )}
             </div>
@@ -449,7 +459,12 @@ function OncelikSeridi({ ozet, risk, sira }: { ozet: Ozet; risk: RiskIzgarasi; s
           {risk.kritik}<span className="birim"> kritik</span>
           {' · '}{risk.yuksek}<span className="birim"> yüksek</span>
         </span>
-        {olculemeyenRisk > 0 && (
+        {/* "N ölçülemedi" aynı satırda Kritik risk kaleminde zaten yazılı;
+            aynı sayı iki kez karar taşımıyordu — burada `title`ta kalır.
+            Tek istisna: kritik ve yüksek sıfırken ölçülemeyen varsa
+            bilinmeyen durumu SÖZCÜKLE söylenmek zorundadır, renk tek
+            kanal olamaz (SAH-SDL-001). */}
+        {risk.kritik === 0 && risk.yuksek === 0 && olculemeyenRisk > 0 && (
           <span className="cumle"><span className="unk">{olculemeyenRisk} ölçülemedi</span></span>
         )}
       </Link>
@@ -800,9 +815,12 @@ function Takimyildizi({ tesisler, gosterim = OLCULMEMIS_VARSAYILAN, serit, panel
                parçasıymış gibi gösterir. Bugün: sıralı, sıkışık bir
                liste — en düşük endeks önce, yani karar sırasıyla. */
             <div className="ab-gucsuz">
-              <p className="mono etiket">
+              {/* Yöntem notu ("uyum endeksi ölçüldü, dikey eksende yeri
+                  yok") `title`ta: ilk bakışta karar verdirmiyordu; şeridin
+                  adı ve sayısı yeter (SAH-SDL-001). */}
+              <p className="mono etiket"
+                title={`Bu ${terim('tesis', 'cogul')} için uyum endeksi ölçüldü, kurulu güç ölçülmedi — dikey eksende yeri yok`}>
                 Kurulu güç ölçülmedi · {gucsuz.length} {terim('tesis')}
-                <span className="not"> — uyum endeksi ölçüldü, dikey eksende yeri yok</span>
               </p>
               <ul className="serit">
                 {[...gucsuz].sort((a, b) => (a.endeks ?? 0) - (b.endeks ?? 0)).map((g) => {
@@ -865,24 +883,34 @@ function Yigin({ uygun, kismi, uygunsuz, bilinmeyen, tip, kontrol }: {
 function SahaKarti({ s }: { s: TesisKarti }) {
   const foto = kucukGorsel(s.gorselAnahtari);
   const uygunsuz = s.sayim.uyumsuz ?? 0;
+  const skorSozu = s.endeks === null ? 'değerlendirilmedi' : `%${s.endeks}`;
   return (
-    <Link href={`/tesisler/${s.id}`} className={`kart${uygunsuz > 0 ? ' uyari' : ''}`}>
+    <Link href={`/tesisler/${s.id}`} className={`kart${uygunsuz > 0 ? ' uyari' : ''}`}
+      /* Kırmızı iç çerçeve kalktı (SAH-SER-001): uygunsuzluk yığın
+         çubuğunda, skor renginde ve burada SÖZCÜKLE durur — renk tek
+         kanal olmasın. */
+      title={`${s.ad} · ${kartGucu(s) ?? 'güç ölçülmedi'} · ${skorSozu}${uygunsuz > 0 ? ` · ${uygunsuz} uygunsuz` : ''}`}>
       {/* Şerit hero'nun altındadır; kartlar ilk boyamayı beklemesin diye
           tembel yüklenir. Hero fonu (`SahaArkaPlani`) `fetchPriority="high"` ile kalır. */}
       {foto
         // eslint-disable-next-line @next/next/no-img-element -- statik dışa aktarım
         ? <img src={foto} alt="" aria-hidden loading="lazy" decoding="async" />
         : <span className="fotoyok" aria-hidden />}
-      <span className="perde" aria-hidden />
       <span className="icerik">
-        <span className="mono tip" style={{ color: tipRengi(s.tipKod) }}>
-          {tipAdi(s.tipKod, s.tipAd)}
-        </span>
-        <span className="ad">{s.ad}</span>
-        <span className="olcu">
-          <span className="mono guc">{kartGucu(s) ?? '—'}</span>
+        {/* Üst satır: tip · güç solda, skor sağda; ad tam genişlikte kendi
+            satırında. Üç satırlık blok (tip / ad / güç·skor) 1366×768'de
+            fotoğraf bandına 39px bırakıyordu (ölçüldü); iki satır 73px
+            bırakır ve ad kırpılmadan tam genişlikte kalır. */}
+        <span className="ust">
+          <span className="kimlik">
+            <span className="mono tip" style={{ color: tipRengi(s.tipKod) }}>
+              {tipAdi(s.tipKod, s.tipAd)}
+            </span>
+            <span className="mono guc">{kartGucu(s) ?? '—'}</span>
+          </span>
           <span className="mono skor">{s.endeks === null ? '—' : `%${s.endeks}`}</span>
         </span>
+        <span className="ad">{s.ad}</span>
         <Yigin uygun={s.sayim.uyumlu ?? 0} kismi={s.sayim.kismi ?? 0}
           uygunsuz={uygunsuz} bilinmeyen={s.bilinmeyen} tip={s.tipKod ?? ''} />
       </span>

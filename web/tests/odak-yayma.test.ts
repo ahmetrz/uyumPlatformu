@@ -19,6 +19,7 @@ const PORTFOY = readFileSync('app/(tam)/portfoy/Portfoy.tsx', 'utf8');
 const TESIS360 = readFileSync('app/(kabuk)/(flagship)/tesisler/[id]/Tesis360.tsx', 'utf8');
 const UYUM = readFileSync('app/(kabuk)/(operasyonel)/uyum/UyumIstemci.tsx', 'utf8');
 const CSS = readFileSync('app/kabuk.css', 'utf8');
+const GENEL = readFileSync('app/(kabuk)/(flagship)/Genel.tsx', 'utf8');
 
 function satir(kismi: Partial<PortfoySatiri> & { id: string; ad: string }): PortfoySatiri {
   return {
@@ -85,9 +86,16 @@ describe('uyum · altbilgi dip nottur, kaş değil', () => {
 
 describe('saha · gücü ölçülmemiş şeridinin notu cümle düzeninde', () => {
   it('`.ab-gucsuz .not` kaşın büyük harfini geri alır [SAH-ODK-001]', () => {
-    /* Not, `p.mono.etiket` içinde bir `span`dır ve büyük harfi kaştan
-       MİRAS alıyordu: "— UYUM ENDEKSİ ÖLÇÜLDÜ, DİKEY EKSENDE YERİ YOK". */
-    expect(CSS).toMatch(/\.ab-b-takim \.ab-gucsuz \.not \{[^}]*text-transform: none/);
+    /* Not, `p.mono.etiket` içinde bir `span`dı ve büyük harfi kaştan
+       MİRAS alıyordu: "— UYUM ENDEKSİ ÖLÇÜLDÜ, DİKEY EKSENDE YERİ YOK".
+       Sadeleştirme turu (15 Eyl 2026, SAH-SDL-001) notu ekrandan `title`a
+       taşıdı: kaşın içinde cümle kalmadı, kural da span da yok. Kaşa
+       cümle geri gelirse büyük harfi yeniden miras alır — o yüzden
+       şeridin görünür metninde cümle olmadığı ölçülür. */
+    expect(CSS).not.toMatch(/\.ab-b-takim \.ab-gucsuz \.not \{/);
+    const gucsuz = GENEL.slice(GENEL.indexOf('<div className="ab-gucsuz">'));
+    expect(gucsuz.slice(0, gucsuz.indexOf('</p>'))).not.toMatch(/className="not"/);
+    expect(gucsuz.slice(gucsuz.indexOf('}>'), gucsuz.indexOf('</p>'))).not.toMatch(/dikey eksende/);
     /* Kart adı ve tip etiketi de cümle düzeninde (24 kart × 2 satır). */
     expect(CSS).toMatch(/\.ab-b-serit \.kart \.ad \{[^}]*\}/);
     expect(CSS.match(/\.ab-b-serit \.kart \.ad \{[^}]*\}/)?.[0]).not.toMatch(/uppercase/);

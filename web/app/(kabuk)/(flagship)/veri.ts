@@ -52,6 +52,9 @@ import {
 export type TesisKarti = {
   id: string; kod: string; ad: string;
   tipKod: string | null; tipAd: string | null;
+  /** Tipin sektörü — aynı görünen adı taşıyan iki tip (enerji ve su
+      "Merkez BT") ancak bununla ayrılır; isteğe bağlı, veriden gelir. */
+  tipSektorAd?: string | null;
   /** Kurulu güç ve BİRİMİ — birim satırdan gelir, ekrana gömülmez. */
   guc: number | null; gucBirim: string | null;
   konum: string | null; gorselAnahtari: string | null;
@@ -65,6 +68,8 @@ export type TesisKarti = {
 /** Üretim tipine göre uyum katmanı — prototipin sağ sütunu. */
 export type TipKatmani = {
   kod: string; ad: string;
+  /** Aynı görünen adı taşıyan iki tip çekirdek mercekte bununla ayrılır (`tipEtiketi.ts`). */
+  sektorAd?: string | null;
   tesisSayisi: number;
   /** Katmanın güç toplamı; `null` = ölçüm yok ya da birimler karışık. */
   guc: number | null; gucBirim: string | null; gucKarisik: boolean;
@@ -231,7 +236,10 @@ export async function genelEkranVerisi(k: AktifKullanici): Promise<EkranVerisi> 
       select: {
         id: true, kod: true, ad: true, konum: true,
         ozellikler: { select: { anahtar: true, sayisalDeger: true, birim: true } },
-        gorselAnahtari: true, tip: { select: { kod: true, ad: true, sira: true } },
+        gorselAnahtari: true,
+        /* Sektör adı yalnız aynı adlı iki tipi ayırmak için okunur
+           (`tipEtiketi.ts`); tek sektörlü kiracıda hiç görünmez. */
+        tip: { select: { kod: true, ad: true, sira: true, sektor: { select: { ad: true } } } },
       },
       /* Sıralama JS'te: öznitelik bir ilişki, `orderBy` ona bakamaz.
          Sorgu `take` almıyor (tesis kümesinin tamamı geliyor), bu yüzden
@@ -332,6 +340,7 @@ export async function genelEkranVerisi(k: AktifKullanici): Promise<EkranVerisi> 
     return {
       id: t.id, kod: t.kod, ad: t.ad,
       tipKod: t.tip?.kod ?? null, tipAd: t.tip?.ad ?? null,
+      tipSektorAd: t.tip?.sektor?.ad ?? null,
       ...((o) => ({ guc: o.deger, gucBirim: o.birim }))(
         birimliOzellik(t.ozellikler, KURULU_GUC)),
       konum: t.konum, gorselAnahtari: t.gorselAnahtari,
@@ -349,7 +358,7 @@ export async function genelEkranVerisi(k: AktifKullanici): Promise<EkranVerisi> 
   for (const s of tesisKartlari) {
     const kod = s.tipKod ?? '—';
     const kat = tipHarita.get(kod) ?? {
-      kod, ad: s.tipAd ?? 'Tipi tanımsız',
+      kod, ad: s.tipAd ?? 'Tipi tanımsız', sektorAd: s.tipSektorAd ?? null,
       tesisSayisi: 0, guc: null, gucBirim: null, gucKarisik: false, kontrolSayisi: 0,
       endeks: null, uygun: 0, kismi: 0, uygunsuz: 0, bilinmeyen: 0,
     };

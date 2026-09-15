@@ -4,12 +4,12 @@
 
 | Ölçü | Değer |
 | --- | --- |
-| Senaryo | 414 |
-| Testi olan senaryo | 414 |
+| Senaryo | 416 |
+| Testi olan senaryo | 416 |
 | **GAP** | **0** |
 | Hayalet işaret (kütükte olmayan kimlik) | 0 |
 | Kütüksüz test dosyası | 0 |
-| Taranan test dosyası | 255 |
+| Taranan test dosyası | 256 |
 
 ## Katman başına kapsam
 
@@ -18,7 +18,7 @@
 | ACCESSIBILITY | 19 | 19 | 0 |
 | API | 12 | 12 | 0 |
 | CONCURRENCY | 8 | 8 | 0 |
-| DOMAIN | 232 | 232 | 0 |
+| DOMAIN | 233 | 233 | 0 |
 | ENGINE | 38 | 38 | 0 |
 | INTEGRATION | 43 | 43 | 0 |
 | MIGRATION | 10 | 10 | 0 |
@@ -26,7 +26,7 @@
 | RESPONSIVE | 9 | 9 | 0 |
 | SCOPE | 34 | 34 | 0 |
 | SERVER | 159 | 159 | 0 |
-| UI | 145 | 145 | 0 |
+| UI | 147 | 147 | 0 |
 | VISUAL | 4 | 4 | 0 |
 | WORKFLOW | 39 | 39 | 0 |
 
@@ -401,6 +401,14 @@
 | `TES-ODK-001` | Tesis | UI | `odak-yayma.test.ts` | h1 adı JS ile de büyük harfe çevirmez — CSS kuralı tek başına yetmezdi | evet | geçti |
 | `SIS-UYM-039` | Uyum | UI | `odak-yayma.test.ts` | cümle taşıyan altbilgi `.ab-dip.satir` ile yazılır ve kural CSS’te durur | evet | geçti |
 | `SAH-ODK-001` | Saha | UI | `odak-yayma.test.ts` | `.ab-gucsuz .not` kaşın büyük harfini geri alır | evet | geçti |
+| `SAH-SER-001` | Saha | UI | `saha-sadelestirme.test.ts` | kart iki satırlık ızgaradır: fotoğraf bandı + metin bloğu | evet | geçti |
+| `SAH-SER-001` | Saha | UI | `saha-sadelestirme.test.ts` | fotoğraf kartı boydan boya kaplamaz; perde yok | evet | geçti |
+| `SAH-SER-001` | Saha | UI | `saha-sadelestirme.test.ts` | fotoğrafsız tesis aynı bandı düz zeminle alır — sahte görsel yok | evet | geçti |
+| `SAH-SER-001` | Saha | UI | `saha-sadelestirme.test.ts` | uygunsuz kartta çerçeve yok; skor rengi ve bağ başlığında SÖZCÜK | evet | geçti |
+| `SAH-SDL-001` | Saha | UI · DOMAIN | `saha-sadelestirme.test.ts` | katman panelinin kalan satırı SAYI söyler, tip adları title\'ta | evet | geçti |
+| `SAH-SDL-001` | Saha | UI · DOMAIN | `saha-sadelestirme.test.ts` | gücü ölçülmemiş şeridinin yöntem notu ekranda değil title\'ta | evet | geçti |
+| `SAH-SDL-001` | Saha | UI · DOMAIN | `saha-sadelestirme.test.ts` | risk yoğunluğu "ölçülemedi"yi yalnız kritik ve yüksek sıfırken yazar | evet | geçti |
+| `SAH-SDL-001` | Saha | UI · DOMAIN | `saha-sadelestirme.test.ts` | çakışan ad sektörle ayrılır; çakışmayan ad olduğu gibi kalır | evet | geçti |
 | `SIS-SAHA-020` | Sistem | UI · ACCESSIBILITY | `kabuk-gezinme.test.ts` | bağ kutusu 24px — beyan edilen eşiğin altına inmez | evet | geçti |
 | `SIS-SAHA-021` | Sistem | UI | `kabuk-gezinme.test.ts` | bileşenin bütçe sabiti CSS ile AYNI sayıyı taşır | evet | geçti |
 | `SIS-ERS-020` | Sistem | UI · ACCESSIBILITY | `kabuk-gezinme.test.ts` | etiket kümesi wcag22aa taşır | evet | geçti |

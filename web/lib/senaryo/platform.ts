@@ -754,6 +754,82 @@ export const PLATFORM_SENARYOLARI: Senaryo[] = [
     katmanlar: ['UI'],
   },
   {
+    id: 'SIS-KBK-031', alan: 'Sistem', rota: '—', eksen: 'arayuz',
+    amac: 'Büyük harfin yapısal kaşta kalması — ölçüldü (odak turu, '
+      + '1440×900): ana sayfada 83 büyük harfli metin parçasının 24’ü tesis '
+      + 'adıydı, 3’ü üretim tipi adı, biri tam bir cümle; portföyde seçili '
+      + 'tesis adı 34px, tesis dosyasında 78px büyük harfti. Kaşla aynı '
+      + 'sesle konuşan veri kaşı işlevsiz kılar',
+    rol: 'ürün ekibi', kapsam: 'kurum geneli',
+    onkosul: 'Kabuk CSS’i okunur', veriHali: 'normal',
+    eylem: 'Her büyük harf kuralı boyuyla birlikte sınıflanır; 13px ve üstü '
+      + 'olanlar izin listesiyle karşılaştırılır; ad/başlık/cümle sınıfları '
+      + 'kaş boyunun üstünde büyük harf taşıyamaz',
+    beklenenSonuc: 'İzin dışı büyük boy büyük harf 0; izin listesinde ölü '
+      + 'satır 0; boyunu bildirmeyen kural 0; tarama tabanın altına inmez',
+    beklenenEkran: 'Veri, ad ve cümle cümle düzeninde; kaş ve gezinme büyük harf',
+    beklenenIz: 'yazma yok', beklenenBildirim: 'yok',
+    katmanlar: ['UI'],
+  },
+  {
+    id: 'PRT-ODK-001', alan: 'Portföy', rota: '/tesisler', eksen: 'arayuz',
+    amac: 'Portföyün ilk açılışta cevap vermesi — ölçüldü: ekran kapasite '
+      + 'sırasıyla açılıyor ve kendi notunda "kapasite bir zayıflık ölçüsü '
+      + 'değil — en zayıf işareti bu sıralamada yok" diyordu',
+    rol: 'yönetici', kapsam: 'kurum geneli',
+    onkosul: 'Portföyde ölçülmüş ve ölçülmemiş tesisler birlikte',
+    veriHali: 'kısmi',
+    eylem: 'Portföyü açar',
+    beklenenSonuc: 'İlk satır ve seçili panel en düşük uyum endeksli tesistir; '
+      + 'ölçülmemiş tesisler sona düşer ve "ölçülmedi" yazar (bilinmeyen ≠ '
+      + 'sıfır); kapasite sırası seçicide durur, silinmemiştir',
+    beklenenEkran: 'Portföy · plakalar ve kimlik paneli',
+    beklenenIz: 'yazma yok', beklenenBildirim: 'yok',
+    katmanlar: ['UI', 'DOMAIN'],
+  },
+  {
+    id: 'TES-ODK-001', alan: 'Tesis', rota: '/tesisler/[id]', eksen: 'arayuz',
+    amac: 'Tesis dosyası başlığının cümle düzeninde olması — ad iki yerde '
+      + 'birden büyük harfe çevriliyordu (CSS ve JS); yalnız CSS düzeltilse '
+      + 'ekran aynı kalır, bekçi yeşil yanardı',
+    rol: 'yönetici', kapsam: 'kendi kapsamı',
+    onkosul: 'Tesis dosyası açık', veriHali: 'normal',
+    eylem: 'Plaka başlığını okur',
+    beklenenSonuc: 'Ad cümle düzeninde, iki satır ve tip rengi korunmuş; '
+      + 'satır aralığı küçük harfin kuyruğunu kesmez',
+    beklenenEkran: 'Tesis 360 · plaka',
+    beklenenIz: 'yazma yok', beklenenBildirim: 'yok',
+    katmanlar: ['UI'],
+  },
+  {
+    id: 'SIS-UYM-039', alan: 'Uyum', rota: '/uyum', eksen: 'arayuz',
+    amac: 'Altbilgideki cümlenin büyük harfle bağırmaması — "6 hücre '
+      + 'değerlendirilmedi — sıfır değil, bilinmeyen" kaş etiketiyle '
+      + 'basılıyordu',
+    rol: 'uyum sorumlusu', kapsam: 'kurum geneli',
+    onkosul: 'Matris açık', veriHali: 'normal',
+    eylem: 'Altbilgiyi okur',
+    beklenenSonuc: 'Satır dip nottur (`.ab-dip.satir`), cümle düzeninde; '
+      + 'içerik değişmemiştir',
+    beklenenEkran: 'Uyum · altbilgi',
+    beklenenIz: 'yazma yok', beklenenBildirim: 'yok',
+    katmanlar: ['UI'],
+  },
+  {
+    id: 'SAH-ODK-001', alan: 'Saha', rota: '/', eksen: 'arayuz',
+    amac: 'Ana sayfada kaş ile verinin ayrı sesle konuşması — 24 kart adı ve '
+      + '3 tip adı büyük harfti; gücü ölçülmemiş şeridinin notu kaştan büyük '
+      + 'harf miras alıyordu',
+    rol: 'yönetici', kapsam: 'kurum geneli',
+    onkosul: 'Saha açık', veriHali: 'normal',
+    eylem: 'Ekranı okur',
+    beklenenSonuc: 'Kart adı, tip adı ve şerit notu cümle düzeninde; kaş '
+      + 'etiketleri ve gezinme büyük harf kalır; tek ekran sözleşmesi bozulmaz',
+    beklenenEkran: 'Saha · tesis şeridi ve takımyıldız',
+    beklenenIz: 'yazma yok', beklenenBildirim: 'yok',
+    katmanlar: ['UI'],
+  },
+  {
     id: 'SIS-SAHA-020', alan: 'Sistem', rota: '/', eksen: 'arayuz',
     amac: 'Saha ekranındaki "+N diğer" bağının parmakla vurulabilmesi — '
       + 'ölçüldü: satır 20px idi, ürünün beyan ettiği WCAG 2.2 AA 24×24 '

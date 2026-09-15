@@ -80,8 +80,20 @@ export default function Portfoy({
   const { t: terim, tBas } = useTerim();
   const [tip, setTip] = useState(HEPSI);
   const [tuzel, setTuzel] = useState(HEPSI);
-  const [anahtar, setAnahtar] = useState<SiralamaAnahtari>('guc');
-  const [seciliId, setSeciliId] = useState(satirlar[0]?.id ?? null);
+  /* VARSAYILAN SIRA EN ZAYIFTAN BAŞLAR (odak turu, 15 Eyl 2026). Ekran
+     kapasite sırasıyla açılıyor ve kendi notunda "kapasite bir zayıflık
+     ölçüsü değil — en zayıf işareti bu sıralamada yok" diyordu: yani
+     ilk açılışta ekranın cevabı YOKTU, kullanıcı sıralamayı değiştirip
+     bulmak zorundaydı. Bugün ilk satır ve seçili panel en düşük uyum
+     endeksli tesistir; ölçülmemişler SONA düşer ve "ölçülmedi" yazar
+     (`sirala`: null en sona — bilinmeyen ≠ sıfır). Kapasite sırası
+     silinmedi, seçicide durur. */
+  const [anahtar, setAnahtar] = useState<SiralamaAnahtari>('uyum');
+  /* Seçim başta BOŞTUR ve sıralı listenin ilkine düşer (`secili`): en
+     zayıf tesis hem ilk satır hem kimlik panelidir. Ölçüldü (odak turu):
+     seçim sırasız listenin ilkiyle başlıyordu — sıra en zayıfı öne
+     getirmişti, panel hâlâ başka bir tesisi gösteriyordu. */
+  const [seciliId, setSeciliId] = useState<string | null>(null);
 
   const tipler = useMemo(() => {
     const m = new Map<string, { kod: string; ad: string; adet: number; guc: number }>();

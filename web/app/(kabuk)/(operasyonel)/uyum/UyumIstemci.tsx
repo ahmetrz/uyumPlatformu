@@ -413,7 +413,10 @@ export default function UyumIstemci({
 
         <EgilimSeridi noktalar={egilim} surecVar={surecId !== null} bugun={m.endeks} />
 
-        <p className="etiket" style={{ marginTop: 26, display: 'flex', gap: 24, flexWrap: 'wrap' }}>
+        {/* Dip not, kaş değil: bu satır `.etiket` ile yazılıyordu ve "6 hücre
+            değerlendirilmedi — sıfır değil, bilinmeyen" cümlesi BÜYÜK HARFLE
+            basılıyordu (ölçüldü, odak turu). Kaş kademesi bilgi taşımaz. */}
+        <p className="ab-dip satir" style={{ marginTop: 26 }}>
           <span>{m.toplam} kapsam içi hücre</span>
           {m.olculmemis > 0 && <span>{m.olculmemis} hücre değerlendirilmedi — sıfır değil, bilinmeyen</span>}
           <span>Gösterilen {gorunur.length} kontrol / {satirlar.length}</span>

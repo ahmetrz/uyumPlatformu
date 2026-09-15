@@ -258,6 +258,8 @@ ve mono ailesi değişir, kademe değişmez.
 ### Named Rules
 **The İki Taban Rule.** Prototip kolon başlığını 8.5px, ray etiketini 7.5px çiziyordu. Üründe İKİ taban vardır ve ikisi ayrı iş yapar: İÇERİK taşıyan her şey — eylem (düğme), sayı, olgu, ölçüm — en az **11px** (`--t-code`); yalnız yapısal KAŞ etiketi **10px**'e (`--t-label`) inebilir. Ölçüldü (2026-09-02): tek kademedeyken `Çıkış` düğmesi 10px, risk matrisinin hücre sayıları ve portföy künyeleri 9px kalıyordu — hiçbiri dekoratif değil. 9px ve altı üründe yoktur.
 
+**The Büyük Harf Rule.** Büyük harf YAPISAL KAŞA aittir — veriye, ada, cümleye değil. Ölçüldü (15 Eyl 2026, odak turu): ana sayfada 83 büyük harfli metin parçasının 24'ü tesis adıydı (20px), 3'ü üretim tipi adı (18px), biri tam bir cümle; portföyde seçili tesis adı 34px, tesis dosyasında 78px büyük harfti. Kaşla aynı sesle konuşan veri, kaşı işlevsiz kılar. Kural iki dişlidir: (1) ad, başlık (h1/h2), cümle, boş durum ve değer hiçbir boyda büyük harf olmaz; (2) **13px ve üstü büyük harf yalnız gezinme ve koddur** (alan sekmesi, ikincil sıra, bölüm seçici, üretim tipi sekmeleri, birim kodu) — izin listesi bekçide adıyla durur ve yalnız küçülür (`tests/bekci/buyuk-harf.test.ts`, URN-KBK-021). Cümle ve sayı taşıyan bir satır `.etiket` değil `.ab-dip`tir.
+
 **The Sayı Mono Rule.** Her sayı `--veri` ailesinde ve `tabular-nums` ile yazılır (`.mono`, `.num`); sağa hizalanır. Serif ya da UI ailesinde sayı yalnız C'nin endeks ölçütünde (oran, adet değil).
 
 ## Layout

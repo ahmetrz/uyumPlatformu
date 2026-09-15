@@ -333,6 +333,79 @@ const SABOTAJLAR = [
     yaz: "const UCUNCUL_ROTALARI = ['/tedarikciler', '/esleme', '/envanter'];",
     testler: ['tests/kabuk-gezinme.test.ts'],
   },
+  /* ── Odak turu · yayma (15 Eyl 2026) ─────────────────────────────
+     Büyük harf yapısal kaşa aittir; veri, ad, başlık, cümle cümle
+     düzenindedir. Her sabotaj ölçülen kusurun ESKİ hâlini geri getirir. */
+  {
+    ad: 'Tesis kartının adı yeniden BÜYÜK HARF',
+    kural: '13px ve üstü büyük harf yalnız gezinme ve koddur; tesis adı veridir',
+    dosya: 'app/kabuk.css',
+    ara: `  /* cümle düzeni — tesis adı veridir, kaş değil (SIS-KBK-031) */
+  font-family: var(--gorunum); font-size: 20px; line-height: 1.1;`,
+    yaz: `  /* cümle düzeni — tesis adı veridir, kaş değil (SIS-KBK-031) */
+  font-family: var(--gorunum); font-size: 20px; line-height: 1.1; text-transform: uppercase;`,
+    testler: ['tests/bekci/buyuk-harf.test.ts', 'tests/odak-yayma.test.ts'],
+  },
+  {
+    ad: 'Portföy kimlik başlığı yeniden BÜYÜK HARF',
+    kural: 'h2 başlığı hiçbir boyda büyük harf olmaz',
+    dosya: 'app/kabuk.css',
+    ara: `  margin: 12px 0 0; font-family: var(--gorunum); font-weight: 600;
+  font-size: 34px; line-height: 1.1;
+}`,
+    yaz: `  margin: 12px 0 0; font-family: var(--gorunum); font-weight: 600;
+  font-size: 34px; line-height: 1.1; text-transform: uppercase;
+}`,
+    testler: ['tests/bekci/buyuk-harf.test.ts'],
+  },
+  {
+    ad: 'Bir kaş kuralı büyük harfi bıraktı — tarama daha az şey görüyor',
+    kural: 'Büyük harf kuralı sayısı ölçüm tabanının altına sessizce inemez',
+    dosya: 'app/kabuk.css',
+    ara: `  font-family: var(--veri); font-size: 11px; letter-spacing: .1em;
+  text-transform: uppercase; text-decoration: none;
+}
+.ab-atla:focus, .ab-atla:focus-visible {`,
+    yaz: `  font-family: var(--veri); font-size: 11px; letter-spacing: .1em;
+  text-decoration: none;
+}
+.ab-atla:focus, .ab-atla:focus-visible {`,
+    testler: ['tests/bekci/buyuk-harf.test.ts'],
+  },
+  {
+    ad: 'Portföy yeniden kapasite sırasıyla açılıyor',
+    kural: 'Portföy en zayıftan açılır; ilk açılışta cevap vardır',
+    dosya: 'app/(tam)/portfoy/Portfoy.tsx',
+    ara: "  const [anahtar, setAnahtar] = useState<SiralamaAnahtari>('uyum');",
+    yaz: "  const [anahtar, setAnahtar] = useState<SiralamaAnahtari>('guc');",
+    testler: ['tests/odak-yayma.test.ts'],
+  },
+  {
+    ad: 'Portföy paneli yeniden sırasız listenin ilkini gösteriyor',
+    kural: 'Kimlik paneli sıralı listenin ilkini (en zayıfı) gösterir',
+    dosya: 'app/(tam)/portfoy/Portfoy.tsx',
+    ara: '  const [seciliId, setSeciliId] = useState<string | null>(null);',
+    yaz: '  const [seciliId, setSeciliId] = useState<string | null>(satirlar[0]?.id ?? null);',
+    testler: ['tests/odak-yayma.test.ts'],
+  },
+  {
+    ad: 'Tesis adı JS ile yeniden büyük harfe çevriliyor',
+    kural: 'Tesis dosyası başlığı cümle düzenindedir — CSS de JS de büyük harf yapmaz',
+    dosya: 'app/(kabuk)/(flagship)/tesisler/[id]/Tesis360.tsx',
+    ara: `          <h1>
+            {ilkKelime}`,
+    yaz: `          <h1>
+            {ilkKelime.toLocaleUpperCase('tr-TR')}`,
+    testler: ['tests/odak-yayma.test.ts'],
+  },
+  {
+    ad: 'Uyum altbilgisi yeniden kaş etiketi',
+    kural: 'Cümle ve sayı taşıyan satır dip nottur, kaş değil',
+    dosya: 'app/(kabuk)/(operasyonel)/uyum/UyumIstemci.tsx',
+    ara: '        <p className="ab-dip satir" style={{ marginTop: 26 }}>',
+    yaz: '        <p className="etiket" style={{ marginTop: 26, display: \'flex\', gap: 24, flexWrap: \'wrap\' }}>',
+    testler: ['tests/odak-yayma.test.ts'],
+  },
   {
     ad: 'Kapsam kolonunda istisna yine ayırt edilemiyor',
     kural: 'Eksik kapsamlı satır tam kapsamlıdan ayrılır',

@@ -93,7 +93,7 @@
     },
     {
       "yer": "app/(kabuk)/(flagship)/tesisler/[id]/Tesis360.tsx",
-      "satir": 212,
+      "satir": 216,
       "tur": "satirIci",
       "cumle": "Bu … değerlendirilmiş kontrol yok — … bir uyum kampanyasına alındığında kontroller burada görünür. Uyum kampanyaları →",
       "iyiHaber": false,
@@ -102,7 +102,7 @@
     },
     {
       "yer": "app/(kabuk)/(flagship)/tesisler/[id]/Tesis360.tsx",
-      "satir": 242,
+      "satir": 246,
       "tur": "satirIci",
       "cumle": "Bu … açık risk kaydı yok. Risk kütüğüne bu … için hiç kayıt açılmamış olması da bir olasılıktır. Risk kütüğü →",
       "iyiHaber": false,
@@ -111,7 +111,7 @@
     },
     {
       "yer": "app/(kabuk)/(flagship)/tesisler/[id]/Tesis360.tsx",
-      "satir": 280,
+      "satir": 284,
       "tur": "satirIci",
       "cumle": "Bu … için kayıtlı sistem yok — varlıklar envanterde bir sisteme bağlandığında burada kritiklik sırasıyla listelenir. Envanteri aç →",
       "iyiHaber": false,
@@ -120,7 +120,7 @@
     },
     {
       "yer": "app/(kabuk)/(flagship)/tesisler/[id]/Tesis360.tsx",
-      "satir": 316,
+      "satir": 320,
       "tur": "satirIci",
       "cumle": "Kayıtlı … yok — bu … için hiç … tanımlanmamış. … tanımla",
       "iyiHaber": false,
@@ -129,7 +129,7 @@
     },
     {
       "yer": "app/(kabuk)/(flagship)/tesisler/[id]/Tesis360.tsx",
-      "satir": 359,
+      "satir": 363,
       "tur": "satirIci",
       "cumle": "Açık bulgu yok; bu … için kapatılmamış denetim bulgusu bulunmuyor.",
       "iyiHaber": true,
@@ -930,7 +930,7 @@
     },
     {
       "yer": "app/(kabuk)/(operasyonel)/uyum/UyumIstemci.tsx",
-      "satir": 473,
+      "satir": 476,
       "tur": "satirIci",
       "cumle": "Bu çerçevenin yürüyen uyum süreci yok — eğilim tutulmuyor. … Uyum süreci aç",
       "iyiHaber": false,
@@ -939,7 +939,7 @@
     },
     {
       "yer": "app/(kabuk)/(operasyonel)/uyum/UyumIstemci.tsx",
-      "satir": 479,
+      "satir": 482,
       "tur": "satirIci",
       "cumle": "Henüz anlık görüntü yok — ilk anlık motor çalışınca düşer. … Motor durumunu gör",
       "iyiHaber": false,

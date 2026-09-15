@@ -269,6 +269,16 @@
 #icerik:focus { outline: none; }
 
 /* Etiket — üç yönde de aynı rol, farklı ton */
+/* ── BÜYÜK HARF YAPISAL KAŞA AİTTİR — VERİYE, ADA, CÜMLEYE DEĞİL ─────
+   Ölçüldü (15 Eyl 2026, odak turu, 1440×900): ana sayfada 83 büyük
+   harfli metin parçası vardı ve 24'ü TESİS ADIYDI (kart adı 20px),
+   3'ü üretim tipi adı (18px), biri tam bir cümleydi ("Kurulu güç
+   ölçülmedi · 4 tesis — uyum endeksi ölçüldü, dikey eksende yeri yok");
+   portföyde seçili tesisin adı 34px büyük harfti, tesis dosyasında
+   78px. Kaş etiketiyle aynı sesle konuşan veri, kaşı işlevsiz kılar:
+   hiçbir şey öne çıkmaz. Kural: 13px ve üstü büyük harf YALNIZ
+   gezinme ve koddur; ad, başlık, cümle ve değer cümle düzenindedir.
+   Bekçi: `tests/bekci/buyuk-harf.test.ts` (URN-KBK-021). */
 .ab .etiket {
   font-family: var(--veri); font-size: var(--t-label); letter-spacing: .14em;
   text-transform: uppercase; color: var(--i3);
@@ -1162,7 +1172,7 @@
    şerit şerit yukarı itip başka kümelerin içine düşürüyordu. */
 .ab-b-takim .ab-gucsuz { flex: none; margin-top: 10px; padding-top: 8px; border-top: 1px dashed var(--hr2); }
 .ab-b-takim .ab-gucsuz .etiket { margin: 0 0 6px; font-size: 11px; color: var(--i3); letter-spacing: .04em; }
-.ab-b-takim .ab-gucsuz .not { color: var(--i3); }
+.ab-b-takim .ab-gucsuz .not { color: var(--i3); text-transform: none; letter-spacing: 0; }
 .ab-b-takim .ab-gucsuz .serit {
   margin: 0; padding: 0; list-style: none;
   display: flex; flex-wrap: wrap; gap: 4px 18px;
@@ -1334,9 +1344,7 @@
 .ab-b-katman .katmanlar { margin-top: 16px; display: grid; gap: 14px; }
 .ab-b-katman .bos { font-size: 12.5px; color: var(--i3); }
 .ab-b-katman .katman .bas { display: flex; align-items: baseline; justify-content: space-between; gap: 10px; }
-.ab-b-katman .katman .ad {
-  font-family: var(--gorunum); font-size: 18px; letter-spacing: .02em; text-transform: uppercase;
-}
+.ab-b-katman .katman .ad { font-family: var(--gorunum); font-size: 18px; letter-spacing: 0; }
 .ab-b-katman .katman .deger { font-size: 13px; }
 .ab-b-katman .katman .meta { margin: 2px 0 8px; font-size: var(--t-code); color: var(--i3); }
 .ab-b-katman .katmanlar .kalan {
@@ -1462,8 +1470,10 @@
   padding: 34px 32px; border-right: 1px solid var(--hr);
 }
 .ab-b-portfoy-govde .kimlik h2 {
+  /* cümle düzeni — 34px büyük harf, ekranın en yüksek sesi olarak
+     Display kademesiyle yarışıyordu (SIS-KBK-031) */
   margin: 12px 0 0; font-family: var(--gorunum); font-weight: 600;
-  font-size: 34px; line-height: 1.05; text-transform: uppercase;
+  font-size: 34px; line-height: 1.1;
 }
 .ab-b-portfoy-govde .kimlik .cizgi { display: block; width: 44px; height: 2px; margin: 16px 0; }
 .ab-b-portfoy-govde .kimlik .alt { margin: 0; font-size: 12.5px; line-height: 1.6; color: var(--i2); }
@@ -1514,11 +1524,11 @@
   display: grid; grid-template-columns: minmax(0, 1fr); gap: 1px;
 }
 .ab-b-portfoy-govde .plaka .tip {
-  font-size: 10.5px; letter-spacing: .14em; text-transform: uppercase;
+  font-size: 10.5px; letter-spacing: .04em;
   white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
 }
 .ab-b-portfoy-govde .plaka .ad {
-  font-family: var(--gorunum); font-size: 16px; line-height: 1.15; text-transform: uppercase;
+  font-family: var(--gorunum); font-size: 16px; line-height: 1.15;
   white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
 }
 .ab-b-portfoy-govde .plaka .guc {
@@ -1610,8 +1620,10 @@
 .ab-b-plaka .kimlik { position: absolute; left: 32px; top: 28px; right: 460px; }
 .ab-b-plaka .kimlik .ust { margin: 0; font-size: 10px; letter-spacing: .24em; text-transform: uppercase; }
 .ab-b-plaka .kimlik h1 {
+  /* cümle düzeni; satır aralığı .84 → .92: küçük harfin kuyruğu
+     (g · y · ş) bir alt satıra girmesin (SIS-KBK-031) */
   margin: 12px 0 0; font-family: var(--gorunum); font-weight: 600;
-  font-size: clamp(60px, 5.6vw, 78px); line-height: .84; letter-spacing: .01em; text-transform: uppercase;
+  font-size: clamp(60px, 5.6vw, 78px); line-height: .92; letter-spacing: -.01em;
 }
 .ab-b-plaka .kimlik .tur {
   margin: 14px 0 0; font-size: 10px; letter-spacing: .18em;
@@ -1703,10 +1715,7 @@
 .ab-b-zincir .durak .bant.md { background: var(--md); }
 .ab-b-zincir .durak .bant.bd { background: var(--bd); }
 .ab-b-zincir .durak .bant.unk { background: var(--hr2); }
-.ab-b-zincir .durak .ad {
-  margin: 12px 0 0; font-family: var(--gorunum); font-size: 21px;
-  line-height: 1.1; text-transform: uppercase;
-}
+.ab-b-zincir .durak .ad { margin: 12px 0 0; font-family: var(--gorunum); font-size: 21px; line-height: 1.1; }
 .ab-b-zincir .durak .alt { margin: 6px 0 0; font-size: 11px; color: var(--i3); }
 .ab-b-zincir .durak .sayilar { margin: 12px 0 0; display: grid; gap: 4px; font-size: 11px; } /* sayı = ölçüm, 11px tabanı */
 .ab-b-zincir .durak .sayilar > div { display: flex; justify-content: space-between; gap: 10px; }
@@ -1843,9 +1852,10 @@
 }
 .ab-b-serit .kart.uyari { box-shadow: inset 0 0 0 1.5px color-mix(in srgb, var(--bd) 70%, transparent); }
 .ab-b-serit .kart .icerik { position: absolute; left: 16px; right: 16px; bottom: 14px; display: grid; gap: 2px; }
-.ab-b-serit .kart .tip { font-size: var(--t-code); letter-spacing: .16em; text-transform: uppercase; }
+.ab-b-serit .kart .tip { font-size: var(--t-code); letter-spacing: .04em; }
 .ab-b-serit .kart .ad {
-  font-family: var(--gorunum); font-size: 20px; line-height: 1.1; text-transform: uppercase;
+  /* cümle düzeni — tesis adı veridir, kaş değil (SIS-KBK-031) */
+  font-family: var(--gorunum); font-size: 20px; line-height: 1.1;
   white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
 }
 .ab-b-serit .kart .olcu { display: flex; align-items: baseline; justify-content: space-between; margin-top: 4px; }
@@ -1951,10 +1961,7 @@
   height: 42px; flex: none; display: flex; align-items: center; gap: 20px;
   padding: 0 24px; border-bottom: 1px solid var(--hr); background: var(--panel);
 }
-.ab-a-kip .ad {
-  font-family: var(--gorunum); font-size: 15px; font-weight: 600;
-  letter-spacing: -.01em; text-transform: uppercase;
-}
+.ab-a-kip .ad { font-family: var(--gorunum); font-size: 15px; font-weight: 600; letter-spacing: -.01em; }
 .ab-a-kip .ikili { display: flex; border: 1px solid var(--hr2); }
 .ab-a-kip .ikili button {
   height: 26px; padding: 0 14px; background: none; border: 0; cursor: pointer;
@@ -2057,8 +2064,8 @@
 .ab-zincir .basliklar { padding-bottom: 8px; }
 .ab-zincir .sutun { display: grid; align-content: start; gap: 10px; }
 .ab-zincir .sutun > .bos {
-  font-family: var(--veri); font-size: 11px; letter-spacing: .1em;
-  text-transform: uppercase; color: var(--i3); padding-top: 6px;
+  /* boş durum bir cümledir; cümle büyük harf olmaz (SIS-KBK-031) */
+  font-family: var(--veri); font-size: 11px; letter-spacing: 0; color: var(--i3); padding-top: 6px;
 }
 /* ── Kısalı zincir: seçim yokken üç dolu halka + bir bekleme rayı ────
    Dört boş sütun yerine tek dar ray. Dolan halkalar boşalan eni alır;
@@ -3395,6 +3402,11 @@
   font-family: var(--veri); font-size: var(--t-code); line-height: 1.7;
   color: var(--i3); max-width: 78ch;
 }
+/* Yan yana dip notları: `/uyum` altbilgisi bu satırı `.etiket` ile yazıyordu
+   ve "6 hücre değerlendirilmedi — sıfır değil, bilinmeyen" cümlesi BÜYÜK
+   HARFLE basılıyordu. Kaş kademesi (Label) bilgi taşımaz; cümle ve sayı
+   dip nottur (DESIGN.md · The Büyük Harf Rule). */
+.ab-dip.satir { display: flex; flex-wrap: wrap; gap: 8px 24px; max-width: none; }
 .ab .bos { color: var(--i3); }
 
 /* ── Süzgeç düğmesi (ekranların elle çizdiği) ──────────────────────── */
@@ -4511,10 +4523,7 @@ details:not([open]) > *:not(summary) { display: none !important; }
    boşluğunu değiştirir, YERLEŞİMİ değiştirmez. */
 .ab-karne { padding: var(--s24) var(--s24) var(--s32); max-width: 1100px; }
 .ab-karne > header { border-bottom: 2px solid var(--hr2); padding-bottom: var(--s12); }
-.ab-karne h1 {
-  font-family: var(--gorunum); font-size: 22px; font-weight: 700;
-  letter-spacing: .04em; text-transform: uppercase; margin: 0;
-}
+.ab-karne h1 { font-family: var(--gorunum); font-size: 22px; font-weight: 700; letter-spacing: -.01em; margin: 0; }
 .ab-karne .kunye { font-size: var(--t-caption); color: var(--i3); margin: var(--s6) 0 0; }
 .ab-karne h2 {
   font-family: var(--veri); font-size: var(--t-label); font-weight: 600;

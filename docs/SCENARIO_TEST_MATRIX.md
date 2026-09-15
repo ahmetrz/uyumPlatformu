@@ -4,12 +4,12 @@
 
 | Ölçü | Değer |
 | --- | --- |
-| Senaryo | 409 |
-| Testi olan senaryo | 409 |
+| Senaryo | 414 |
+| Testi olan senaryo | 414 |
 | **GAP** | **0** |
 | Hayalet işaret (kütükte olmayan kimlik) | 0 |
 | Kütüksüz test dosyası | 0 |
-| Taranan test dosyası | 253 |
+| Taranan test dosyası | 255 |
 
 ## Katman başına kapsam
 
@@ -18,7 +18,7 @@
 | ACCESSIBILITY | 19 | 19 | 0 |
 | API | 12 | 12 | 0 |
 | CONCURRENCY | 8 | 8 | 0 |
-| DOMAIN | 231 | 231 | 0 |
+| DOMAIN | 232 | 232 | 0 |
 | ENGINE | 38 | 38 | 0 |
 | INTEGRATION | 43 | 43 | 0 |
 | MIGRATION | 10 | 10 | 0 |
@@ -26,7 +26,7 @@
 | RESPONSIVE | 9 | 9 | 0 |
 | SCOPE | 34 | 34 | 0 |
 | SERVER | 159 | 159 | 0 |
-| UI | 140 | 140 | 0 |
+| UI | 145 | 145 | 0 |
 | VISUAL | 4 | 4 | 0 |
 | WORKFLOW | 39 | 39 | 0 |
 
@@ -391,6 +391,16 @@
 | `SIS-UYM-037` | Uyum | UI | `uyum-odak.test.ts` | eğilim şeridi MATRİSTEN SONRA gelir; matris üstü yardımcı cümle yoktur | evet | geçti |
 | `SIS-UYM-038` | Uyum | UI | `uyum-odak.test.ts` | her satır tam kapsamdaysa kolon KALKAR ve altbilgi olguyu söyler | evet | geçti |
 | `SIS-UYM-038` | Uyum | UI | `uyum-odak.test.ts` | tek bir eksik satır kolonu GERİ getirir — ölçüt veriden | evet | geçti |
+| `SIS-KBK-031` | Sistem | UI | `bekci/buyuk-harf.test.ts` | ÖLÇÜM TABANI — tarama gerçekten büyük harf kuralı görüyor | evet | geçti |
+| `SIS-KBK-031` | Sistem | UI | `bekci/buyuk-harf.test.ts` | her büyük harf kuralı boyunu bildirir | evet | geçti |
+| `SIS-KBK-031` | Sistem | UI | `bekci/buyuk-harf.test.ts` | 13px ve üstü büyük harf YALNIZ gezinme ve koddur | evet | geçti |
+| `SIS-KBK-031` | Sistem | UI | `bekci/buyuk-harf.test.ts` | izin listesi ölü satır taşımaz — listedeki her satır hâlâ büyük boy büyük harf | evet | geçti |
+| `SIS-KBK-031` | Sistem | UI | `bekci/buyuk-harf.test.ts` | ad · başlık · cümle · boş durum · değer hiçbir boyda büyük harf olmaz | evet | geçti |
+| `PRT-ODK-001` | Portföy | UI · DOMAIN | `odak-yayma.test.ts` | varsayılan sıralama anahtarı UYUM endeksidir, kapasite değil | evet | geçti |
+| `PRT-ODK-001` | Portföy | UI · DOMAIN | `odak-yayma.test.ts` | uyum sırası en düşük endeksi ÖNE, ölçülmemişi SONA koyar — bilinmeyen ≠ sıfır | evet | geçti |
+| `TES-ODK-001` | Tesis | UI | `odak-yayma.test.ts` | h1 adı JS ile de büyük harfe çevirmez — CSS kuralı tek başına yetmezdi | evet | geçti |
+| `SIS-UYM-039` | Uyum | UI | `odak-yayma.test.ts` | cümle taşıyan altbilgi `.ab-dip.satir` ile yazılır ve kural CSS’te durur | evet | geçti |
+| `SAH-ODK-001` | Saha | UI | `odak-yayma.test.ts` | `.ab-gucsuz .not` kaşın büyük harfini geri alır | evet | geçti |
 | `SIS-SAHA-020` | Sistem | UI · ACCESSIBILITY | `kabuk-gezinme.test.ts` | bağ kutusu 24px — beyan edilen eşiğin altına inmez | evet | geçti |
 | `SIS-SAHA-021` | Sistem | UI | `kabuk-gezinme.test.ts` | bileşenin bütçe sabiti CSS ile AYNI sayıyı taşır | evet | geçti |
 | `SIS-ERS-020` | Sistem | UI · ACCESSIBILITY | `kabuk-gezinme.test.ts` | etiket kümesi wcag22aa taşır | evet | geçti |

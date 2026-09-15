@@ -113,6 +113,9 @@ const CIFTLER = [
   { ink: '--tip-c', esik: IRI, not: 'tip kimlik yuvası C' },
   { ink: '--tip-d', esik: IRI, not: 'tip kimlik yuvası D' },
   { ink: '--hr2', esik: 1.25, not: 'kart kenarı — görünür olmalı' },
+  /* Kaydırma çubuğu başparmağı bir KONTROLDÜR (WCAG 1.4.11): görünmezse
+     fare kullanan kişi kayan içeriğin varlığını hiç öğrenemez. */
+  { ink: '--cubuk', esik: IRI, not: 'kaydırma çubuğu başparmağı' },
 ];
 
 /* Ters çiftler: zemini ZEMINLER'de olmayan, kendi dolgusunu taşıyan

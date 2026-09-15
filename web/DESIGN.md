@@ -217,6 +217,7 @@ Yoğunluk (`data-yogunluk="amiral|operasyonel|tezgah"`) renk değil ölçü değ
 - **Mürekkep** (`--murekkep` `#EDEEEC`), **mürekkep-2** (`--i2` `#B9BEBC`, ikincil metin), **mürekkep-3** (`--i3` `#8D9497`, etiket ve kolon başlığı).
 - **Saç çizgisi / saç çizgisi-2** (`--hr` `#1C2123` / `--hr2` `#272D2F`): satır ayracı, bölüm kuralı, düğme ve girdi kenarlığı. Kompozisyonun tek çizgi aracıdır.
 - **Seçim** (`--secim` `#171211`): açık satırın zemini — aksanın çok soluk tonu.
+- **Kaydırma çubuğu** (`--cubuk` `#6A7679`): başparmak rengi. Karar kabuğun kökünde bir kez verilir ve iki kuraldır, çünkü `scrollbar-color` kalıtımlı, `scrollbar-width` değildir: renk `.ab`ten iner, incelik `.ab, .ab *` ile her kaba yazılır (ölçüldü: yalnız `.ab`e yazıldığında şeridin hesaplanan değeri `auto` kalıyordu). Belge kökü (`globals.css`) aynı değeri literal taşır ve bekçi ikisini eşitler. Çubuk bir METİN değil KONTROLDÜR: eşiği 3:1 (ölçüldü: dört zeminde 4,18 / 4,01 / 3,81 / 3,96). `::-webkit-scrollbar` ile renk/boy verilmez — Chromium'da çubuğu örtüşen kipten klasik kipe düşürür ve her platformda kalıcı yer kaplar. Çubuk gizlenmez; tek istisna yatay kayan gezinme sıralarıdır ve listesi bekçide adıyla durur (`tests/bekci/kaydirma-cubugu.test.ts`, URN-CBK-001).
 
 ### Named Rules
 **The Tek Tema Rule.** Ürün koyudur ve TEK kabuktur. Alanlar arası geçiş "başka bir platform" hissi vermez — ayrışma yoğunlukla (oluk, satır yüksekliği, ayak/durum şeridi) kurulur, palet ya da yazı ailesiyle değil.

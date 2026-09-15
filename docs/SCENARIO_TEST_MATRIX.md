@@ -4,18 +4,18 @@
 
 | Ölçü | Değer |
 | --- | --- |
-| Senaryo | 416 |
-| Testi olan senaryo | 416 |
+| Senaryo | 417 |
+| Testi olan senaryo | 417 |
 | **GAP** | **0** |
 | Hayalet işaret (kütükte olmayan kimlik) | 0 |
 | Kütüksüz test dosyası | 0 |
-| Taranan test dosyası | 256 |
+| Taranan test dosyası | 257 |
 
 ## Katman başına kapsam
 
 | Katman | Senaryo | Testli | GAP |
 | --- | --- | --- | --- |
-| ACCESSIBILITY | 19 | 19 | 0 |
+| ACCESSIBILITY | 20 | 20 | 0 |
 | API | 12 | 12 | 0 |
 | CONCURRENCY | 8 | 8 | 0 |
 | DOMAIN | 233 | 233 | 0 |
@@ -26,7 +26,7 @@
 | RESPONSIVE | 9 | 9 | 0 |
 | SCOPE | 34 | 34 | 0 |
 | SERVER | 159 | 159 | 0 |
-| UI | 147 | 147 | 0 |
+| UI | 148 | 148 | 0 |
 | VISUAL | 4 | 4 | 0 |
 | WORKFLOW | 39 | 39 | 0 |
 
@@ -409,6 +409,14 @@
 | `SAH-SDL-001` | Saha | UI · DOMAIN | `saha-sadelestirme.test.ts` | gücü ölçülmemiş şeridinin yöntem notu ekranda değil title\'ta | evet | geçti |
 | `SAH-SDL-001` | Saha | UI · DOMAIN | `saha-sadelestirme.test.ts` | risk yoğunluğu "ölçülemedi"yi yalnız kritik ve yüksek sıfırken yazar | evet | geçti |
 | `SAH-SDL-001` | Saha | UI · DOMAIN | `saha-sadelestirme.test.ts` | çakışan ad sektörle ayrılır; çakışmayan ad olduğu gibi kalır | evet | geçti |
+| `SIS-CBK-001` | Sistem | UI · ACCESSIBILITY | `bekci/kaydirma-cubugu.test.ts` | ÖLÇÜM TABANI — tarama gerçekten kayan kap görüyor | evet | geçti |
+| `SIS-CBK-001` | Sistem | UI · ACCESSIBILITY | `bekci/kaydirma-cubugu.test.ts` | karar kabuğun KÖKÜNDE bir kez verilir ve jetondan gelir | evet | geçti |
+| `SIS-CBK-001` | Sistem | UI · ACCESSIBILITY | `bekci/kaydirma-cubugu.test.ts` | belge kökü aynı kararı taşır ve jetondan SAPMAZ | evet | geçti |
+| `SIS-CBK-001` | Sistem | UI · ACCESSIBILITY | `bekci/kaydirma-cubugu.test.ts` | hiçbir kap kararı `auto`ya geri çevirmez | evet | geçti |
+| `SIS-CBK-001` | Sistem | UI · ACCESSIBILITY | `bekci/kaydirma-cubugu.test.ts` | `::-webkit-scrollbar` yalnız gizleme biçiminde kalır | evet | geçti |
+| `SIS-CBK-001` | Sistem | UI · ACCESSIBILITY | `bekci/kaydirma-cubugu.test.ts` | çubuğu gizleyen her kural izin listesindedir | evet | geçti |
+| `SIS-CBK-001` | Sistem | UI · ACCESSIBILITY | `bekci/kaydirma-cubugu.test.ts` | izin listesi ölü satır taşımaz | evet | geçti |
+| `SIS-CBK-001` | Sistem | UI · ACCESSIBILITY | `bekci/kaydirma-cubugu.test.ts` | gizleme yalnız GEZİNME sıralarında — içerik kabı çubuğunu gizleyemez | evet | geçti |
 | `SIS-SAHA-020` | Sistem | UI · ACCESSIBILITY | `kabuk-gezinme.test.ts` | bağ kutusu 24px — beyan edilen eşiğin altına inmez | evet | geçti |
 | `SIS-SAHA-021` | Sistem | UI | `kabuk-gezinme.test.ts` | bileşenin bütçe sabiti CSS ile AYNI sayıyı taşır | evet | geçti |
 | `SIS-ERS-020` | Sistem | UI · ACCESSIBILITY | `kabuk-gezinme.test.ts` | etiket kümesi wcag22aa taşır | evet | geçti |

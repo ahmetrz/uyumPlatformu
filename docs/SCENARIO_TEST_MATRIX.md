@@ -4,8 +4,8 @@
 
 | Ölçü | Değer |
 | --- | --- |
-| Senaryo | 398 |
-| Testi olan senaryo | 398 |
+| Senaryo | 402 |
+| Testi olan senaryo | 402 |
 | **GAP** | **0** |
 | Hayalet işaret (kütükte olmayan kimlik) | 0 |
 | Kütüksüz test dosyası | 0 |
@@ -15,7 +15,7 @@
 
 | Katman | Senaryo | Testli | GAP |
 | --- | --- | --- | --- |
-| ACCESSIBILITY | 15 | 15 | 0 |
+| ACCESSIBILITY | 18 | 18 | 0 |
 | API | 12 | 12 | 0 |
 | CONCURRENCY | 8 | 8 | 0 |
 | DOMAIN | 230 | 230 | 0 |
@@ -26,7 +26,7 @@
 | RESPONSIVE | 9 | 9 | 0 |
 | SCOPE | 34 | 34 | 0 |
 | SERVER | 159 | 159 | 0 |
-| UI | 129 | 129 | 0 |
+| UI | 133 | 133 | 0 |
 | VISUAL | 4 | 4 | 0 |
 | WORKFLOW | 39 | 39 | 0 |
 
@@ -383,6 +383,10 @@
 | `SIS-UYM-030` | Uyum | UI | `kabuk-gezinme.test.ts` | eksik kapsam satırı işaretlenir — ölçüt VERİDEN gelir | evet | geçti |
 | `SIS-UYM-031` | Uyum | UI · ACCESSIBILITY | `kabuk-gezinme.test.ts` | istisna RENGE bağlı değil — sözle de söylenir | evet | geçti |
 | `SIS-UYM-032` | Uyum | UI | `kabuk-gezinme.test.ts` | CSS iki hâli AYIRIR — yoksa sınıf ölü kalırdı | evet | geçti |
+| `SIS-SAHA-020` | Sistem | UI · ACCESSIBILITY | `kabuk-gezinme.test.ts` | bağ kutusu 24px — beyan edilen eşiğin altına inmez | evet | geçti |
+| `SIS-SAHA-021` | Sistem | UI | `kabuk-gezinme.test.ts` | bileşenin bütçe sabiti CSS ile AYNI sayıyı taşır | evet | geçti |
+| `SIS-ERS-020` | Sistem | UI · ACCESSIBILITY | `kabuk-gezinme.test.ts` | etiket kümesi wcag22aa taşır | evet | geçti |
+| `SIS-ERS-021` | Sistem | UI · ACCESSIBILITY | `kabuk-gezinme.test.ts` | dokunma hedefi eşiği ürünün KENDİ beyanıyla aynı | evet | geçti |
 | `YRD-SOR-001` | Yardım | DOMAIN · UI | `yardim.test.ts` | listedeki genel kısayolların her biri kaynakta bağlıdır | evet | geçti |
 | `OTR-HSP-001` | Oturum | SERVER · DOMAIN | `hesap.test.ts` | alt sınır 12 karakter; kısa parola kusur cümlesi üretir, boş alan susar | evet | geçti |
 | `OTR-HSP-002` | Oturum | SERVER · RBAC | `oturum-yasam-dongusu.test.ts` | başka kullanıcının oturumuna DOKUNMAZ | evet | geçti |

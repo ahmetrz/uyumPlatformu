@@ -668,6 +668,59 @@ export const PLATFORM_SENARYOLARI: Senaryo[] = [
     beklenenIz: 'yazma yok', beklenenBildirim: 'yok',
     katmanlar: ['UI'],
   },
+  {
+    id: 'SIS-SAHA-020', alan: 'Sistem', rota: '/', eksen: 'arayuz',
+    amac: 'Saha ekranındaki "+N diğer" bağının parmakla vurulabilmesi — '
+      + 'ölçüldü: satır 20px idi, ürünün beyan ettiği WCAG 2.2 AA 24×24 '
+      + 'eşiğinin altında',
+    rol: 'telefonla bakan kullanıcı', kapsam: 'kendi kapsamı',
+    onkosul: 'Müdahale listesine sığmayan bulgu var', veriHali: 'normal',
+    eylem: 'Saha ekranını açar ve listenin sonundaki bağa dokunur',
+    beklenenSonuc: 'Bağ kutusu en az 24px; bütçeye sığmayan bir kalem '
+      + 'düşse bile ulaşılamayan bir bağ bırakılmaz',
+    beklenenEkran: 'Saha · müdahale gerektirenler',
+    beklenenIz: 'yazma yok', beklenenBildirim: 'yok',
+    katmanlar: ['UI', 'ACCESSIBILITY'],
+  },
+  {
+    id: 'SIS-SAHA-021', alan: 'Sistem', rota: '/', eksen: 'arayuz',
+    amac: 'Satır yüksekliğinin İKİ kaynakta ayrışmaması — CSS satırı '
+      + 'çizer, bileşen onu ÇİZİLMEDEN ÖNCE bütçeye katar',
+    rol: 'ürün ekibi', kapsam: 'kurum geneli',
+    onkosul: 'Yükseklik hem CSS’te hem bileşende yazılı', veriHali: 'normal',
+    eylem: 'İki sayı karşılaştırılır',
+    beklenenSonuc: 'Aynıdırlar; ayrışırlarsa bütçe hesabı sessizce yanlış '
+      + 'olur ve son kalem kutudan taşar',
+    beklenenEkran: 'Bütçe hesabı doğru',
+    beklenenIz: 'yazma yok', beklenenBildirim: 'yok',
+    katmanlar: ['UI'],
+  },
+  {
+    id: 'SIS-ERS-020', alan: 'Sistem', rota: '—', eksen: 'arayuz',
+    amac: 'Ürünün beyan ettiği erişilebilirlik eşiğinin KAPISI olması — '
+      + 'ölçüldü: "WCAG 2.2 24px" ürünün kendi CSS’inde yazılıydı ama axe '
+      + 'kapısı yalnız wcag2a + wcag2aa koşuyordu ve 2.5.8 o kümede YOK',
+    rol: 'ürün ekibi', kapsam: 'kurum geneli',
+    onkosul: 'Axe kapısı üç bantta koşuyor', veriHali: 'normal',
+    eylem: 'Kural etiketleri okunur',
+    beklenenSonuc: 'Küme wcag22aa taşır ve eski etiketler düşmez; kapı '
+      + 'eklendiği ilk koşuda gerçek bir ihlal buldu',
+    beklenenEkran: 'Beyan edilen eşik ölçülüyor',
+    beklenenIz: 'yazma yok', beklenenBildirim: 'yok',
+    katmanlar: ['UI', 'ACCESSIBILITY'],
+  },
+  {
+    id: 'SIS-ERS-021', alan: 'Sistem', rota: '—', eksen: 'arayuz',
+    amac: 'Eşiğin uydurulmaması — kapı kendi sayısını yazmaz, axe 2.5.8’i '
+      + 'istisnalarıyla (satır içi · aralık · temel) uygular',
+    rol: 'ürün ekibi', kapsam: 'kurum geneli',
+    onkosul: 'Ürün eşiği CSS’te beyan ediyor', veriHali: 'normal',
+    eylem: 'Beyan ile kapının ölçtüğü ölçüt karşılaştırılır',
+    beklenenSonuc: 'İkisi aynı eşiği söyler',
+    beklenenEkran: 'Beyan ile kapı aynı şeyi ölçer',
+    beklenenIz: 'yazma yok', beklenenBildirim: 'yok',
+    katmanlar: ['UI', 'ACCESSIBILITY'],
+  },
 
   /* ── Yardım ─────────────────────────────────────────────────────── */
   {

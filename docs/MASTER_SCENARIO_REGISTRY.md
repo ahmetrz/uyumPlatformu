@@ -13,7 +13,7 @@ it('kapsam dışı varlığa yazılamaz [ENV-YAZ-003]', …)
 Ayrı bir eşleme tablosu tutulsaydı, tablo ilk yeniden adlandırmada
 testten ayrışır ve kimse görmezdi.
 
-Senaryo: **398** · testli: **398** · GAP: **0**
+Senaryo: **402** · testli: **402** · GAP: **0**
 
 ## Aktivite · 2 senaryo
 
@@ -382,7 +382,7 @@ Senaryo: **398** · testli: **398** · GAP: **0**
 | `SAY-KMP-001` | /sayim | BT yöneticisi · kendi tesisi | Kapsamda hiç varlık yok · yok | Sayım açmayı dener | Açılmaz — sıfır paydalı kampanya olamaz | Neden açılmadığı yazılır | yazma yok | yok | `faz-g-varlik.test.ts` |
 | `SAY-KMP-002` | /sayim | BT yöneticisi · kendi tesisi | Satır "bulunamadı" işaretlendi · kısmi | Sonucu kaydeder | Varlık SİLİNMEZ — envanterden düşürme ayrı bir karardır | "Sayılmadı" ile "bulunamadı" ayrı durumlardır | Sayım satırı · guncelleme | yok | `faz-g-eylem.test.ts` |
 
-## Sistem · 82 senaryo
+## Sistem · 86 senaryo
 
 | ID | Rota | Rol · kapsam | Ön koşul · veri | Eylem | Beklenen sonuç | Ekran | Denetim izi | Görev/bildirim | Test |
 | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- |
@@ -392,6 +392,10 @@ Senaryo: **398** · testli: **398** · GAP: **0**
 | `SIS-ERS-001` | — | klavye kullanıcısı · kendi kapsamı | Fare kullanılmıyor · normal | Sekme ile gezinir | Odak görünür ve sıra mantıklıdır | Çekmecede odak tuzağı ve ESC çalışır | yazma yok | yok | `yardim.test.ts` |
 | `SIS-RSP-001` | — | sahadaki kullanıcı · kendi kapsamı | Ekran dar · normal | Ekranı daraltır | Sayfa yatay kaymaz; içerik yeniden akar | Kritik bilgi gizlenmez | yazma yok | yok | `senaryo-platform.test.ts` · `senaryo-platform.test.ts` · `senaryo-platform.test.ts` |
 | `SIS-DIL-001` | — | son kullanıcı · kendi kapsamı | — · normal | Ekranlardaki metinleri okur | Kullanıcıya dönük metinlerde teknik jargon yoktur | Türkçe, kısa, kurumsal | yazma yok | yok | `senaryo-platform.test.ts` |
+| `SIS-SAHA-020` | / | telefonla bakan kullanıcı · kendi kapsamı | Müdahale listesine sığmayan bulgu var · normal | Saha ekranını açar ve listenin sonundaki bağa dokunur | Bağ kutusu en az 24px; bütçeye sığmayan bir kalem düşse bile ulaşılamayan bir bağ bırakılmaz | Saha · müdahale gerektirenler | yazma yok | yok | `kabuk-gezinme.test.ts` |
+| `SIS-SAHA-021` | / | ürün ekibi · kurum geneli | Yükseklik hem CSS’te hem bileşende yazılı · normal | İki sayı karşılaştırılır | Aynıdırlar; ayrışırlarsa bütçe hesabı sessizce yanlış olur ve son kalem kutudan taşar | Bütçe hesabı doğru | yazma yok | yok | `kabuk-gezinme.test.ts` |
+| `SIS-ERS-020` | — | ürün ekibi · kurum geneli | Axe kapısı üç bantta koşuyor · normal | Kural etiketleri okunur | Küme wcag22aa taşır ve eski etiketler düşmez; kapı eklendiği ilk koşuda gerçek bir ihlal buldu | Beyan edilen eşik ölçülüyor | yazma yok | yok | `kabuk-gezinme.test.ts` |
+| `SIS-ERS-021` | — | ürün ekibi · kurum geneli | Ürün eşiği CSS’te beyan ediyor · normal | Beyan ile kapının ölçtüğü ölçüt karşılaştırılır | İkisi aynı eşiği söyler | Beyan ile kapı aynı şeyi ölçer | yazma yok | yok | `kabuk-gezinme.test.ts` |
 | `SIS-KPS-001` | — | geliştirici / denetçi · kurum geneli | — · normal | Ekran kapısı ile sunucu kapısı karşılaştırılır | İki kapı AYNI yanıtı verir | Ekran sunucudan dar da geniş de değildir | yazma yok | yok | `ekran-yazma-kapisi.test.ts` |
 | `SIS-KPS-002` | — | geliştirici / denetçi · kurum geneli | — · normal | Kapsam sonrası bildiren her eylem taranır | Ön kapı TEK BAŞINA yetki VERMEZ; ikinci aşama zorunludur | — | yazma yok | yok | `kapsam-kapisi.test.ts` |
 | `SIS-GVN-001` | — | güvenlik denetçisi · tek tesis | Kapsam dışı kayıt veritabanında GERÇEKTEN var · normal | Liste, filtre ve yazma yolları denenir | Hiçbiri kaydı döndürmez, ima etmez ya da yazdırmaz | Açıkça istenen kapsam dışı sorgu 403 döner | yazma yok | yok | `guvenlik-negatif.test.ts` |

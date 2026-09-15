@@ -465,3 +465,59 @@ describe('uyum · kapsam kolonu istisnayı gösterir', () => {
     expect(renk(eksik![1])).not.toBe(renk(taban![1]));
   });
 });
+
+/* ── "+N DİĞER" SATIRI: İKİ KAYNAK TEK SAYIYI YAZAR ──────────────────
+   Satırın yüksekliği İKİ yerde birden yazılıdır ve yazılmak zorundadır:
+   CSS onu çizer, bileşen ise satır ÇİZİLMEDEN ÖNCE bütçeyi ondan hesaplar
+   (`Genel.tsx` → `KALAN_SATIR_PX`). Ayrışırlarsa bütçe hesabı sessizce
+   yanlış olur — çizilen satır hesaplanandan yüksek olur ve son kalem
+   kutudan taşar.
+
+   Sayı 20'den 24'e çıktı: satır bir BAĞDIR ve 20px, ürünün beyan ettiği
+   WCAG 2.2 AA 24×24 eşiğinin altındaydı. Kusuru elle değil KAPI buldu
+   (axe `target-size`, `wcag22aa` etiketi eklendikten sonra). */
+describe('saha · "+N diğer" bağı eşiğin üstünde', () => {
+  const ekran = readFileSync('app/(kabuk)/(flagship)/Genel.tsx', 'utf8');
+
+  it('bağ kutusu 24px — beyan edilen eşiğin altına inmez [SIS-SAHA-020]', () => {
+    const kural = css.match(/\.ab-b-dikkat \.mudahale \.kalan \{([^}]*)\}/);
+    expect(kural, 'kalan satırı kuralı kayboldu').not.toBeNull();
+    const boy = Number(kural![1].match(/height:\s*(\d+)px/)?.[1]);
+    expect(boy, `kalan satırı ${boy}px — WCAG 2.2 AA eşiği 24px`).toBeGreaterThanOrEqual(24);
+  });
+
+  it('bileşenin bütçe sabiti CSS ile AYNI sayıyı taşır [SIS-SAHA-021]', () => {
+    const kural = css.match(/\.ab-b-dikkat \.mudahale \.kalan \{([^}]*)\}/);
+    const cssBoy = Number(kural![1].match(/height:\s*(\d+)px/)?.[1]);
+    const tsBoy = Number(ekran.match(/const KALAN_SATIR_PX = (\d+);/)?.[1]);
+    expect(tsBoy, 'KALAN_SATIR_PX bulunamadı').toBeTruthy();
+    expect(tsBoy, `bütçe sabiti ${tsBoy}px ≠ CSS ${cssBoy}px — hesap satır çizilmeden yanlış olur`)
+      .toBe(cssBoy);
+  });
+});
+
+/* ── AXE KAPISI ÜRÜNÜN KENDİ EŞİĞİNİ ÖLÇER ───────────────────────────
+   Ölçülen kusur (15 Eylül 2026): `app/kabuk.css` "dokunma hedefi korunur
+   (WCAG 2.2 24px)" diye yazıyordu ama axe kapısının etiket kümesi
+   `wcag2a` + `wcag2aa` ile sınırlıydı ve WCAG 2.2'nin 2.5.8 ölçütü o
+   kümede YOKTUR. Beyan edilen bir eşiğin kapısı olmaması, eşiğin
+   olmamasıyla aynı şeydir — etiket eklenince kapı ilk koşusunda gerçek
+   bir ihlal buldu (`/` · `.mudahale .kalan` · üç bantta `serious`). */
+describe('erişim · axe kapısı WCAG 2.2 AA ölçer', () => {
+  const kapi = readFileSync('arac/erisim-axe.mjs', 'utf8');
+
+  it('etiket kümesi wcag22aa taşır [SIS-ERS-020]', () => {
+    const m = kapi.match(/const ETIKETLER = \[([^\]]*)\]/);
+    expect(m, 'ETIKETLER bulunamadı').not.toBeNull();
+    expect(m![1]).toContain('wcag22aa');
+    /* Eski küme de DURUR: 2.2 eklemek 2.0/2.1'i düşürmez. */
+    expect(m![1]).toContain('wcag2a');
+    expect(m![1]).toContain('wcag2aa');
+  });
+
+  it('dokunma hedefi eşiği ürünün KENDİ beyanıyla aynı [SIS-ERS-021]', () => {
+    /* Kapı bir sayı uydurmaz; axe 2.5.8'i istisnalarıyla uygular.
+       Ürünün beyanı CSS'te durur ve ikisi aynı eşiği söyler. */
+    expect(css).toMatch(/WCAG 2\.2 (AA )?24/);
+  });
+});

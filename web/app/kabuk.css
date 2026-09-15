@@ -1048,10 +1048,17 @@
   white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
 }
 /* Bütçeye sığmayan kalemler (JS: `Mudahale`) çizilmez; sayısı burada.
-   Yükseklik SABİT 20px (16 satır + 4 üst): bileşen bunu hesaba katar.
-   1366×768'de 3. kalem birkaç px'le düşüyordu; 8/6/22 → 6/4/20 çekildi. */
+   Yükseklik SABİT 24px (16 satır + 8 boşluk): bileşen bunu hesaba katar
+   ve sayı ORADA da yazılıdır (`Genel.tsx` → `KALAN_SATIR_PX`); ikisi
+   ayrışırsa bütçe hesabı satır çizilmeden önce yanlış olur.
+
+   20 → 24: bu satır bir BAĞDIR ve 20px, ürünün beyan ettiği WCAG 2.2 AA
+   24×24 eşiğinin altındaydı. Kusuru KAPI buldu (axe `target-size`,
+   `wcag22aa` etiketi eklendikten sonra, üç bantta da `serious`).
+   1366×768'de üçüncü kalem birkaç px'le düşüyordu; o kayıp bilerek
+   göze alındı — ulaşılamayan bir bağ, hiç kalem göstermemekle aynı. */
 .ab-b-dikkat .mudahale .kalan {
-  display: block; box-sizing: border-box; height: 20px; line-height: 16px; padding-top: 4px;
+  display: block; box-sizing: border-box; height: 24px; line-height: 16px; padding-top: 4px;
   font-size: 11px; color: var(--i3); border-top: 1px solid var(--hr);
 }
 .ab-b-dikkat .mudahale .kalan:hover { color: var(--aksan); }

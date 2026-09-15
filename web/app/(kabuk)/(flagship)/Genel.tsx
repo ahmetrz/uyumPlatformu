@@ -122,9 +122,20 @@ const olculmemisToplami = (
     sayıyla durur, sığmayanlar "+N diğer" ile söylenir. */
 const MUDAHALE_TAVANI = 4;
 /** "+N diğer" satırının sabit yüksekliği (kabuk.css `.mudahale .kalan`:
-    16px satır + 4px üst boşluk). Ölçülmez, sabit tutulur ki bütçe hesabı
-    satır çizilmeden önce de doğru olsun. */
-const KALAN_SATIR_PX = 20;
+    16px satır + 8px boşluk). Ölçülmez, sabit tutulur ki bütçe hesabı
+    satır çizilmeden önce de doğru olsun.
+
+    20 → 24: bu satır bir BAĞDIR (bulgular ekranına gider) ve 20px,
+    ürünün beyan ettiği WCAG 2.2 AA 24×24 eşiğinin altındaydı. Kusur
+    elle değil KAPIYLA bulundu: axe kural kümesine `wcag22aa` etiketi
+    eklenince `target-size` üç bantta da kırmızı yaktı (`/` · serious).
+    Eşik ürünün kendi CSS'inde yazılıydı ama hiçbir kapı onu ölçmüyordu.
+
+    Bütçe maliyeti 4px'tir ve BİLEREK ödenir: sığmayan bir kalem daha
+    düşebilir, ama ulaşılamayan bir bağ hiç kalem göstermemekle aynı
+    şeydir. Sayı CSS ile TEK KAYNAKTAN tutulur — ikisi ayrışırsa bütçe
+    hesabı satır çizilmeden önce yanlış olur. */
+const KALAN_SATIR_PX = 24;
 
 /* Değerlendirilmemişler GÜCE göre sıralı; gücü bilinmeyen sona düşer —
    gücü 0 sayılarak sıralanmaz. Sıra hem özetteki ilk adlarda hem panelde

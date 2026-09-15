@@ -8,7 +8,7 @@ import { EkranBasligi } from '@/components/kabuk/ekran';
 import { kanitTalebiEkle } from '@/lib/eylemler2/denetim';
 import { DURUM_ETIKET, etiketle, uyumOzeti } from '@/lib/sabitler';
 import {
-  TREND_BOY, TREND_EN, acikMi, kisaTarih, odaklananCerceve, trendFarki, trendGeometrisi,
+  TREND_BOY, TREND_EN, acikMi, kisaTarih, odaklananCerceve, satirAgirligi, trendFarki, trendGeometrisi,
   type CerceveVerisi, type Kontrol, type TesisSatiri, type TrendNoktasi,
 } from './mantik';
 /* C22/C23 ters bağı — belge kuralı kütükte yaşar, burada YENİDEN YAZILMAZ. */
@@ -185,6 +185,24 @@ export default function UyumIstemci({
     () => acilisOdagi(cerceveler, kontrolParam, cerceveParam));
   const [acik, setAcik] = useState<Acik>(null);
   const [aile, setAile] = useState<string | null>(null);
+  /* ── SATIR SIRASI: VARSAYILAN ÖNEM, SEÇENEK KOD ──────────────────────
+     Ekranın sorusu "Nerede uygunsuz, ve neden?" — ama matris KOD sırasında
+     çiziliyordu (4.1.1, 4.1.2…) ve kırmızı hücreler 14×5'lik ızgaraya
+     dağılıyordu. Kullanıcı (15 Eylül 2026, ekran görüntüsüyle): "nereye
+     odaklanmam gerektiğini anlamıyorum". Haklıydı: ekran soruyu soruyor,
+     cevabı aramayı okuyana bırakıyordu.
+
+     `satirAgirligi` bu ekran için ZATEN yazılmıştı ve belgesi "matris en
+     kötüden iyiye sıralanır" diyordu — `devir()` ise kod sırası veriyordu.
+     Niyet vardı, bağ yoktu (R-F sınıfı). Bugün varsayılan sıra ÖNEMDİR:
+     uygunsuz satır önce, sonra kısmi, sonra değerlendirilmemiş
+     (bilinmeyen ≠ sıfır — en alta atılmaz), sonra uygun; eşitlikte kod
+     sırası korunur (kararlı sıralama, girdi zaten kod sırasında).
+
+     Kod sırası SİLİNMEDİ: "defter bir kütüktür, kod sırası okunur"
+     gerekçesi denetçinin arama işi için doğrudur; o iş nadirdir ve dizin
+     sütununda tek dokunuşla açılır. */
+  const [sira, setSira] = useState<'onem' | 'kod'>('onem');
 
   /* Odaktaki çerçeve mercekte SATIRSIZ kaldıysa, satırı olan ilkine
      düşülür: kullanıcı merceği değiştirdiğinde boş bir matrisle
@@ -193,10 +211,12 @@ export default function UyumIstemci({
      bağın kendisini şüpheli yapar. */
   const cerceve = odaklananCerceve(mercekliCerceveler, odak.cerceve);
   const satirlar = useMemo(() => (cerceve ? devir(cerceve) : []), [cerceve]);
-  const gorunur = useMemo(
-    () => (aile ? satirlar.filter((s) => s.aileId === aile) : satirlar),
-    [satirlar, aile],
-  );
+  const gorunur = useMemo(() => {
+    const suzulmus = aile ? satirlar.filter((s) => s.aileId === aile) : satirlar;
+    if (sira === 'kod') return suzulmus;
+    const agirlik = (s: MaddeSatiri) => satirAgirligi([...s.hucreler.values()].map((k) => k.im));
+    return [...suzulmus].sort((a, b) => agirlik(b) - agirlik(a));
+  }, [satirlar, aile, sira]);
 
   /* Metrikler KESİLMEMİŞ kümeden sayılır: aile süzgeci listeyi daraltır,
      defterin toplamını değiştirmez (06 §A2 ile aynı kural). */
@@ -280,16 +300,35 @@ export default function UyumIstemci({
           ))}
         </div>
 
-        {/* Efsane ARAYÜZÜN PARÇASI — dipnot değil (prototip sol kolonu). */}
-        <div className="bolum">
-          <span className="etiket">Okuma anahtarı</span>
+        <div className="bolum" role="group" aria-label="Satır sırası">
+          <span className="etiket">Sıra</span>
+          <button type="button" className="satir"
+            aria-current={sira === 'onem' ? 'true' : undefined}
+            onClick={() => { setSira('onem'); setAcik(null); }}>
+            <span>Önce uygunsuz</span>
+          </button>
+          <button type="button" className="satir"
+            aria-current={sira === 'kod' ? 'true' : undefined}
+            onClick={() => { setSira('kod'); setAcik(null); }}>
+            <span>Kod sırası</span>
+          </button>
+        </div>
+
+        {/* Efsane arayüzün parçası — dipnot değil — ama KADEMELİ: beş
+            satır lejant, on dört satırlık matrisin yanında kalıcı duruyordu
+            ve ilk bakışta süzgeçlerle aynı ağırlıkta okunuyordu. Durum
+            zaten glif BİÇİMİYLE ve her hücrenin `aria-label`iyle ayrışır;
+            lejant öğrenme aracıdır, karar aracı değil. Kapalı başlar, tek
+            dokunuşla açılır ve `<details>` ekran okuyucuya durumu söyler. */}
+        <details className="bolum anahtar-kutu">
+          <summary className="etiket">Okuma anahtarı</summary>
           {OKUMA_ANAHTARI.map((o) => (
             <span key={o.sinif} className="anahtar">
               <span className={`ab-glif ${o.sinif}`} aria-hidden />
               {o.yazi}
             </span>
           ))}
-        </div>
+        </details>
       </aside>
 
       {/* ── Defter gövdesi ───────────────────────────────────────────── */}
@@ -305,9 +344,19 @@ export default function UyumIstemci({
             bu ekranda 34px ayrı bir başlık + ayrı kural ölçtü; gövde
             (matris) 1366×768'de 283px'te başlıyordu. Endeks ölçülemediyse
             "—" ve `unk` durumu: sıfır değil, bilinmeyen. */}
+        {/* BAŞLIK CEVABI TAŞIR. "Nerede uygunsuz, ve neden?" bir soruydu ve
+            cevabı sağ üstteki 11px'lik ölçüt satırında duruyordu — başlıkla
+            aynı ağırlıkta başka on etiketin arasında. Bugün başlığın ilk
+            sözcüğü cevaptır: "8 uygunsuz — nerede, ve neden?". Uygunsuz
+            yoksa "Uygunsuz yok"; taslakta "Ölçülmedi" (sıfır değil). Sayı
+            ölçüt satırında da durur: orası dağılım, burası manşet — aynı
+            sayı iki ayrı karar amacıyla (`ux-denetim` tekrar ölçümü künye
+            bölgesinde ≥3 arar; iki geçiş eşiğin altındadır). */}
         <EkranBasligi
           eyebrow={`Uyum · ${cerceve.ad}`}
-          baslik="Nerede uygunsuz, ve neden?"
+          vurgu={cerceve.taslak ? 'Ölçülmedi' : m.uygunsuz > 0 ? `${m.uygunsuz} uygunsuz` : 'Uygunsuz yok'}
+          vurguDurumu={cerceve.taslak ? 'unk' : m.uygunsuz > 0 ? 'bd' : 'ok'}
+          baslik="— nerede, ve neden?"
           /* TASLAK çerçevede ölçüt şeridi de BİLİNMEYEN: aktif sürüm yokken satır
              yoktur ve "0 Uygunsuz" (iyi haber) basmak, iki satır aşağıdaki
              "ölçülmedi — sıfır değil" cümlesiyle çelişiyordu; okunan ilk sayı
@@ -324,14 +373,12 @@ export default function UyumIstemci({
             { deger: m.endeks === null ? '—' : `%${m.endeks}`, yazi: 'Endeks', durum: m.endeks === null ? 'unk' : undefined },
           ]}
         />
-        {/* Giriş satırı: solda okuma cümlesi, sağda eğilim şeridi — iki
-            ayrı bant değil tek satır; matris 1366×768'de ~260px'te başlar. */}
-        <div className="ab-c-giris">
-          <p className="cumle">
-            Satır = kontrol · sütun = {terim('tesis')} · satıra tıklayınca gerekçe aynı defterde açılır
-          </p>
-          <EgilimSeridi noktalar={egilim} surecVar={surecId !== null} bugun={m.endeks} />
-        </div>
+        {/* Eski "Satır = kontrol · sütun = tesis · satıra tıklayınca…"
+            yardım cümlesi KALDIRILDI: kolon başlıkları zaten "Kontrol",
+            "Başlık" ve tesis adlarını yazıyor; hücreler düğmedir ve
+            `aria-label` taşır. Ana yüzeyde talimat, cevabın önünde bir
+            satır daha metindi. Eğilim şeridi matrisin ALTINA indi: geçmiş
+            (L3), hangi kontrolü düzelteceğin kararını değiştirmez. */}
 
         {cerceve.taslak ? (
           <div className="ab-panel-blok" style={{ marginTop: 'var(--s16)' }}>
@@ -364,10 +411,15 @@ export default function UyumIstemci({
           />
         )}
 
+        <EgilimSeridi noktalar={egilim} surecVar={surecId !== null} bugun={m.endeks} />
+
         <p className="etiket" style={{ marginTop: 26, display: 'flex', gap: 24, flexWrap: 'wrap' }}>
           <span>{m.toplam} kapsam içi hücre</span>
           {m.olculmemis > 0 && <span>{m.olculmemis} hücre değerlendirilmedi — sıfır değil, bilinmeyen</span>}
           <span>Gösterilen {gorunur.length} kontrol / {satirlar.length}</span>
+          {satirlar.length > 0 && satirlar.every((s) => s.kapsamda === tesisler.length) && (
+            <span>Her kontrol {tesisler.length} {terim('tesis', 'iyelik')} tamamında kapsamda</span>
+          )}
           {cerceve.surumEtiketi && <span>Sürüm {cerceve.surumEtiketi}</span>}
           {cerceve.yururluk && <span>Yürürlük {kisaTarih(cerceve.yururluk)}</span>}
         </p>
@@ -481,7 +533,15 @@ function UyumMatrisi({ cerceve, satirlar, tesisler, acik, setAcik, yazabilir }: 
      kısa ad kalır, EN FAZLA 2 satır (`line-clamp`); kod ve künye `title`a
      ve hücrenin `aria-label`ına gider — bilgi kaybolmaz, satır sayısı
      denetim altına girer (ürün sahibi kabulü 2026-09, madde 2). */
-  const kolonlar = `92px minmax(220px, 1fr) repeat(${tesisler.length}, 88px) 78px`;
+  /* Kapsam kolonu yalnız bir şey SÖYLÜYORSA çizilir. Ölçüldü (odak turu,
+     1440×900): tohumda on dört satırın on dördü "5 / 5" idi — kolon bir
+     satırı öbüründen ayırmıyor, yalnız on dört eş sayı ekliyordu. Bilgi
+     kaybolmaz: kolon kalkınca olgu altbilgide TEK cümleyle söylenir
+     ("her kontrol N tesisin N'sinde kapsamda"). Tek bir satır bile eksik
+     kapsamdaysa kolon geri gelir ve eksik satır mürekkebe çıkar. Ölçüt
+     veriden gelir; sabit bir tesis sayısına bağlı değildir. */
+  const kapsamTekduze = satirlar.every((s) => s.kapsamda === tesisler.length);
+  const kolonlar = `92px minmax(220px, 1fr) repeat(${tesisler.length}, 88px)${kapsamTekduze ? '' : ' 78px'}`;
   const genel = uyumOzeti(sayHam(satirlar)).yuzde;
   /* Yapışkan başlık ↔ yatay kaydırma çelişkisi: `overflow-x:auto` olan
      bir kap içinde `position:sticky` sayfaya değil kaba yapışır (etkisiz).
@@ -523,7 +583,9 @@ function UyumMatrisi({ cerceve, satirlar, tesisler, acik, setAcik, yazabilir }: 
             <span className="ad">{t.ad}</span>
           </span>
         ))}
-        <span className="kolonbas" role="columnheader" style={{ textAlign: 'right' }}>Kapsam</span>
+        {!kapsamTekduze && (
+          <span className="kolonbas" role="columnheader" style={{ textAlign: 'right' }}>Kapsam</span>
+        )}
       </div>
 
       {satirlar.map((s) => {
@@ -564,20 +626,22 @@ function UyumMatrisi({ cerceve, satirlar, tesisler, acik, setAcik, yazabilir }: 
                   eksik kapsam mürekkebe çıkar. Ölçüt veriden gelir
                   (`kapsamda < tesisler.length`), kiracının kaç tesisi
                   olduğundan bağımsızdır. */}
-              <span
-                className={`mono kapsam${s.kapsamda < tesisler.length ? ' eksik' : ''}`}
-                role="cell"
-                title={s.kapsamda < tesisler.length
-                  ? `${tesisler.length} ${terim('tesis', 'iyelik')} ${s.kapsamda} tanesinde kapsamda`
-                  : undefined}
-              >
-                {s.kapsamda} / {tesisler.length}
-              </span>
+              {!kapsamTekduze && (
+                <span
+                  className={`mono kapsam${s.kapsamda < tesisler.length ? ' eksik' : ''}`}
+                  role="cell"
+                  title={s.kapsamda < tesisler.length
+                    ? `${tesisler.length} ${terim('tesis', 'iyelik')} ${s.kapsamda} tanesinde kapsamda`
+                    : undefined}
+                >
+                  {s.kapsamda} / {tesisler.length}
+                </span>
+              )}
             </div>
 
             {satirAcik && acik && (
               <div role="row" className="acilankap">
-                <div role="cell" className="acilanhucre" aria-colspan={tesisler.length + 3}>
+                <div role="cell" className="acilanhucre" aria-colspan={tesisler.length + (kapsamTekduze ? 2 : 3)}>
                   <Gerekce
                     cerceve={cerceve}
                     satir={s}

@@ -669,6 +669,91 @@ export const PLATFORM_SENARYOLARI: Senaryo[] = [
     katmanlar: ['UI'],
   },
   {
+    id: 'SIS-UYM-033', alan: 'Uyum', rota: '/uyum', eksen: 'arayuz',
+    amac: 'Ekranın CEVABININ ilk bakışta okunması — ölçüldü (15 Eyl 2026, '
+      + 'kullanıcı geri bildirimi): "8 uygunsuz" sağ üstte 11px’te, aynı '
+      + 'ağırlıkta on etiketin arasındaydı; "nereye odaklanacağımı '
+      + 'anlamıyorum"',
+    rol: 'uyum sorumlusu', kapsam: 'kurum geneli',
+    onkosul: 'Aktif çerçevede uygunsuz hücre var', veriHali: 'normal',
+    eylem: 'Ekranı açar ve başlığı okur',
+    beklenenSonuc: 'Başlık "N uygunsuz — nerede, ve neden?" der; uygunsuz '
+      + 'yoksa "Uygunsuz yok"; taslak çerçevede "Ölçülmedi" (sıfır değil)',
+    beklenenEkran: 'Uyum · ekran başlığı',
+    beklenenIz: 'yazma yok', beklenenBildirim: 'yok',
+    katmanlar: ['UI'],
+  },
+  {
+    id: 'SIS-UYM-034', alan: 'Uyum', rota: '/uyum', eksen: 'arayuz',
+    amac: 'Başlığın çevresindeki büyük harfli etiketlerden AYRI bir sesle '
+      + 'konuşması — ölçüldü: kabukta 74 büyük harfli kural var, başlık da '
+      + 'büyük harf olunca hiçbir şey öne çıkmıyordu',
+    rol: 'ürün ekibi', kapsam: 'kurum geneli',
+    onkosul: 'Kabuk CSS’i ve DESIGN.md okunur', veriHali: 'normal',
+    eylem: '`.ab-lede h1` kuralı ve Display satırı karşılaştırılır',
+    beklenenSonuc: 'Başlık cümle düzenindedir (uppercase yok); aile, boy ve '
+      + 'ağırlık korunur; belge ile kod ayrışmaz',
+    beklenenEkran: 'Ekran başlığı · tasarım belgesi',
+    beklenenIz: 'yazma yok', beklenenBildirim: 'yok',
+    katmanlar: ['UI'],
+  },
+  {
+    id: 'SIS-UYM-035', alan: 'Uyum', rota: '/uyum', eksen: 'arayuz',
+    amac: 'Uygunsuz satırın kalabalığın içinden ÇIKMASI — belge "matris en '
+      + 'kötüden iyiye sıralanır" diyordu, ekran kod sırası veriyordu '
+      + '(niyet vardı, bağ yoktu)',
+    rol: 'uyum sorumlusu', kapsam: 'kurum geneli',
+    onkosul: 'Matriste uygunsuz, kısmi, değerlendirilmemiş ve uygun satırlar '
+      + 'birlikte', veriHali: 'normal',
+    eylem: 'Ekranı açar; gerekirse "Kod sırası" düğmesine dokunur',
+    beklenenSonuc: 'Varsayılan sıra önemdir (uygunsuz › kısmi › bilinmeyen › '
+      + 'uygun; bilinmeyen en alta atılmaz); ağırlık tek kaynaktan gelir; kod '
+      + 'sırası tek dokunuşla açılır ve silinmemiştir',
+    beklenenEkran: 'Uyum matrisi · satır sırası',
+    beklenenIz: 'yazma yok', beklenenBildirim: 'yok',
+    katmanlar: ['UI', 'DOMAIN'],
+  },
+  {
+    id: 'SIS-UYM-036', alan: 'Uyum', rota: '/uyum', eksen: 'arayuz',
+    amac: 'Lejantın her açılışta dört durum çizerek dikkat ÇALMAMASI',
+    rol: 'uyum sorumlusu', kapsam: 'kurum geneli',
+    onkosul: 'Ekran açık', veriHali: 'normal',
+    eylem: 'Kenar çubuğundaki "Okuma anahtarı" özetine dokunur',
+    beklenenSonuc: 'Anahtar varsayılan KAPALI bir açılır kutudur; özet '
+      + 'klavyeyle odaklanır ve açılır; içerik silinmemiştir',
+    beklenenEkran: 'Uyum · kenar çubuğu',
+    beklenenIz: 'yazma yok', beklenenBildirim: 'yok',
+    katmanlar: ['UI', 'ACCESSIBILITY'],
+  },
+  {
+    id: 'SIS-UYM-037', alan: 'Uyum', rota: '/uyum', eksen: 'arayuz',
+    amac: 'Matrisin ekranın ilk gövdesi olması — eğilim kutusu ve yardımcı '
+      + 'cümle matrisin ÜSTÜNDE duruyordu; ikisi de cevap değil bağlamdı',
+    rol: 'uyum sorumlusu', kapsam: 'kurum geneli',
+    onkosul: 'Ekran açık', veriHali: 'normal',
+    eylem: 'Ekranı yukarıdan aşağı okur',
+    beklenenSonuc: 'Başlıktan sonra matris gelir; eğilim şeridi matrisin '
+      + 'altında ince bir çizgiyle ayrılmıştır; "Satır = kontrol · sütun = '
+      + '…" cümlesi yoktur',
+    beklenenEkran: 'Uyum · gövde sırası',
+    beklenenIz: 'yazma yok', beklenenBildirim: 'yok',
+    katmanlar: ['UI'],
+  },
+  {
+    id: 'SIS-UYM-038', alan: 'Uyum', rota: '/uyum', eksen: 'arayuz',
+    amac: 'Bir şey söylemeyen kolonun çizilmemesi — ölçüldü: tohumda on '
+      + 'dört satırın on dördü "5 / 5" idi, kolon on dört eş sayı ekliyordu',
+    rol: 'uyum sorumlusu', kapsam: 'kurum geneli',
+    onkosul: 'Her satır tesislerin tamamında kapsamda', veriHali: 'normal',
+    eylem: 'Matrisi ve altbilgiyi okur',
+    beklenenSonuc: 'Kapsam kolonu çizilmez; altbilgi "Her kontrol N tesisin '
+      + 'tamamında kapsamda" der; tek bir satır bile eksikse kolon geri '
+      + 'gelir ve eksik satır mürekkebe çıkar (ölçüt veriden)',
+    beklenenEkran: 'Uyum matrisi · kapsam kolonu',
+    beklenenIz: 'yazma yok', beklenenBildirim: 'yok',
+    katmanlar: ['UI'],
+  },
+  {
     id: 'SIS-SAHA-020', alan: 'Sistem', rota: '/', eksen: 'arayuz',
     amac: 'Saha ekranındaki "+N diğer" bağının parmakla vurulabilmesi — '
       + 'ölçüldü: satır 20px idi, ürünün beyan ettiği WCAG 2.2 AA 24×24 '
@@ -1458,13 +1543,15 @@ export const PLATFORM_SENARYOLARI_6: Senaryo[] = [
     katmanlar: ['UI', 'RESPONSIVE'],
   },
   {
-    id: 'SIS-KBK-014', alan: 'Sistem', rota: '/uyum', eksen: 'arayuz',
-    amac: 'Sarmanın gerçekten zorunlu olduğunu göstermek',
-    rol: 'uyum uzmanı', kapsam: 'kurum geneli',
-    onkosul: 'Pencere 1440px', veriHali: 'yüksek hacim',
-    eylem: 'Bağların toplam eni hesaplanır',
-    beklenenSonuc: 'Toplam en pencereyi aşar',
-    beklenenEkran: 'Tek satır bu alanı taşıyamaz',
+    id: 'SIS-KBK-014', alan: 'Sistem', rota: '—', eksen: 'arayuz',
+    amac: 'İkincil sıranın masaüstünde tek satırda kalması — sarma artık '
+      + 'bir zorunluluk değil, kiracı sözlüğünden gelen bilinmeyen terime '
+      + 'karşı korumadır (Uyum sırası odak turunda on dokuz bağdan üçe indi)',
+    rol: 'ürün ekibi', kapsam: 'kurum geneli',
+    onkosul: 'Pencere 1280px', veriHali: 'normal',
+    eylem: 'Her alanın bağlarının toplam eni hesaplanır',
+    beklenenSonuc: 'Hiçbir sıra pencereyi aşmaz; sarma masaüstünde tetiklenmez',
+    beklenenEkran: 'Her alan tek satırda',
     beklenenIz: 'yazma yok', beklenenBildirim: 'yok',
     katmanlar: ['UI', 'RESPONSIVE'],
   },
@@ -1553,13 +1640,13 @@ export const PLATFORM_SENARYOLARI_6: Senaryo[] = [
     id: 'SIS-KBK-019', alan: 'Sistem', rota: '/uyum', eksen: 'arayuz',
     amac: 'İkincil sıradaki grup yapısının EKRAN OKUYUCUYA da ulaşması — '
       + 'gören kullanıcı grupları dikey çizgiden ayırır, ekran okuyucu o '
-      + 'çizgiyi göremez ve on dokuz bağı tek yığın olarak duyar',
+      + 'çizgiyi göremez ve bağları tek yığın olarak duyar',
     rol: 'ekran okuyucu kullanan kullanıcı', kapsam: 'kendi kapsamı',
-    onkosul: 'Uyum alanı açık; ikincil sıra üç grup taşıyor',
+    onkosul: 'Bir alan açık; ikincil sıra en az bir grup taşıyor',
     veriHali: 'normal',
     eylem: 'Gezinme bölgesini ekran okuyucuyla dolaşır',
-    beklenenSonuc: 'Her grup kendi ADIYLA duyulur (Uyum durumu · Denetim ve '
-      + 'aksiyon · Kayıt ve kanıt); adlar birbirinden farklıdır',
+    beklenenSonuc: 'Her grup kendi ADIYLA duyulur (Uyum · Varlık operasyonları · '
+      + 'Portföy…); bir alanın grup adları birbirinden farklıdır',
     beklenenEkran: 'İkincil gezinme sırası',
     beklenenIz: 'yazma yok', beklenenBildirim: 'yok',
     katmanlar: ['UI', 'ACCESSIBILITY'],
@@ -1593,11 +1680,12 @@ export const PLATFORM_SENARYOLARI_6: Senaryo[] = [
     katmanlar: ['UI'],
   },
   {
-    id: 'SIS-KBK-022', alan: 'Sistem', rota: '/uyum', eksen: 'arayuz',
+    id: 'SIS-KBK-022', alan: 'Sistem', rota: '/envanter', eksen: 'arayuz',
     amac: 'Telefonda "neredeyim" sorusunun BAKARAK cevaplanması — ölçüldü: '
       + 'kayan 45 rotanın 24’ünde aktif sekme ekranın dışındaydı',
     rol: 'telefonla bakan kullanıcı', kapsam: 'kendi kapsamı',
-    onkosul: 'Uyum alanı açık; ikincil sıra on dokuz bağ taşıyor',
+    onkosul: 'Varlık alanı açık; ikincil sıra beş bağ taşıyor (Uyum sırası '
+      + 'odak turunda üç bağa indi ve artık katlanmaz)',
     veriHali: 'normal',
     eylem: 'Ekranı 375px genişlikte açar',
     beklenenSonuc: 'Sıra yatay kaymaz; tek bir düğme aktif grubu ve aktif '
@@ -1622,7 +1710,7 @@ export const PLATFORM_SENARYOLARI_6: Senaryo[] = [
     id: 'SIS-KBK-024', alan: 'Sistem', rota: '—', eksen: 'arayuz',
     amac: 'Katlama eşiğinin uydurulmuş değil ÖLÇÜLMÜŞ bir sınır olması',
     rol: 'ürün ekibi', kapsam: 'kurum geneli',
-    onkosul: 'İkincil sıralar iki · beş · on dokuz bağ taşıyor',
+    onkosul: 'İkincil sıralar iki · iki · üç · beş bağ taşıyor',
     veriHali: 'normal',
     eylem: 'Eşik, ürünün gerçek sıralarına karşı sınanır',
     beklenenSonuc: 'Eşiğin iki yanında da gerçek sıra var ve hiçbir sıra '
@@ -1638,8 +1726,9 @@ export const PLATFORM_SENARYOLARI_6: Senaryo[] = [
     rol: 'telefonla bakan kullanıcı', kapsam: 'kendi kapsamı',
     onkosul: 'Sıranın en sonundaki bölüm açık', veriHali: 'normal',
     eylem: 'Bölüm seçici düğmesini okur',
-    beklenenSonuc: 'Düğme "Kayıt ve kanıt › Eğitim kütüğü" der; alan dışı '
-      + 'bir patikada uydurma bölüm yazmaz, alan adını yazar',
+    beklenenSonuc: 'Aktif bölüm "Uyum › Kayıt ve kanıt" bulunur (alt ekran '
+      + 'ikincil öğesini yakar); alan dışı bir patikada uydurma bölüm '
+      + 'yazmaz, alan adını yazar',
     beklenenEkran: 'Bölüm seçici düğmesi',
     beklenenIz: 'yazma yok', beklenenBildirim: 'yok',
     katmanlar: ['UI', 'ACCESSIBILITY'],
@@ -1659,13 +1748,13 @@ export const PLATFORM_SENARYOLARI_6: Senaryo[] = [
     katmanlar: ['UI'],
   },
   {
-    id: 'SIS-KBK-027', alan: 'Sistem', rota: '/uyum', eksen: 'arayuz',
+    id: 'SIS-KBK-027', alan: 'Sistem', rota: '/envanter', eksen: 'arayuz',
     amac: 'Katlanan sıranın HİÇBİR ROTAYI gizlememesi — ulaşım yolu '
       + 'değişir, rota kaybolmaz',
     rol: 'telefonla bakan kullanıcı', kapsam: 'kendi kapsamı',
-    onkosul: 'Uyum alanı 375px’te açık; sıra katlanmış', veriHali: 'normal',
-    eylem: 'Bölüm seçiciyi dokunarak açar ve son gruptaki bir bölüme dokunur',
-    beklenenSonuc: 'Panel üç grubu başlıklarıyla dikey listeler, aktif bölüm '
+    onkosul: 'Varlık alanı 375px’te açık; sıra katlanmış', veriHali: 'normal',
+    eylem: 'Bölüm seçiciyi dokunarak açar ve sıranın son bölümüne dokunur',
+    beklenenSonuc: 'Panel her grubu başlığıyla dikey listeler, aktif bölüm '
       + 'işaretli gelir, dokunulan bölüme gidilir ve panel kapanır',
     beklenenEkran: 'Bölüm paneli',
     beklenenIz: 'yazma yok', beklenenBildirim: 'yok',
@@ -1696,6 +1785,21 @@ export const PLATFORM_SENARYOLARI_6: Senaryo[] = [
     beklenenSonuc: 'Aktif alt ekran sıranın görünür penceresinde gelir; '
       + 'sayfanın kendisi kaymaz ve zaten görünür olan oynatılmaz',
     beklenenEkran: 'Üçüncül gezinme sırası',
+    beklenenIz: 'yazma yok', beklenenBildirim: 'yok',
+    katmanlar: ['UI'],
+  },
+  {
+    id: 'SIS-KBK-030', alan: 'Sistem', rota: '/uyum', eksen: 'arayuz',
+    amac: 'Uyum gezinmesinin Varlık ile AYNI grameri konuşması — ölçüldü: '
+      + 'Uyum on dokuz eş ağırlıklı bağı tek sırada taşıyordu, Varlık beş '
+      + 'öğe + üçüncül sıra; kullanıcı "her tarafta metin" görüyordu',
+    rol: 'uyum sorumlusu', kapsam: 'kurum geneli',
+    onkosul: 'Uyum alanı açık', veriHali: 'normal',
+    eylem: 'İkincil sırayı okur; bir öğeye dokunur; üçüncül sırada gezer',
+    beklenenSonuc: 'İkincil sıra üç öğe taşır (Uyum durumu · Denetim ve '
+      + 'aksiyon · Kayıt ve kanıt); her öğe üçüncül sıra açar; on dokuz '
+      + 'rotanın on dokuzu da bir üçüncül sırada durur, hiçbiri kaybolmaz',
+    beklenenEkran: 'İkincil ve üçüncül sıra',
     beklenenIz: 'yazma yok', beklenenBildirim: 'yok',
     katmanlar: ['UI'],
   },

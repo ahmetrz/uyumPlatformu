@@ -106,11 +106,21 @@ function siraEni(gruplar: readonly { ogeler: readonly { ad: string }[] }[]): num
 }
 
 describe('kabuk · sarma bir tedbir değil, ölçülmüş bir zorunluluk', () => {
-  it('Uyum alanının sırası 1440px pencereye SIĞMAZ [SIS-KBK-014]', async () => {
+  it('hiçbir ikincil sıra 1280px pencereyi taşırmaz — sarma masaüstünde DEVREYE GİRMEZ [SIS-KBK-014]', async () => {
     const { IKINCIL } = await import('@/components/kabuk/yonler');
-    const en = siraEni(IKINCIL['/uyum']);
-    /* Kırpma eşiği: pencere eni eksi künyenin tuttuğu yer. */
-    expect(en).toBeGreaterThan(1440 - KUNYE_ENI);
+    /* Bu vaka eskiden tersini ölçüyordu: Uyum sırası on dokuz bağla
+       1 440px'e SIĞMIYORDU ve sarma o ölçümün zorunluluğuydu. Odak
+       turunda sıra üç bağa indi (iki kademeli gramer); bugün en geniş
+       sıra 1 280px'e bile sığar ve masaüstünde sarma hiç tetiklenmez.
+       Kural yine de kalır — grup adları kiracı sözlüğünden çözülür
+       (`terim`), eni derleme anında bilinmez — ama artık gerekçesi
+       "sığmıyor" değil "bilinmeyen terime karşı koruma"dır. Vaka bunun
+       ölçüsüdür: bir sıra yeniden 1 280'i taşırırsa hiyerarşi bozulmuş
+       demektir ve sarma kusuru gizlerdi. */
+    const tasan = Object.entries(IKINCIL)
+      .filter(([, gruplar]) => siraEni(gruplar) > 1280 - KUNYE_ENI)
+      .map(([alan, gruplar]) => `${alan} (${siraEni(gruplar)}px)`);
+    expect(tasan).toEqual([]);
   });
 
   it('sararken hiçbir alan iki satırı aşmaz [SIS-KBK-015]', async () => {
@@ -308,9 +318,12 @@ describe('rota envanteri · hiçbir ekran kapıların dışında kalmaz', () => 
 describe('kabuk · dar bantta ikincil sıra katlanır', () => {
   it('üçten çok bağ taşıyan sıra KATLANIR [SIS-KBK-022]', async () => {
     const { ikincilSec, katlanirMi } = await import('@/components/kabuk/yonler');
-    /* 375px'e sığmayan iki sıra: Uyum 19 bağ (2 111px) · Varlık 5 bağ (519px). */
-    expect(katlanirMi(ikincilSec('/uyum'))).toBe(true);
+    /* 375px'e sığmayan sıra: Varlık 5 bağ (519px). Uyum'un on dokuz bağı
+       odak turunda üç bağa indi (iki kademeli gramer) ve sığar — sıra
+       katlanmaz; bu, eşiğin ROTAYA değil bağ sayısına bağlı olduğunun
+       ölçüsüdür. */
     expect(katlanirMi(ikincilSec('/envanter'))).toBe(true);
+    expect(katlanirMi(ikincilSec('/uyum'))).toBe(false);
   });
 
   it('375px’e SIĞAN sıra katlanmaz — bugünkü davranış korunur [SIS-KBK-023]', async () => {
@@ -339,10 +352,23 @@ describe('kabuk · dar bantta ikincil sıra katlanır', () => {
   it('aktif bölüm grubuyla birlikte bulunur — "neredeyim" [SIS-KBK-025]', async () => {
     const { ikincilSec, aktifBolum } = await import('@/components/kabuk/yonler');
     const gruplar = ikincilSec('/uyum');
-    /* Kusurun doğduğu rota: sıranın en sonundaki bağ. */
+    /* Kusurun doğduğu rota: eski sıranın en sonundaki bağ. Bugün Uyum'un
+       üçüncül sırasında ("Kayıt ve kanıt" öğesinin altında) durur ve
+       aktif bölüm o öğedir — alt ekran ikincil öğesini yakar. */
     const son = aktifBolum(gruplar, '/egitimler');
-    expect(son?.grup.ad).toBe('Kayıt ve kanıt');
-    expect(son?.oge.ad).toBe('Eğitim kütüğü');
+    expect(son?.grup.ad).toBe('Uyum');
+    expect(son?.oge.ad).toBe('Kayıt ve kanıt');
+    /* GRUP, BULUNULAN gruptur — ilk grup değil. Ürünün bugünkü sıraları
+       tek gruplu; bu yüzden kural gerçek veriyle ölçülemez ve sabotaj
+       turu bunu gösterdi (R-E: `gruplar[0]` döndüren sabotaj tek gruplu
+       sırada kırmızı yakmadı). Kural saf fonksiyondadır; iki gruplu
+       sentetik sıra ile ölçülür. */
+    const iki = [
+      { ad: 'Birinci', ogeler: [{ ad: 'A', yol: '/a' }] },
+      { ad: 'İkinci', ogeler: [{ ad: 'B', yol: '/b', alt: [{ ad: 'B', yol: '/b' }, { ad: 'C', yol: '/c' }] }] },
+    ];
+    expect(aktifBolum(iki, '/c')?.grup.ad).toBe('İkinci');
+    expect(aktifBolum(iki, '/c')?.oge.ad).toBe('B');
     /* Alt ekranı olan öğede de grup bulunur (üçüncül sıra, Varlık). */
     const alt = aktifBolum(ikincilSec('/envanter'), '/kesif');
     expect(alt?.oge.yol).toBe('/envanter');
@@ -375,9 +401,13 @@ describe('kabuk · katlama kapısı bileşene bağlı', () => {
   const bilesen = readFileSync('components/kabuk/BolumSecici.tsx', 'utf8');
 
   it('kapı katlanan sırayı GERÇEKTEN sürüyor [SIS-KBK-027]', () => {
-    /* Hedef son grubun son bağıdır: kusurun doğduğu, yatay sırada
-       1 982'nci pikseldeki bağ. */
-    expect(kapi).toMatch(/KATLAMA\s*=\s*\{[^}]*rota:\s*'\/uyum'[^}]*hedef:\s*'\/egitimler'/);
+    /* Hedef, KATLANAN sıranın son bağıdır. Kusur `/uyum`da doğmuştu;
+       Uyum sırası odak turunda üç bağa inince katlanan tek sıra Varlık
+       kaldı — kapı katlanmayan bir rotayı sürseydi "seçici yok" diye
+       kırmızı yanardı, yani ölçüm yeri veriyle taşınmak zorundaydı. */
+    expect(kapi).toMatch(/KATLAMA\s*=\s*\{[^}]*rota:\s*'\/envanter'[^}]*hedef:\s*'\/olaylar'/);
+    /* Kusurun doğduğu bağ ölçümden düşmez: artık üçüncül sırada ölçülür. */
+    expect(kapi).toMatch(/UCUNCUL_ROTALARI\s*=\s*\[[^\]]*'\/egitimler'/);
     /* Panel açılır, bağ sayılır, grup başlığı aranır, dokunularak
        gidilir ve panelin KAPANDIĞI doğrulanır — dördü de kapıda. */
     expect(kapi).toMatch(/\.ab-bolum-dugme/);

@@ -4,21 +4,21 @@
 
 | Ölçü | Değer |
 | --- | --- |
-| Senaryo | 402 |
-| Testi olan senaryo | 402 |
+| Senaryo | 409 |
+| Testi olan senaryo | 409 |
 | **GAP** | **0** |
 | Hayalet işaret (kütükte olmayan kimlik) | 0 |
 | Kütüksüz test dosyası | 0 |
-| Taranan test dosyası | 252 |
+| Taranan test dosyası | 253 |
 
 ## Katman başına kapsam
 
 | Katman | Senaryo | Testli | GAP |
 | --- | --- | --- | --- |
-| ACCESSIBILITY | 18 | 18 | 0 |
+| ACCESSIBILITY | 19 | 19 | 0 |
 | API | 12 | 12 | 0 |
 | CONCURRENCY | 8 | 8 | 0 |
-| DOMAIN | 230 | 230 | 0 |
+| DOMAIN | 231 | 231 | 0 |
 | ENGINE | 38 | 38 | 0 |
 | INTEGRATION | 43 | 43 | 0 |
 | MIGRATION | 10 | 10 | 0 |
@@ -26,7 +26,7 @@
 | RESPONSIVE | 9 | 9 | 0 |
 | SCOPE | 34 | 34 | 0 |
 | SERVER | 159 | 159 | 0 |
-| UI | 133 | 133 | 0 |
+| UI | 140 | 140 | 0 |
 | VISUAL | 4 | 4 | 0 |
 | WORKFLOW | 39 | 39 | 0 |
 
@@ -383,6 +383,14 @@
 | `SIS-UYM-030` | Uyum | UI | `kabuk-gezinme.test.ts` | eksik kapsam satırı işaretlenir — ölçüt VERİDEN gelir | evet | geçti |
 | `SIS-UYM-031` | Uyum | UI · ACCESSIBILITY | `kabuk-gezinme.test.ts` | istisna RENGE bağlı değil — sözle de söylenir | evet | geçti |
 | `SIS-UYM-032` | Uyum | UI | `kabuk-gezinme.test.ts` | CSS iki hâli AYIRIR — yoksa sınıf ölü kalırdı | evet | geçti |
+| `SIS-UYM-033` | Uyum | UI | `uyum-odak.test.ts` | ekran başlığının vurgusu UYGUNSUZ SAYISIDIR; taslakta "Ölçülmedi" | evet | geçti |
+| `SIS-UYM-034` | Uyum | UI | `uyum-odak.test.ts` | `.ab-lede h1` BÜYÜK HARF DEĞİLDİR — kabuğun tek büyük yumuşak sesi | evet | geçti |
+| `SIS-UYM-035` | Uyum | UI · DOMAIN | `uyum-odak.test.ts` | varsayılan sıra ÖNEMDİR ve ağırlık `satirAgirligi`den gelir | evet | geçti |
+| `SIS-UYM-035` | Uyum | UI · DOMAIN | `uyum-odak.test.ts` | `satirAgirligi` uygunsuzu önce, bilinmeyeni uygunun ÜSTÜNE koyar | evet | geçti |
+| `SIS-UYM-036` | Uyum | UI · ACCESSIBILITY | `uyum-odak.test.ts` | okuma anahtarı KAPALI bir `<details>` olarak durur | evet | geçti |
+| `SIS-UYM-037` | Uyum | UI | `uyum-odak.test.ts` | eğilim şeridi MATRİSTEN SONRA gelir; matris üstü yardımcı cümle yoktur | evet | geçti |
+| `SIS-UYM-038` | Uyum | UI | `uyum-odak.test.ts` | her satır tam kapsamdaysa kolon KALKAR ve altbilgi olguyu söyler | evet | geçti |
+| `SIS-UYM-038` | Uyum | UI | `uyum-odak.test.ts` | tek bir eksik satır kolonu GERİ getirir — ölçüt veriden | evet | geçti |
 | `SIS-SAHA-020` | Sistem | UI · ACCESSIBILITY | `kabuk-gezinme.test.ts` | bağ kutusu 24px — beyan edilen eşiğin altına inmez | evet | geçti |
 | `SIS-SAHA-021` | Sistem | UI | `kabuk-gezinme.test.ts` | bileşenin bütçe sabiti CSS ile AYNI sayıyı taşır | evet | geçti |
 | `SIS-ERS-020` | Sistem | UI · ACCESSIBILITY | `kabuk-gezinme.test.ts` | etiket kümesi wcag22aa taşır | evet | geçti |
@@ -549,7 +557,7 @@
 | `SIS-KBK-011` | Sistem | UI · ACCESSIBILITY | `kabuk-gezinme.test.ts` | temel kuralda gizli kaydırma çubuğu YOK | evet | geçti |
 | `SIS-KBK-012` | Sistem | UI · RESPONSIVE | `kabuk-gezinme.test.ts` | temel kuralda sabit yükseklik YOK — ikinci satır kırpılamaz | evet | geçti |
 | `SIS-KBK-013` | Sistem | UI · RESPONSIVE | `kabuk-gezinme.test.ts` | yatay kaydırma yalnız dokunmatik banda izinli | evet | geçti |
-| `SIS-KBK-014` | Sistem | UI · RESPONSIVE | `kabuk-gezinme.test.ts` | Uyum alanının sırası 1440px pencereye SIĞMAZ | evet | geçti |
+| `SIS-KBK-014` | Sistem | UI · RESPONSIVE | `kabuk-gezinme.test.ts` | hiçbir ikincil sıra 1280px pencereyi taşırmaz — sarma masaüstünde DEVREYE GİRMEZ | evet | geçti |
 | `SIS-KBK-015` | Sistem | UI · RESPONSIVE | `kabuk-gezinme.test.ts` | sararken hiçbir alan iki satırı aşmaz | evet | geçti |
 | `SIS-KBK-016` | Sistem | UI · ACCESSIBILITY | `kabuk-gezinme.test.ts` | hiçbir ikincil bağ adı kırpılacak kadar uzun değil | evet | geçti |
 | `SIS-KBK-017` | Sistem | UI · RESPONSIVE | `kabuk-gezinme.test.ts` | hiçbir Varlık grubu 1024px bandını taşırmaz | evet | geçti |
@@ -584,6 +592,9 @@
 | `SIS-KBK-027` | Sistem | UI · ACCESSIBILITY | `kabuk-gezinme.test.ts` | kapı katlanan sırayı GERÇEKTEN sürüyor | evet | geçti |
 | `SIS-KBK-028` | Sistem | UI | `kabuk-gezinme.test.ts` | kapının seçicileri bileşenin GERÇEK sınıflarıyla aynı | evet | geçti |
 | `SIS-KBK-029` | Sistem | UI | `kabuk-gezinme.test.ts` | üçüncül sıra aktif ekranı GÖRÜNÜR açar — ve sayfayı itmez | evet | geçti |
+| `SIS-KBK-030` | Sistem | UI | `uyum-odak.test.ts` | Uyum sırası ÜÇ ikincil öğe taşır ve her biri alt ekranlarını taşır | evet | geçti |
+| `SIS-KBK-030` | Sistem | UI | `uyum-odak.test.ts` | düzleştirilmiş üçüncül küme ESKİ on dokuz rotanın tamamıdır | evet | geçti |
+| `SIS-KBK-030` | Sistem | UI | `uyum-odak.test.ts` | üçüncül sıra her Uyum rotasında AÇILIR ve bulunulan öğeyi taşır | evet | geçti |
 | `SIS-KBK-018` | Sistem | UI · DOMAIN | `kabuk-gezinme.test.ts` | app/ altındaki her statik sayfa rotalar.json içinde | evet | geçti |
 | `SIS-BSL-001` | Sistem | UI · ACCESSIBILITY | `ekran-basligi.test.ts` | vurgusuz kalabilen başlık cümle parçası olamaz | evet | geçti |
 | `SIS-BSL-002` | Sistem | UI | `ekran-basligi.test.ts` | künyede ister kodu geçmiyor | evet | geçti |

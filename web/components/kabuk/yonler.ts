@@ -117,56 +117,81 @@ export function alanAktif(alan: Oge, patika: string): boolean {
 export type Grup = { ad: string; terim?: TerimAnahtari; ogeler: Oge[] };
 
 export const IKINCIL: Record<string, Grup[]> = {
+  /* ── UYUM · VARLIK'IN İKİ KADEMELİ GRAMERİ ────────────────────────────
+     ÖLÇÜLEN KUSUR (15 Eylül 2026, kullanıcı geri bildirimi + ekran
+     görüntüsü): Uyum alanı ikincil sırada ON DOKUZ düz sekme çiziyordu —
+     üç satır gezinme, ~30 büyük harfli etiket, içerik 180px'te. Kullanıcı
+     "her tarafta metin var, nereye odaklanacağımı anlamıyorum" dedi ve
+     haklıydı: her şey aynı ağırlıkta konuşunca hiçbir şey öne çıkmaz.
+
+     Varlık alanı aynı sorunu 2026-09'da çözmüştü (aşağıda): ikincil sırada
+     YALNIZ gruplar, aktif grubun ekranları üçüncül sırada. Uyum o zaman
+     düz kalmıştı ve iki alan iki ayrı gramer konuşuyordu — bu da başlı
+     başına bir bilişsel yük. Bugün Uyum aynı grameri alır: üç grup sekmesi
+     (Uyum durumu · Denetim ve aksiyon · Kayıt ve kanıt), aktif grubun
+     ≤9 ekranı üçüncül sırada. 19 → 3 + ≤9; hiçbir rota kaybolmaz.
+
+     Grubun kendi yolu ilk ekranıdır (Varlık'la aynı kural); öğelerin
+     yerleşim gerekçeleri (UY-43, UY-56, UY-57, UY-65, UY-66, P4, R1, R15)
+     alt listelerde olduğu gibi durur. */
   '/uyum': [
-    { ad: 'Uyum durumu', ogeler: [
-      { ad: 'Matris', yol: '/uyum' },
-      { ad: 'Regülasyonlar', yol: '/regulasyonlar' },
-      /* P4 · 2.6 · İçerik paketleri Regülasyonlar'ın YANINDA: paket
-         regülasyonu getirir (taslak), aktifleştirme oradadır. */
-      { ad: 'İçerik paketleri', yol: '/paketler' },
-      /* R1 · Mevzuat radarı Regülasyonlar'ın YANINDA: radar bir
-         regülasyonun DEĞİŞTİĞİNİ önerir, kararı oradaki akış verir.
-         Ayrı bir üst başlığa koymak, "mevzuat değişti" ile "mevzuatımız
-         ne" sorularını iki ayrı yere bölerdi. */
-      { ad: 'Mevzuat radarı', yol: '/mevzuat-radari' },
-      /* R15 · Kişisel veri koruma SÜREÇLERİN yanında: işleme envanterinin
-         her satırı bir İŞ SÜRECİNE bağlıdır ve bağsız kaydedilemez.
-         Ayrı bir üst başlığa koymak, "hangi süreç" ile "o süreçte hangi
-         kişisel veri" sorularını iki ayrı yere bölerdi. Ad çekirdekte
-         mevzuat adı taşımaz; TR kiracısında paket terimi "KVKK" der. */
-      { ad: 'Kişisel veri koruma', yol: '/kisisel-veri' },
-      { ad: 'Süreçler', yol: '/surecler' },
-      { ad: 'Çapraz eşleme', yol: '/eslestirme' },
-      /* UY-43 · Değerlendirme aktarımı MATRİSİN yanında durur çünkü
-         matrisin içeriğini toplu değiştiren tek yol odur. Katalog
-         aktarımı (`/ice-aktarim`) ayrıdır ve gezinmede yer almaz:
-         o REGÜLASYONU aktarır, bu KURUMUN CEVABINI. */
-      { ad: 'Değerlendirme aktarımı', yol: '/degerlendirme-aktarim' },
-    ]},
-    { ad: 'Denetim ve aksiyon', ogeler: [
-      { ad: 'Denetimler', yol: '/denetimler' },
-      { ad: 'Bulgular & CAPA', yol: '/bulgular' },
-      { ad: 'Projeler', yol: '/projeler' },
-      /* UY-57 · Dış denetçi erişimi denetimlerin YANINDA durur: erişim
-         bir denetime bağlı açılır ve denetim bitince kapanır. Yönetim
-         tezgâhına koymak, denetimi yürüten kişinin hiç bakmadığı bir
-         yere koymak olurdu. */
-      { ad: 'Dış denetçi erişimi', yol: '/denetci-erisimi' },
-      /* UY-65 · Yönetim gözden geçirmesi de bir denetim kaydıdır ve
-         denetimde istenir; bu grup onun doğal yeri. */
-      { ad: 'Yönetim gözden geçirme', yol: '/gozden-gecirme' },
-    ]},
-    { ad: 'Kayıt ve kanıt', ogeler: [
-      { ad: 'Raporlar', yol: '/raporlar' },
-      { ad: 'Belge kütüğü', yol: '/dokumanlar' },
-      { ad: 'Kanıt', yol: '/kanitlar' },
-      { ad: 'Denetim izi', yol: '/aktivite' },
-      /* UY-56 · Saklama, kayıt ailelerinin durduğu grupta: bu grubun
-         hepsi "hangi kaydı ne kadar tutuyoruz" sorusunun konusu. */
-      { ad: 'Saklama ve imha', yol: '/saklama' },
-      /* UY-66 · Eğitim kütüğü kanıt grubunda: eğitim kaydı bir kontrolün
-         kanıtıdır ve kanıt kütüğüyle aynı soruya hizmet eder. */
-      { ad: 'Eğitim kütüğü', yol: '/egitimler' },
+    { ad: 'Uyum', ogeler: [
+      { ad: 'Uyum durumu', yol: '/uyum', alt: [
+        { ad: 'Matris', yol: '/uyum' },
+        { ad: 'Regülasyonlar', yol: '/regulasyonlar' },
+        /* P4 · 2.6 · İçerik paketleri Regülasyonlar'ın YANINDA: paket
+           regülasyonu getirir (taslak), aktifleştirme oradadır. */
+        { ad: 'İçerik paketleri', yol: '/paketler' },
+        /* R1 · Mevzuat radarı Regülasyonlar'ın YANINDA: radar bir
+           regülasyonun DEĞİŞTİĞİNİ önerir, kararı oradaki akış verir.
+           Ayrı bir üst başlığa koymak, "mevzuat değişti" ile "mevzuatımız
+           ne" sorularını iki ayrı yere bölerdi. */
+        { ad: 'Mevzuat radarı', yol: '/mevzuat-radari' },
+        /* R15 · Kişisel veri koruma SÜREÇLERİN yanında: işleme envanterinin
+           her satırı bir İŞ SÜRECİNE bağlıdır ve bağsız kaydedilemez.
+           Ayrı bir üst başlığa koymak, "hangi süreç" ile "o süreçte hangi
+           kişisel veri" sorularını iki ayrı yere bölerdi. Ad çekirdekte
+           mevzuat adı taşımaz; TR kiracısında paket terimi "KVKK" der. */
+        /* Ad kısa: üçüncül sıra SARAMAZ (30px sabit, yatay kayar) ve
+           "Uyum durumu" sırası sekiz bağ taşır — ölçüldü, uzun adlarla
+           1 143px, 1024px bandını taşırıyordu (SIS-KBK-017). Üst öğe
+           bağlamı verir; "koruma" ekranın kendi başlığında durur. */
+        { ad: 'Kişisel veri', yol: '/kisisel-veri' },
+        { ad: 'Süreçler', yol: '/surecler' },
+        { ad: 'Çapraz eşleme', yol: '/eslestirme' },
+        /* UY-43 · Değerlendirme aktarımı MATRİSİN yanında durur çünkü
+           matrisin içeriğini toplu değiştiren tek yol odur. Katalog
+           aktarımı (`/ice-aktarim`) ayrıdır ve gezinmede yer almaz:
+           o REGÜLASYONU aktarır, bu KURUMUN CEVABINI. */
+        /* "Aktarım": Varlık'ın Envanter sırasındaki aynı gramer — üst öğe
+           NEYİN aktarıldığını söyler (uyum durumu › aktarım). */
+        { ad: 'Aktarım', yol: '/degerlendirme-aktarim' },
+      ]},
+      { ad: 'Denetim ve aksiyon', yol: '/denetimler', alt: [
+        { ad: 'Denetimler', yol: '/denetimler' },
+        { ad: 'Bulgular & CAPA', yol: '/bulgular' },
+        { ad: 'Projeler', yol: '/projeler' },
+        /* UY-57 · Dış denetçi erişimi denetimlerin YANINDA durur: erişim
+           bir denetime bağlı açılır ve denetim bitince kapanır. Yönetim
+           tezgâhına koymak, denetimi yürüten kişinin hiç bakmadığı bir
+           yere koymak olurdu. */
+        { ad: 'Dış denetçi erişimi', yol: '/denetci-erisimi' },
+        /* UY-65 · Yönetim gözden geçirmesi de bir denetim kaydıdır ve
+           denetimde istenir; bu grup onun doğal yeri. */
+        { ad: 'Yönetim gözden geçirme', yol: '/gozden-gecirme' },
+      ]},
+      { ad: 'Kayıt ve kanıt', yol: '/raporlar', alt: [
+        { ad: 'Raporlar', yol: '/raporlar' },
+        { ad: 'Belge kütüğü', yol: '/dokumanlar' },
+        { ad: 'Kanıt', yol: '/kanitlar' },
+        { ad: 'Denetim izi', yol: '/aktivite' },
+        /* UY-56 · Saklama, kayıt ailelerinin durduğu grupta: bu grubun
+           hepsi "hangi kaydı ne kadar tutuyoruz" sorusunun konusu. */
+        { ad: 'Saklama ve imha', yol: '/saklama' },
+        /* UY-66 · Eğitim kütüğü kanıt grubunda: eğitim kaydı bir kontrolün
+           kanıtıdır ve kanıt kütüğüyle aynı soruya hizmet eder. */
+        { ad: 'Eğitim kütüğü', yol: '/egitimler' },
+      ]},
     ]},
   ],
   '/riskler': [
@@ -272,11 +297,13 @@ export function ogeAktif(o: Oge, patika: string): boolean {
 
    EŞİK ÖLÇÜLDÜ, uydurulmadı: 375px'te sıra üç-dört bağ gösteriyor
    (ölçüldü: 19 bağlık sırada 3, 5 bağlıkta 4). Ürünün ikincil sıraları
-   iki · beş · on dokuz bağ taşıyor; iki bağlık sıra 375px'e SIĞIYOR
-   (ölçüldü: kaymıyor), beş bağlık sıra 519px ile sığmıyor. Tavan bu iki
-   ölçümün arasındadır ve ÜÇTÜR: üçten çok bağ taşıyan sıra katlanır.
-   Katlanmayan sıra bugünkü davranışını aynen korur. */
-export const DAR_BANT_BAG_TAVANI = 3;
+   bugün iki · iki · üç · beş bağ taşıyor (Uyum on dokuzdan üçe indi —
+   yukarıdaki iki kademeli gramer). İki ve üç bağlık sıralar 375px'e
+   sığar (ölçüldü), beş bağlık sıra 519px ile sığmaz. Tavan bu iki
+   ölçümün arasındadır ve DÖRTTÜR: dörtten çok bağ taşıyan sıra katlanır.
+   Hiçbir gerçek sıra tavanın tam üstünde durmaz (`SIS-KBK-024`): öyle
+   olsaydı bir bağ eklendiği gün davranış sessizce değişirdi. */
+export const DAR_BANT_BAG_TAVANI = 4;
 
 /** Dar bantta (≤700px) sıra katlanır mı — bağ sayısı tavanı aşıyorsa. */
 export function katlanirMi(gruplar: readonly Grup[]): boolean {

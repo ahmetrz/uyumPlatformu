@@ -1881,6 +1881,20 @@
 
 /* Okuma anahtarı SATIR DEĞİL: tıklanmaz, kural taşımaz — prototipte
    efsane satırları çıplak, yalnız glif + söz. */
+/* Lejant `<details>`: kapalı başlar (bkz. UyumIstemci · Okuma anahtarı).
+   Özet, bölüm etiketiyle aynı görünür; ok yönü durumu söyler. */
+.ab-c-dizin details.anahtar-kutu > summary {
+  cursor: pointer; list-style: none; display: flex; align-items: center; gap: 8px;
+  min-height: 24px; margin-bottom: 0;
+}
+.ab-c-dizin details.anahtar-kutu > summary::-webkit-details-marker { display: none; }
+.ab-c-dizin details.anahtar-kutu > summary::before {
+  content: '▾'; color: var(--i3); font-size: 10px;
+  transition: transform var(--gecis-hizli) var(--gecis-egri);
+}
+.ab-c-dizin details.anahtar-kutu:not([open]) > summary::before { transform: rotate(-90deg); }
+.ab-c-dizin details.anahtar-kutu[open] > summary { margin-bottom: 6px; }
+.ab-c-dizin details.anahtar-kutu > summary:focus-visible { outline: 2px solid var(--aksan); outline-offset: 2px; }
 .ab-c-dizin .anahtar {
   display: flex; align-items: center; gap: 12px;
   padding: 6px 0; font-size: 11.5px; color: var(--i2);
@@ -1895,13 +1909,10 @@
    viewBox 320×48, genişliğe yayılır. Ölçülemeyen nokta SIFIR ÇİZİLMEZ:
    `.tik.bos` çizgisi ve <title> ile ayrı işaretlenir. */
 /* Giriş satırı (uyum defteri): okuma cümlesi + eğilim şeridi yan yana. */
-.ab-c-giris {
-  display: flex; align-items: flex-start; justify-content: space-between; gap: 24px 40px; flex-wrap: wrap;
-  padding: 12px 0 12px; margin-bottom: 16px; border-bottom: 1px solid var(--hr2);
-}
-.ab-c-giris .cumle { margin: 0; flex: 1 1 280px; font-size: 12px; line-height: 1.5; color: var(--i2); }
-.ab-c-giris .ab-trend { flex: 0 1 420px; margin: 0; padding: 0; border-bottom: 0; }
-.ab-trend { margin: 0 0 16px; padding: 10px 0 12px; border-bottom: 1px solid var(--hr2); }
+/* Eğilim matrisin ALTINDA: geçmiş (L3) karar yüzeyinin altına iner,
+   kenarlık üstte. Boş hâli (süreç yok · anlık görüntü yok) bir kutu
+   değil tek satırdır. */
+.ab-trend { margin: 20px 0 0; padding: 14px 0 0; border-top: 1px solid var(--hr2); }
 .ab-trend .bas {
   display: flex; align-items: baseline; justify-content: space-between;
   gap: 12px 24px; flex-wrap: wrap; margin-bottom: 8px;
@@ -2768,7 +2779,17 @@
   margin: 0; font-family: var(--gorunum); font-weight: 500;
   font-size: 26px; line-height: 1.15; letter-spacing: -.01em;
 }
-.ab-lede h1 { text-transform: uppercase; letter-spacing: .01em; }
+/* BAŞLIK CÜMLE DÜZENİNDE — EKRANDA TEK BÜYÜK ŞEY BAŞKA SESLE KONUŞUR.
+   Ölçüldü (15 Eylül 2026, kullanıcı geri bildirimi + ekran görüntüsü):
+   bu dosyada 74 `text-transform: uppercase` kuralı var — gezinme, bölüm
+   etiketi, kolon başlığı, ölçüt etiketi, lejant — ve başlık da büyük
+   harfti. Her şey aynı kayıtta bağırınca hiçbir şey öne çıkmıyor;
+   "nereye odaklanacağımı anlamıyorum". Tek paylaşılan kuralı değiştirmek
+   74 kuralı sessizleştirmekten daha az risklidir ve aynı hiyerarşiyi
+   kurar: 26px cümle düzeni Barlow, çevresindeki 10–11px büyük harfli
+   etiketlerden ARTIK farklı bir şeydir. Kimlik korunur (aile, boy,
+   ağırlık); yalnız kayıt değişir. `DESIGN.md` Display satırı buna
+   göre güncellendi. */
 .ab-lede h1 b { font-weight: 700; }
 .ab-lede h1 b.d-bd { color: var(--bd); }
 .ab-lede h1 b.d-md { color: var(--md); }

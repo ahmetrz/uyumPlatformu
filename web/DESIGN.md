@@ -246,7 +246,7 @@ manşet. Gövde nötr kalır; sayı ve kod daima mono. Kabuk değişince görün
 ve mono ailesi değişir, kademe değişmez.
 
 ### Hierarchy
-- **Display** (A/B 500, 26px, 1.15, büyük harf · C 400, 34px, 1.1): ekran başlığı `.ab-lede h1`; vurgu `<b>` ile 700 ve gerekirse durum rengi.
+- **Display** (A/B 500, 26px, 1.15, **cümle düzeni** · C 400, 34px, 1.1): ekran başlığı `.ab-lede h1`; vurgu `<b>` ile 700 ve gerekirse durum rengi. Büyük harf DEĞİLDİR (15 Eyl 2026): kabukta 74 büyük harfli kural var, başlık da büyük harf olunca hiçbir şey öne çıkmıyordu — ölçüldü, kullanıcı geri bildirimi. Başlık, ekranda başka kayıtta konuşan tek büyük şeydir ve mümkünse CEVABI taşır ("8 uygunsuz — nerede, ve neden?").
 - **Board** (34px, 1.1): pano / kök hata başlığı `--t-board`.
 - **Headline** (500, 18px, 1.2, `-.01em`): bölüm başlığı `.ab-bolum-basligi`.
 - **Title** (500, 14px): odak kartı ve lead `--t-lead`.

@@ -298,14 +298,25 @@ export default function Genel({
               {tipler.length > KATMAN_TAVANI && (
                 /* Kalan tipler SAYIYLA: yedi tip adı üç satır 11px mono
                    tutuyordu ve panelin sorusuna ("hangi tip en zayıf?")
-                   cevap taşımıyordu. Adlar `title`ta durur, karar
-                   yüzeyinde yalnız sayı (SAH-SDL-001). */
-                <p className="mono kalan"
-                  title={tipler.slice(KATMAN_TAVANI)
-                    .map((t) => tipEtiketi.get(t.kod) ?? tipAdi(t.kod, t.ad)).join(' · ')}>
-                  Diğer {tipler.length - KATMAN_TAVANI} tip
-                  {' · '}{tipler.slice(KATMAN_TAVANI).reduce((a, t) => a + t.tesisSayisi, 0)}{' '}{terim('tesis')}
-                </p>
+                   cevap taşımıyordu. Karar yüzeyinde yalnız sayı; adlar
+                   isteyene açılır (SAH-SDL-001). İlk yazım adları `title`a
+                   koymuştu — bağımsız inceleme (PR #64) ölçtü: `title`
+                   fareye açıktır, klavye ve dokunma ona erişemez. Bu
+                   yüzden açılır liste: `summary` odaklanabilir, dokunulur. */
+                <details className="katman-diger">
+                  <summary className="mono kalan">
+                    Diğer {tipler.length - KATMAN_TAVANI} tip
+                    {' · '}{tipler.slice(KATMAN_TAVANI).reduce((a, t) => a + t.tesisSayisi, 0)}{' '}{terim('tesis')}
+                  </summary>
+                  <ul className="mono diger-liste">
+                    {tipler.slice(KATMAN_TAVANI).map((t) => (
+                      <li key={t.kod}>
+                        <span className="ad">{tipEtiketi.get(t.kod) ?? tipAdi(t.kod, t.ad)}</span>
+                        <span className="sayi">{t.tesisSayisi} {terim('tesis')}</span>
+                      </li>
+                    ))}
+                  </ul>
+                </details>
               )}
             </div>
           </aside>
@@ -888,8 +899,9 @@ function SahaKarti({ s }: { s: TesisKarti }) {
     <Link href={`/tesisler/${s.id}`} className={`kart${uygunsuz > 0 ? ' uyari' : ''}`}
       /* Kırmızı iç çerçeve kalktı (SAH-SER-001): uygunsuzluk yığın
          çubuğunda, skor renginde ve burada SÖZCÜKLE durur — renk tek
-         kanal olmasın. */
-      title={`${s.ad} · ${kartGucu(s) ?? 'güç ölçülmedi'} · ${skorSozu}${uygunsuz > 0 ? ` · ${uygunsuz} uygunsuz` : ''}`}>
+         kanal olmasın. Tip de burada: üst satır dar kartta kırpılabilir
+         (inceleme bulgusu, PR #64), tam etiket bağ başlığında durur. */
+      title={`${s.ad} · ${tipAdi(s.tipKod, s.tipAd)} · ${kartGucu(s) ?? 'güç ölçülmedi'} · ${skorSozu}${uygunsuz > 0 ? ` · ${uygunsuz} uygunsuz` : ''}`}>
       {/* Şerit hero'nun altındadır; kartlar ilk boyamayı beklemesin diye
           tembel yüklenir. Hero fonu (`SahaArkaPlani`) `fetchPriority="high"` ile kalır. */}
       {foto

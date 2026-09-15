@@ -1351,6 +1351,28 @@
   padding-top: 10px; border-top: 1px solid var(--hr);
 }
 
+/* Kalan tipler açılır liste: `summary` odaklanabilir ve dokunulur (adlar
+   `title`ta değil — klavye ve dokunma `title`a erişemez; PR #64 bulgusu).
+   Kapalı başlar; ok yönü durumu söyler (uyum dizinindeki lejantla aynı). */
+.ab-b-katman .katman-diger > summary {
+  cursor: pointer; list-style: none; display: flex; align-items: center; gap: 8px; min-height: 24px;
+}
+.ab-b-katman .katman-diger > summary::-webkit-details-marker { display: none; }
+.ab-b-katman .katman-diger > summary::before {
+  content: '▾'; color: var(--i3); font-size: 10px;
+  transition: transform var(--gecis-hizli) var(--gecis-egri);
+}
+.ab-b-katman .katman-diger:not([open]) > summary::before { transform: rotate(-90deg); }
+.ab-b-katman .katman-diger > summary:hover { color: var(--i2); }
+.ab-b-katman .katman-diger > summary:focus-visible { outline: 2px solid var(--aksan); outline-offset: 2px; }
+.ab-b-katman .diger-liste {
+  margin: 6px 0 0; padding: 0; list-style: none; display: grid; gap: 4px;
+  font-size: var(--t-code); color: var(--i2);
+}
+.ab-b-katman .diger-liste li { display: flex; justify-content: space-between; gap: 10px; min-width: 0; }
+.ab-b-katman .diger-liste .ad { min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.ab-b-katman .diger-liste .sayi { color: var(--i3); white-space: nowrap; }
+
 /* Yığın çubuğu — dört parça: uygun · kısmi · uygunsuz · BİLİNMEYEN */
 .ab-b-yigin { display: flex; gap: 1px; height: 24px; background: var(--hr); }
 .ab-b-yigin.bos {
@@ -1865,8 +1887,10 @@
 /* Üst satır: tip · güç solda, skor sağda — iki satırlık metin bloğu
    (ölçüldü: üç satır 1366×768'de fotoğraf bandına 39px bırakıyordu). */
 .ab-b-serit .kart .ust { display: flex; align-items: baseline; justify-content: space-between; gap: 10px; min-width: 0; }
-.ab-b-serit .kart .kimlik { display: flex; align-items: baseline; gap: 6px; min-width: 0; white-space: nowrap; overflow: hidden; }
-.ab-b-serit .kart .kimlik .guc::before { content: '· '; color: var(--i3); }
+/* Kimlik satırı blok: sığmayan tip · güç üç noktayla kırpılır (sessiz
+   kesme değil — inceleme bulgusu, PR #64); tam etiket bağ başlığında. */
+.ab-b-serit .kart .kimlik { display: block; flex: 1 1 auto; min-width: 0; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.ab-b-serit .kart .kimlik .guc::before { content: ' · '; color: var(--i3); }
 .ab-b-serit .kart .tip { font-size: var(--t-code); letter-spacing: .04em; }
 .ab-b-serit .kart .ad {
   /* cümle düzeni — tesis adı veridir, kaş değil (SIS-KBK-031) */

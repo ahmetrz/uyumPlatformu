@@ -400,12 +400,12 @@
 | `PRT-ODK-001` | Portföy | UI · DOMAIN | `odak-yayma.test.ts` | uyum sırası en düşük endeksi ÖNE, ölçülmemişi SONA koyar — bilinmeyen ≠ sıfır | evet | geçti |
 | `TES-ODK-001` | Tesis | UI | `odak-yayma.test.ts` | h1 adı JS ile de büyük harfe çevirmez — CSS kuralı tek başına yetmezdi | evet | geçti |
 | `SIS-UYM-039` | Uyum | UI | `odak-yayma.test.ts` | cümle taşıyan altbilgi `.ab-dip.satir` ile yazılır ve kural CSS’te durur | evet | geçti |
-| `SAH-ODK-001` | Saha | UI | `odak-yayma.test.ts` | `.ab-gucsuz .not` kaşın büyük harfini geri alır | evet | geçti |
+| `SAH-ODK-001` | Saha | UI | `odak-yayma.test.ts` | kart adı ve tip etiketi büyük harf taşımaz | evet | geçti |
 | `SAH-SER-001` | Saha | UI | `saha-sadelestirme.test.ts` | kart iki satırlık ızgaradır: fotoğraf bandı + metin bloğu | evet | geçti |
 | `SAH-SER-001` | Saha | UI | `saha-sadelestirme.test.ts` | fotoğraf kartı boydan boya kaplamaz; perde yok | evet | geçti |
 | `SAH-SER-001` | Saha | UI | `saha-sadelestirme.test.ts` | fotoğrafsız tesis aynı bandı düz zeminle alır — sahte görsel yok | evet | geçti |
 | `SAH-SER-001` | Saha | UI | `saha-sadelestirme.test.ts` | uygunsuz kartta çerçeve yok; skor rengi ve bağ başlığında SÖZCÜK | evet | geçti |
-| `SAH-SDL-001` | Saha | UI · DOMAIN | `saha-sadelestirme.test.ts` | katman panelinin kalan satırı SAYI söyler, tip adları title\'ta | evet | geçti |
+| `SAH-SDL-001` | Saha | UI · DOMAIN | `saha-sadelestirme.test.ts` | katman panelinin kalan satırı SAYI söyler; adlar klavye ve dokunmayla açılan listede | evet | geçti |
 | `SAH-SDL-001` | Saha | UI · DOMAIN | `saha-sadelestirme.test.ts` | gücü ölçülmemiş şeridinin yöntem notu ekranda değil title\'ta | evet | geçti |
 | `SAH-SDL-001` | Saha | UI · DOMAIN | `saha-sadelestirme.test.ts` | risk yoğunluğu "ölçülemedi"yi yalnız kritik ve yüksek sıfırken yazar | evet | geçti |
 | `SAH-SDL-001` | Saha | UI · DOMAIN | `saha-sadelestirme.test.ts` | çakışan ad sektörle ayrılır; çakışmayan ad olduğu gibi kalır | evet | geçti |

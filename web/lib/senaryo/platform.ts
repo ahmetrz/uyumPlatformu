@@ -823,8 +823,10 @@ export const PLATFORM_SENARYOLARI: Senaryo[] = [
     rol: 'yönetici', kapsam: 'kurum geneli',
     onkosul: 'Saha açık', veriHali: 'normal',
     eylem: 'Ekranı okur',
-    beklenenSonuc: 'Kart adı, tip adı ve şerit notu cümle düzeninde; kaş '
-      + 'etiketleri ve gezinme büyük harf kalır; tek ekran sözleşmesi bozulmaz',
+    beklenenSonuc: 'Kart adı ve tip adı cümle düzeninde; kaş etiketleri ve '
+      + 'gezinme büyük harf kalır; tek ekran sözleşmesi bozulmaz (şeridin yöntem '
+      + 'notu 15 Eyl 2026 sadeleştirme turunda ekrandan title\'a taşındı — '
+      + 'SAH-SDL-001; bu vaka artık yalnız kart adı ve tip etiketini ölçer)',
     beklenenEkran: 'Saha · tesis şeridi ve takımyıldız',
     beklenenIz: 'yazma yok', beklenenBildirim: 'yok',
     katmanlar: ['UI'],

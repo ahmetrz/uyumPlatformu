@@ -61,6 +61,11 @@ describe('saha şeridi · fotoğraf sabit bant, metin bandın altında', () => {
     expect(SAHA_KARTI).toMatch(/title=\{`\$\{s\.ad\}[^\n]*\$\{uygunsuz\} uygunsuz/);
     expect(SAHA_KARTI).toMatch(/'güç ölçülmedi'/);
     expect(SAHA_KARTI).toMatch(/'değerlendirilmedi'/);
+    /* Tip de başlıkta: kimlik satırı dar kartta üç noktayla kırpılır
+       (sessiz kesme değil), tam etiket bağ başlığında (PR #64 bulgusu). */
+    expect(SAHA_KARTI).toMatch(/title=\{`\$\{s\.ad\} · \$\{tipAdi\(s\.tipKod, s\.tipAd\)\}/);
+    expect(blok('.ab-b-serit .kart .kimlik')).toMatch(/text-overflow: ellipsis/);
+    expect(blok('.ab-b-serit .kart .kimlik')).toMatch(/display: block/);
   });
 
   it('yığın çubuğu bandın altında okunur boyda (3px)', () => {
@@ -69,16 +74,21 @@ describe('saha şeridi · fotoğraf sabit bant, metin bandın altında', () => {
 });
 
 describe('saha · karar yüzeyinde tekrar ve yöntem notu yok', () => {
-  it('katman panelinin kalan satırı SAYI söyler, tip adları title\'ta [SAH-SDL-001]', () => {
-    const bas = GENEL.indexOf('<p className="mono kalan"');
+  it('katman panelinin kalan satırı SAYI söyler; adlar klavye ve dokunmayla açılan listede [SAH-SDL-001]', () => {
+    const bas = GENEL.indexOf('<details className="katman-diger">');
     expect(bas).toBeGreaterThan(0);
-    const p = GENEL.slice(bas, GENEL.indexOf('</p>', bas));
-    const kapanis = p.indexOf('}>');
-    const acilis = p.slice(0, kapanis);
-    const govde = p.slice(kapanis + 2);
-    expect(acilis).toMatch(/title=\{tipler\.slice\(KATMAN_TAVANI\)/);
-    expect(govde).toMatch(/Diğer \{tipler\.length - KATMAN_TAVANI\} tip/);
-    expect(govde).not.toMatch(/\.map\(/);
+    const d = GENEL.slice(bas, GENEL.indexOf('</details>', bas));
+    const ozet = d.slice(d.indexOf('<summary'), d.indexOf('</summary>'));
+    expect(ozet).toMatch(/Diğer \{tipler\.length - KATMAN_TAVANI\} tip/);
+    expect(ozet).not.toMatch(/\.map\(/);
+    /* Adlar `title`ta DEĞİL: `title` yalnız fareye açıktır, klavye ve
+       dokunma erişemez (bağımsız inceleme, PR #64). Odaklanabilir
+       `summary` + görünür liste. */
+    expect(ozet).not.toMatch(/title=/);
+    expect(d).toMatch(/<ul className="mono diger-liste">/);
+    expect(d).toMatch(/\{tipEtiketi\.get\(t\.kod\) \?\? tipAdi\(t\.kod, t\.ad\)\}/);
+    expect(CSS).toMatch(/\.ab-b-katman \.katman-diger > summary:focus-visible/);
+    expect(CSS).toMatch(/\.ab-b-katman \.katman-diger > summary \{[^}]*min-height: 24px/);
   });
 
   it('gücü ölçülmemiş şeridinin yöntem notu ekranda değil title\'ta [SAH-SDL-001]', () => {
@@ -133,7 +143,19 @@ describe('tip etiketi · aynı ad, iki tip', () => {
 
   it('ekran etiketi haritadan okur: üçlü blok ve kalan satırı', () => {
     expect(GENEL).toMatch(/const tipEtiketi = tipEtiketleri\(tipler\)/);
-    expect(GENEL).toMatch(/<span className="ad">\{tipEtiketi\.get\(t\.kod\) \?\? tipAdi\(t\.kod, t\.ad\)\}<\/span>/);
-    expect(GENEL).toMatch(/title=\{tipler\.slice\(KATMAN_TAVANI\)\n\s*\.map\(\(t\) => tipEtiketi\.get\(t\.kod\)/);
+    /* İki yerde: üçlü bloğun adı ve açılır listenin satırı. */
+    expect(GENEL.match(/<span className="ad">\{tipEtiketi\.get\(t\.kod\) \?\? tipAdi\(t\.kod, t\.ad\)\}<\/span>/g))
+      .toHaveLength(2);
+  });
+
+  it('küresel güvence: kiracı adı üretilen bir etiketle birebir aynı olsa da iki tip aynı etiketi almaz', () => {
+    /* Bağımsız inceleme (PR #64): tip adı kısıtsız kiracı verisidir; "X · A"
+       adlı üçüncü bir tip, kodla ayrılmış "X · A" etiketiyle çakışırdı. */
+    const e = tipEtiketleri([
+      { kod: 'A', ad: 'X', sektorAd: 'S' }, { kod: 'B', ad: 'X', sektorAd: 'S' }, { kod: 'C', ad: 'X · A' },
+    ]);
+    expect(new Set(e.values()).size).toBe(3);
+    expect(e.get('A')).toBe('X · A');
+    expect(e.get('C')).toBe('X · A (2)');
   });
 });

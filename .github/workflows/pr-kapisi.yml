@@ -405,6 +405,15 @@ jobs:
         working-directory: web
         run: npm run kanit:tuval
 
+      # Harita · dokunulabilirlik. Aynı sunucuyu kullanır. Ölçtüğü en
+      # pahalı iddia: işaretin VURUŞ ALANI ekranda kaç piksel. Kaynakta
+      # yazan sayı (11) doğru görünüyordu; SVG onu tuvalin ölçeğiyle
+      # çarpıyor ve 375px'te 11px ÇAP çıkıyordu. Kaynağa bakan hiçbir
+      # test bunu göremez.
+      - name: Harita dokunulabilirlik kanıtı · iki bant
+        working-directory: web
+        run: npm run kanit:harita
+
       # R1 · mevzuat radarı. Aynı sunucuyu kullanır. Ölçtüğü en pahalı
       # iddia: ENGELLİ ile KARŞILAŞTIRILAMADI ekranda AYRI görünüyor —
       # biri kaynağın kararı (ürün aşmaz), öbürü bizim bilgi eksiğimiz.

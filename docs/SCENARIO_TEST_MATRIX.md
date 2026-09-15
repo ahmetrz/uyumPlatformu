@@ -4,18 +4,18 @@
 
 | Ölçü | Değer |
 | --- | --- |
-| Senaryo | 383 |
-| Testi olan senaryo | 383 |
+| Senaryo | 402 |
+| Testi olan senaryo | 402 |
 | **GAP** | **0** |
 | Hayalet işaret (kütükte olmayan kimlik) | 0 |
 | Kütüksüz test dosyası | 0 |
-| Taranan test dosyası | 250 |
+| Taranan test dosyası | 252 |
 
 ## Katman başına kapsam
 
 | Katman | Senaryo | Testli | GAP |
 | --- | --- | --- | --- |
-| ACCESSIBILITY | 10 | 10 | 0 |
+| ACCESSIBILITY | 18 | 18 | 0 |
 | API | 12 | 12 | 0 |
 | CONCURRENCY | 8 | 8 | 0 |
 | DOMAIN | 230 | 230 | 0 |
@@ -26,7 +26,7 @@
 | RESPONSIVE | 9 | 9 | 0 |
 | SCOPE | 34 | 34 | 0 |
 | SERVER | 159 | 159 | 0 |
-| UI | 114 | 114 | 0 |
+| UI | 133 | 133 | 0 |
 | VISUAL | 4 | 4 | 0 |
 | WORKFLOW | 39 | 39 | 0 |
 
@@ -376,6 +376,17 @@
 | `PRT-OZT-003` | Portföy | DOMAIN · UI | `ekran-mantik-72.test.ts` | sözlükten işaretli satır sektörün sözcüğünü alır, ötekiler kendi adını | evet | geçti |
 | `PRT-OZT-003` | Portföy | DOMAIN · UI | `ekran-mantik-72.test.ts` | hiçbir sıralama satırı sektör sözcüğünü SABİT taşımaz | evet | geçti |
 | `HRT-KNM-001` | Harita | DOMAIN · UI | `harita-mantik.test.ts` | koordinatı olan yerleşir, ili olan YAKLAŞIK, ikisi de yoksa haritada YOK | evet | geçti |
+| `HRT-DOK-010` | Harita | UI · ACCESSIBILITY | `harita-dokunma.test.ts` | vuruş yarıçapı ÖLÇEKTEN türetilir, sabit yazılmaz | evet | geçti |
+| `HRT-DOK-011` | Harita | UI · ACCESSIBILITY | `harita-dokunma.test.ts` | işarete ulaşmanın dokunulabilir karşılığı VAR | evet | geçti |
+| `HRT-DOK-011` | Harita | UI · ACCESSIBILITY | `harita-dokunma.test.ts` | liste kaynakta durup GİZLENEMEZ | evet | geçti |
+| `HRT-DOK-011` | Harita | UI · ACCESSIBILITY | `harita-dokunma.test.ts` | tarayıcı kapısı KÖR değil — seçicileri ekrana bağlı | evet | geçti |
+| `SIS-UYM-030` | Uyum | UI | `kabuk-gezinme.test.ts` | eksik kapsam satırı işaretlenir — ölçüt VERİDEN gelir | evet | geçti |
+| `SIS-UYM-031` | Uyum | UI · ACCESSIBILITY | `kabuk-gezinme.test.ts` | istisna RENGE bağlı değil — sözle de söylenir | evet | geçti |
+| `SIS-UYM-032` | Uyum | UI | `kabuk-gezinme.test.ts` | CSS iki hâli AYIRIR — yoksa sınıf ölü kalırdı | evet | geçti |
+| `SIS-SAHA-020` | Sistem | UI · ACCESSIBILITY | `kabuk-gezinme.test.ts` | bağ kutusu 24px — beyan edilen eşiğin altına inmez | evet | geçti |
+| `SIS-SAHA-021` | Sistem | UI | `kabuk-gezinme.test.ts` | bileşenin bütçe sabiti CSS ile AYNI sayıyı taşır | evet | geçti |
+| `SIS-ERS-020` | Sistem | UI · ACCESSIBILITY | `kabuk-gezinme.test.ts` | etiket kümesi wcag22aa taşır | evet | geçti |
+| `SIS-ERS-021` | Sistem | UI · ACCESSIBILITY | `kabuk-gezinme.test.ts` | dokunma hedefi eşiği ürünün KENDİ beyanıyla aynı | evet | geçti |
 | `YRD-SOR-001` | Yardım | DOMAIN · UI | `yardim.test.ts` | listedeki genel kısayolların her biri kaynakta bağlıdır | evet | geçti |
 | `OTR-HSP-001` | Oturum | SERVER · DOMAIN | `hesap.test.ts` | alt sınır 12 karakter; kısa parola kusur cümlesi üretir, boş alan susar | evet | geçti |
 | `OTR-HSP-002` | Oturum | SERVER · RBAC | `oturum-yasam-dongusu.test.ts` | başka kullanıcının oturumuna DOKUNMAZ | evet | geçti |
@@ -563,6 +574,16 @@
 | `SIS-KBK-019` | Sistem | UI · ACCESSIBILITY | `kabuk-gezinme.test.ts` | terimsiz grup adı sözlükle DEĞİŞMEZ — çekirdek kavram | evet | geçti |
 | `SIS-KBK-019` | Sistem | UI · ACCESSIBILITY | `kabuk-gezinme.test.ts` | kabuk sözlüğü ikincil sıraya GERÇEKTEN geçirir — saf | evet | geçti |
 | `SIS-KBK-019` | Sistem | UI · ACCESSIBILITY | `kabuk-gezinme.test.ts` | kabuk grubu ROL ve AD ile çizer — ad yalnız görünür | evet | geçti |
+| `SIS-KBK-020` | Sistem | UI | `bekci/olu-bant-kurali.test.ts` | ÖLÇÜM TABANI — tarama gerçekten bildirim görüyor | evet | geçti |
+| `SIS-KBK-021` | Sistem | UI | `bekci/olu-bant-kurali.test.ts` | ÖLÜ BİLDİRİM SIFIR — yazılan iyileştirme uygulanıyor | evet | geçti |
+| `SIS-KBK-022` | Sistem | UI | `kabuk-gezinme.test.ts` | üçten çok bağ taşıyan sıra KATLANIR | evet | geçti |
+| `SIS-KBK-023` | Sistem | UI | `kabuk-gezinme.test.ts` | 375px’e SIĞAN sıra katlanmaz — bugünkü davranış korunur | evet | geçti |
+| `SIS-KBK-024` | Sistem | UI | `kabuk-gezinme.test.ts` | eşik ürünün sıralarını İKİYE ayırır — ortada sıra yok | evet | geçti |
+| `SIS-KBK-025` | Sistem | UI · ACCESSIBILITY | `kabuk-gezinme.test.ts` | aktif bölüm grubuyla birlikte bulunur — "neredeyim" | evet | geçti |
+| `SIS-KBK-026` | Sistem | UI | `kabuk-gezinme.test.ts` | katlanan sıra CSS’te gizlenir, seçici yalnız dar bantta çizilir | evet | geçti |
+| `SIS-KBK-027` | Sistem | UI · ACCESSIBILITY | `kabuk-gezinme.test.ts` | kapı katlanan sırayı GERÇEKTEN sürüyor | evet | geçti |
+| `SIS-KBK-028` | Sistem | UI | `kabuk-gezinme.test.ts` | kapının seçicileri bileşenin GERÇEK sınıflarıyla aynı | evet | geçti |
+| `SIS-KBK-029` | Sistem | UI | `kabuk-gezinme.test.ts` | üçüncül sıra aktif ekranı GÖRÜNÜR açar — ve sayfayı itmez | evet | geçti |
 | `SIS-KBK-018` | Sistem | UI · DOMAIN | `kabuk-gezinme.test.ts` | app/ altındaki her statik sayfa rotalar.json içinde | evet | geçti |
 | `SIS-BSL-001` | Sistem | UI · ACCESSIBILITY | `ekran-basligi.test.ts` | vurgusuz kalabilen başlık cümle parçası olamaz | evet | geçti |
 | `SIS-BSL-002` | Sistem | UI | `ekran-basligi.test.ts` | künyede ister kodu geçmiyor | evet | geçti |

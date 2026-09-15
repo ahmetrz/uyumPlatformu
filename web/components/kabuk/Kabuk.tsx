@@ -2,16 +2,17 @@
 import Link from 'next/link';
 import { SozlukSaglayici, type SektorSecenegi } from '@/lib/dil/SozlukSaglayici';
 import SektorMercegi from './SektorMercegi';
+import BolumSecici from './BolumSecici';
 import { t, type Sozluk } from '@/lib/dil/terimler';
 import { usePathname } from 'next/navigation';
-import { useMemo, type ReactNode } from 'react';
+import { useEffect, useMemo, useRef, type ReactNode } from 'react';
 import HesapMenusu from '@/components/kabuk/HesapMenusu';
 import AramaDugmesi from '@/components/AramaDugmesi';
 import KomutPaleti from '@/components/KomutPaleti';
 import YardimKatmani from '@/components/YardimKatmani';
 import {
-  aktifMi, alanAktif, alanlariCoz, ikincilSec, ogeAktif, sayacEtiketi, sayacMetni, ucunculSec,
-  yogunlukSec,
+  aktifMi, alanAktif, alanlariCoz, ikincilSec, katlanirMi, ogeAktif, sayacEtiketi, sayacMetni,
+  ucunculSec, yogunlukSec,
 } from './yonler';
 
 /* Uygulama kabuğu — TEK KABUK.
@@ -96,6 +97,40 @@ export default function Kabuk({ veri, children }: { veri: KabukVerisi; children:
   /* Kabuk, sağlayıcının KENDİSİDİR: `useTerim()` burada çağrılamaz
      (bağlam bir alt katmanda başlar), sözlük doğrudan veriden okunur. */
   const alanlar = useMemo(() => alanlariCoz(veri.sozluk), [veri.sozluk]);
+
+  /* ── AKTİF ÜÇÜNCÜL EKRAN GÖRÜNÜR OLARAK AÇILIR ─────────────────────
+     ÖLÇÜLEN KUSUR (mobil audit, 375×812): üçüncül sıra dar bantta yatay
+     kayıyor ve sıfırdan başlıyordu; ölçülen 19 rotanın ALTISINDA aktif
+     ekran görünür alanın dışındaydı (`/tedarikciler` 537px, `/yedek-parca`
+     441px, `/varlik-aktarim` 376px, `/esleme` 330px, `/yedekleme` 353px,
+     `/zimmetlerim` 280px). Kullanıcı "hangi alt ekrandayım" sorusunu
+     bakarak cevaplayamıyor, önce kaydırması gerekiyordu.
+
+     Sıra buradaki KATLANMAZ — ikincil sıradan farkı ölçüde: en genişi
+     649px, yani 1,7 ekran ve grup adı başta sabit duruyor. İkinci bir
+     açılır katman, birincinin altında, bir tıklamayı iki yapardı.
+     Yetersiz olan kaydırma değil, KONUMDU.
+
+     Yalnız sıranın KENDİ `scrollLeft`i değişir: `scrollIntoView` atalara
+     da dokunur ve sayfayı kaydırırdı. Yumuşak geçiş YOK — bu bir
+     animasyon değil, açılış konumudur; hareket azaltma tercihi olan
+     kullanıcı için de doğru davranış anında doğru yerde olmaktır. */
+  const ucunculKok = useRef<HTMLElement>(null);
+  useEffect(() => {
+    const sira = ucunculKok.current;
+    if (!sira) return;
+    const aktif = sira.querySelector<HTMLElement>('a[aria-current="true"]');
+    if (!aktif) return;
+    if (sira.scrollWidth <= sira.clientWidth) return;
+    const sol = aktif.offsetLeft - sira.offsetLeft;
+    const sag = sol + aktif.offsetWidth;
+    /* Görünür pencerenin dışındaysa içeri al; içindeyse DOKUNMA —
+       her rota değişiminde sırayı zıplatmak da bir kusurdur. */
+    if (sol < sira.scrollLeft) sira.scrollLeft = Math.max(0, sol - 20);
+    else if (sag > sira.scrollLeft + sira.clientWidth) {
+      sira.scrollLeft = sag - sira.clientWidth + 20;
+    }
+  }, [patika]);
   return (
     /* Sözlük kabuğun KÖKÜNDE verilir: altındaki her istemci bileşen —
        ekranların kendileri dâhil — `useTerim()` ile aynı sözcüğü okur ve
@@ -153,7 +188,22 @@ export default function Kabuk({ veri, children }: { veri: KabukVerisi; children:
       </header>
 
       {ikincil.length > 0 && (
-        <nav className="ab-ikincil" aria-label="Bölümler">
+        <nav className="ab-ikincil" aria-label="Bölümler"
+          data-katlanir={katlanirMi(ikincil) ? 'true' : undefined}>
+          {/* DAR BANTTA SIRA KATLANIR (mobil audit ölçümü:
+              `yonler.ts → DAR_BANT_BAG_TAVANI`). Katlanan sıra 375px'te
+              gizlenir ve yerine tek bir bölüm seçici düğmesi geçer;
+              ≤700px dışında seçici çizilmez, sıra bugünkü gibi sarar.
+              İKİSİ DE BELGEDEDİR ama yalnız biri görünür: bant kararı
+              CSS'indir, bileşen bandı ölçmez — ölçseydi sunucu geniş
+              bandı çizer, istemci dar bandı düzeltir ve ilk karede
+              yanlış yüzey yanardı. Kapalı seçicinin bağları DOM'da
+              YOKTUR (hesap menüsüyle aynı), o yüzden bağ tekrarı da
+              yoktur. */}
+          {katlanirMi(ikincil) && (
+            <BolumSecici gruplar={ikincil} patika={patika}
+              alanAd={alanlar.find((o) => alanAktif(o, patika))?.ad ?? 'Bölümler'} />
+          )}
           {/* Grup ADIYLA duyurulur. Görsel ayrım dikey çizgidir
               (`.grup + .grup`); ekran okuyucu onu göremez ve `/uyum`un
               on dokuz bağını TEK yığın olarak duyardı. `aria-label`
@@ -182,7 +232,8 @@ export default function Kabuk({ veri, children }: { veri: KabukVerisi; children:
           "Envanter › Keşif" olarak okunsun; alt ekranın aktifliği
           `aria-current="true"` (belgede tek "page" alan sekmesidir). */}
       {ucuncul && (
-        <nav className="ab-ucuncul" aria-label={`${ucuncul.grup.ad} ekranları`}>
+        <nav className="ab-ucuncul" ref={ucunculKok}
+          aria-label={`${ucuncul.grup.ad} ekranları`}>
           <span className="grupad">{ucuncul.grup.ad}</span>
           {ucuncul.ogeler.map((o) => (
             <Link key={o.yol} href={o.yol}

@@ -180,10 +180,150 @@ const SABOTAJLAR = [
     testler: ['tests/kabuk-gezinme.test.ts'],
   },
   {
+    ad: 'Dar bantta sıra artık katlanmıyor',
+    kural: 'Üçten çok bağ taşıyan ikincil sıra dar bantta katlanır',
+    dosya: 'components/kabuk/yonler.ts',
+    ara: 'export const DAR_BANT_BAG_TAVANI = 3;',
+    yaz: 'export const DAR_BANT_BAG_TAVANI = 500;',
+    testler: ['tests/kabuk-gezinme.test.ts'],
+  },
+  {
+    ad: 'Katlama eşiği gerçek bir sıranın tam üstüne çekildi',
+    kural: 'Eşik hiçbir sıranın tam üstünde durmaz — bir bağ eklenince davranış sessizce değişmez',
+    dosya: 'components/kabuk/yonler.ts',
+    ara: 'export const DAR_BANT_BAG_TAVANI = 3;',
+    yaz: 'export const DAR_BANT_BAG_TAVANI = 2;',
+    testler: ['tests/kabuk-gezinme.test.ts'],
+  },
+  {
+    ad: 'Aktif bölüm grubunu değil ilk grubu döndürüyor',
+    kural: 'Bölüm seçici düğmesi BULUNULAN grubu yazar',
+    dosya: 'components/kabuk/yonler.ts',
+    ara: `  for (const grup of gruplar) {
+    const oge = grup.ogeler.find((o) => ogeAktif(o, patika));
+    if (oge) return { grup, oge };
+  }
+  return null;`,
+    yaz: `  for (const grup of gruplar) {
+    const oge = grup.ogeler.find((o) => ogeAktif(o, patika));
+    if (oge) return { grup: gruplar[0], oge };
+  }
+  return null;`,
+    testler: ['tests/kabuk-gezinme.test.ts'],
+  },
+  {
+    ad: 'Katlanan sıranın grupları dar bantta yeniden görünüyor',
+    kural: 'Katlanan sıra dar bantta gizlenir; iki yüzey birden çizilmez',
+    dosya: 'app/kabuk.css',
+    ara: '  .ab-ikincil[data-katlanir] > .grup { display: none; }',
+    yaz: '  .ab-ikincil[data-katlanir] > .grup { display: flex; }',
+    testler: ['tests/kabuk-gezinme.test.ts'],
+  },
+  {
+    ad: 'Bölüm seçici geniş ekranda da çiziliyor',
+    kural: 'Seçici YALNIZ dar bantta görünür',
+    dosya: 'app/kabuk.css',
+    ara: '.ab-bolum { display: none; }',
+    yaz: '.ab-bolum { display: flex; }',
+    testler: ['tests/kabuk-gezinme.test.ts'],
+  },
+  {
+    ad: 'Üçüncül sıra yine sıfırdan açılıyor',
+    kural: 'Aktif alt ekran sıranın görünür penceresinde açılır',
+    dosya: 'components/kabuk/Kabuk.tsx',
+    ara: '    if (sol < sira.scrollLeft) sira.scrollLeft = Math.max(0, sol - 20);',
+    yaz: '    if (false) sira.scrollLeft = Math.max(0, sol - 20);',
+    testler: ['tests/kabuk-gezinme.test.ts'],
+  },
+  {
+    ad: 'Üçüncül sıra sayfanın kendisini kaydırıyor',
+    kural: 'Sıra KENDİ kutusunda kayar, sayfayı itmez',
+    dosya: 'components/kabuk/Kabuk.tsx',
+    ara: `    if (sol < sira.scrollLeft) sira.scrollLeft = Math.max(0, sol - 20);
+    else if (sag > sira.scrollLeft + sira.clientWidth) {
+      sira.scrollLeft = sag - sira.clientWidth + 20;
+    }`,
+    yaz: '    aktif.scrollIntoView({ inline: \'center\' });',
+    testler: ['tests/kabuk-gezinme.test.ts'],
+  },
+  {
+    ad: '"+N diğer" bağı yine eşiğin altına indi',
+    kural: 'Bağ kutusu WCAG 2.2 AA 24px eşiğinin altına inmez',
+    dosya: 'app/kabuk.css',
+    ara: '  display: block; box-sizing: border-box; height: 24px; line-height: 16px; padding-top: 4px;',
+    yaz: '  display: block; box-sizing: border-box; height: 20px; line-height: 16px; padding-top: 4px;',
+    testler: ['tests/kabuk-gezinme.test.ts'],
+  },
+  {
+    ad: 'Bütçe sabiti CSS’ten ayrıştı',
+    kural: 'Satır yüksekliği iki kaynakta AYNI sayıyı taşır',
+    dosya: 'app/(kabuk)/(flagship)/Genel.tsx',
+    ara: 'const KALAN_SATIR_PX = 24;',
+    yaz: 'const KALAN_SATIR_PX = 20;',
+    testler: ['tests/kabuk-gezinme.test.ts'],
+  },
+  {
+    ad: 'Axe kapısı WCAG 2.2 etiketini bıraktı',
+    kural: 'Ürünün beyan ettiği dokunma hedefi eşiği ÖLÇÜLÜR',
+    dosya: 'arac/erisim-axe.mjs',
+    ara: "const ETIKETLER = ['wcag2a', 'wcag2aa', 'wcag22aa'];",
+    yaz: "const ETIKETLER = ['wcag2a', 'wcag2aa'];",
+    testler: ['tests/kabuk-gezinme.test.ts'],
+  },
+  {
+    ad: 'Kapsam kolonunda istisna yine ayırt edilemiyor',
+    kural: 'Eksik kapsamlı satır tam kapsamlıdan ayrılır',
+    dosya: 'app/(kabuk)/(operasyonel)/uyum/UyumIstemci.tsx',
+    ara: "className={`mono kapsam${s.kapsamda < tesisler.length ? ' eksik' : ''}`}",
+    yaz: 'className="mono kapsam"',
+    testler: ['tests/kabuk-gezinme.test.ts'],
+  },
+  {
+    ad: 'Eksik kapsam vurgusu temel kuralla aynı renge çekildi',
+    kural: 'İki hâl GERÇEKTEN ayrılır; aynı rengi yazan ayrım ayrım değildir',
+    dosya: 'app/kabuk.css',
+    ara: '.ab-mtx .satir .kapsam.eksik { color: var(--murekkep); font-weight: 600; }',
+    yaz: '.ab-mtx .satir .kapsam.eksik { color: var(--i3); font-weight: 600; }',
+    testler: ['tests/kabuk-gezinme.test.ts'],
+  },
+  {
+    ad: 'Harita vuruş alanı yine kullanıcı biriminde',
+    kural: 'İşaretin vuruş alanı ekranda 24 CSS pikselidir',
+    dosya: 'app/(tam)/harita/HaritaIstemci.tsx',
+    ara: '  const vurusR = 12 * olcek;',
+    yaz: '  const vurusR = 11;',
+    testler: ['tests/harita-dokunma.test.ts'],
+  },
+  {
+    ad: 'Harita listesi kaldırıldı — küçük hedef yine TEK yol',
+    kural: 'İşarete ulaşmanın dokunulabilir bir karşılığı vardır',
+    dosya: 'app/(tam)/harita/HaritaIstemci.tsx',
+    ara: '            <ul className="ab-harita-liste secilir">',
+    yaz: '            <ul className="ab-harita-liste secilir" hidden>',
+    testler: ['tests/harita-dokunma.test.ts'],
+  },
+  {
+    ad: 'Ölü dar bant kuralı geri geldi',
+    kural: 'Dar bant için yazılan bir kural gerçekten uygulanır',
+    dosya: 'app/kabuk.css',
+    ara: `@media (max-width: 620px) {
+  .ab-mercek-dar select { max-width: 118px; }
+}`,
+    yaz: `@media (max-width: 620px) {
+  .ab-mercek-dar select { max-width: 118px; }
+  .ab-hesap-dugme .kisi { display: none; }
+}`,
+    testler: ['tests/bekci/olu-bant-kurali.test.ts'],
+  },
+  {
     ad: 'Bir ekran rota envanterinden düştü',
     kural: 'app/ altındaki her kabuklu sayfa kalite kapılarının listesinde',
     dosya: 'arac/rotalar.json',
-    ara: '"/degerlendirme-aktarim", ',
+    /* Çapa dosyanın GERÇEK biçimini izler: `rotalar.json` satır başına
+       tek rota yazar. Eski çapa virgülden sonra boşluk bekliyordu ve
+       biçim değişince HİÇBİR ŞEYE eşleşmiyordu — sabotaj "hedef yok"
+       diyordu, yani bu kural ölçülmüyordu (mobil audit turunda ölçüldü). */
+    ara: '  "/degerlendirme-aktarim",\n',
     yaz: '',
     testler: ['tests/kabuk-gezinme.test.ts'],
   },
@@ -218,11 +358,14 @@ const SABOTAJLAR = [
     ad: 'Boş durum yeniden "ne yapabilirim" demiyor',
     kural: 'Her bozuk durum bloğu eylem ya da beklenen-durum taşır',
     dosya: 'app/(kabuk)/(operasyonel)/sayim/SayimIstemci.tsx',
-    ara: `          <BosIlk cumle="Hiç envanter sayımı açılmadı."
-            eylem={yazabilir
+    /* Cümle R-G ile UZADI ("sebebini söyler") ve çapa güncellenmedi;
+       kural o günden beri ölçülmüyordu. Çapa artık eylem yuvasını
+       hedefler, cümlenin kendisini değil — cümle yeniden uzarsa sabotaj
+       ayakta kalır, kural ölçülmeye devam eder. */
+    ara: `            eylem={yazabilir
               ? <Dugme tur="birincil" onClick={() => setFormAcik(true)}>Sayım aç</Dugme>
               : undefined} />`,
-    yaz: '          <BosIlk cumle="Hiç envanter sayımı açılmadı." />',
+    yaz: '            />',
     testler: ['tests/eylem-dili.test.ts'],
   },
   {

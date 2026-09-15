@@ -528,15 +528,30 @@
     border-top: 1px solid var(--hr);
   }
   .ab-ust > nav::-webkit-scrollbar { display: none; }
-  .ab-ust > nav a { padding: 0 14px; min-height: 40px; }
+  /* Dolgu BURADA VERİLMEZ: `max-width: 1100px` bloğu CSS'te daha sonra
+     gelip 12px yazıyor ve 1024 ≤ 1100 olduğu için bu bantta O kazanır —
+     buraya yazılan bir dolgu ölü kalırdı (ölçüldü, `URN-KBK-020`).
+     Dokunma hedefi ise hiçbir sonraki kuralda yok; o burada durur. */
+  .ab-ust > nav a { min-height: 40px; }
+  /* DOKUNMA HEDEFİ — ÖLÇÜLEN İHLAL (mobil audit, 375×812, 77 rota):
+     `.ab-ust` bu bantta `align-items: center` alıyor ve bu, yüksekliğini
+     ESNEMEYE (stretch) bırakan kontrolleri içerik boyuna çökertiyordu:
+     marka 14px, hesap düğmesi 19px. İkisi de 76 rotanın 76'sında
+     görünüyor; ürünün beyan ettiği WCAG 2.2 AA 24×24 eşiğinin altındaki
+     202 hedefin 152'si (%75) bu iki kontroldü. Gezinme bağlarına aynı
+     bantta zaten 40px verilmişti — aynı ölçü buraya da. */
+  .ab-ust .marka,
+  .ab-ust .bildirim,
+  .ab-ust .ab-ara-dugme,
+  .ab-hesap-dugme { min-height: 40px; }
 }
 
-/* Telefon: yardımcı kümede ad düşer, dokunma hedefi korunur (WCAG 2.2
-   24px). Mercek KALIR — öncelik sırası gereği hesaptan öncedir. */
+/* Telefon: mercek daralır ama KALIR — öncelik sırası gereği hesaptan
+   öncedir. Hesap adının düşmesi bu blokta DEĞİL, hesap bileşeninin
+   temel kurallarının ARDINDAN gelir (aşağıda, `.ab-hesap-menu`dan
+   sonra): burada yazıldığında ölü kalıyordu — ölçüm ve gerekçe orada. */
 @media (max-width: 620px) {
-  .ab-hesap-dugme .kisi { display: none; }
   .ab-mercek-dar select { max-width: 118px; }
-  .ab-ust .marka { font-size: 15px; padding: 0 10px; }
 }
 
 .ab-ust .bildirim {
@@ -574,6 +589,28 @@
 .ab-hesap-menu .cikis { border-top: 1px solid var(--hr2); margin-top: 6px; padding-top: 12px; }
 .ab-hesap-menu .cikis:disabled { opacity: .55; cursor: not-allowed; }
 
+/* ── DAR BANTTA HESAP ADI DÜŞER — VE BU KURAL TEMEL KURALDAN SONRA ────
+   ÖLÇÜLEN ÖLÜ KURAL (mobil audit, 375×812): aynı bildirim `@media
+   (max-width: 620px)` bloğunda, üst çubuğun bant kurallarının yanında
+   yazılıydı ve HİÇ UYGULANMIYORDU — hesaplanan değer 375px'te `flex`
+   çıkıyordu. Sebep cascade: `.ab-hesap-dugme .kisi` temel kuralı CSS'te
+   DAHA SONRA geliyor, özgüllük eşit (0,2,0) ve eşitlikte SIRA kazanır.
+   Kural yazıldığı günden beri 61px'i telefonda boşuna tutuyordu.
+
+   Aynı turda ikinci bir ölü bildirim daha ölçüldü ve SİLİNDİ: o blok
+   `.ab-ust .marka { font-size: 15px }` diyordu, oysa `max-width: 700px`
+   telefon bloğu daha sonra gelip 14px yazıyor. Ölü olmasının yanında
+   TERSTİ de — dar bantta daha BÜYÜK punto istiyordu.
+
+   Bir bant kuralının ölü olup olmadığı elle sayılmaz:
+   `tests/bekci/olu-bant-kurali.test.ts` kabuk CSS'ini okur ve dar bant
+   bloğundaki her bildirimi, aynı seçiciyi aynı özellikle ezen SONRAKİ
+   bir kurala karşı sınar (medyasız kural ya da daha GENİŞ bir
+   `max-width` — ikisi de dar bantta her zaman uygulanır). Tavan SIFIR. */
+@media (max-width: 620px) {
+  .ab-hesap-dugme .kisi { display: none; }
+}
+
 /* İkincil sıra — alanın kendi ekranları. Barlow 14px büyük harf, gruplar
    saç çizgisiyle; aktif öğe mürekkep + 2px bakır alt çizgi (alan
    sekmesiyle aynı işaret, bir kademe küçük). `aria-current="true"`:
@@ -600,12 +637,69 @@
   background: var(--panel); border-bottom: 1px solid var(--hr);
 }
 /* Dokunmatik bantta sarma çözmez: tek bir grup bile 375px'ten geniştir.
-   Orada sıra yatay KAYAR ve bu meşrudur — parmakla kaydırmak keşfedilmesi
-   gereken bir jest değil, beklenen jesttir. Masaüstünde aynı şeyi yapmak
-   (gizli kaydırma çubuğu) üç ekranı görünmez kılıyordu; ayrım bilinçli. */
+   Orada sıra yatay KAYAR — AMA YALNIZ KATLANMAYAN SIRALARDA (bkz. bir
+   alttaki blok). Üçten çok bağ taşıyan sıra kaymaz, katlanır: "parmakla
+   kaydırmak beklenen jesttir" gerekçesi NEREYE kaydıracağını bilen bir
+   kullanıcıyı varsayıyordu ve ölçüm tersini söyledi (45 kayan rotanın
+   24'ünde aktif sekme ekranın DIŞINDA). Masaüstünde gizli kaydırma
+   çubuğu üç ekranı görünmez kılıyordu; o ayrım aynen duruyor. */
 @media (max-width: 700px) {
   .ab-ikincil { flex-wrap: nowrap; overflow-x: auto; scrollbar-width: none; }
 }
+
+/* ── DAR BANTTA KATLANAN SIRA ─────────────────────────────────────────
+   Bant kararı BURADADIR, bileşende değil: seçici de sıra da her zaman
+   belgededir, hangisinin görüneceğini CSS söyler. Bileşen bandı ölçseydi
+   sunucu geniş bandı çizer, istemci dar bandı düzeltirdi — ilk karede
+   yanlış yüzey yanar ve 700px sınırı iki yerde birden tanımlanırdı.
+
+   Ölçüm `components/kabuk/yonler.ts → DAR_BANT_BAG_TAVANI` başlığında:
+   375px'te sıra üç-dört bağ gösteriyor, `/uyum` sırası 2 111px ve on
+   dokuz bağın üçü görünüyor. */
+.ab-bolum { display: none; }
+@media (max-width: 700px) {
+  .ab-ikincil[data-katlanir] { overflow: visible; }
+  .ab-ikincil[data-katlanir] > .grup { display: none; }
+  .ab-bolum { position: relative; align-self: stretch; display: flex; flex: 1 1 auto; min-width: 0; }
+}
+.ab-bolum-dugme {
+  display: inline-flex; align-items: center; justify-content: space-between; gap: 10px;
+  flex: 1 1 auto; min-width: 0; min-height: 40px; padding: 0 4px 0 0;
+  background: none; border: 0; color: var(--i2); cursor: pointer; font: inherit; text-align: left;
+}
+.ab-bolum-dugme:hover, .ab-bolum-dugme[aria-expanded='true'] { color: var(--murekkep); }
+.ab-bolum-dugme .konum { display: flex; flex-direction: column; align-items: flex-start; gap: 1px; min-width: 0; line-height: 1.15; }
+/* Grup adı DARALAN taraftır; bölüm adı kırpılmaz — kullanıcının aradığı
+   cevap odur, bağlam ikinci sıradadır. */
+.ab-bolum-dugme .grup-ad {
+  max-width: 100%; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+  font-family: var(--veri); font-size: 10.5px; letter-spacing: .08em; text-transform: uppercase; color: var(--i3);
+}
+.ab-bolum-dugme .oge-ad {
+  font-family: var(--gorunum); font-size: 14px; font-weight: 500; letter-spacing: .05em;
+  text-transform: uppercase; color: var(--murekkep); white-space: nowrap;
+}
+.ab-bolum-dugme .ok { flex: none; font-size: 11px; color: var(--i3); }
+/* Panel sıranın ALTINDAN açılır ve ekranın enini kaplar: on dokuz bağ
+   dar bir kutuda ikinci kez kırpılmamalı. Yükseklik sınırı viewport'a
+   bağlıdır ve panel KENDİ İÇİNDE dikey kayar — dikey kaydırma
+   keşfedilmesi gereken bir jest değildir, yataydan farkı budur. */
+.ab-bolum-menu {
+  position: absolute; top: 100%; left: -12px; right: -12px; z-index: 30;
+  display: flex; flex-direction: column; padding: 4px 0;
+  max-height: calc(100dvh - 140px); overflow-y: auto; overscroll-behavior: contain;
+  background: var(--panel); border-bottom: 1px solid var(--hr2); border-top: 2px solid var(--aksan);
+  box-shadow: 0 12px 28px color-mix(in srgb, #000 55%, transparent);
+}
+.ab-bolum-menu .oebek + .oebek { border-top: 1px solid var(--hr2); margin-top: 4px; padding-top: 4px; }
+.ab-bolum-menu .baslik { padding: 8px 16px 4px; color: var(--i3); }
+.ab-bolum-menu [role='menuitem'] {
+  display: flex; align-items: center; padding: 0 16px; min-height: 40px; text-align: left;
+  font-family: var(--gorunum); font-size: 14px; font-weight: 500; letter-spacing: .05em;
+  text-transform: uppercase; color: var(--i2);
+}
+.ab-bolum-menu [role='menuitem']:hover, .ab-bolum-menu [role='menuitem']:focus-visible { color: var(--murekkep); background: var(--panel2); outline-offset: -2px; }
+.ab-bolum-menu [role='menuitem'][aria-current='true'] { color: var(--murekkep); box-shadow: inset 3px 0 0 var(--aksan); background: var(--panel2); }
 /* ── Sağ öbek YALNIZ kırpılmanın olduğu bantta yapışkan ──────────────
    Ölçüldü: arama · bildirim · hesap menüsü 807px'lik doğal enini koruyor
    ve pencere onun altına inince ekran dışında kalıyordu (768px'te 39px,
@@ -773,11 +867,18 @@
     flex-wrap: wrap; white-space: normal; overflow: visible;
     gap: 8px 16px; padding: 8px 16px;
   }
-  .ab-alt nav { margin-left: 0; flex-wrap: wrap; gap: 8px 14px; }
 }
 .ab-alt .kunye { color: var(--i2); }
 .ab-alt .kunye .mono { font-size: 11px; color: var(--i3); }
 .ab-alt nav { display: inline-flex; gap: 16px; margin-left: auto; }
+/* Ayak sarınca bağ kümesi de sarar ve sağa itilmez. Kural temel kuralın
+   ARDINDA durur: bir üstteki `max-width: 700px` bloğunun içine
+   yazıldığında `margin-left` ve `gap` bildirimleri ÖLÜ kalıyordu —
+   medyasız temel kural CSS'te sonra geliyor ve eşit özgüllükte sıra
+   kazanıyor (ölçüldü, `URN-KBK-020`). */
+@media (max-width: 700px) {
+  .ab-alt nav { margin-left: 0; gap: 8px 14px; }
+}
 /* Bağlar 24px'lik dokunma hedefini karşılar (WCAG 2.2 · 2.5.8): ölçüldü,
    eskiden 36×14 · 50×14 · 81×14 idi ve 49 rotanın hepsinde öyleydi.
    Alt çizgi metnin kendi altında kalır — kutunun değil — yoksa 24px'lik
@@ -947,10 +1048,17 @@
   white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
 }
 /* Bütçeye sığmayan kalemler (JS: `Mudahale`) çizilmez; sayısı burada.
-   Yükseklik SABİT 20px (16 satır + 4 üst): bileşen bunu hesaba katar.
-   1366×768'de 3. kalem birkaç px'le düşüyordu; 8/6/22 → 6/4/20 çekildi. */
+   Yükseklik SABİT 24px (16 satır + 8 boşluk): bileşen bunu hesaba katar
+   ve sayı ORADA da yazılıdır (`Genel.tsx` → `KALAN_SATIR_PX`); ikisi
+   ayrışırsa bütçe hesabı satır çizilmeden önce yanlış olur.
+
+   20 → 24: bu satır bir BAĞDIR ve 20px, ürünün beyan ettiği WCAG 2.2 AA
+   24×24 eşiğinin altındaydı. Kusuru KAPI buldu (axe `target-size`,
+   `wcag22aa` etiketi eklendikten sonra, üç bantta da `serious`).
+   1366×768'de üçüncü kalem birkaç px'le düşüyordu; o kayıp bilerek
+   göze alındı — ulaşılamayan bir bağ, hiç kalem göstermemekle aynı. */
 .ab-b-dikkat .mudahale .kalan {
-  display: block; box-sizing: border-box; height: 20px; line-height: 16px; padding-top: 4px;
+  display: block; box-sizing: border-box; height: 24px; line-height: 16px; padding-top: 4px;
   font-size: 11px; color: var(--i3); border-top: 1px solid var(--hr);
 }
 .ab-b-dikkat .mudahale .kalan:hover { color: var(--aksan); }
@@ -1001,6 +1109,16 @@
   text-transform: uppercase; color: var(--aksan); opacity: .85;
 }
 .ab-b-takim .isaret { position: absolute; transform: translate(-50%, 50%); }
+/* DOKUNMA ALANI GÖRSEL İŞARETTEN BÜYÜKTÜR. Ölçüldü (mobil audit,
+   375×812): işaret 9×9px — ürünün beyan ettiği WCAG 2.2 AA 24×24
+   eşiğinin çok altında ve parmakla isabet ettirilemez. Elması büyütmek
+   grafiği bozardı (konum ölçülen veridir, leke değil); bunun yerine
+   görünmez bir vuruş alanı serilir. Künye zaten bağın parçasıdır ve
+   ayrıca tıklanır. */
+.ab-b-takim .isaret::after {
+  content: ''; position: absolute; left: 50%; top: 50%;
+  width: 24px; height: 24px; transform: translate(-50%, -50%);
+}
 .ab-b-takim .kare {
   display: block; width: 9px; height: 9px; transform: rotate(45deg);
 }
@@ -1905,7 +2023,6 @@
    iner ve kenarlığını sola değil üste alır. */
 @media (max-width: 820px) {
   .ab-a-calisma { grid-template-columns: minmax(0, 1fr); }
-  .ab-a-panel { border-left: 0; border-top: 1px solid var(--hr); }
 }
 .ab-a-tuval { padding: 18px 24px 24px; min-width: 0; overflow-x: auto; }
 .ab-a-tuval .bos { margin: 24px 0; font-size: 13px; color: var(--i3); }
@@ -1970,6 +2087,14 @@
 .ab-a-panel {
   border-left: 1px solid var(--hr); background: var(--panel);
   display: flex; flex-direction: column; min-width: 0;
+}
+/* Panel tuvalin ALTINA inince kenarlığını sola değil üste alır. Kural
+   temel kuralın ARDINDA durur: `max-width: 820px` bloğunun içine
+   yazıldığında `border-left: 0` ÖLÜ kalıyordu — medyasız temel kural
+   sonra geliyor ve sol kenarlığı geri koyuyordu; panel dar bantta HEM
+   üst HEM sol kenarlık taşıyordu (ölçüldü, `URN-KBK-020`). */
+@media (max-width: 820px) {
+  .ab-a-panel { border-left: 0; border-top: 1px solid var(--hr); }
 }
 .ab-a-panel > header {
   height: 42px; flex: none; display: flex; align-items: center; gap: 14px;
@@ -2221,12 +2346,6 @@
 .ab-harita-govde > .ab-harita-eksik,
 .ab-harita-govde > .ab-harita-form { grid-column: 1 / -1; }
 .ab-harita-yan { min-width: 0; }
-.ab-harita-bos {
-  padding: var(--s14) var(--s16);
-  background: var(--panel); border-left: 2px solid var(--hr2);
-}
-.ab-harita-bos > .etiket { display: block; margin: 0 0 var(--s10); }
-.ab-harita-bos .cumle { margin: 0; font-size: var(--t-field); line-height: 1.6; color: var(--i3); }
 
 /* İşaret etiketi — ad ipucunda yaşayamaz. */
 .ab-harita-tuval .etiketler text {
@@ -2298,6 +2417,47 @@
 .ab-harita-liste .ad:hover { border-bottom-color: var(--aksan); }
 .ab-harita-liste .kod { font-size: var(--t-code-lg); color: var(--i3); }
 .ab-harita-liste .yer { margin-left: auto; font-size: var(--t-code); color: var(--i3); }
+
+/* ── SEÇİLEBİLİR HARİTA LİSTESİ ───────────────────────────────────────
+   İşaretin dokunulabilir karşılığı (gerekçe `HaritaIstemci.tsx`).
+   Satır 40px: ürünün beyan ettiği WCAG 2.2 AA eşiğinin (24px) üstünde
+   ve dokunmatik bantta rahat. Seçili satır bakır şeritle işaretlenir —
+   haritadaki seçimle AYNI kanal, tek renge bağlı değil (`aria-pressed`
+   ekran okuyucuya söyler). */
+.ab-harita-secim { margin-top: var(--s16); }
+.ab-harita-secim > .etiket { display: block; margin-bottom: var(--s8); color: var(--i3); }
+.ab-harita-liste.secilir li { padding: 0; }
+.ab-harita-liste .satirdugme {
+  display: flex; align-items: center; gap: var(--s10); width: 100%;
+  min-height: 40px; padding: 0 var(--s8); text-align: left;
+  background: none; border: 0; cursor: pointer; font: inherit;
+  font-size: var(--t-field); color: var(--i2);
+}
+.ab-harita-liste .satirdugme:hover { background: var(--panel2); color: var(--murekkep); }
+.ab-harita-liste .satirdugme .ad {
+  flex: 1 1 auto; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+  color: var(--murekkep); border-bottom: 0;
+}
+.ab-harita-liste .satirdugme.secili {
+  background: var(--panel2); box-shadow: inset 3px 0 0 var(--aksan);
+}
+.ab-harita-liste .satirdugme.secili .ad { color: var(--murekkep); }
+/* LİSTE KENDİ İÇİNDE KAYMAZ — SAYFAYLA BİRLİKTE AKAR. İlk yazımda
+   `max-height: 46dvh; overflow-y: auto` vardı ve gerekçesi "liste
+   ekranın tamamını yutmasın, harita görünür kalsın"dı. İki ölçüm de
+   gerekçeyi çürüttü:
+
+     · Dar bantta panel haritanın ALTINDA duruyor (tek kolon); listeye
+       vardığınızda harita zaten ekranda değil. Geniş bantta panel yan
+       kolondur ve harita yanında durur — ikisinde de kısıtlamanın
+       koruduğu bir şey yok.
+     · Taşma kapısı KIRMIZI yaktı: kap `overflow-y` ile görüntüyü
+       kırpıyor ama satırların kutuları akışta kabın dışına taşıyor ve
+       alttaki "yerleştirilemedi" bloğuyla 24 çift üretiyordu (375 ve
+       768px). Görünmeyen bir çakışma, geometride gerçek bir çakışmadır.
+
+   Üstüne, dikey kaydıran bir sayfanın içine ikinci bir dikey kaydırma
+   koymak kaydırmayı hapseder. Kısıt kaldırıldı. */
 
 .ab-harita-form { display: grid; gap: var(--s12); max-width: 520px; }
 .ab-harita-form .ikili { display: grid; grid-template-columns: 1fr 1fr; gap: var(--s12); }
@@ -3455,6 +3615,13 @@ details:not([open]) > *:not(summary) { display: none !important; }
 .ab-mtx .satir .kod { font-size: 11px; color: var(--i2); }
 .ab-mtx .satir .baslik { font-size: 12.5px; min-width: 0; overflow-wrap: anywhere; }
 .ab-mtx .satir .kapsam { font-size: 11px; color: var(--i3); text-align: right; }
+/* EKSİK KAPSAM OKUNUR, TAM KAPSAM SESSİZ. Ölçüldü (sadeleştirme turu):
+   kolonun on dört değeri de aynı renkteydi ve "5 / 5" ile "2 / 5" ayırt
+   edilemiyordu — oysa kolonun tek işi, bir kontrolün tesislerin yalnız
+   bir kısmına uygulandığı satırı göstermek. Renk TEK KANAL DEĞİLDİR:
+   `title` aynı olguyu sözle de söyler ve `role="cell"` metni zaten
+   okunur. Sayı gizlenmez, vurgu değişir. */
+.ab-mtx .satir .kapsam.eksik { color: var(--murekkep); font-weight: 600; }
 
 .ab-mtx .satir.acik > * { background: var(--secim); }
 .ab-mtx .satir.acik .kod,
@@ -3886,7 +4053,17 @@ details:not([open]) > *:not(summary) { display: none !important; }
   .ab-harita-tuval .etiketler { display: none; }
   /* Ekranın kendi dizini de (uyum matrisi) aynı kurala uyar: 212px
      sütun 375px'te içeriği 160px'e sıkıştırıyordu — ölçüldü. */
+  /* TEK KOLONA İNEN İKİ SÜTUN, DOM SIRASINI MİRAS ALIR. Ölçüldü (mobil
+     audit, 375×812): `/uyum`'da yardımcı dizin (çerçeve listesi · kontrol
+     ailesi · okuma anahtarı) DOM'da önce geldiği için ekranın kendi
+     sorusu ("Nerede uygunsuz, ve neden?") 642 PİKSEL aşağıda kalıyordu —
+     77 rotanın ortalaması 210px, yani bu tek başına bir aykırı. Telefonu
+     açan kişi önce bir süzgeç listesi ve bir lejant okuyor.
+     Dar bantta içerik ÖNE alınır; dizin altında kalır. Masaüstünde sıra
+     değişmez (iki sütun yan yana, göz soldan sağa okur). */
   .ab-c-ekrandizin { grid-template-columns: minmax(0, 1fr); gap: 24px; }
+  .ab-c-ekrandizin > :first-child { order: 2; }
+  .ab-c-ekrandizin > :nth-child(2) { order: 1; }
   /* Risk: harita ile kütük üst üste; harita yine tam genişlik bant. */
   .ab-r-yanyana { grid-template-columns: minmax(0, 1fr); padding-top: 0; }
   .ab-r-yanyana .ab-isi { position: static; margin: 0 0 20px; padding: 12px 0 14px; border-bottom: 1px solid var(--hr2); }
@@ -4036,6 +4213,10 @@ details:not([open]) > *:not(summary) { display: none !important; }
   .ab-ust .marka { padding: 0 14px; font-size: 14px; }
   .ab-ust > nav a { padding: 0 9px; font-size: 11px; }
   .ab-ust .sag { padding: 0 14px; gap: 12px; }
+  /* Mercek satırın SON öğesidir ve çubuğun kendi payı yok: ölçüldü,
+     375px'te kutusu 257..375 — açılır oku ekranın kenarına yapışık.
+     Yardımcı küme (`.sag`) 14px pay alıyor; aynı pay mercekte de. */
+  .ab-mercek-dar { padding-right: 14px; }
   .ab-b-portfoy-ust { padding-left: 16px; padding-right: 16px; }
   .ab-b-portfoy-govde .kimlik { padding: 22px 16px; }
   .ab-b-portfoy-govde .plaka { padding: 16px; gap: 14px; min-height: 120px; }

@@ -1,7 +1,7 @@
 {
-  "imza": "f260598f9586a8dda54ba44401f4addb",
-  "dosya": 250,
-  "vaka": 4469,
+  "imza": "072d4c490754d822f12c4b4551cf9534",
+  "dosya": 252,
+  "vaka": 4490,
   "atlanan": 1,
   "dosyalar": {
     "tests/adaptor-yetenekleri.test.ts": {
@@ -106,6 +106,10 @@
     },
     "tests/bekci/olu-bag.test.ts": {
       "vaka": 10,
+      "atlanan": 0
+    },
+    "tests/bekci/olu-bant-kurali.test.ts": {
+      "vaka": 2,
       "atlanan": 0
     },
     "tests/bekci/ortam-semasi.test.ts": {
@@ -384,6 +388,10 @@
       "vaka": 38,
       "atlanan": 0
     },
+    "tests/harita-dokunma.test.ts": {
+      "vaka": 4,
+      "atlanan": 0
+    },
     "tests/harita-mantik.test.ts": {
       "vaka": 23,
       "atlanan": 0
@@ -417,7 +425,7 @@
       "atlanan": 0
     },
     "tests/kabuk-gezinme.test.ts": {
-      "vaka": 15,
+      "vaka": 30,
       "atlanan": 0
     },
     "tests/kabuk-inceleme.test.ts": {

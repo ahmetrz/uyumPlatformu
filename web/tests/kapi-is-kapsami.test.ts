@@ -130,6 +130,14 @@ const EKLENEN_KAPILAR = [
      künye çakışması ve birim tutarsızlığı (tespit tuval yüzdesiyle,
      yerleştirme sabit pikselle çalışıyordu). */
   'npm run kanit:tuval',
+  /* Harita dokunulabilirliğinin iki bantta kanıtı. En pahalı iddia:
+     işaretin VURUŞ ALANI ekranda kaç CSS pikseli. Kaynakta yazan sayı
+     (`r = max(isaret.r, 11)`) doğru görünüyordu; SVG onu tuvalin
+     ölçeğiyle çarpıyor ve 375px'te 11px ÇAP çıkıyordu — beyan edilen
+     WCAG 2.2 AA eşiğinin yarısından az. Kaynağa bakan hiçbir test bunu
+     göremez; ölçek yalnız tarayıcıda belli olur. İkinci iddia listenin
+     GERÇEK yol olduğudur: satıra dokunmak haritadaki işareti seçmeli. */
+  'npm run kanit:harita',
   /* R1 · mevzuat radarı ekranının iki bantta kanıtı. En pahalı iddia:
      ENGELLİ ile KARŞILAŞTIRILAMADI ekranda AYRI görünüyor. İkisi ayrı
      metriktir çünkü biri kaynağın kararıdır (ürün aşmaz), öbürü bizim
@@ -213,8 +221,11 @@ describe('kapı kümesi bölünmeyle değişmez', () => {
        sunucusunu kurar (3211), paylaşılan 3210'u kullanmaz.
        13 → 14: saha tuvali kanıtı (`kanit:tuval`). Kaynağın ölçemediği
        şeyi ölçer — künye kuralı kaynakta doğruyken gerçek tuvalde
-       303 piksel sapıyordu. */
-    expect(tarayicili).toHaveLength(14);
+       303 piksel sapıyordu.
+       14 → 15: harita dokunulabilirlik kanıtı (`kanit:harita`). Aynı
+       sınıf: vuruş dairesi kaynakta 11 yazıyordu ve doğru görünüyordu;
+       SVG ölçeği onu 375px'te 11px ÇAPA indiriyordu. */
+    expect(tarayicili).toHaveLength(15);
     expect(new Set(tarayicili.map((a) => a.is)).size).toBe(4);
   });
 

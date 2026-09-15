@@ -597,6 +597,130 @@ export const PLATFORM_SENARYOLARI: Senaryo[] = [
     beklenenIz: 'yazma yok', beklenenBildirim: 'yok',
     katmanlar: ['DOMAIN', 'UI'],
   },
+  {
+    id: 'HRT-DOK-010', alan: 'Harita', rota: '/harita', eksen: 'arayuz',
+    amac: 'İşaretin dokunulabilir olması — ölçüldü: vuruş dairesi SVG '
+      + 'kullanıcı biriminde veriliyordu ve 375px’te ekranda 11px ÇAP '
+      + 'oluyordu, beyan edilen WCAG 2.2 AA eşiğinin yarısından az',
+    rol: 'telefonla bakan kullanıcı', kapsam: 'kurum geneli',
+    onkosul: 'Haritaya yerleşen tesis var', veriHali: 'normal',
+    eylem: 'Haritayı 375px ve 1440px genişlikte açar',
+    beklenenSonuc: 'Her işaretin vuruş alanı iki bantta da en az 24 CSS '
+      + 'piksel; yarıçap tuvalin ölçeğinden TÜRETİLİR, sabit yazılmaz',
+    beklenenEkran: 'Harita tuvali',
+    beklenenIz: 'yazma yok', beklenenBildirim: 'yok',
+    katmanlar: ['UI', 'ACCESSIBILITY'],
+  },
+  {
+    id: 'HRT-DOK-011', alan: 'Harita', rota: '/harita', eksen: 'arayuz',
+    amac: 'Küçük bir hedefin TEK yol olmaması — işaret küçük kalmak '
+      + 'zorunda (konum ölçülen veridir) ama bu, ona ulaşmanın başka '
+      + 'yolu olmamasını meşru kılmaz',
+    rol: 'telefonla bakan kullanıcı', kapsam: 'kurum geneli',
+    onkosul: 'Panel eskiden boştu ve "bir işarete tıklayın" diyordu',
+    veriHali: 'normal',
+    eylem: 'Panel listesinden bir satıra dokunur',
+    beklenenSonuc: 'Listede haritadaki her işaret için bir satır var, her '
+      + 'satır en az 24px, dokunulan satır haritadaki işareti seçer ve '
+      + 'künyeyi açar; seçim iki yüzeyde birden işaretlidir',
+    beklenenEkran: 'Harita yan paneli · tesis listesi',
+    beklenenIz: 'yazma yok', beklenenBildirim: 'yok',
+    katmanlar: ['UI', 'ACCESSIBILITY'],
+  },
+  {
+    id: 'SIS-UYM-030', alan: 'Uyum', rota: '/uyum', eksen: 'arayuz',
+    amac: 'Bir kontrolün tesislerin yalnız BİR KISMINA uygulandığı '
+      + 'satırın görülmesi — ölçüldü: kapsam kolonunun on dört değeri de '
+      + 'tek renkteydi, "5 / 5" ile "2 / 5" ayırt edilemiyordu',
+    rol: 'uyum sorumlusu', kapsam: 'kurum geneli',
+    onkosul: 'Matriste tam ve eksik kapsamlı satırlar birlikte',
+    veriHali: 'kısmi',
+    eylem: 'Matrisi açar ve kapsam kolonunu tarar',
+    beklenenSonuc: 'Eksik kapsamlı satır mürekkebe çıkar, tam kapsam '
+      + 'sessiz kalır; ölçüt veriden gelir (kapsamda < tesis sayısı), '
+      + 'sabit bir sayıdan değil',
+    beklenenEkran: 'Uyum matrisi · kapsam kolonu',
+    beklenenIz: 'yazma yok', beklenenBildirim: 'yok',
+    katmanlar: ['UI'],
+  },
+  {
+    id: 'SIS-UYM-031', alan: 'Uyum', rota: '/uyum', eksen: 'arayuz',
+    amac: 'İstisnanın yalnız RENGE bağlı olmaması',
+    rol: 'renk ayrımı sınırlı kullanıcı', kapsam: 'kurum geneli',
+    onkosul: 'Eksik kapsamlı satır var', veriHali: 'kısmi',
+    eylem: 'Kapsam hücresinin üstünde durur ya da ekran okuyucuyla okur',
+    beklenenSonuc: 'Hücre kaç tesiste kapsamda olduğunu SÖZLE de söyler; '
+      + 'sayı iki hâlde de çizilir, gizlenmez',
+    beklenenEkran: 'Uyum matrisi · kapsam hücresi',
+    beklenenIz: 'yazma yok', beklenenBildirim: 'yok',
+    katmanlar: ['UI', 'ACCESSIBILITY'],
+  },
+  {
+    id: 'SIS-UYM-032', alan: 'Uyum', rota: '/uyum', eksen: 'arayuz',
+    amac: 'Vurgu sınıfının ÖLÜ kalmaması — sınıf yazılıp CSS’i '
+      + 'yazılmazsa kural bir yorumdan ibaret olurdu',
+    rol: 'ürün ekibi', kapsam: 'kurum geneli',
+    onkosul: 'Kapsam kolonunun iki hâli var', veriHali: 'normal',
+    eylem: 'Kabuk CSS’inde iki kural karşılaştırılır',
+    beklenenSonuc: 'İki kural farklı renk yazar; aynı rengi yazan bir '
+      + 'ayrım ayrım değildir',
+    beklenenEkran: 'Sınıf gerçekten bir şey yapıyor',
+    beklenenIz: 'yazma yok', beklenenBildirim: 'yok',
+    katmanlar: ['UI'],
+  },
+  {
+    id: 'SIS-SAHA-020', alan: 'Sistem', rota: '/', eksen: 'arayuz',
+    amac: 'Saha ekranındaki "+N diğer" bağının parmakla vurulabilmesi — '
+      + 'ölçüldü: satır 20px idi, ürünün beyan ettiği WCAG 2.2 AA 24×24 '
+      + 'eşiğinin altında',
+    rol: 'telefonla bakan kullanıcı', kapsam: 'kendi kapsamı',
+    onkosul: 'Müdahale listesine sığmayan bulgu var', veriHali: 'normal',
+    eylem: 'Saha ekranını açar ve listenin sonundaki bağa dokunur',
+    beklenenSonuc: 'Bağ kutusu en az 24px; bütçeye sığmayan bir kalem '
+      + 'düşse bile ulaşılamayan bir bağ bırakılmaz',
+    beklenenEkran: 'Saha · müdahale gerektirenler',
+    beklenenIz: 'yazma yok', beklenenBildirim: 'yok',
+    katmanlar: ['UI', 'ACCESSIBILITY'],
+  },
+  {
+    id: 'SIS-SAHA-021', alan: 'Sistem', rota: '/', eksen: 'arayuz',
+    amac: 'Satır yüksekliğinin İKİ kaynakta ayrışmaması — CSS satırı '
+      + 'çizer, bileşen onu ÇİZİLMEDEN ÖNCE bütçeye katar',
+    rol: 'ürün ekibi', kapsam: 'kurum geneli',
+    onkosul: 'Yükseklik hem CSS’te hem bileşende yazılı', veriHali: 'normal',
+    eylem: 'İki sayı karşılaştırılır',
+    beklenenSonuc: 'Aynıdırlar; ayrışırlarsa bütçe hesabı sessizce yanlış '
+      + 'olur ve son kalem kutudan taşar',
+    beklenenEkran: 'Bütçe hesabı doğru',
+    beklenenIz: 'yazma yok', beklenenBildirim: 'yok',
+    katmanlar: ['UI'],
+  },
+  {
+    id: 'SIS-ERS-020', alan: 'Sistem', rota: '—', eksen: 'arayuz',
+    amac: 'Ürünün beyan ettiği erişilebilirlik eşiğinin KAPISI olması — '
+      + 'ölçüldü: "WCAG 2.2 24px" ürünün kendi CSS’inde yazılıydı ama axe '
+      + 'kapısı yalnız wcag2a + wcag2aa koşuyordu ve 2.5.8 o kümede YOK',
+    rol: 'ürün ekibi', kapsam: 'kurum geneli',
+    onkosul: 'Axe kapısı üç bantta koşuyor', veriHali: 'normal',
+    eylem: 'Kural etiketleri okunur',
+    beklenenSonuc: 'Küme wcag22aa taşır ve eski etiketler düşmez; kapı '
+      + 'eklendiği ilk koşuda gerçek bir ihlal buldu',
+    beklenenEkran: 'Beyan edilen eşik ölçülüyor',
+    beklenenIz: 'yazma yok', beklenenBildirim: 'yok',
+    katmanlar: ['UI', 'ACCESSIBILITY'],
+  },
+  {
+    id: 'SIS-ERS-021', alan: 'Sistem', rota: '—', eksen: 'arayuz',
+    amac: 'Eşiğin uydurulmaması — kapı kendi sayısını yazmaz, axe 2.5.8’i '
+      + 'istisnalarıyla (satır içi · aralık · temel) uygular',
+    rol: 'ürün ekibi', kapsam: 'kurum geneli',
+    onkosul: 'Ürün eşiği CSS’te beyan ediyor', veriHali: 'normal',
+    eylem: 'Beyan ile kapının ölçtüğü ölçüt karşılaştırılır',
+    beklenenSonuc: 'İkisi aynı eşiği söyler',
+    beklenenEkran: 'Beyan ile kapı aynı şeyi ölçer',
+    beklenenIz: 'yazma yok', beklenenBildirim: 'yok',
+    katmanlar: ['UI', 'ACCESSIBILITY'],
+  },
 
   /* ── Yardım ─────────────────────────────────────────────────────── */
   {
@@ -1439,6 +1563,141 @@ export const PLATFORM_SENARYOLARI_6: Senaryo[] = [
     beklenenEkran: 'İkincil gezinme sırası',
     beklenenIz: 'yazma yok', beklenenBildirim: 'yok',
     katmanlar: ['UI', 'ACCESSIBILITY'],
+  },
+  {
+    id: 'SIS-KBK-020', alan: 'Sistem', rota: '—', eksen: 'arayuz',
+    amac: 'Dar bant için YAZILAN bir kuralın gerçekten uygulanması — '
+      + 'ölçüldü: iki bildirim doğru banda konmuş, doğru yazılmış ve '
+      + 'cascade yüzünden hiç uygulanmamıştı (hesaplanan değer 375px’te '
+      + 'temel kuralın değeriydi)',
+    rol: 'ürün ekibi', kapsam: 'kurum geneli',
+    onkosul: 'Kabuk CSS’inde dar bant blokları var', veriHali: 'normal',
+    eylem: 'Kabuk CSS’i okunur; her dar bant bildirimi, aynı seçiciyi aynı '
+      + 'özellikle ezen SONRAKİ bir kurala karşı sınanır',
+    beklenenSonuc: 'Tarama sıfırdan çok bildirim görür ve tabanın altına düşmez',
+    beklenenEkran: 'Kör bir ayrıştırıcı "ölü kural yok" diyemez',
+    beklenenIz: 'yazma yok', beklenenBildirim: 'yok',
+    katmanlar: ['UI'],
+  },
+  {
+    id: 'SIS-KBK-021', alan: 'Sistem', rota: '—', eksen: 'arayuz',
+    amac: 'Ölü dar bant bildiriminin depoya girmemesi',
+    rol: 'ürün ekibi', kapsam: 'kurum geneli',
+    onkosul: 'Bir dar bant bloğuna bildirim eklendi', veriHali: 'normal',
+    eylem: 'Bildirim, medyasız ya da daha GENİŞ bir max-width taşıyan '
+      + 'sonraki bir kuralla karşılaştırılır',
+    beklenenSonuc: 'Ölü bildirim sayısı SIFIR; gerekçeli istisna yok — '
+      + 'çalışmayan bir kuralın gerekçesi olamaz',
+    beklenenEkran: 'Yazılan iyileştirme ekranda gerçekten var',
+    beklenenIz: 'yazma yok', beklenenBildirim: 'yok',
+    katmanlar: ['UI'],
+  },
+  {
+    id: 'SIS-KBK-022', alan: 'Sistem', rota: '/uyum', eksen: 'arayuz',
+    amac: 'Telefonda "neredeyim" sorusunun BAKARAK cevaplanması — ölçüldü: '
+      + 'kayan 45 rotanın 24’ünde aktif sekme ekranın dışındaydı',
+    rol: 'telefonla bakan kullanıcı', kapsam: 'kendi kapsamı',
+    onkosul: 'Uyum alanı açık; ikincil sıra on dokuz bağ taşıyor',
+    veriHali: 'normal',
+    eylem: 'Ekranı 375px genişlikte açar',
+    beklenenSonuc: 'Sıra yatay kaymaz; tek bir düğme aktif grubu ve aktif '
+      + 'bölümü yazar',
+    beklenenEkran: 'İkincil sıra · bölüm seçici',
+    beklenenIz: 'yazma yok', beklenenBildirim: 'yok',
+    katmanlar: ['UI'],
+  },
+  {
+    id: 'SIS-KBK-023', alan: 'Sistem', rota: '/riskler', eksen: 'arayuz',
+    amac: 'Ekrana SIĞAN bir sıranın gereksiz yere katlanmaması',
+    rol: 'telefonla bakan kullanıcı', kapsam: 'kendi kapsamı',
+    onkosul: 'Risk alanı açık; ikincil sıra iki bağ taşıyor',
+    veriHali: 'normal',
+    eylem: 'Ekranı 375px genişlikte açar',
+    beklenenSonuc: 'İki bağ da doğrudan görünür; katlama yok, ek dokunuş yok',
+    beklenenEkran: 'İkincil sıra · düz',
+    beklenenIz: 'yazma yok', beklenenBildirim: 'yok',
+    katmanlar: ['UI'],
+  },
+  {
+    id: 'SIS-KBK-024', alan: 'Sistem', rota: '—', eksen: 'arayuz',
+    amac: 'Katlama eşiğinin uydurulmuş değil ÖLÇÜLMÜŞ bir sınır olması',
+    rol: 'ürün ekibi', kapsam: 'kurum geneli',
+    onkosul: 'İkincil sıralar iki · beş · on dokuz bağ taşıyor',
+    veriHali: 'normal',
+    eylem: 'Eşik, ürünün gerçek sıralarına karşı sınanır',
+    beklenenSonuc: 'Eşiğin iki yanında da gerçek sıra var ve hiçbir sıra '
+      + 'eşiğin tam üstünde durmuyor',
+    beklenenEkran: 'Bir bağ eklendiği gün davranış sessizce değişmez',
+    beklenenIz: 'yazma yok', beklenenBildirim: 'yok',
+    katmanlar: ['UI'],
+  },
+  {
+    id: 'SIS-KBK-025', alan: 'Sistem', rota: '/egitimler', eksen: 'arayuz',
+    amac: 'Aktif bölümün GRUBUYLA birlikte bulunması — grup bağlamı gören '
+      + 'kullanıcıya ulaşmıyordu, yalnız aria-label taşıyordu',
+    rol: 'telefonla bakan kullanıcı', kapsam: 'kendi kapsamı',
+    onkosul: 'Sıranın en sonundaki bölüm açık', veriHali: 'normal',
+    eylem: 'Bölüm seçici düğmesini okur',
+    beklenenSonuc: 'Düğme "Kayıt ve kanıt › Eğitim kütüğü" der; alan dışı '
+      + 'bir patikada uydurma bölüm yazmaz, alan adını yazar',
+    beklenenEkran: 'Bölüm seçici düğmesi',
+    beklenenIz: 'yazma yok', beklenenBildirim: 'yok',
+    katmanlar: ['UI', 'ACCESSIBILITY'],
+  },
+  {
+    id: 'SIS-KBK-026', alan: 'Sistem', rota: '/uyum', eksen: 'arayuz',
+    amac: 'Bant kararının CSS’te durması — bileşen bandı ölçseydi sunucu '
+      + 'geniş bandı çizer, istemci dar bandı düzeltir ve ilk karede '
+      + 'yanlış yüzey yanardı',
+    rol: 'ürün ekibi', kapsam: 'kurum geneli',
+    onkosul: 'Katlanan bir sıra var', veriHali: 'normal',
+    eylem: 'Kabuk CSS’i okunur',
+    beklenenSonuc: 'Seçici geniş ekranda gizli, dar bantta görünür; '
+      + 'katlanan sıranın grupları yalnız dar bantta düşer',
+    beklenenEkran: 'Her bant tek bir yüzey gösterir',
+    beklenenIz: 'yazma yok', beklenenBildirim: 'yok',
+    katmanlar: ['UI'],
+  },
+  {
+    id: 'SIS-KBK-027', alan: 'Sistem', rota: '/uyum', eksen: 'arayuz',
+    amac: 'Katlanan sıranın HİÇBİR ROTAYI gizlememesi — ulaşım yolu '
+      + 'değişir, rota kaybolmaz',
+    rol: 'telefonla bakan kullanıcı', kapsam: 'kendi kapsamı',
+    onkosul: 'Uyum alanı 375px’te açık; sıra katlanmış', veriHali: 'normal',
+    eylem: 'Bölüm seçiciyi dokunarak açar ve son gruptaki bir bölüme dokunur',
+    beklenenSonuc: 'Panel üç grubu başlıklarıyla dikey listeler, aktif bölüm '
+      + 'işaretli gelir, dokunulan bölüme gidilir ve panel kapanır',
+    beklenenEkran: 'Bölüm paneli',
+    beklenenIz: 'yazma yok', beklenenBildirim: 'yok',
+    katmanlar: ['UI', 'ACCESSIBILITY'],
+  },
+  {
+    id: 'SIS-KBK-028', alan: 'Sistem', rota: '—', eksen: 'arayuz',
+    amac: 'Katlama kapısının KÖR kalmaması — kapı sınıf adına bakar, '
+      + 'bileşen o adı değiştirirse kapı hiçbir şey bulamadan yeşil yanar',
+    rol: 'ürün ekibi', kapsam: 'kurum geneli',
+    onkosul: 'Gezinme kapısı bölüm seçicisini sürüyor', veriHali: 'normal',
+    eylem: 'Kapının kullandığı seçiciler bileşenin gerçek sınıflarıyla '
+      + 'karşılaştırılır',
+    beklenenSonuc: 'Üç sınıf da iki dosyada birebir; sıfır ölçüm kırmızı yakar',
+    beklenenEkran: 'Kör bir kapı yeşil yanamaz',
+    beklenenIz: 'yazma yok', beklenenBildirim: 'yok',
+    katmanlar: ['UI'],
+  },
+  {
+    id: 'SIS-KBK-029', alan: 'Sistem', rota: '/tedarikciler', eksen: 'arayuz',
+    amac: 'Alt ekranlar sırasının AKTİF olanı göstererek açılması — '
+      + 'ölçüldü: 19 rotanın altısında aktif alt ekran görünür alanın '
+      + 'dışındaydı, en uzağı 537px',
+    rol: 'telefonla bakan kullanıcı', kapsam: 'kendi kapsamı',
+    onkosul: 'Varlık alanında bir grubun son alt ekranı açık',
+    veriHali: 'normal',
+    eylem: 'Ekranı 375px genişlikte açar',
+    beklenenSonuc: 'Aktif alt ekran sıranın görünür penceresinde gelir; '
+      + 'sayfanın kendisi kaymaz ve zaten görünür olan oynatılmaz',
+    beklenenEkran: 'Üçüncül gezinme sırası',
+    beklenenIz: 'yazma yok', beklenenBildirim: 'yok',
+    katmanlar: ['UI'],
   },
   {
     id: 'SIS-KBK-018', alan: 'Sistem', rota: '—', eksen: 'arayuz',

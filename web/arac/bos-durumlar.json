@@ -84,7 +84,7 @@
     },
     {
       "yer": "app/(kabuk)/(flagship)/Genel.tsx",
-      "satir": 711,
+      "satir": 723,
       "tur": "satirIci",
       "cumle": "Kapsamınızda … yok — uyum tuvali … kayıtlarından çizilir. {tanimlayabilir ? … tanımla → : Tanımlama yetkisi yöneticinizdedir. }",
       "iyiHaber": false,
@@ -300,7 +300,7 @@
     },
     {
       "yer": "app/(kabuk)/(operasyonel)/envanter/EnvanterIstemci.tsx",
-      "satir": 246,
+      "satir": 260,
       "tur": "satirIci",
       "cumle": "… Bu süzgeçte varlık yok — seçtiğiniz ölçütler kütükteki hiçbir kayıtla eşleşmedi. Kapsamınızda varlık kaydı yok — envanter henüz doldurulmadı ya da bu varlıklar yetki kapsamınızın dışında. Sinyal merceğinde varlık yok — bilinen açık ve geçmiş ömür yok. … {filtreAktif ? ( Süzgeci temizle ) : varlikl",
       "iyiHaber": false,
@@ -309,7 +309,7 @@
     },
     {
       "yer": "app/(kabuk)/(operasyonel)/envanter/EnvanterIstemci.tsx",
-      "satir": 336,
+      "satir": 350,
       "tur": "satirIci",
       "cumle": "Zincirde ya da tabloda bir varlık seçin; yedi halka o varlıktan geçen yolu gösterir. … {gorunur.length > 0 && ( İlk varlığı aç )}",
       "iyiHaber": false,
@@ -318,7 +318,7 @@
     },
     {
       "yer": "app/(kabuk)/(operasyonel)/envanter/EnvanterIstemci.tsx",
-      "satir": 557,
+      "satir": 571,
       "tur": "satirIci",
       "cumle": "Seçili varlığa bağlı kayıt yok; bu halka boş. Kayıt yok; bir varlık seçilmedi. … {secili ? ( /* `?sec=` bu ekranın KENDİ adres durumudur (`useUrlDurumuBos`) ve gerçekten okunur. İlk yazımda `/varliklar/ ` yazılmıştı ve öyle bir rota yok — bağımsız inceleme yakaladı. */ Bağları düzenle ) : ilkSecileb",
       "iyiHaber": false,
@@ -327,7 +327,7 @@
     },
     {
       "yer": "app/(kabuk)/(operasyonel)/envanter/EnvanterIstemci.tsx",
-      "satir": 606,
+      "satir": 620,
       "tur": "satirIci",
       "cumle": "Bir varlık seçin; dört halka o varlıktan geçen yolu gösterir. {ilkSecilebilir && ( İlk varlığı aç )}",
       "iyiHaber": false,
@@ -336,7 +336,7 @@
     },
     {
       "yer": "app/(kabuk)/(operasyonel)/envanter/EnvanterIstemci.tsx",
-      "satir": 792,
+      "satir": 806,
       "tur": "satirIci",
       "cumle": "Açık zafiyet kaydı yok; bu varlık için kapatılmamış zafiyet bulunmuyor.",
       "iyiHaber": true,
@@ -345,7 +345,7 @@
     },
     {
       "yer": "app/(kabuk)/(operasyonel)/envanter/EnvanterIstemci.tsx",
-      "satir": 803,
+      "satir": 817,
       "tur": "satirIci",
       "cumle": "Bu varlık bir risk ya da projeye bağlı değil; bağ kurulduğunda yönetişim izi burada görünür. … Risk ya da projeye bağla",
       "iyiHaber": false,
@@ -462,7 +462,7 @@
     },
     {
       "yer": "app/(kabuk)/(operasyonel)/kanitlar/KanitlarIstemci.tsx",
-      "satir": 215,
+      "satir": 224,
       "tur": "BosIlk",
       "cumle": "Kapsamınızda kanıt kaydı yok. ${kapsamDisi} kanıt ${t('tesis')} kapsamınız dışında (bağlantısız ya da başka ${t('tesis', 'yonelme')} bağlı). Kapsamınızda kanıt kaydı yok: yetkiniz olan kapsamda hiçbir kontrole kanıt bağlanmamış. Kanıt kaydı yok: kütüphane boş, hiçbir kontrol kanıtla desteklenmiyor.",
       "iyiHaber": false,
@@ -1155,7 +1155,7 @@
     },
     {
       "yer": "app/(tam)/harita/HaritaIstemci.tsx",
-      "satir": 54,
+      "satir": 84,
       "tur": "BosIlk",
       "cumle": "${tBas('tesis')} kapsamınız boş; harita gösterilecek kayıt bulamadı. ${tBas('portfoy', 'bulunma')} aktif ${terim('tesis')} yok: harita yalnız aktif kayıtları çizer, pasif olanlar gösterilmez.",
       "iyiHaber": false,
@@ -1163,17 +1163,8 @@
       "eylem": true
     },
     {
-      "yer": "app/(tam)/harita/HaritaIstemci.tsx",
-      "satir": 177,
-      "tur": "satirIci",
-      "cumle": "Seçili … Bir işarete tıklayın: künye, koordinat kaynağı ve açık kayıt sayıları burada açılır. … {isaretler.length > 0 && ( İlk … künyesini aç )}",
-      "iyiHaber": false,
-      "neden": true,
-      "eylem": true
-    },
-    {
       "yer": "components/kabuk/temel.tsx",
-      "satir": 248,
+      "satir": 253,
       "tur": "BosFiltre",
       "cagri": 25,
       "cumle": "Bu süzgeçle kayıt yok; süzgeci temizleyince kapsamdaki tüm kayıtlar yeniden listelenir.",

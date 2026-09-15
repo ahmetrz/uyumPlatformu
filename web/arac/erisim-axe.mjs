@@ -7,9 +7,26 @@ import { sebepBayragi, tabanDogrula, tabanYaz } from './olcum-tabani.mjs';
    klavye, azaltılmış hareket, renk kanalı). Bu araç geri kalanı için
    axe-core'un kural kümesini çalıştırır: etiketleri olmayan form
    alanları, boş bağlantılar, kontrast, işaret rolü, dil niteliği,
-   yinelenen id… Kurallar `wcag2a` + `wcag2aa` etiketleriyle sınırlıdır;
-   "en iyi uygulama" kuralları burada raporlanmaz — kapı, uyum
+   yinelenen id… Kurallar `wcag2a` + `wcag2aa` + `wcag22aa` etiketleriyle
+   sınırlıdır; "en iyi uygulama" kuralları burada raporlanmaz — kapı, uyum
    sözleşmesidir, üslup listesi değil.
+
+   ── NİÇİN `wcag22aa` DE VAR ───────────────────────────────────────────
+   ÖLÇÜLEN KUSUR (15 Eylül 2026): ürün dokunma hedefi eşiğini KENDİ
+   yazıyordu — `app/kabuk.css` "dokunma hedefi korunur (WCAG 2.2 24px)"
+   diyor — ama hiçbir kapı onu ölçmüyordu. Etiket kümesi `wcag2a` +
+   `wcag2aa` ile sınırlıydı ve WCAG 2.2'nin 2.5.8 ölçütü o kümede YOKTUR.
+   Beyan edilen bir eşiğin kapısı olmaması, eşiğin olmamasıyla aynı şeydir.
+
+   Kusur elle bulundu: `/raporlar`ın dip satırındaki üç rota bağı 375px'te
+   alt alta düşüyor ve merkez-merkez 23px / 19px kalıyordu (hedefin kendi
+   boyu 14px). "Cümle içi" istisnası bunu örtmez — dar bantta bağların
+   arasında metin kalmıyor, üç bağ bir listeye dönüşüyor.
+
+   Elle ölçüm bir kez doğrudur, ertesi gün yalan söyler. axe-core 4.13'ün
+   `target-size` kuralı 2.5.8'i İSTİSNALARIYLA birlikte uygular (satır içi
+   bağ, aralık, temel) — kendi geometri hesabımı yazmak, standardın
+   kendisinden daha kötü bir kopyasını üretmek olurdu.
 
    Ciddi (`serious`) ya da kritik (`critical`) etkili bir ihlal varsa
    çıkış kodu 1. `minor`/`moderate` ihlaller yine listelenir — sonraki
@@ -84,7 +101,7 @@ if (BANTLAR.length === 0) {
   process.exit(2);
 }
 const AXE_YOLU = path.join(WEB, 'node_modules', 'axe-core', 'axe.min.js');
-const ETIKETLER = ['wcag2a', 'wcag2aa'];
+const ETIKETLER = ['wcag2a', 'wcag2aa', 'wcag22aa'];
 
 const b = await chromium.launch({ executablePath: tarayiciYolu() });
 

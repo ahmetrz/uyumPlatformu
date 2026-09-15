@@ -23,6 +23,20 @@ import { sebepBayragi, tabanDogrula, tabanYaz } from './olcum-tabani.mjs';
         kullanır; "geçerli sayfa" yalnız kabuğun kendi sekmesinde duyurulur.
      4. KLAVYE — kardeş bağlantı sekmeyle odaklanır, Enter gider.
      5. Sayfa hatası yok.
+     6. KATLANAN SIRA HİÇBİR ROTAYI GİZLEMEZ — dar bantta ikincil sıra
+        bölüm seçiciye katlanır (ölçüldü: 375px'te on dokuz bağın üçü
+        görünüyordu, 45 kayan rotanın 24'ünde aktif sekme ekran
+        dışındaydı). Katlama bir GİZLEME değilse, katlanmış sıranın en
+        SONUNDAKİ bölüme dokunarak varılabilmelidir. Vaka yalnız sıranın
+        gerçekten katlandığı bantta koşar; geniş ekranda katlama yoktur
+        ve ölçülecek bir şey de.
+     7. AKTİF ÜÇÜNCÜL EKRAN GÖRÜNÜR AÇILIR — üçüncül sıra dar bantta
+        yatay kayar ve sıfırdan başlıyordu; ölçüldü, 19 rotanın ALTISINDA
+        aktif ekran görünür alanın dışındaydı. Sıra katlanmaz (en genişi
+        649px, grup adı başta sabit); yetersiz olan kaydırma değil AÇILIŞ
+        KONUMUYDU. Vaka konumun düzeldiğini VE sayfanın kendisinin
+        kaymadığını ölçer — `scrollIntoView` atalara da dokunur ve
+        ekranı başlıktan aşağı iterdi.
 
    Kullanım: PORT=3000 node arac/gezinme-testi.mjs           → yedi bant
              PORT=3000 node arac/gezinme-testi.mjs --hizli   → dört bant
@@ -60,6 +74,19 @@ const BANTLAR = process.argv.includes('--hizli')
 /* Kabuk içi kardeş: ikisi de C defterindedir. */
 const BASLANGIC = '/riskler';
 const KARDES = '/bulgular';
+
+/* Katlanan sıranın ölçüldüğü rota ve hedef. `/uyum` on dokuz bağ ve üç
+   grup taşır; hedef SON grubun SON bağıdır — yatay kayan sırada 1 982'nci
+   pikselde duran, kusurun doğduğu bağ. */
+const KATLAMA = { rota: '/uyum', hedef: '/egitimler', enAzBag: 19 };
+let olculenKatlama = 0;
+
+/* Üçüncül sıranın ölçüldüğü rotalar: ölçümde aktif ekranı görünür alanın
+   DIŞINDA kalan altı rotanın ikisi (`/tedarikciler` 537px, `/esleme`
+   330px) ve sıranın BAŞINDAKİ bir rota (`/envanter`) — sonuncusu
+   düzeltmenin, zaten görünür olanı gereksiz yere OYNATMADIĞINI ölçer. */
+const UCUNCUL_ROTALARI = ['/tedarikciler', '/esleme', '/envanter'];
+let olculenUcuncul = 0;
 
 /* Kabuklar arası tur: her adım "buradayım → alan bağlantısına dokun →
    oraya vardım". Hedef kabuğun belirtisi kök `.ab[data-yogunluk]` değeridir. */
@@ -168,6 +195,70 @@ for (const bant of BANTLAR) {
       if (patika(s) !== KARDES) bildir(bant.ad, `klavye: varış ${patika(s)} (${KARDES} olmalı)`);
     }
 
+    /* ── 2b · KATLANAN SIRA: EN SONDAKİ BÖLÜME DOKUNARAK VARIŞ ───────
+       Katlama "rotayı gizleme" olsaydı bu adım düşerdi. Hedef bilerek
+       sıranın SON grubunun son bağıdır: yatay kayan sırada 1 982'nci
+       pikselde duran, yani kusurun doğduğu bağ. */
+    await s.goto(KOK + KATLAMA.rota, { waitUntil: 'load' });
+    await s.waitForTimeout(400);
+    const secici = s.locator('.ab-bolum-dugme');
+    const katlandi = (await secici.count()) > 0 && await secici.first().isVisible();
+    if (katlandi) {
+      await secici.first().tap();
+      await s.waitForTimeout(250);
+      const panelBaglari = await s.locator('.ab-bolum-menu [role="menuitem"]').count();
+      if (panelBaglari < KATLAMA.enAzBag) {
+        bildir(bant.ad, `katlanan sıra: panelde ${panelBaglari} bağ (en az ${KATLAMA.enAzBag} olmalı)`);
+      }
+      /* Grup başlıkları GÖRÜNÜR olmalı: kusurun yarısı buydu — gruplar
+         yalnız `aria-label` ile duyuluyor, gören kullanıcıya ulaşmıyordu. */
+      const baslik = await s.locator('.ab-bolum-menu .baslik').count();
+      if (baslik < 2) bildir(bant.ad, `katlanan sıra: görünür grup başlığı ${baslik} (en az 2)`);
+      await dokunVeVar(s, bant.ad,
+        s.locator(`.ab-bolum-menu [role="menuitem"][href="${KATLAMA.hedef}"]`),
+        KATLAMA.hedef, 'katlanan sıra (dokunmatik)');
+      /* Panel varışta KAPANMALI: açık kalan bir katman ekranın yarısını
+         yer ve kullanıcı vardığı ekranı göremez. */
+      await s.waitForTimeout(250);
+      if (await s.locator('.ab-bolum-menu').count()) {
+        bildir(bant.ad, 'katlanan sıra: varıştan sonra panel açık kaldı');
+      }
+      olculenKatlama += 1;
+    } else if (bant.en <= 700) {
+      /* Dar bantta katlanmayan bir sıra, kuralın kaybolduğu anlamına
+         gelir — sessizce geçmez. */
+      bildir(bant.ad, `katlanan sıra: ${KATLAMA.rota} dar bantta KATLANMADI`);
+    }
+
+    /* ── 2c · AKTİF ÜÇÜNCÜL EKRAN GÖRÜNÜR AÇILIR ─────────────────────
+       Hedefler bilerek sıranın SONUNDAKİ ekranlardır: ölçümde ekranın
+       dışında kalan altı rotanın ikisi. */
+    for (const yol of UCUNCUL_ROTALARI) {
+      await s.goto(KOK + yol, { waitUntil: 'load' });
+      await s.waitForTimeout(350);
+      const u = await s.evaluate(() => {
+        const nav = document.querySelector('nav.ab-ucuncul');
+        if (!nav) return null;
+        const a = nav.querySelector('[aria-current="true"]');
+        if (!a) return { aktifYok: true };
+        const nr = nav.getBoundingClientRect();
+        const ar = a.getBoundingClientRect();
+        return {
+          icinde: ar.left >= nr.left - 1 && ar.right <= nr.right + 1,
+          ad: (a.textContent ?? '').trim(),
+          sayfaX: window.scrollX, sayfaY: window.scrollY,
+        };
+      });
+      if (!u) { bildir(bant.ad, `üçüncül sıra: ${yol} sırası YOK`); continue; }
+      if (u.aktifYok) { bildir(bant.ad, `üçüncül sıra: ${yol} aktif ekranı işaretlemiyor`); continue; }
+      if (!u.icinde) bildir(bant.ad, `üçüncül sıra: ${yol} aktif ekranı ("${u.ad}") görünür alanın DIŞINDA`);
+      /* Sıra kendi içinde kayar, SAYFAYI İTMEZ. */
+      if (u.sayfaX !== 0 || u.sayfaY !== 0) {
+        bildir(bant.ad, `üçüncül sıra: ${yol} sayfayı kaydırdı (${u.sayfaX},${u.sayfaY})`);
+      }
+      olculenUcuncul += 1;
+    }
+
     /* ── 3 · KABUKLAR ARASI tur ──────────────────────────────────────── */
     for (const adim of TUR) {
       await s.goto(KOK + adim.neredeyim, { waitUntil: 'load' });
@@ -206,7 +297,19 @@ if (kusurlar.length) {
   for (const k of kusurlar) console.error(`  · ${k}`);
   process.exitCode = 1;
 } else {
-  console.log(`\ngezinme kusuru: 0 · ${BANTLAR.length} bant · kabuk içi + kabuklar arası`);
+  console.log(`\ngezinme kusuru: 0 · ${BANTLAR.length} bant · kabuk içi + kabuklar arası`
+    + ` · katlanan sıra ${olculenKatlama} bantta · üçüncül sıra ${olculenUcuncul} kez ölçüldü`);
+}
+/* KATLAMA HİÇ ÖLÇÜLMEDİYSE KAPI YEŞİL YANMAZ. Dar bant her koşuda
+   kümededir (`--hizli` dâhil); sıfır ölçüm, kuralın kaybolduğunu ya da
+   seçicinin adının değiştiğini söyler — ikisi de sessiz geçmez. */
+if (olculenKatlama === 0) {
+  console.error('\nKATLANAN SIRA HİÇ ÖLÇÜLMEDİ — dar bantta bölüm seçici bulunamadı');
+  process.exitCode = 1;
+}
+if (olculenUcuncul === 0) {
+  console.error('\nÜÇÜNCÜL SIRA HİÇ ÖLÇÜLMEDİ — aktif ekran işaretlemesi bulunamadı');
+  process.exitCode = 1;
 }
 
 /* ── ÖLÇÜM KAPSAMI TABANI ─────────────────────────────────────────────

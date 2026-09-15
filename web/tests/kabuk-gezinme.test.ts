@@ -294,3 +294,230 @@ describe('rota envanteri · hiçbir ekran kapıların dışında kalmaz', () => 
     expect(beklenen.filter((y) => !kayitli.has(y))).toEqual([]);
   });
 });
+
+/* ── DAR BANTTA SIRA KATLANIR ─────────────────────────────────────────
+   Ölçülen kusur (mobil audit, 375×812): dokunmatik bantta ikincil sıra
+   yatay kayıyordu ve 45 kayan rotanın 24'ünde AKTİF SEKME EKRANIN
+   DIŞINDAYDI — `/egitimler`'de sıranın 1 982'nci pikselinde, beş ekran
+   ötede. "Neredeyim" sorusu bakarak cevaplanamıyordu. Üstelik `/uyum`
+   sırasının on dokuz bağından ÜÇÜ görünüyordu (%16).
+
+   Kural saf bir fonksiyondadır (`katlanirMi`) ve burada gerçek gezinme
+   yapısına karşı sınanır: eşik uydurulmuş bir sayı değil, ürünün
+   ÖLÇÜLEN sıralarını ikiye ayıran sınırdır. */
+describe('kabuk · dar bantta ikincil sıra katlanır', () => {
+  it('üçten çok bağ taşıyan sıra KATLANIR [SIS-KBK-022]', async () => {
+    const { ikincilSec, katlanirMi } = await import('@/components/kabuk/yonler');
+    /* 375px'e sığmayan iki sıra: Uyum 19 bağ (2 111px) · Varlık 5 bağ (519px). */
+    expect(katlanirMi(ikincilSec('/uyum'))).toBe(true);
+    expect(katlanirMi(ikincilSec('/envanter'))).toBe(true);
+  });
+
+  it('375px’e SIĞAN sıra katlanmaz — bugünkü davranış korunur [SIS-KBK-023]', async () => {
+    const { ikincilSec, katlanirMi } = await import('@/components/kabuk/yonler');
+    /* İkisi de iki bağ; ölçüldü, 375px'te kaymıyorlar. */
+    expect(katlanirMi(ikincilSec('/riskler'))).toBe(false);
+    expect(katlanirMi(ikincilSec('/portfoy'))).toBe(false);
+    /* Alanı olmayan rotada sıra YOKTUR; boş sıra katlanmaz. */
+    expect(katlanirMi(ikincilSec('/'))).toBe(false);
+  });
+
+  it('eşik ürünün sıralarını İKİYE ayırır — ortada sıra yok [SIS-KBK-024]', async () => {
+    const { IKINCIL, DAR_BANT_BAG_TAVANI } = await import('@/components/kabuk/yonler');
+    const sayilar = Object.values(IKINCIL)
+      .map((g) => g.reduce((n, x) => n + x.ogeler.length, 0))
+      .sort((a, b) => a - b);
+    /* Eşiğin İKİ YANINDA da gerçek sıra olmalı: bir yanı boş kalırsa
+       kural ölçülmemiş bir varsayımdır, sınır değil. */
+    expect(sayilar.some((n) => n <= DAR_BANT_BAG_TAVANI), 'katlanmayan sıra yok').toBe(true);
+    expect(sayilar.some((n) => n > DAR_BANT_BAG_TAVANI), 'katlanan sıra yok').toBe(true);
+    /* Eşik hiçbir gerçek sıranın TAM ÜSTÜNDE durmaz: tavana eşit bir sıra
+       olsaydı bir bağ eklendiği gün davranış sessizce değişirdi. */
+    expect(sayilar).not.toContain(DAR_BANT_BAG_TAVANI);
+  });
+
+  it('aktif bölüm grubuyla birlikte bulunur — "neredeyim" [SIS-KBK-025]', async () => {
+    const { ikincilSec, aktifBolum } = await import('@/components/kabuk/yonler');
+    const gruplar = ikincilSec('/uyum');
+    /* Kusurun doğduğu rota: sıranın en sonundaki bağ. */
+    const son = aktifBolum(gruplar, '/egitimler');
+    expect(son?.grup.ad).toBe('Kayıt ve kanıt');
+    expect(son?.oge.ad).toBe('Eğitim kütüğü');
+    /* Alt ekranı olan öğede de grup bulunur (üçüncül sıra, Varlık). */
+    const alt = aktifBolum(ikincilSec('/envanter'), '/kesif');
+    expect(alt?.oge.yol).toBe('/envanter');
+    /* Bu alanda olmayan bir patika aktif bölüm VERMEZ — düğme o zaman
+       alan adını yazar, uydurma bir bölüm değil. */
+    expect(aktifBolum(gruplar, '/envanter')).toBeNull();
+  });
+
+  it('katlanan sıra CSS’te gizlenir, seçici yalnız dar bantta çizilir [SIS-KBK-026]', () => {
+    const bloklar = css.match(/@media[^{]*\{(?:[^{}]|\{[^{}]*\})*\}/g) ?? [];
+    const dar = bloklar.filter((b) => /max-width:\s*700px/.test(b)).join('\n');
+    /* Bant kararı CSS'in: bileşen bandı ölçseydi sunucu geniş bandı
+       çizer, istemci dar bandı düzeltirdi. */
+    expect(dar).toMatch(/\.ab-ikincil\[data-katlanir\]\s*>\s*\.grup\s*\{[^}]*display:\s*none/);
+    expect(dar).toMatch(/\.ab-bolum\s*\{[^}]*display:\s*flex/);
+    /* Geniş ekranda seçici YOKTUR: medyasız temel kural onu gizler. */
+    const medyasiz = css.replace(/@media[^{]*\{(?:[^{}]|\{[^{}]*\})*\}/g, '');
+    expect(medyasiz).toMatch(/\n\.ab-bolum\s*\{[^}]*display:\s*none/);
+  });
+});
+
+/* ── KATLANAN SIRANIN TARAYICI KAPISI KÖR OLAMAZ ──────────────────────
+   Katlamanın GERÇEK ölçüsü tarayıcıdadır (`arac/gezinme-testi.mjs`,
+   `kapi-gezinme`): 375px'te seçici dokunulur, panel açılır, son gruptaki
+   bölüme varılır. Burada ölçülen o değil, kapının KENDİSİDİR — kapı bir
+   sınıf adına bakıyor ve bileşen o adı değiştirirse kapı hiçbir şey
+   bulamadan yeşil yanardı. Seçiciler iki dosyada da AYNI olmak zorunda. */
+describe('kabuk · katlama kapısı bileşene bağlı', () => {
+  const kapi = readFileSync('arac/gezinme-testi.mjs', 'utf8');
+  const bilesen = readFileSync('components/kabuk/BolumSecici.tsx', 'utf8');
+
+  it('kapı katlanan sırayı GERÇEKTEN sürüyor [SIS-KBK-027]', () => {
+    /* Hedef son grubun son bağıdır: kusurun doğduğu, yatay sırada
+       1 982'nci pikseldeki bağ. */
+    expect(kapi).toMatch(/KATLAMA\s*=\s*\{[^}]*rota:\s*'\/uyum'[^}]*hedef:\s*'\/egitimler'/);
+    /* Panel açılır, bağ sayılır, grup başlığı aranır, dokunularak
+       gidilir ve panelin KAPANDIĞI doğrulanır — dördü de kapıda. */
+    expect(kapi).toMatch(/\.ab-bolum-dugme/);
+    expect(kapi).toMatch(/panelBaglari/);
+    expect(kapi).toMatch(/görünür grup başlığı/);
+    expect(kapi).toMatch(/panel açık kaldı/);
+    /* SIFIR ÖLÇÜM KIRMIZIDIR: seçici bulunamazsa kapı sessizce geçmez. */
+    expect(kapi).toMatch(/olculenKatlama === 0[\s\S]{0,200}process\.exitCode = 1/);
+  });
+
+  it('üçüncül sıra aktif ekranı GÖRÜNÜR açar — ve sayfayı itmez [SIS-KBK-029]', () => {
+    const kabuk = readFileSync('components/kabuk/Kabuk.tsx', 'utf8');
+    /* Kaydırma YALNIZ sıranın kendi kutusunda olur. `scrollIntoView`
+       ataları da kaydırır ve ekranı başlıktan aşağı iterdi; ölçüm bunu
+       kapıda da sınıyor ama kaynakta da yasaktır. */
+    expect(kabuk).toMatch(/ucunculKok/);
+    expect(kabuk).toMatch(/sira\.scrollLeft\s*=/);
+    expect(kabuk, 'scrollIntoView atalara dokunur — sayfayı iter')
+      .not.toMatch(/ucuncul[\s\S]{0,400}scrollIntoView/);
+    /* Yumuşak geçiş YOK: bu bir animasyon değil açılış konumudur. */
+    expect(kabuk).not.toMatch(/scrollLeft[\s\S]{0,120}behavior/);
+    /* Görünür olan öğe OYNATILMAZ: her rota değişiminde sırayı zıplatmak
+       da bir kusurdur; koşul iki yönlü. */
+    expect(kabuk).toMatch(/if \(sol < sira\.scrollLeft\)[\s\S]{0,240}else if \(sag >/);
+    /* Kapı bunu üç rotada sürer ve sıfır ölçüm kırmızı yakar. */
+    expect(kapi).toMatch(/UCUNCUL_ROTALARI\s*=\s*\[[^\]]*'\/tedarikciler'/);
+    expect(kapi).toMatch(/görünür alanın DIŞINDA/);
+    expect(kapi).toMatch(/sayfayı kaydırdı/);
+    expect(kapi).toMatch(/olculenUcuncul === 0[\s\S]{0,200}process\.exitCode = 1/);
+  });
+
+  it('kapının seçicileri bileşenin GERÇEK sınıflarıyla aynı [SIS-KBK-028]', () => {
+    /* Kapı bu üç seçiciye bakıyor; üçü de bileşende birebir olmalı.
+       Bir yeniden adlandırma iki dosyadan yalnız birini değiştirirse
+       kapı kör kalır ve kör kapı her zaman yeşildir. */
+    for (const sec of ['ab-bolum-dugme', 'ab-bolum-menu', 'baslik']) {
+      expect(kapi, `kapı "${sec}" seçicisini kullanmıyor`).toContain(sec);
+      expect(bilesen, `bileşende "${sec}" sınıfı yok`).toContain(sec);
+    }
+    /* Panel öğeleri `role="menuitem"` taşır — kapı onu sayıyor. */
+    expect(kapi).toContain('[role="menuitem"]');
+    expect(bilesen).toContain("role=\"menuitem\"");
+  });
+});
+
+/* ── KAPSAM KOLONU: İSTİSNA OKUNUR ───────────────────────────────────
+   Ölçülen kusur (sadeleştirme turu, 1440×900, `/uyum`): kapsam kolonu
+   on dört satırda da TEK renkte çiziliyordu — ölçüldü, `getComputedStyle`
+   bir tek renk döndürdü. Yani "5 / 5" ile "2 / 5" görsel olarak aynıydı,
+   oysa kolonun tek işi bir kontrolün tesislerin yalnız BİR KISMINA
+   uygulandığı satırı göstermek.
+
+   NE ÖLÇÜLMEZ (beyanlı sınır): tohumda `/uyum` matrisinin on dört
+   satırının on dördü de tam kapsamdadır, yani TARAYICI kapısı bu kuralı
+   canlı veriyle süremez — sabotajla doğrulanan şey kuralın kaynakta
+   durduğu ve CSS'in iki hâli ayırdığıdır. `tuval-kanit.mjs`te kabul
+   edilen aynı sınır: sınanmayan bir dal ölçülmüş sayılmaz ve bu yüzden
+   burada adıyla yazılır. */
+describe('uyum · kapsam kolonu istisnayı gösterir', () => {
+  const ekran = readFileSync('app/(kabuk)/(operasyonel)/uyum/UyumIstemci.tsx', 'utf8');
+
+  it('eksik kapsam satırı işaretlenir — ölçüt VERİDEN gelir [SIS-UYM-030]', () => {
+    /* Koşul kiracının kaç tesisi olduğundan bağımsızdır: sabit bir sayı
+       yazılsaydı beş tesisli kurulumda doğru, altı tesislide yanlış olurdu. */
+    expect(ekran).toMatch(/s\.kapsamda < tesisler\.length \? ' eksik' : ''/);
+    /* Sayı GİZLENMEZ: iki hâlde de aynı metin çizilir. */
+    expect(ekran).toMatch(/\{s\.kapsamda\} \/ \{tesisler\.length\}/);
+  });
+
+  it('istisna RENGE bağlı değil — sözle de söylenir [SIS-UYM-031]', () => {
+    /* Durum yalnız renkle anlatılmaz (ürünün kendi kuralı). */
+    expect(ekran).toMatch(/title=\{s\.kapsamda < tesisler\.length/);
+    expect(ekran).toMatch(/tanesinde kapsamda/);
+  });
+
+  it('CSS iki hâli AYIRIR — yoksa sınıf ölü kalırdı [SIS-UYM-032]', () => {
+    const taban = css.match(/\.ab-mtx \.satir \.kapsam \{([^}]*)\}/);
+    const eksik = css.match(/\.ab-mtx \.satir \.kapsam\.eksik \{([^}]*)\}/);
+    expect(taban, 'kapsam temel kuralı kayboldu').not.toBeNull();
+    expect(eksik, 'eksik kapsam kuralı yok — sınıf ölü').not.toBeNull();
+    /* İki kural aynı rengi yazarsa sınıf hiçbir şey yapmaz; ayrım
+       GERÇEK olmalı. */
+    const renk = (g: string) => g.match(/color:\s*([^;]+)/)?.[1].trim();
+    expect(renk(eksik![1])).toBeTruthy();
+    expect(renk(eksik![1])).not.toBe(renk(taban![1]));
+  });
+});
+
+/* ── "+N DİĞER" SATIRI: İKİ KAYNAK TEK SAYIYI YAZAR ──────────────────
+   Satırın yüksekliği İKİ yerde birden yazılıdır ve yazılmak zorundadır:
+   CSS onu çizer, bileşen ise satır ÇİZİLMEDEN ÖNCE bütçeyi ondan hesaplar
+   (`Genel.tsx` → `KALAN_SATIR_PX`). Ayrışırlarsa bütçe hesabı sessizce
+   yanlış olur — çizilen satır hesaplanandan yüksek olur ve son kalem
+   kutudan taşar.
+
+   Sayı 20'den 24'e çıktı: satır bir BAĞDIR ve 20px, ürünün beyan ettiği
+   WCAG 2.2 AA 24×24 eşiğinin altındaydı. Kusuru elle değil KAPI buldu
+   (axe `target-size`, `wcag22aa` etiketi eklendikten sonra). */
+describe('saha · "+N diğer" bağı eşiğin üstünde', () => {
+  const ekran = readFileSync('app/(kabuk)/(flagship)/Genel.tsx', 'utf8');
+
+  it('bağ kutusu 24px — beyan edilen eşiğin altına inmez [SIS-SAHA-020]', () => {
+    const kural = css.match(/\.ab-b-dikkat \.mudahale \.kalan \{([^}]*)\}/);
+    expect(kural, 'kalan satırı kuralı kayboldu').not.toBeNull();
+    const boy = Number(kural![1].match(/height:\s*(\d+)px/)?.[1]);
+    expect(boy, `kalan satırı ${boy}px — WCAG 2.2 AA eşiği 24px`).toBeGreaterThanOrEqual(24);
+  });
+
+  it('bileşenin bütçe sabiti CSS ile AYNI sayıyı taşır [SIS-SAHA-021]', () => {
+    const kural = css.match(/\.ab-b-dikkat \.mudahale \.kalan \{([^}]*)\}/);
+    const cssBoy = Number(kural![1].match(/height:\s*(\d+)px/)?.[1]);
+    const tsBoy = Number(ekran.match(/const KALAN_SATIR_PX = (\d+);/)?.[1]);
+    expect(tsBoy, 'KALAN_SATIR_PX bulunamadı').toBeTruthy();
+    expect(tsBoy, `bütçe sabiti ${tsBoy}px ≠ CSS ${cssBoy}px — hesap satır çizilmeden yanlış olur`)
+      .toBe(cssBoy);
+  });
+});
+
+/* ── AXE KAPISI ÜRÜNÜN KENDİ EŞİĞİNİ ÖLÇER ───────────────────────────
+   Ölçülen kusur (15 Eylül 2026): `app/kabuk.css` "dokunma hedefi korunur
+   (WCAG 2.2 24px)" diye yazıyordu ama axe kapısının etiket kümesi
+   `wcag2a` + `wcag2aa` ile sınırlıydı ve WCAG 2.2'nin 2.5.8 ölçütü o
+   kümede YOKTUR. Beyan edilen bir eşiğin kapısı olmaması, eşiğin
+   olmamasıyla aynı şeydir — etiket eklenince kapı ilk koşusunda gerçek
+   bir ihlal buldu (`/` · `.mudahale .kalan` · üç bantta `serious`). */
+describe('erişim · axe kapısı WCAG 2.2 AA ölçer', () => {
+  const kapi = readFileSync('arac/erisim-axe.mjs', 'utf8');
+
+  it('etiket kümesi wcag22aa taşır [SIS-ERS-020]', () => {
+    const m = kapi.match(/const ETIKETLER = \[([^\]]*)\]/);
+    expect(m, 'ETIKETLER bulunamadı').not.toBeNull();
+    expect(m![1]).toContain('wcag22aa');
+    /* Eski küme de DURUR: 2.2 eklemek 2.0/2.1'i düşürmez. */
+    expect(m![1]).toContain('wcag2a');
+    expect(m![1]).toContain('wcag2aa');
+  });
+
+  it('dokunma hedefi eşiği ürünün KENDİ beyanıyla aynı [SIS-ERS-021]', () => {
+    /* Kapı bir sayı uydurmaz; axe 2.5.8'i istisnalarıyla uygular.
+       Ürünün beyanı CSS'te durur ve ikisi aynı eşiği söyler. */
+    expect(css).toMatch(/WCAG 2\.2 (AA )?24/);
+  });
+});

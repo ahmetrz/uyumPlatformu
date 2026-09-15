@@ -23,19 +23,20 @@
     "gezinme.bant": 7,
     "tasma.olcum": 144,
     "axe.tarama": 216,
-    "bos.durum": 124,
+    "bos.durum": 123,
     "politika.cumle": 220,
     "tanik.rota": 65,
     "tanik.cumle": 43,
     "tanik.bosDurum": 16,
     "tanik.veriYuzeyi": 17,
-    "tanik.kapsam": 35
+    "tanik.kapsam": 35,
+    "kabuk.darBantBildirimi": 310
   },
   "dususler": {
     "bos.durum": {
-      "eski": 125,
-      "yeni": 124,
-      "sebep": "/regulasyonlar çekmecesindeki 'Bu regülasyon için kayıtlı resmî kaynak yok' paragrafı kaldırıldı: aynı blokta bir üst satırda takipCumlesi(ozet) sıfır kaynakta ZATEN aynı cümleyi yazıyordu ('Kayıtlı resmî kaynak yok — mevzuat değişikliği izlenmiyor.'). İki cümle aynı olguyu söylüyordu; eylem ikisinin de altındaki 'Kaynak ekle' düğmesidir ve yerinde duruyor. Boş durum ORTADAN KALKMADI, TEKRARI kalktı — sebep ve eylem hâlâ ekranda.",
+      "eski": 124,
+      "yeni": 123,
+      "sebep": "Harita yan panelinin boş durumu KALDIRILDI: 'bir işarete tıklayın' diyen yüzeyin yerini seçilebilir tesis listesi aldı. Sistem listeyi zaten elinde tutuyordu; boş durum, kullanıcıyı 11 piksellik bir noktaya dokunmaya gönderiyordu (mobil audit ölçümü).",
       "tarih": "2026-09-14"
     }
   }

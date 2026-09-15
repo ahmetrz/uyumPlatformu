@@ -83,12 +83,14 @@ describe('uyum · altbilgi dip nottur, kaş değil', () => {
   });
 });
 
-describe('saha · gücü ölçülmemiş şeridinin notu cümle düzeninde', () => {
-  it('`.ab-gucsuz .not` kaşın büyük harfini geri alır [SAH-ODK-001]', () => {
-    /* Not, `p.mono.etiket` içinde bir `span`dır ve büyük harfi kaştan
-       MİRAS alıyordu: "— UYUM ENDEKSİ ÖLÇÜLDÜ, DİKEY EKSENDE YERİ YOK". */
-    expect(CSS).toMatch(/\.ab-b-takim \.ab-gucsuz \.not \{[^}]*text-transform: none/);
-    /* Kart adı ve tip etiketi de cümle düzeninde (24 kart × 2 satır). */
+describe('saha · şerit kartının adı ve tip etiketi cümle düzeninde', () => {
+  it('kart adı ve tip etiketi büyük harf taşımaz [SAH-ODK-001]', () => {
+    /* Bu vaka bir zamanlar gücü ölçülmemiş şeridinin notunu da ölçüyordu
+       (`.ab-gucsuz .not`, kaştan büyük harf miras alıyordu). Sadeleştirme
+       turu (15 Eyl 2026) notu ekrandan `title`a taşıdı; o sözleşme artık
+       SAH-SDL-001'in (tests/saha-sadelestirme.test.ts) — burada tutmak
+       kütüğe tersine bir beyan yazardı (bağımsız inceleme, PR #64). */
+    /* Kart adı ve tip etiketi cümle düzeninde (24 kart × 2 satır). */
     expect(CSS).toMatch(/\.ab-b-serit \.kart \.ad \{[^}]*\}/);
     expect(CSS.match(/\.ab-b-serit \.kart \.ad \{[^}]*\}/)?.[0]).not.toMatch(/uppercase/);
     expect(CSS.match(/\.ab-b-serit \.kart \.tip \{[^}]*\}/)?.[0]).not.toMatch(/uppercase/);

@@ -823,11 +823,45 @@ export const PLATFORM_SENARYOLARI: Senaryo[] = [
     rol: 'yönetici', kapsam: 'kurum geneli',
     onkosul: 'Saha açık', veriHali: 'normal',
     eylem: 'Ekranı okur',
-    beklenenSonuc: 'Kart adı, tip adı ve şerit notu cümle düzeninde; kaş '
-      + 'etiketleri ve gezinme büyük harf kalır; tek ekran sözleşmesi bozulmaz',
+    beklenenSonuc: 'Kart adı ve tip adı cümle düzeninde; kaş etiketleri ve '
+      + 'gezinme büyük harf kalır; tek ekran sözleşmesi bozulmaz (şeridin yöntem '
+      + 'notu 15 Eyl 2026 sadeleştirme turunda ekrandan title\'a taşındı — '
+      + 'SAH-SDL-001; bu vaka artık yalnız kart adı ve tip etiketini ölçer)',
     beklenenEkran: 'Saha · tesis şeridi ve takımyıldız',
     beklenenIz: 'yazma yok', beklenenBildirim: 'yok',
     katmanlar: ['UI'],
+  },
+  {
+    id: 'SAH-SER-001', alan: 'Saha', rota: '/', eksen: 'arayuz',
+    amac: 'Tesis şeridinde fotoğrafların "yüksekliği farklı" okunması — 24 kart '
+      + 'eşit boydayken boydan boya fotoğraf, gradyan perde, %38 opaklık ve ilk '
+      + 'dört karttaki kırmızı iç çerçeve kartları farklı boyda gösteriyordu',
+    rol: 'yönetici', kapsam: 'kurum geneli',
+    onkosul: 'Saha açık, en az bir tesisin fotoğrafı yok', veriHali: 'normal',
+    eylem: 'Şeridi tarar, uygunsuzu olan kartı ve fotoğrafsız kartı okur',
+    beklenenSonuc: 'Her kartta aynı yükseklikte fotoğraf bandı, metin bandın '
+      + 'altında panel zemininde; fotoğrafsız tesis aynı bandı düz zeminle alır; '
+      + 'çerçeve yok, uygunsuzluk yığın çubuğu + skor rengi + bağ başlığında sözcükle',
+    beklenenEkran: 'Saha · tesis şeridi',
+    beklenenIz: 'yazma yok', beklenenBildirim: 'yok',
+    katmanlar: ['UI'],
+  },
+  {
+    id: 'SAH-SDL-001', alan: 'Saha', rota: '/', eksen: 'arayuz',
+    amac: 'Ana sayfada karar yüzeyinde tekrar ve yöntem notu — katman paneli yedi '
+      + 'tip adını üç satırda sayıyordu, gücü ölçülmemiş şeridi yöntem notunu '
+      + 'ekrana yazıyordu, "N ölçülemedi" iki KPI\'da aynı sayıyla duruyordu ve '
+      + 'aynı adlı iki tip ("Merkez BT" · enerji ve su) ekranda aynı adla çiziliyordu',
+    rol: 'yönetici', kapsam: 'kurum geneli',
+    onkosul: 'Saha açık, çekirdek mercek (iki sektör birlikte)', veriHali: 'normal',
+    eylem: 'Katman panelini, gücü ölçülmemiş şeridini ve öncelik şeridini okur',
+    beklenenSonuc: 'Kalan tipler sayıyla ("Diğer 7 tip · 16 tesis", adlar title\'ta); '
+      + 'yöntem notu title\'ta; "ölçülemedi" yalnız Kritik risk kaleminde (risk '
+      + 'yoğunluğunda ancak kritik ve yüksek sıfırken); aynı adlı tipler sektör '
+      + 'adıyla ayrılır, tek sektörlü kiracı ek görmez',
+    beklenenEkran: 'Saha · katman paneli, takımyıldız, öncelik şeridi',
+    beklenenIz: 'yazma yok', beklenenBildirim: 'yok',
+    katmanlar: ['UI', 'DOMAIN'],
   },
   {
     id: 'SIS-SAHA-020', alan: 'Sistem', rota: '/', eksen: 'arayuz',

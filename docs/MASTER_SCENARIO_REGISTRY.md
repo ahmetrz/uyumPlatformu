@@ -13,7 +13,7 @@ it('kapsam dışı varlığa yazılamaz [ENV-YAZ-003]', …)
 Ayrı bir eşleme tablosu tutulsaydı, tablo ilk yeniden adlandırmada
 testten ayrışır ve kimse görmezdi.
 
-Senaryo: **414** · testli: **414** · GAP: **0**
+Senaryo: **416** · testli: **416** · GAP: **0**
 
 ## Aktivite · 2 senaryo
 
@@ -363,11 +363,13 @@ Senaryo: **414** · testli: **414** · GAP: **0**
 | `SAG-KOS-002` | /saglik | BT yöneticisi · kurum geneli | Tetikleyen değeri sözlükte yok · çelişen | Tanımsız bir tetikleyen adıyla senkronizasyon çağırır | Reddedilir; koşu AÇILMAZ | Hata cümlesi tetikleyeni adlandırır | yazma yok | yok | `ters-kapsam-eylem.test.ts` |
 | `SAG-ETK-001` | /saglik | BT yöneticisi · kurum geneli | Connector kimlik ister ama sır referansı tanımsız · kısmi | Connector'ı etkinleştirmeyi dener | Reddedilir — sır referansı olmadan etkinleştirilemez | Eksik olanın ne olduğu yazılır | yazma yok | yok | `ters-kapsam-eylem.test.ts` |
 
-## Saha · 3 senaryo
+## Saha · 5 senaryo
 
 | ID | Rota | Rol · kapsam | Ön koşul · veri | Eylem | Beklenen sonuç | Ekran | Denetim izi | Görev/bildirim | Test |
 | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- |
-| `SAH-ODK-001` | / | yönetici · kurum geneli | Saha açık · normal | Ekranı okur | Kart adı, tip adı ve şerit notu cümle düzeninde; kaş etiketleri ve gezinme büyük harf kalır; tek ekran sözleşmesi bozulmaz | Saha · tesis şeridi ve takımyıldız | yazma yok | yok | `odak-yayma.test.ts` |
+| `SAH-ODK-001` | / | yönetici · kurum geneli | Saha açık · normal | Ekranı okur | Kart adı ve tip adı cümle düzeninde; kaş etiketleri ve gezinme büyük harf kalır; tek ekran sözleşmesi bozulmaz (şeridin yöntem notu 15 Eyl 2026 sadeleştirme turunda ekrandan title'a taşındı — SAH-SDL-001; bu vaka artık yalnız kart adı ve tip etiketini ölçer) | Saha · tesis şeridi ve takımyıldız | yazma yok | yok | `odak-yayma.test.ts` |
+| `SAH-SER-001` | / | yönetici · kurum geneli | Saha açık, en az bir tesisin fotoğrafı yok · normal | Şeridi tarar, uygunsuzu olan kartı ve fotoğrafsız kartı okur | Her kartta aynı yükseklikte fotoğraf bandı, metin bandın altında panel zemininde; fotoğrafsız tesis aynı bandı düz zeminle alır; çerçeve yok, uygunsuzluk yığın çubuğu + skor rengi + bağ başlığında sözcükle | Saha · tesis şeridi | yazma yok | yok | `saha-sadelestirme.test.ts` · `saha-sadelestirme.test.ts` · `saha-sadelestirme.test.ts` · `saha-sadelestirme.test.ts` |
+| `SAH-SDL-001` | / | yönetici · kurum geneli | Saha açık, çekirdek mercek (iki sektör birlikte) · normal | Katman panelini, gücü ölçülmemiş şeridini ve öncelik şeridini okur | Kalan tipler sayıyla ("Diğer 7 tip · 16 tesis", adlar title'ta); yöntem notu title'ta; "ölçülemedi" yalnız Kritik risk kaleminde (risk yoğunluğunda ancak kritik ve yüksek sıfırken); aynı adlı tipler sektör adıyla ayrılır, tek sektörlü kiracı ek görmez | Saha · katman paneli, takımyıldız, öncelik şeridi | yazma yok | yok | `saha-sadelestirme.test.ts` · `saha-sadelestirme.test.ts` · `saha-sadelestirme.test.ts` · `saha-sadelestirme.test.ts` |
 | `SAH-GRS-001` | / | herhangi bir kullanıcı · kendi kapsamı | Bazı tesisin fotoğrafı yok · kısmi | Saha ekranını açar | Fotoğrafı olmayan tesis BAŞKA tesisin görselini almaz | Tipografik geri düşüş; görsel ödünç alınmaz | yazma yok | yok | `ters-kapsam-ekran.test.ts` |
 | `SAH-GRS-002` | / | herhangi bir kullanıcı · kendi kapsamı | Hiç anlık görüntü alınmamış · yok | Saha ekranını açar | Eğilim şeridi null kalır — düz sıfır çizgisi ÇİZİLMEZ | "Ölçülmedi" yazılır; eğilim uydurulmaz | yazma yok | yok | `ters-kapsam-eylem.test.ts` |
 

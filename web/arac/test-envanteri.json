@@ -1,7 +1,7 @@
 {
-  "imza": "6b864ab0785fd07611e64c66e9249495",
-  "dosya": 253,
-  "vaka": 4501,
+  "imza": "5f7a1e74d7fe525600b6044e8444b520",
+  "dosya": 255,
+  "vaka": 4511,
   "atlanan": 1,
   "dosyalar": {
     "tests/adaptor-yetenekleri.test.ts": {
@@ -50,6 +50,10 @@
     },
     "tests/bekci/bos-durum.test.ts": {
       "vaka": 24,
+      "atlanan": 0
+    },
+    "tests/bekci/buyuk-harf.test.ts": {
+      "vaka": 5,
       "atlanan": 0
     },
     "tests/bekci/cekirdek-taban.test.ts": {
@@ -589,6 +593,10 @@
       "atlanan": 0
     },
     "tests/motorlar.test.ts": {
+      "vaka": 5,
+      "atlanan": 0
+    },
+    "tests/odak-yayma.test.ts": {
       "vaka": 5,
       "atlanan": 0
     },

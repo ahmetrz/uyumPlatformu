@@ -147,11 +147,15 @@ export default function Tesis360({ veri, tesisler, sozluk }: {
           <p className="mono ust" style={{ color: renk }}>
             {[veri.tuzelKisi, veri.konum, veri.kod].filter(Boolean).join(' · ')}
           </p>
+          {/* Cümle düzeni (odak turu, SIS-KBK-031): 78px büyük harf, ekranın
+              öbür her şeyiyle aynı KAYITTA bağırıyordu; ad zaten en büyük
+              şey, büyük harf ona bir şey eklemiyordu. İki satırlık bölme ve
+              tip rengi kalır — kimlik odur, kayıt değil. */}
           <h1>
-            {ilkKelime.toLocaleUpperCase('tr-TR')}
+            {ilkKelime}
             {kalanKelimeler.length > 0 && (
               <><br /><span style={{ color: renk }}>
-                {kalanKelimeler.join(' ').toLocaleUpperCase('tr-TR')}
+                {kalanKelimeler.join(' ')}
               </span></>
             )}
           </h1>

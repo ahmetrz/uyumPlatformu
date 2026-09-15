@@ -13,7 +13,7 @@ it('kapsam dışı varlığa yazılamaz [ENV-YAZ-003]', …)
 Ayrı bir eşleme tablosu tutulsaydı, tablo ilk yeniden adlandırmada
 testten ayrışır ve kimse görmezdi.
 
-Senaryo: **409** · testli: **409** · GAP: **0**
+Senaryo: **414** · testli: **414** · GAP: **0**
 
 ## Aktivite · 2 senaryo
 
@@ -296,13 +296,14 @@ Senaryo: **409** · testli: **409** · GAP: **0**
 | `KES-KYT-002` | /kesif | platform yöneticisi · kurum geneli | Yapılandırmaya bir adres giriliyor · çelişen | Bulut metadata adresi girer | HER KOŞULDA reddedilir | Düz HTTP de açık izin olmadan reddedilir | yazma yok | yok | `ot40-toplama.test.ts` |
 | `KES-ESL-002` | /kesif | sistem (eşleştirme) · kurum geneli | Gözlem seri numarası taşıyor · normal | Eşleştirme koşar | Seri numarasıyla eşleşir ve EN YÜKSEK güveni alır | MAC yazımı farkları aynı kabul edilir | yazma yok | yok | `kesif.test.ts` |
 
-## Portföy · 9 senaryo
+## Portföy · 10 senaryo
 
 | ID | Rota | Rol · kapsam | Ön koşul · veri | Eylem | Beklenen sonuç | Ekran | Denetim izi | Görev/bildirim | Test |
 | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- |
 | `PRT-OZT-001` | /portfoy | kurum yöneticisi · kurum geneli | Tesisler tanımlı · normal | Portföy ekranını açar | Tesis başına özet görünür | Ölçülmemiş değer sıfıra çekilmez | yazma yok | yok | `senaryo-platform.test.ts` |
 | `PRT-OZT-002` | /tesisler/[id] | tesis sorumlusu · kendi tesisi | Tesis kimliği geçerli · normal | Tesis detayını açar | Varlık, uyum, risk ve olay özetleri birlikte görünür | Fotoğrafı olmayan tesis tipografik karşılık alır | yazma yok | yok | `tesis360-profil.test.ts` |
 | `PRT-OZT-003` | /portfoy | kurum yöneticisi · kurum geneli | Mercek su sektöründe; birincil ölçü "günlük debi" — ölçüldü (8 Eyl 2026, yayında): sıralama seçeneği ve kimlik paneli her mercekte "Kurulu güç" yazıyordu; ölçünün DEĞERİ sektörden çözülüyor, ADI çekirdeğe gömülüydü · normal | Sıralama listesi ve kimlik panelindeki birincil ölçü etiketi okunur | Etiket sözlüğün `kapasite` anahtarından gelir: elektrik "kurulu güç", su "günlük debi", çekirdek "kapasite"; hiçbir sıralama satırı sektör sözcüğünü sabit taşımaz (çekirdek sözcük cırcırı taban 0) | Su merceğinde "Günlük debi", çekirdekte "Kapasite" | yazma yok | yok | `ekran-mantik-72.test.ts` · `ekran-mantik-72.test.ts` |
+| `PRT-ODK-001` | /tesisler | yönetici · kurum geneli | Portföyde ölçülmüş ve ölçülmemiş tesisler birlikte · kısmi | Portföyü açar | İlk satır ve seçili panel en düşük uyum endeksli tesistir; ölçülmemiş tesisler sona düşer ve "ölçülmedi" yazar (bilinmeyen ≠ sıfır); kapasite sırası seçicide durur, silinmemiştir | Portföy · plakalar ve kimlik paneli | yazma yok | yok | `odak-yayma.test.ts` · `odak-yayma.test.ts` |
 | `TES-PRF-001` | /tesisler/[id] | tesis sorumlusu · kendi tesisi | Bazı alanlar boş bırakıldı · kısmi | Profili kaydeder | Boş metin NULL olur — "" ile "bilinmiyor" ayrıdır | Üç durumlu alanlarda false ile null ayrı saklanır | Profil · guncelleme | yok | `tesis360-eylem.test.ts` |
 | `TES-PRF-002` | /tesisler/[id] | tesis sorumlusu · kendi tesisi | İnsan kararı gerekçesiyle yazılmış · çelişen | Uygulanabilirlik motoru yeniden koşar | İnsanın kararı KORUNUR | Elle değiştirildi işareti görünür | Karar satırı | yok | `tesis360-eylem.test.ts` |
 | `TES-PRF-003` | /tesisler/[id] | uyum uzmanı · kurum geneli | Yeni tesis açıldı, profili yok · yok | Uygulanabilirlik motoru koşar | Karar VERİLMEZ ve veri kalitesi bulgusu açılır | Profil gelince kapsam kendiliğinden hesaplanır | Bulgu | Veri kalitesi bulgusu | `yeniTesis.test.ts` |
@@ -362,10 +363,11 @@ Senaryo: **409** · testli: **409** · GAP: **0**
 | `SAG-KOS-002` | /saglik | BT yöneticisi · kurum geneli | Tetikleyen değeri sözlükte yok · çelişen | Tanımsız bir tetikleyen adıyla senkronizasyon çağırır | Reddedilir; koşu AÇILMAZ | Hata cümlesi tetikleyeni adlandırır | yazma yok | yok | `ters-kapsam-eylem.test.ts` |
 | `SAG-ETK-001` | /saglik | BT yöneticisi · kurum geneli | Connector kimlik ister ama sır referansı tanımsız · kısmi | Connector'ı etkinleştirmeyi dener | Reddedilir — sır referansı olmadan etkinleştirilemez | Eksik olanın ne olduğu yazılır | yazma yok | yok | `ters-kapsam-eylem.test.ts` |
 
-## Saha · 2 senaryo
+## Saha · 3 senaryo
 
 | ID | Rota | Rol · kapsam | Ön koşul · veri | Eylem | Beklenen sonuç | Ekran | Denetim izi | Görev/bildirim | Test |
 | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- |
+| `SAH-ODK-001` | / | yönetici · kurum geneli | Saha açık · normal | Ekranı okur | Kart adı, tip adı ve şerit notu cümle düzeninde; kaş etiketleri ve gezinme büyük harf kalır; tek ekran sözleşmesi bozulmaz | Saha · tesis şeridi ve takımyıldız | yazma yok | yok | `odak-yayma.test.ts` |
 | `SAH-GRS-001` | / | herhangi bir kullanıcı · kendi kapsamı | Bazı tesisin fotoğrafı yok · kısmi | Saha ekranını açar | Fotoğrafı olmayan tesis BAŞKA tesisin görselini almaz | Tipografik geri düşüş; görsel ödünç alınmaz | yazma yok | yok | `ters-kapsam-ekran.test.ts` |
 | `SAH-GRS-002` | / | herhangi bir kullanıcı · kendi kapsamı | Hiç anlık görüntü alınmamış · yok | Saha ekranını açar | Eğilim şeridi null kalır — düz sıfır çizgisi ÇİZİLMEZ | "Ölçülmedi" yazılır; eğilim uydurulmaz | yazma yok | yok | `ters-kapsam-eylem.test.ts` |
 
@@ -382,7 +384,7 @@ Senaryo: **409** · testli: **409** · GAP: **0**
 | `SAY-KMP-001` | /sayim | BT yöneticisi · kendi tesisi | Kapsamda hiç varlık yok · yok | Sayım açmayı dener | Açılmaz — sıfır paydalı kampanya olamaz | Neden açılmadığı yazılır | yazma yok | yok | `faz-g-varlik.test.ts` |
 | `SAY-KMP-002` | /sayim | BT yöneticisi · kendi tesisi | Satır "bulunamadı" işaretlendi · kısmi | Sonucu kaydeder | Varlık SİLİNMEZ — envanterden düşürme ayrı bir karardır | "Sayılmadı" ile "bulunamadı" ayrı durumlardır | Sayım satırı · guncelleme | yok | `faz-g-eylem.test.ts` |
 
-## Sistem · 87 senaryo
+## Sistem · 88 senaryo
 
 | ID | Rota | Rol · kapsam | Ön koşul · veri | Eylem | Beklenen sonuç | Ekran | Denetim izi | Görev/bildirim | Test |
 | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- |
@@ -392,6 +394,7 @@ Senaryo: **409** · testli: **409** · GAP: **0**
 | `SIS-ERS-001` | — | klavye kullanıcısı · kendi kapsamı | Fare kullanılmıyor · normal | Sekme ile gezinir | Odak görünür ve sıra mantıklıdır | Çekmecede odak tuzağı ve ESC çalışır | yazma yok | yok | `yardim.test.ts` |
 | `SIS-RSP-001` | — | sahadaki kullanıcı · kendi kapsamı | Ekran dar · normal | Ekranı daraltır | Sayfa yatay kaymaz; içerik yeniden akar | Kritik bilgi gizlenmez | yazma yok | yok | `senaryo-platform.test.ts` · `senaryo-platform.test.ts` · `senaryo-platform.test.ts` |
 | `SIS-DIL-001` | — | son kullanıcı · kendi kapsamı | — · normal | Ekranlardaki metinleri okur | Kullanıcıya dönük metinlerde teknik jargon yoktur | Türkçe, kısa, kurumsal | yazma yok | yok | `senaryo-platform.test.ts` |
+| `SIS-KBK-031` | — | ürün ekibi · kurum geneli | Kabuk CSS’i okunur · normal | Her büyük harf kuralı boyuyla birlikte sınıflanır; 13px ve üstü olanlar izin listesiyle karşılaştırılır; ad/başlık/cümle sınıfları kaş boyunun üstünde büyük harf taşıyamaz | İzin dışı büyük boy büyük harf 0; izin listesinde ölü satır 0; boyunu bildirmeyen kural 0; tarama tabanın altına inmez | Veri, ad ve cümle cümle düzeninde; kaş ve gezinme büyük harf | yazma yok | yok | `bekci/buyuk-harf.test.ts` · `bekci/buyuk-harf.test.ts` · `bekci/buyuk-harf.test.ts` · `bekci/buyuk-harf.test.ts` · `bekci/buyuk-harf.test.ts` |
 | `SIS-SAHA-020` | / | telefonla bakan kullanıcı · kendi kapsamı | Müdahale listesine sığmayan bulgu var · normal | Saha ekranını açar ve listenin sonundaki bağa dokunur | Bağ kutusu en az 24px; bütçeye sığmayan bir kalem düşse bile ulaşılamayan bir bağ bırakılmaz | Saha · müdahale gerektirenler | yazma yok | yok | `kabuk-gezinme.test.ts` |
 | `SIS-SAHA-021` | / | ürün ekibi · kurum geneli | Yükseklik hem CSS’te hem bileşende yazılı · normal | İki sayı karşılaştırılır | Aynıdırlar; ayrışırlarsa bütçe hesabı sessizce yanlış olur ve son kalem kutudan taşar | Bütçe hesabı doğru | yazma yok | yok | `kabuk-gezinme.test.ts` |
 | `SIS-ERS-020` | — | ürün ekibi · kurum geneli | Axe kapısı üç bantta koşuyor · normal | Kural etiketleri okunur | Küme wcag22aa taşır ve eski etiketler düşmez; kapı eklendiği ilk koşuda gerçek bir ihlal buldu | Beyan edilen eşik ölçülüyor | yazma yok | yok | `kabuk-gezinme.test.ts` |
@@ -487,10 +490,11 @@ Senaryo: **409** · testli: **409** · GAP: **0**
 | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- |
 | `TED-OTR-001` | /tedarikciler | güvenlik uzmanı · kendi tesisi | Hiç kayıt yok · yok | Tedarikçi oturumlarına bakar | Durum "kaynak bağlı değil" — "oturum yok" DEĞİL | Uyumsuz ile bilinmeyen ayrı sayılır | yazma yok | yok | `tedarikci-oturum.test.ts` |
 
-## Tesis · 1 senaryo
+## Tesis · 2 senaryo
 
 | ID | Rota | Rol · kapsam | Ön koşul · veri | Eylem | Beklenen sonuç | Ekran | Denetim izi | Görev/bildirim | Test |
 | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- |
+| `TES-ODK-001` | /tesisler/[id] | yönetici · kendi kapsamı | Tesis dosyası açık · normal | Plaka başlığını okur | Ad cümle düzeninde, iki satır ve tip rengi korunmuş; satır aralığı küçük harfin kuyruğunu kesmez | Tesis 360 · plaka | yazma yok | yok | `odak-yayma.test.ts` |
 | `TES-YON-001` | /tesisler | herhangi bir kullanıcı · kendi kapsamı | Eski adres yer imlerinde · yok | /tesisler adresini açar | Kanon listeye yönlendirilir; derin bağ kırılmaz | İki ayrı tesis listesi tutulmaz | yazma yok | yok | `ters-kapsam-ekran.test.ts` |
 
 ## Topoloji · 4 senaryo
@@ -502,7 +506,7 @@ Senaryo: **409** · testli: **409** · GAP: **0**
 | `TOP-TML-001` | /topoloji | tesis kullanıcısı · tek tesis | Anlık başka tesisin · normal | Kapsam dışı anlığı temel onaylamayı dener | Reddedilir; yürürlükteki temel DEĞİŞMEZ | Yetki cümlesi tesisi adlandırır | yazma yok | yok | `ters-kapsam-eylem.test.ts` |
 | `TOP-BUL-001` | /topoloji | uyum uzmanı · kendi tesisi | Madde durumu seçilmemiş · kısmi | Madde durumu bağlamadan bulgu açmayı dener | Reddedilir — bağsız bulgu hangi maddeyi ihlal ettiğini söyleyemez | Eksik alan adlandırılır | yazma yok | yok | `ters-kapsam-eylem.test.ts` |
 
-## Uyum · 37 senaryo
+## Uyum · 38 senaryo
 
 | ID | Rota | Rol · kapsam | Ön koşul · veri | Eylem | Beklenen sonuç | Ekran | Denetim izi | Görev/bildirim | Test |
 | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- |
@@ -539,6 +543,7 @@ Senaryo: **409** · testli: **409** · GAP: **0**
 | `SIS-UYM-036` | /uyum | uyum sorumlusu · kurum geneli | Ekran açık · normal | Kenar çubuğundaki "Okuma anahtarı" özetine dokunur | Anahtar varsayılan KAPALI bir açılır kutudur; özet klavyeyle odaklanır ve açılır; içerik silinmemiştir | Uyum · kenar çubuğu | yazma yok | yok | `uyum-odak.test.ts` |
 | `SIS-UYM-037` | /uyum | uyum sorumlusu · kurum geneli | Ekran açık · normal | Ekranı yukarıdan aşağı okur | Başlıktan sonra matris gelir; eğilim şeridi matrisin altında ince bir çizgiyle ayrılmıştır; "Satır = kontrol · sütun = …" cümlesi yoktur | Uyum · gövde sırası | yazma yok | yok | `uyum-odak.test.ts` |
 | `SIS-UYM-038` | /uyum | uyum sorumlusu · kurum geneli | Her satır tesislerin tamamında kapsamda · normal | Matrisi ve altbilgiyi okur | Kapsam kolonu çizilmez; altbilgi "Her kontrol N tesisin tamamında kapsamda" der; tek bir satır bile eksikse kolon geri gelir ve eksik satır mürekkebe çıkar (ölçüt veriden) | Uyum matrisi · kapsam kolonu | yazma yok | yok | `uyum-odak.test.ts` · `uyum-odak.test.ts` |
+| `SIS-UYM-039` | /uyum | uyum sorumlusu · kurum geneli | Matris açık · normal | Altbilgiyi okur | Satır dip nottur (`.ab-dip.satir`), cümle düzeninde; içerik değişmemiştir | Uyum · altbilgi | yazma yok | yok | `odak-yayma.test.ts` |
 | `UYU-SRC-001` | /surecler | uyum uzmanı · kendi tesisi | Hiçbir madde değerlendirilmemiş · yok | Süreç listesini açar | Yüzde null kalır — %0 GÖSTERİLMEZ | "Ölçülmedi" yazılır | yazma yok | yok | `ters-kapsam-ekran.test.ts` |
 | `UYU-SRC-002` | /surecler | uyum uzmanı · kendi tesisi | Bazı maddeler kapsam dışı · kısmi | Süreç toplamına bakar | Kapsam dışı maddeler paydaya GİRMEZ; toplam alt sayımların toplamıdır | Kapsam dışı ayrı sayılır | yazma yok | yok | `ters-kapsam-ekran.test.ts` |
 | `UYU-CRC-004` | /uyum/[cerceve] | uyum uzmanı · kendi tesisi | Çerçevenin bazı maddeleri hiç değerlendirilmemiş · kısmi | Madde satırını genişletir | Değerlendirilmemiş madde "uyumlu" ya da "uyumsuz" SAYILMAZ | Genişleyen satırda "ölçülmedi" ayrı okunur | yazma yok | yok | `ters-kapsam-ekran.test.ts` |

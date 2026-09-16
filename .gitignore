@@ -11,6 +11,13 @@
 # impeccable skill'i ve ona bağlı 4 agent bilerek dışarıda: üçüncü taraf
 # (Apache-2.0), 165 dosya / 5 MB, CLAUDE.md şart koşmuyor, yerelde
 # yeniden kurulabilir. Depoya alınması ayrı bir karardır.
+# `npx impeccable install` (16 Eyl 2026) aynı paketi İKİNCİ bir yere,
+# `.github/` altına da kurdu (57 dosya + 16 MB'lık linux-x64 ikilisi).
+# Aynı karar orada da geçerlidir — depo GENELDİR ve platforma özgü bir
+# ikili sürüm kontrolüne girmez. `.github/workflows` etkilenmez.
+/.github/agents/
+/.github/hooks/
+/.github/skills/
 /.agents/
 /.abacus.donotdelete
 /skills-lock.json

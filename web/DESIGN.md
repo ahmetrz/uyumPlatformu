@@ -267,10 +267,17 @@ ve mono ailesi değişir, kademe değişmez.
 
 Masaüstü konsol: doğrulama kapıları 1440 · 1366 · 1280 · 1024 px; 700px
 altında hiçbir alan erişilemez olamaz (kapsam çubuğu bilgi gruplarını düşürür,
-alan dizisi yatay kayar). Mobil hedef değildir — ama **sayfa hiçbir bantta
-yana kaymaz**: taşma ya bir kaydırma kabına hapsedilir (üst çubuklar 1100px
-altında yatay kayar) ya da yerleşim tek kolona iner. `arac/yatay-tasma.mjs`
-375 ve 768'de 38 rotayı ölçer ve taşmayı üreten öğeyi adıyla yazar.
+alan dizisi yatay kayar). **Mobil İKİNCİL hedeftir: çalışır, ama
+tasarlanmaz** (ürün sahibi kararı, 16 Eylül 2026; PRODUCT.md · Operating
+Context). Yeni bir yüzey mobil için tasarlanmaz; mobilde de kırılmaz ve
+erişilemez kalmaz. Bunun ölçülen karşılığı: dokunma hedefi boyu, katlanan
+ikincil sıra, dokunulabilir harita, dar bantta sadeleşen ekranlar — ve
+**sayfa hiçbir bantta yana kaymaz**: taşma ya bir kaydırma kabına
+hapsedilir (üst çubuklar 1100px altında yatay kayar) ya da yerleşim tek
+kolona iner. `arac/yatay-tasma.mjs` 375 ve 768'de rota haritasının
+tamamını ölçer ve taşmayı üreten öğeyi adıyla yazar; kapsam sayısı
+kapının kendi çıktısındadır, buraya elle yazılmaz (eski "38 rota" ölçümle
+78'e çıkmıştı ve belge bunu göremiyordu).
 
 - **Kabuk** (`.ab`, satırlar `56px auto 1fr auto auto`): 56px üst çubuk (marka · beş alan sekmesi · arama · kişi · Bildirim/Ayarlar/Yardım · Çıkış) → 36px ikincil sıra (`.ab-ikincil`; alanın bölümleri gruplu, sağda kapsam; Saha'da ve yardımcı rotalarda çizilmez) → `#icerik` → 32px sistem durumu şeridi (`.ab-durum`; veri kesiti, bağlayıcı sayımları, son koşu — yalnız yetkiliye) → 32px ayak (`.ab-alt`; künye · Yardım · Destek · Kısayollar · Tasarım sistemi · telif). Durum ve ayak AYRI şeritlerdir: biri ölçüm, öteki künye.
 - **Yoğunluk**: `amiral` (`/`, `/tesisler/*`, `/portfoy`, `/harita`) oluk 0, durum şeridi 26px + ayak ~24px — iki ayrı bölge, BİRLEŞMEZ (ürün sahibi kabulü 2026-09, `Kabuk.tsx`; ölçüldü 15 Eyl 2026: bu satır "durum şeridi yok" derken ekran çiziyordu, belge ekrana uydu); `operasyonel` oluk 24px, satır 36px; `tezgah` satır 32px. Ana ekran 1366×768 / 1440×900 / 1280×800'de tek ekrana sığar (`scrollHeight === innerHeight`).

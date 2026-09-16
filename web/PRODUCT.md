@@ -1,5 +1,7 @@
 # Product
 
+<!-- impeccable:product-schema 1 -->
+
 <!-- Güncel ürün sözleşmesi. Görsel kurallar DESIGN.md'de; ürün davranışı
      kaynak kodu, şema, seed ve yaşayan dokümantasyonla doğrulanır. -->
 
@@ -101,7 +103,12 @@ dâhil).
 
 - **Kullanım sahnesi:** masaüstü, ofis ve santral BT odası. Doğrulama
   kapıları 1440 / 1366 / 1280 px genişlikleri hedefler; santral tarafında
-  1366 px dizüstü gerçekçi bir alt sınırdır. Mobil bir hedef değildir.
+  1366 px dizüstü gerçekçi bir alt sınırdır. **Mobil İKİNCİL hedeftir:
+  çalışır, ama tasarlanmaz.** Dar bant bilerek desteklenir — dokunma hedefi
+  boyu, katlanan ikincil sıra, dokunulabilir harita, dar bantta sadeleşen
+  ekranlar; taşma ve erişilebilirlik kapıları 375 ve 768 px'i de tarar.
+  Birincil kullanım sahnesi yine masaüstüdür: yeni bir yüzey mobil için
+  TASARLANMAZ, mobilde KIRILMAZ. (Ürün sahibi kararı, 16 Eylül 2026.)
 - **Dil:** çok dilli, **Türkçe birinci dil**. Bugün arayüz yalnız
   Türkçedir; mesaj kataloğu ve `t()` katmanı P3'te gelir (TR birinci,
   EN ikinci). Alan sözlüğü Türkçedir (madde, kanıt, bulgu, aksiyon,
@@ -124,6 +131,13 @@ dâhil).
   görev & onay merkezi, projeler + adaylar, regülasyon sürüm/diff motoru,
   otomasyon motorları + platform sağlığı, kanıt paketi dışa aktarımı,
   değişmez denetim izi.
+  Ürünleştirmeyle gelen ve bugün ÇALIŞAN modüller: içerik paketleri ve
+  `/paketler` ekranı (kurulum, sürüm, arşivleme — aktifleştirme insan
+  kararı), kimlik ve SSO (`/kimlik`, `/ayarlar/kimlik`; OIDC akışı),
+  mevzuat radarı (`/mevzuat-radari`), KVKK modülü, denetim formları
+  (`/raporlar/denetim-formlari`), olay → mevzuat bildirimi
+  (`/bildirimler`; geri sayım var, gönderim insan kararı), yedek ve kanıt
+  bütünlüğü (`/yedekleme`), takvim tetikli yükümlülükler ve dönem kanıtı.
 
 ## Capabilities and Constraints
 
@@ -131,8 +145,19 @@ dâhil).
 `web/arac/sayimlar.mjs` ile türetilir; dokümana elle sayaç yazılmaz.
 Oturum tabanlı kimlik doğrulama; RBAC + tesis/süreç kapsamı veri seviyesinde.
 
-**Teknik zemin:** Next.js 16 (App Router) + React 19 + Prisma 7 + SQLite.
+**Teknik zemin:** Next.js 16 (App Router) + React 19 + Prisma 7.
 Yazma işlemleri sunucu eylemlerinden geçer.
+
+**İki veritabanı sağlayıcısı, iki göç zinciri.** Şema varsayılanı SQLite'tır
+(geliştirme ve statik demo); PostgreSQL ikinci ve eşit sağlayıcıdır ve
+müşteri kurulumunun hedefidir — `deploy/compose` yığını `postgres:16` ile
+kalkar. İki zincir ayrı yaşar (`prisma/migrations` · `prisma/postgres`) ve
+ikisi de kendi kapısıyla ölçülür: göç zinciri şemadan sapamaz, denetim izi
+değişmezliği veritabanı tetikleyicileriyle iki sağlayıcıda da sınanır, tam
+test kümesi PostgreSQL'de ayrıca koşar (`test:pg`, CI işi `kapi-postgres`)
+ve iki sağlayıcı aynı vaka sayısını görür. Sağlayıcıya bağlı davranış farkı
+(NULL sıralaması, büyük/küçük harf katlaması, arama koşulu) çekirdekte
+tek yerden verilir.
 
 **Kalıcı kısıtlar — gelecek işin koruması gereken:**
 
@@ -159,8 +184,13 @@ Yazma işlemleri sunucu eylemlerinden geçer.
   sonucu vermek zorundadır.
 
 **Açıkça karara bağlanmamış:** bağlantı gününün tarihi ve sırası
-(`INTEGRATION_DAY_RUNBOOK.md` sırayı tarif eder, tarih yok); Postgres'e geçiş
-zamanı; mobil/tablet kullanım (hedef değil, reddedilmiş de değil).
+(`INTEGRATION_DAY_RUNBOOK.md` sırayı tarif eder, tarih yok); çok
+kiracılılık (P2) — `Kiraci` modeli henüz yok, dolayısıyla kiracı
+yöneticisi, hub ürün yöneticisi ve hub destek rolleri de yok.
+
+*(Postgres artık burada değil: sağlayıcı geldi, yukarıda. Mobil de
+burada değil: ikincil hedef olarak karara bağlandı, bkz. Operating
+Context.)*
 
 ## Brand Commitments
 
@@ -212,9 +242,15 @@ zamanı; mobil/tablet kullanım (hedef değil, reddedilmiş de değil).
   `web/public/gorseller/KUNYE.md`. Tesis görsel seti ayrıdır:
   `web/public/tesisler/`, künyesi `web/public/tesisler/KUNYE.md`.
   Gerçek bir tesisin fotoğrafı depoda yoktur.
-- **Belgeler:** kök `README.md`, `INTEGRATION_DAY_RUNBOOK.md`,
-  `docs/MIMARI.md`, `docs/ICERIK_MODELI.md`, `docs/ROTA_HARITASI.md`,
-  `docs/VERI_NEREDEN_GELIR.md` ve `docs/URUN_YEDEKLEME.md`.
+- **Belgeler:** tek dizin `CLAUDE.md`'nin "Nereye bakılır" tablosudur ve
+  burada ikinci bir liste tutulmaz (iki liste bir gün ayrışır). Bugün
+  orada duran belge sınıfları: ürün vizyonu ve paket listesi; mimari,
+  içerik modeli, veri kaynakları ve rota haritası; **kurulum ve dağıtım**
+  (`docs/KURULUM.md`, provası ve bağlantı günü sırası); **sektör-ülke
+  paketi sözleşmesi** ve TR sektör paketleri; **senaryo kütüğü ve test
+  matrisi** (koddan üretilir); **ölçüm dondurma** ve **devir kaydı**;
+  yedekleme ve demo yolu. Görsel künyeleri
+  `web/public/tesisler/KUNYE.md` ve `web/public/gorseller/KUNYE.md`.
 - **Doğrulama araçları:** `web/arac/` — rota, erişilebilirlik, tasarım,
   yayın, veri ve kalite kontrolleri. Testlerin güncel sonucu `npm test`
   ve CI kapılarından alınır.

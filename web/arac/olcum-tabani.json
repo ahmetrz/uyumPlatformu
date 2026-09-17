@@ -24,7 +24,7 @@
     "tasma.olcum": 144,
     "axe.tarama": 216,
     "bos.durum": 123,
-    "politika.cumle": 220,
+    "politika.cumle": 219,
     "tanik.rota": 65,
     "tanik.cumle": 43,
     "tanik.bosDurum": 16,
@@ -40,6 +40,12 @@
       "yeni": 123,
       "sebep": "Harita yan panelinin boş durumu KALDIRILDI: 'bir işarete tıklayın' diyen yüzeyin yerini seçilebilir tesis listesi aldı. Sistem listeyi zaten elinde tutuyordu; boş durum, kullanıcıyı 11 piksellik bir noktaya dokunmaya gönderiyordu (mobil audit ölçümü).",
       "tarih": "2026-09-14"
+    },
+    "politika.cumle": {
+      "eski": 220,
+      "yeni": 219,
+      "sebep": "Odaklanamayan title'lardaki politika cümleleri KALDIRILDI: title klavye ve dokunma kullanıcısına hiç ulaşmıyordu, yani o cümleler kullanıcının göremediği iddialardı. Kalması gerekenler görünür metne çıktı (payda kuralı, eğilim boş hâlinin sebebi, kontrol kodu), tekrar olanlar silindi. Popülasyon 220'den 219'a indi.",
+      "tarih": "2026-09-17"
     }
   }
 }

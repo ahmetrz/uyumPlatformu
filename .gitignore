@@ -22,6 +22,11 @@
 /.abacus.donotdelete
 /skills-lock.json
 /web/.impeccable/
+# `impeccable critique` anlık görüntüsünü DEPO KÖKÜNE yazıyor (araç kendi
+# kökünü orada çözüyor). Aynı karar: üçüncü taraf aracın yerel çıktısı
+# depoya girmez; rapor zaten sohbette teslim edilir ve bulguları koda
+# kapı, bekçi ve senaryo olarak geçer.
+/.impeccable/
 
 # Tek seferlik audit kanıtları
 /docs/denetim-*/

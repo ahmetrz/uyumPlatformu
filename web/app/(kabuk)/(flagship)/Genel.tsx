@@ -4,6 +4,7 @@ import { useEffect, useRef, useState, type JSX } from 'react';
 import { kucukGorsel } from '@/lib/gorsel';
 import { SahaArkaPlani } from './SahaArkaPlani';
 import { kunyeYollari } from './kunyeYolu';
+import { centikYazi, eksenPenceresi, pencereOrani } from './eksenPenceresi';
 import { tipEtiketleri } from './tipEtiketi';
 import { tipAdi, tipRengi, uygunRengi } from '@/components/kabuk/tip';
 import type {
@@ -59,8 +60,10 @@ import { useTerim } from '@/lib/dil/SozlukSaglayici';
    (kontrol kodu, çerçeve, tanım cümleleri, yöntem notları, toplamlar)
    ekrandan silinmez; `title`a ve hedef ekrana taşınır. Ölçüt: "bu metin
    ilk bakışta karar verdiriyor mu?" — hayırsa varsayılan görünümde yok.
-   Veri kaybı yok: aynı alanlar `title`, erişilebilir ad veya tıklama
-   hedefinde durur.
+   Veri kaybı yok: aynı alanlar görünür ikinci satırda, ERİŞİLEBİLİR ADDA
+   ya da tıklama hedefinde durur. `title` artık bilginin TEK kapısı
+   olamaz — odaklanamayan bir öğede hiçbir klavye ve dokunma kullanıcısına
+   ulaşmaz (`kanit:tuval`, tavan sıfır).
    ═══════════════════════════════════════════════════════════════════════ */
 
 const KISA_TARIH = new Intl.DateTimeFormat('tr-TR', { day: '2-digit', month: 'short' });
@@ -69,13 +72,13 @@ function kisaTarih(iso: string): string {
   return Number.isNaN(d.getTime()) ? '—' : KISA_TARIH.format(d).toLocaleUpperCase('tr-TR');
 }
 
-/** Son tarih cümlesi (tam, `title` için) — gecikme SÖZCÜKLE de anlatılır. */
-function terminSozu(gecikmisGun: number | null, hedefTarih: string | null): string {
-  if (gecikmisGun !== null) return `son tarih ${gecikmisGun} gün geçti`;
-  return hedefTarih ? `son tarih ${kisaTarih(hedefTarih)}` : 'son tarih yok';
-}
+/* `terminSozu` SİLİNDİ: tek kullanıcısı bulgu satırının `title`ıydı ve o
+   `title` odaklanamayan bir öğede durduğu için hiçbir klavye ve dokunma
+   kullanıcısına ulaşmıyordu. Kaldırılınca geriye kullanıcısı olmayan bir
+   biçimleyici kalıyordu — ölü kod, yarın birinin "zaten var" diye geri
+   bağlayacağı bir tuzaktır. */
 /** Görünür termin: yalnız karar taşıyan parça. Gecikme sözcükle ("gün
-    gecikti"), plan tarihle; tarih yoksa hiç yazılmaz (tamamı `title`ta). */
+    gecikti"), plan tarihle; tarih yoksa hiç yazılmaz. */
 function terminKisa(gecikmisGun: number | null, hedefTarih: string | null): string | null {
   if (gecikmisGun !== null) return `${gecikmisGun} gün gecikti`;
   return hedefTarih ? kisaTarih(hedefTarih) : null;
@@ -222,13 +225,17 @@ export default function Genel({
             <span className="sayi">{ozet.uyumYuzde === null ? '—' : `%${ozet.uyumYuzde}`}</span>
             <span className="yan">
               <span className="ad">Uyum endeksi</span>
-              <span className="alt"
-                title={ozet.bilinmeyenOran === null
-                  ? 'Hiç değerlendirme yok — endeks hesaplanamıyor'
-                  : `%${ozet.bilinmeyenOran} kontrol değerlendirilmedi; paydaya girmez (bilinmeyen ≠ sıfır)`}>
+              {/* PAYDA KURALI GÖRÜNÜR. Ürünün en pahalı semantiği burada
+                  duruyor: değerlendirilmemiş kontrol paydaya GİRMEZ,
+                  yani üstteki yüzde "ölçülenlerin yüzdesi"dir. Kural
+                  eskiden odaklanamayan bir `title`taydı — fareyle
+                  gezinmeyen hiç kimse, yani klavye ve dokunma
+                  kullanıcılarının tamamı, endeksin neyin üzerinden
+                  hesaplandığını göremiyordu. */}
+              <span className="alt">
                 {ozet.bilinmeyenOran === null
-                  ? 'değerlendirme yok'
-                  : `%${ozet.bilinmeyenOran} bilinmeyen`}
+                  ? 'değerlendirme yok — endeks hesaplanamıyor'
+                  : `%${ozet.bilinmeyenOran} bilinmeyen · paydaya girmez`}
               </span>
             </span>
           </div>
@@ -261,7 +268,9 @@ export default function Genel({
             boşluk R0 kütüğüne yazıldı. */}
         {katmanVar && (
           <aside className="ab-b-katman" aria-label="Üretim tipine göre uyum" tabIndex={0}>
-            <p className="etiket" title="Üretim tipine göre uyum katmanları">Üretim tipi · uyum</p>
+            {/* `title` KALKTI: panelin kendi erişilebilir adı zaten
+                "Üretim tipine göre uyum" (aşağıdaki `aria-label`). */}
+            <p className="etiket">Üretim tipi · uyum</p>
             <div className="katmanlar">
               {/* Boş durum tohumlu veride hiç oluşmaz: sözlük kapısı bu satıra
                   UĞRAYAMADI, sızıntı bir üstteki kardeşi düzeltilirken elle
@@ -284,10 +293,10 @@ export default function Genel({
                   </div>
                   {/* Güç YAZISI birimiyle veriden gelir; birimler
                       karışıksa toplam hiç yazılmaz (`birimliToplam`). */}
-                  <p className="mono meta"
-                    title={`${t.tesisSayisi} ${terim('tesis')}`
-                      + `${gucYazisi(t) ? ` · ${gucYazisi(t)}` : ''}`
-                      + ` · ${t.kontrolSayisi} kontrol`}>
+                  {/* `title` KALKTI: görünür metnin birebir tekrarıydı,
+                      tek fazlası kontrol sayısıydı ve o sayı artık aynı
+                      satırdaki yığının erişilebilir adında duruyor. */}
+                  <p className="mono meta">
                     {t.tesisSayisi} {terim('tesis')}
                     {gucYazisi(t) && ` · ${gucYazisi(t)}`}
                   </p>
@@ -336,9 +345,9 @@ export default function Genel({
               seçilmez. Ölçülmemişte ya da birimler karışıkken sayı hiç
               yazılmaz — karışık bir toplamı tek birimle etiketlemek
               yanlış bir sayıyı doğru gibi gösterirdi. */}
-          <span className="etiket"
-            title={`Saha seçici · ${ozet.tesisSayisi} ${terim('tesis')}`
-              + (ozet.gucYazi ? ` · ${ozet.gucYazi}` : '')}>
+          {/* `title` KALKTI: aynı sayıları görünür metin zaten yazıyor,
+              "Saha seçici" de bölümün erişilebilir adı. */}
+          <span className="etiket">
             {tBas('tesis', 'cogul')} · {ozet.tesisSayisi}
             {ozet.gucYazi && ` · ${ozet.gucYazi}`}
           </span>
@@ -500,8 +509,15 @@ function OncelikSeridi({ ozet, risk, sira }: { ozet: Ozet; risk: RiskIzgarasi; s
 function Egilim({ seri }: { seri: { etiket: string; yuzde: number }[] | null }) {
   if (!seri) {
     return (
-      <p className="ab-b-egilim-yok" title="Dönemsel anlık görüntü kaydı yok — eğilim çizilemiyor; sistem saatinden türetilmez">
-        Eğilim · kayıt yok
+      /* SEBEP GÖRÜNÜR. Eskiden ekran yalnız "Eğilim · kayıt yok"
+         diyordu ve NİÇİN çizilemediği `title`ta duruyordu. Eğilim
+         dönemsel anlık görüntü kayıtlarından çizilir; kayıt yoksa
+         çizilecek nokta da yoktur — ve bu seri SİSTEM SAATİNDEN
+         TÜRETİLMEZ (uydurulmuş bir eğilim, ölçülmemiş bir değeri
+         ölçülmüş gibi gösterirdi). Son cümle bir iç değişmezdir ve
+         yeri kullanıcı ipucu değil, bu yorumdur. */
+      <p className="ab-b-egilim-yok">
+        Eğilim · dönemsel kayıt yok — çizilecek nokta yok
       </p>
     );
   }
@@ -528,6 +544,17 @@ function Egilim({ seri }: { seri: { etiket: string; yuzde: number }[] | null }) 
     </div>
   );
 }
+
+/* Künye yönü eşikleri — İKİSİ DE TUVAL YÜZDESİDİR (ham endeks değil).
+   `SOLA`: tuvalin sağ yarısındaki nokta künyesini sola açar, yoksa künye
+   sağ kenardan taşar. `SOLA_DAR`: dar bantta eşik erkene çekilir çünkü
+   aynı künye dar tuvalde oransal olarak daha çok yer kaplar (kabuk.css,
+   medya sorgusu). Eski değerler ham endeks üzerindendi (58 ve 40) ve
+   eski yerleşim `4 + endeks × 0,86` olduğu için tuval yüzdesine yakın
+   düşüyorlardı; pencere geldikten sonra yakınlık kalmadı, bu yüzden
+   eşikler doğrudan tuval yüzdesi olarak yazılıyor. */
+const SOLA_ESIGI = 58;
+const SOLA_DAR_ESIGI = 38;
 
 /* ── Takımyıldız ──────────────────────────────────────────────────────
    Yatay: uyum endeksi (0–100). Dikey: kurulu güç (karekök ölçek, çünkü
@@ -634,13 +661,21 @@ function Mudahale({ dikkat, toplamKayit, kapsamli }: {
           <span className={`sap ${ONEM_SINIF[b.onem] ?? 'pl'}`} aria-hidden />
           <span className="govde">
             <span className="konu">{b.baslik}</span>
-            {/* Tek satır: tesis · termin. Kontrol kodu ve çerçeve karar
-                taşımaz, `title`a taşındı (bulgu ekranında tam). Gecikme
-                sözcükle ("gün gecikti"), salt renkle değil. */}
-            <span className="mono meta"
-              title={`${b.tesisAd} · ${terminSozu(b.gecikmisGun, b.hedefTarih)} · ${b.kontrolKodu} · ${b.cerceve}`}>
+            {/* Tek satır: tesis · termin · kontrol kodu. Gecikme
+                sözcükle ("gün gecikti"), salt renkle değil.
+
+                KONTROL KODU GÖRÜNÜR OLDU. Eskiden kod ve çerçeve
+                `title`a taşınmıştı ve gerekçesi "karar taşımaz"dı; ama
+                `title` odaklanamayan bir öğede hiçbir klavye ya da
+                dokunma kullanıcısına ulaşmıyordu — yani bilgi "ikinci
+                düzeye" değil, ERİŞİLMEZ bir yere taşınmıştı. Kod bir
+                bulguyu mevzuattaki yerine bağlayan tek anahtardır ve
+                satıra sığar; çerçeve kodun ön ekinde zaten okunur
+                (`EPDK-…`) ve bulgular ekranında tam hâliyle durur. */}
+            <span className="mono meta">
               {b.tesisAd}
               {terminKisa(b.gecikmisGun, b.hedefTarih) && ` · ${terminKisa(b.gecikmisGun, b.hedefTarih)}`}
+              {b.kontrolKodu && ` · ${b.kontrolKodu}`}
             </span>
           </span>
           <span className="sira" aria-hidden>{String(i + 1).padStart(2, '0')}</span>
@@ -685,10 +720,33 @@ function Takimyildizi({ tesisler, gosterim = OLCULMEMIS_VARSAYILAN, serit, panel
      şeridinde durur. Bilgi kaybolmaz, yalan söylenmez. */
   const tuvalde = tesisler.filter((s) => s.endeks !== null && s.guc !== null);
   const gucsuz = tesisler.filter((s) => s.endeks !== null && s.guc === null);
-  /* Ölçek TÜM portföyden gelir: eksen ve panel aynı dikey ölçeği
-     paylaşmazsa iki taraf karşılaştırılamaz hâle gelir. */
-  const enGuc = Math.max(1, ...tesisler.map((s) => s.guc ?? 0));
-  const dikey = (s: TesisKarti) => 8 + Math.sqrt((s.guc ?? 0) / enGuc) * 100 * 0.78;
+  /* ── EKSEN PENCERELERİ ────────────────────────────────────────────
+     Gerekçe, ölçüm ve karekökün niçin kalktığı `eksenPenceresi.ts`te.
+     Pencere ÇİZİLEN kümeden gelir, bütün portföyden değil: eksene
+     konmayan bir tesis (endeksi ya da gücü ölçülmemiş) ölçeği de
+     belirleyemez — ölçmediğimiz bir değerin ekseni gerdiğini söylemek,
+     onu ölçülmüş saymak olurdu. */
+  const xPencere = eksenPenceresi(tuvalde.map((s) => s.endeks!), {
+    taban: 0, tavan: 100, adim: 10,
+  });
+  const yPencere = eksenPenceresi(tuvalde.map((s) => s.guc!), { taban: 0 });
+
+  /* DİKEY EKSENİN BİRİMİ — çizilen tesislerin TAMAMI aynı birimi
+     taşımıyorsa çentik SAYI YAZMAZ. Ürün bu kuralı toplamlarda zaten
+     uyguluyor (`birimliToplam`: karışık birimde toplam anlamsızdır ve
+     sayı hiç yazılmaz); bir eksen de karışık birimle etiketlenemez.
+     Sayı yerine hiçbir şey yazılmaz — eksenin adı ("↑ kurulu güç")
+     kalır, uydurma bir birim eklenmez. */
+  const yBirimler = new Set(tuvalde.map((s) => s.gucBirim ?? ''));
+  const yBirim = yBirimler.size === 1 ? [...yBirimler][0] : null;
+
+  /* Tuval payı: sol eksen çizgisi 8px, sağda künye nefesi. Nokta yatayda
+     %4…%90, dikeyde tabandan %8…%86 arasına oturur — pay eskisiyle AYNI,
+     değişen yalnız o payın içine hangi ARALIĞIN sığdığı. */
+  const yatay = (s: TesisKarti) =>
+    4 + (xPencere && s.endeks !== null ? pencereOrani(s.endeks, xPencere) : 0) * 86;
+  const dikey = (s: TesisKarti) =>
+    8 + (yPencere && s.guc !== null ? pencereOrani(s.guc, yPencere) : 0) * 78;
   const gucToplami = olculmemisToplami(olculmemis);
   const { gosterilen: ilkAdlar, kalan } = ozetKur(serit.map((s) => s.ad), gosterim);
 
@@ -698,16 +756,30 @@ function Takimyildizi({ tesisler, gosterim = OLCULMEMIS_VARSAYILAN, serit, panel
   const yukari = (s: TesisKarti) => dikey(s) < 14;
   /* Künye çakışması NOKTAYI OYNATMADAN çözülür — kural ve ölçülen kusur
      `kunyeYolu.ts`te. Nokta ölçülen veridir; yerini değiştirmek grafiği
-     yalan söyletir. */
+     yalan söyletir.
+
+     ÇÖZÜCÜYE TUVAL YÜZDESİ VERİLİR, ENDEKS DEĞİL. Eskiden `x` olarak
+     ham uyum endeksi (0–100) geçiyordu ve bu yalnız KAZA ESERİ
+     çalışıyordu: eski yerleşim `4 + endeks × 0,86` olduğu için ikisi
+     birbirine yakındı. Pencere geldiği an ikisi ayrışır — %52–67 arası
+     bir pencerede endeks 52 ile 67 tuvalin iki ucudur, ama ham sayı
+     olarak 15 birim uzaktır ve künye genişliği (%28) o ölçekte
+     "çakışma yok" der. Çözücü ekranda NEREDE durduğuna bakmalıdır. */
   const yerler = kunyeYollari(tuvalde.map((s) => ({
-    x: s.endeks ?? 0, y: dikey(s), yukari: yukari(s),
-    /* `.sola` eşiği ekranın kendi kuralıyla AYNI olmalı (aşağıda %58);
-       ikisi ayrışırsa kural künyeyi yanlış yöne açık sanır. */
-    sola: (s.endeks ?? 0) > 58,
+    x: yatay(s), y: dikey(s), yukari: yukari(s),
+    /* `.sola` eşiği ekranın kendi kuralıyla AYNI olmalı (aşağıda
+       `SOLA_ESIGI`); ikisi ayrışırsa kural künyeyi yanlış yöne açık
+       sanır. İkisi de artık TUVAL YÜZDESİDİR. */
+    sola: yatay(s) > SOLA_ESIGI,
   })));
 
   return (
-    <div className="ab-b-takim" aria-label={`${tBas('tesis')} takımyıldızı`}>
+    /* `section` + erişilebilir ad = ADLI BÖLGE: kaydıran bir kap
+       odaklanabilir OLMAK ZORUNDADIR (axe · scrollable-region-focusable),
+       ama adsız bir sekme durağı klavye kullanıcısına "burası neresi"yi
+       söylemez — `div`in adı okuyucuya hiç ulaşmıyordu (rolü yok).
+       Kardeş `.ab-b-katman` ile aynı kalıp: adlı bölge + `tabIndex`. */
+    <section className="ab-b-takim" aria-label={`${tBas('tesis')} takımyıldızı`} tabIndex={0}>
       {/* Yön bilgisi ÜÇ kanaldan söyleniyordu (başlık kuyruğu, eksen
           adları, hedef köşesi); ikisi kaldı: eksen okları ("uyum endeksi →",
           "↑ kurulu güç") ve "↗ güçlü ve uyumlu" köşesi. Başlık kuyruğu
@@ -717,7 +789,11 @@ function Takimyildizi({ tesisler, gosterim = OLCULMEMIS_VARSAYILAN, serit, panel
           çakışması ölçülen bir risk. Burada yükseklik maliyeti yok, tuval
           hem enine (eski 176px kolon kalktı) hem boyuna kazanıyor. */}
       <div className="ab-takim-bas">
-        <p className="etiket ust" title="Yatay: uyum endeksi (sağa → daha uyumlu) · Dikey: kurulu güç (yukarı ↑ daha büyük)">
+        {/* `title` KALKTI: yönü ekran zaten İKİ kanaldan söylüyor —
+            eksen adları ("uyum endeksi →" · "↑ kurulu güç") ve artık
+            pencerenin uçlarını yazan çentikler. Üçüncü kanal, kimsenin
+            klavyeyle ulaşamadığı bir kopyaydı. */}
+        <p className="etiket ust">
           {tBas('tesis', 'cogul')} · uyum × güç
         </p>
         {olculmemis.length > 0 && (
@@ -728,10 +804,10 @@ function Takimyildizi({ tesisler, gosterim = OLCULMEMIS_VARSAYILAN, serit, panel
           <div className="ab-olculmemis">
             <span className="im" aria-hidden style={{ color: 'var(--i3)' }} />
             <span className="ad">Değerlendirilmemiş</span>
-            <span className="sayi mono"
-              title={`${olculmemis.length} ${terim('tesis')} için uyum endeksi `
-                + 'ölçülmedi — sıfır değil.'
-                + (gucToplami ? ` Toplam ${gucToplami}.` : '')}>
+            {/* `title` KALKTI: oranı ("16/24"), güç toplamını ve
+                "Değerlendirilmemiş" sözcüğünü görünür satır zaten
+                yazıyor — "sıfır değil" o sözcüğün kendisidir. */}
+            <span className="sayi mono">
               {olculmemis.length}<span className="bolu">/{tesisler.length}</span>
             </span>
             {gucToplami && <span className="guc-toplam mono">{gucToplami}</span>}
@@ -768,7 +844,9 @@ function Takimyildizi({ tesisler, gosterim = OLCULMEMIS_VARSAYILAN, serit, panel
         <div className="ab-tuval-sar">
           <div className="ab-tuval">
             {tuvalde.map((s, i) => {
-              const x = s.endeks!;
+              /* `x` TUVAL YÜZDESİDİR — hem yerleşim hem künye yönü
+                 eşikleri aynı ölçekten okunur (bkz. `SOLA_ESIGI`). */
+              const x = yatay(s);
               const yer = yerler[i];
               const uygunsuz = s.sayim.uyumsuz ?? 0;
               return (
@@ -781,9 +859,10 @@ function Takimyildizi({ tesisler, gosterim = OLCULMEMIS_VARSAYILAN, serit, panel
                      (kabuk.css, medya). */
                   /* Yan, kuralın SEÇTİĞİ yandır: doğal yanı dolu bir künye
                      öbür yana geçer ve işaretine yakın kalır. */
-                  className={`isaret${yer.sola ? ' sola' : ''}${x > 40 ? ' sola-dar' : ''}${
+                  className={`isaret${yer.sola ? ' sola' : ''}${
+                    x > SOLA_DAR_ESIGI ? ' sola-dar' : ''}${
                     uygunsuz > 0 ? ' oncelik' : ''}${yukari(s) ? ' kunye-yukari' : ''}`}
-                  style={{ left: `${4 + x * 0.86}%`, bottom: `${dikey(s)}%`,
+                  style={{ left: `${x}%`, bottom: `${dikey(s)}%`,
                     ['--yol' as string]: yer.yol }}>
                   {uygunsuz > 0 && <span className="halka" aria-hidden />}
                   <span className="kare" aria-hidden
@@ -805,8 +884,30 @@ function Takimyildizi({ tesisler, gosterim = OLCULMEMIS_VARSAYILAN, serit, panel
             {/* Eksen adı ORTADA, uçlarda %0 / %100 çentikleri: eksenin
                 ne ölçtüğü ilk bakışta; sağ üst köşe hedef bölgeyi adlandırır.
                 Hepsi mevcut tuvalin içinde, yükseklik bütçesi değişmez. */}
-            <span className="mono centik c0" aria-hidden>%0</span>
-            <span className="mono centik c100" aria-hidden>%100</span>
+            {/* ÇENTİKLER PENCEREYİ YAZAR. Yakınlaştırılmış bir eksen,
+                aralığını söylemediği sürece yalandır: "%50 → %70"
+                yazan bir eksende okuyan kişi farkı doğru ölçekler,
+                yazmayan bir eksende dört puanlık farkı uçurum sanır.
+                `aria-hidden` bilinçli — her noktanın erişilebilir adı
+                kendi MUTLAK değerini zaten taşıyor (`%62`), pencere
+                yalnız göreli konumu okumak için gerekli. */}
+            {xPencere && (
+              <>
+                <span className="mono centik bas" aria-hidden>%{centikYazi(xPencere.alt, xPencere.adim)}</span>
+                <span className="mono centik son" aria-hidden>%{centikYazi(xPencere.ust, xPencere.adim)}</span>
+              </>
+            )}
+            {/* Dikey çentik YALNIZ birim tekse yazılır (bkz. `yBirim`).
+                Birim üst çentikte durur: büyüklüğü orada okunur ve iki
+                kez yazmak aynı bilgiyi tekrar ettirirdi. */}
+            {yPencere && yBirim !== null && (
+              <>
+                <span className="mono centik y-alt" aria-hidden>{centikYazi(yPencere.alt, yPencere.adim)}</span>
+                <span className="mono centik y-ust" aria-hidden>
+                  {centikYazi(yPencere.ust, yPencere.adim)}{yBirim && ` ${yBirim}`}
+                </span>
+              </>
+            )}
             <span className="mono eksenad x">uyum endeksi →</span>
             <span className="mono eksenad y">↑ kurulu güç</span>
             <span className="mono hedef" aria-hidden>↗ güçlü ve uyumlu</span>
@@ -826,11 +927,11 @@ function Takimyildizi({ tesisler, gosterim = OLCULMEMIS_VARSAYILAN, serit, panel
                parçasıymış gibi gösterir. Bugün: sıralı, sıkışık bir
                liste — en düşük endeks önce, yani karar sırasıyla. */
             <div className="ab-gucsuz">
-              {/* Yöntem notu ("uyum endeksi ölçüldü, dikey eksende yeri
-                  yok") `title`ta: ilk bakışta karar verdirmiyordu; şeridin
-                  adı ve sayısı yeter (SAH-SDL-001). */}
-              <p className="mono etiket"
-                title={`Bu ${terim('tesis', 'cogul')} için uyum endeksi ölçüldü, kurulu güç ölçülmedi — dikey eksende yeri yok`}>
+              {/* `title` KALKTI: sebebi etiketin kendisi söylüyor
+                  ("Kurulu güç ölçülmedi"), sonucu da konumu — şerit
+                  eksenin ALTINDA duruyor. Not, odaklanamayan bir öğede
+                  yalnız fareyle ulaşılabilir bir kopyaydı. */}
+              <p className="mono etiket">
                 Kurulu güç ölçülmedi · {gucsuz.length} {terim('tesis')}
               </p>
               <ul className="serit">
@@ -857,9 +958,13 @@ function Takimyildizi({ tesisler, gosterim = OLCULMEMIS_VARSAYILAN, serit, panel
         </div>
       )}
 
-    </div>
+    </section>
   );
 }
+
+/** Değerlendirilmemiş yığının TEK cümlesi — hem erişilebilir ad hem
+ *  `title`. İkisi ayrışırsa bilgi yine yalnız birinde kalır. */
+const BOS_YIGIN_SOZU = 'Değerlendirilmemiş — endeks ölçülmedi, sıfır değil';
 
 /* ── Üç parçalı yığın ────────────────────────────────────────────────
    Prototipte üç parça vardı (uygun · kısmi · uygunsuz). DÖRDÜNCÜ parça
@@ -875,13 +980,20 @@ function Yigin({ uygun, kismi, uygunsuz, bilinmeyen, tip, kontrol }: {
     /* Sözcük yok: taralı çubuk ürünün "değerlendirilmedi" glifidir ve
        kartta skor zaten "—". On bir kartta aynı sözcüğü yazmak metin
        duvarıydı; erişilebilir ad ve `title` sözcüğü taşır. */
-    return <div className="ab-b-yigin bos" role="img" aria-label="değerlendirilmemiş" title="Değerlendirilmemiş — endeks ölçülmedi, sıfır değil" />;
+    /* Erişilebilir ad ile `title` AYNI cümledir. Eskiden ad yalnız
+       "değerlendirilmemiş" diyordu ve kuralın kendisi ("sıfır değil")
+       yalnız `title`ta duruyordu — yani fareyle gezinmeyen hiç kimse
+       göremiyordu. `title` fare kolaylığı olarak kalır, BİLGİ ADDADIR. */
+    return <div className="ab-b-yigin bos" role="img" aria-label={BOS_YIGIN_SOZU} title={BOS_YIGIN_SOZU} />;
   }
   const p = (n: number) => `${(n / toplam) * 100}%`;
-  const soz = `${uygun} uygun, ${kismi} kısmi, ${uygunsuz} uygunsuz, ${bilinmeyen} değerlendirilmedi`;
+  const sayim = `${uygun} uygun, ${kismi} kısmi, ${uygunsuz} uygunsuz, ${bilinmeyen} değerlendirilmedi`;
+  /* Kontrol sayısı ERİŞİLEBİLİR ADIN İÇİNDE. Eskiden yalnız `title`ta
+     duruyordu: ekran okuyucu "13 uygun, 11 kısmi…" duyuyor ama NEYİN
+     içinde olduğunu duymuyordu; klavye kullanıcısı hiç göremiyordu. */
+  const soz = kontrol !== undefined ? `${kontrol} kontrol · ${sayim}` : sayim;
   return (
-    <div className="ab-b-yigin" role="img" aria-label={soz}
-      title={kontrol !== undefined ? `${kontrol} kontrol · ${soz}` : soz}>
+    <div className="ab-b-yigin" role="img" aria-label={soz} title={soz}>
       {uygun > 0 && <span style={{ width: p(uygun), background: uygunRengi(tip) }} />}
       {kismi > 0 && <span className="kismi" style={{ width: p(kismi) }} />}
       {uygunsuz > 0 && <span className="uygunsuz" style={{ width: p(uygunsuz) }} />}

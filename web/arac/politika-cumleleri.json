@@ -1107,17 +1107,6 @@
       }
     },
     {
-      "kod": "POL-032",
-      "cumle": "Dönemsel anlık görüntü kaydı yok — eğilim çizilemiyor; sistem saatinden türetilmez",
-      "yer": "app/(kabuk)/(flagship)/Genel.tsx",
-      "sinif": "POLITIKA",
-      "sonucSinifi": "S3",
-      "olcum": {
-        "dosya": "tests/politika-s3-ekran.test.ts",
-        "vaka": "ANLIK GÖRÜNTÜ YOKSA eğilim ÇİZİLMEZ — seri uydurulmaz"
-      }
-    },
-    {
       "kod": "POL-214",
       "cumle": "Eksikler ayrı sayılır — tek bir hazırlık puanı üretilmez: değerlendirilmedi · kanıtsız · kanıtı bayat · doğrulanmadı. Kapsam dışı kontrol paydaya girmez ama AYRI raporlanır: paydayı küçülterek oranı yükseltmek, kapsamı daraltarak &quot;iyileşmenin&quot; en kolay yoludur.",
       "yer": "app/(kabuk)/(operasyonel)/surecler/[id]/SurecDetayIstemci.tsx",

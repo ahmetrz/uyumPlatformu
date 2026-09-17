@@ -10,18 +10,36 @@ import {
    verisine bağlı değildir. Böylece sabotaj KURALI sabote eder, ölçüm
    ortamını değil. */
 
-/** İki künye gerçekten üst üste mi? Yeri koordinata çevirip bakar. */
+/** İki künye gerçekten üst üste mi? Yeri koordinata çevirip bakar.
+ *
+ *  ÖLÇÜT KURALIN KENDİ GEOMETRİSİNDEN GELMEZ. Künyenin ekranda nereyi
+ *  kapladığı `kabuk.css`te yazılıdır ve burada ELLE modellenir: doğal
+ *  künye işaretin ALTINA sarkar (`top: -9px`), `kunye-yukari` künyesi
+ *  ÜSTÜNE çıkar (`bottom: 4px`), `--yol` her ikisini de kendi yönünde
+ *  bir künye boyu iter. Kuralın `dikeyAralik`ını çağırsaydık ölçüt ile
+ *  ölçüm tek kaynaktan gelirdi: o fonksiyonu sabote eden bir değişiklik
+ *  ikisini birden bozar ve test yeşil kalırdı (R-E · kırmızı yakmayan
+ *  sabotaj bir bulgudur).
+ *
+ *  Eski model künyeyi noktanın MERKEZİNDE sayıyordu (`|Δy| < boy`) ve
+ *  zıt yönlere açılan iki künyeyi "ayrık" görüyordu — kusurun kendisi. */
 function ortusenler(noktalar: readonly KunyeNoktasi[], yerler: readonly KunyeYeri[]): number {
   const yer = noktalar.map((n, i) => ({
     a: yerler[i].sola ? n.x - KUNYE_EN : n.x,
     b: yerler[i].sola ? n.x : n.x + KUNYE_EN,
-    y: n.y + (n.yukari ? 1 : -1) * yerler[i].yol * KUNYE_BOY,
+    /* Künye YÖNÜNDE bir şerit kaplar; `yol` onu aynı yönde iter. */
+    yAlt: n.yukari
+      ? n.y + yerler[i].yol * KUNYE_BOY
+      : n.y - (yerler[i].yol + 1) * KUNYE_BOY,
+    yUst: n.yukari
+      ? n.y + (yerler[i].yol + 1) * KUNYE_BOY
+      : n.y - yerler[i].yol * KUNYE_BOY,
   }));
   let n = 0;
   for (let i = 0; i < yer.length; i += 1) {
     for (let j = i + 1; j < yer.length; j += 1) {
       if (yer[i].a < yer[j].b && yer[j].a < yer[i].b
-        && Math.abs(yer[i].y - yer[j].y) < KUNYE_BOY) n += 1;
+        && yer[i].yAlt < yer[j].yUst && yer[j].yAlt < yer[i].yUst) n += 1;
     }
   }
   return n;
@@ -145,6 +163,27 @@ describe('Künye yolu · çakışma', () => {
     ];
     const yerler = kunyeYollari(n);
     expect(ortusenler(n, yerler), 'yönlü çakışma görülmedi').toBe(0);
+    expect(yerler[1].yol > 0 || yerler[1].sola !== n[1].sola,
+      'ikinci künye hiç kaçmamış').toBe(true);
+  });
+
+  it('[SAH-TUV-001] DİKEY YÖNLÜ ÇAKIŞMA · yukarı açan künye ile aşağı açan '
+    + 'künye merkezleri UZAK olsa bile örtüşür', () => {
+    /* ÖLÇÜLEN KUSUR (17 Eyl 2026 · 1440×900 · eksen penceresi geldikten
+       sonra): aynı endeksteki (73) iki tesis, tuval yüzdesinde 11,9
+       birim uzakta. `KUNYE_BOY` 11 olduğu için eski
+       merkez modeli "ayrık" dedi, ikisi de yol 0'da kaldı ve ekranda
+       künyeler 16 piksel üst üste bindi; `kanit:tuval` iki bantta da
+       kırmızı yaktı. Sayılar ekrandan alınmıştır. */
+    const n: KunyeNoktasi[] = [
+      { x: 68.9, y: 21.8, yukari: false, sola: true },
+      { x: 68.9, y: 9.9, yukari: true, sola: true },
+    ];
+    /* Vakanın ZORLUĞU: merkezler bir künye boyundan UZAK. Bu satır
+       olmazsa test, kolay bir vakayı çözüp geçmiş olabilir. */
+    expect(Math.abs(n[0].y - n[1].y)).toBeGreaterThan(KUNYE_BOY);
+    const yerler = kunyeYollari(n);
+    expect(ortusenler(n, yerler), 'dikey yönlü çakışma görülmedi').toBe(0);
     expect(yerler[1].yol > 0 || yerler[1].sola !== n[1].sola,
       'ikinci künye hiç kaçmamış').toBe(true);
   });

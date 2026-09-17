@@ -1134,7 +1134,39 @@
 }
 
 /* ── Takımyıldız ───────────────────────────────────────────────────── */
-.ab-b-takim { padding: 22px 26px 14px; display: flex; flex-direction: column; min-height: 0; }
+/* ── Takımyıldız kolonu ───────────────────────────────────────────────
+   KOLON KAYDIRILABİLİR ve bu bir YEDEK AĞDIR, yerleşim tercihi değil.
+
+   Ölçüldü (17 Eyl 2026 · `/` · üretim derlemesi): yükseklik sözleşmesi
+   1366×768'de kolona 424px veriyor, içerik 478px istiyor — açık 54px.
+   Açığın tamamını `.ab-gucsuz` şeridi ödüyordu: "Kurulu güç ölçülmedi ·
+   4 tesis" etiketi GÖRÜNÜR kalıyor, altındaki DÖRT bağın DÖRDÜ de
+   `.ab-b-alan`ın `overflow: hidden` sınırının altında kalıyordu. Sayfa
+   hiç kaymıyordu (0px), yani kullanıcı için o dört kayıt yoktu; ekran
+   dolu görünüyor ve sayıyı hâlâ "4" diye yazıyordu.
+
+   NİÇİN KIRPINTIYLA DEĞİL: bütçenin parçaları ölçüldü — tuval tabanı
+   280px (ölçülmüş karar: altında dört künye çakışıyor), başlık satırı
+   71px, şerit 77px, iç pay 36px. Boşta duran 54px YOK; onu buradan
+   kırpıp oradan almak daha uzun bir kiracı adında, beşinci bir
+   ölçülmemiş tesiste ya da başka bir terim sözlüğünde geri kırılırdı.
+   Kaydırma, hangi veri gelirse gelsin kaybı OLANAKSIZ kılar.
+
+   Kardeşiyle AYNI dilbilgisi: `.ab-b-katman` aynı satırda aynı sebeple
+   kaydırılabilir ve `tabindex=0` taşır (Genel.tsx); halka İÇERİ alınır
+   çünkü `.ab-b-alan` `overflow: hidden` ve dışarıdaki pay kırpılırdı.
+   Kaydıran bölge odaklanamazsa klavye kullanıcısı için erişilemezdir
+   (axe · serious · scrollable-region-focusable).
+
+   Kapı bağı: `arac/dizustu.mjs` kaydıran atada yürüyüşü DURDURUR ve
+   yalnız GERÇEKTEN kayan kabı kurtarıcı sayar — bu kural sabotajla
+   sınandı ve bu düzeltme o kuralın üstünde durur. `overflow-y` buradan
+   kalkarsa kapı yeniden kırmızı yanar. */
+.ab-b-takim {
+  padding: 22px 26px 14px; display: flex; flex-direction: column;
+  min-height: 0; overflow-y: auto;
+}
+.ab-b-takim:focus-visible { outline-offset: -2px; }
 .ab-b-takim .ust { flex: none; }
 .ab-b-takim .bos { margin: 20px 0 0; font-size: 13px; color: var(--i3); }
 .ab-b-takim .tuval { position: relative; flex: 1; margin-top: 14px; min-height: 0; }
@@ -1150,9 +1182,17 @@
 /* Eksen çentikleri ve hedef köşesi — 11px mono, yapısal. "Sağ üst
    iyidir" sözü iki kanaldan: eksen okları + hedef köşesi (başlık
    kuyruğundaki üçüncü tekrar Faz 3 kapanışında `title`a taşındı). */
-.ab-b-takim .centik { position: absolute; bottom: 2px; font-size: 11px; color: var(--i3); }
-.ab-b-takim .centik.c0 { left: 4%; transform: translateX(-50%); }
-.ab-b-takim .centik.c100 { left: 90%; transform: translateX(-50%); }
+.ab-b-takim .centik { position: absolute; font-size: 11px; color: var(--i3); }
+/* Yatay çentikler pencerenin UÇLARINDA durur ve o uçlar noktaların
+   yerleşim payıyla AYNIDIR (%4 ve %90, bkz. `yatay()` · Genel.tsx):
+   çentik başka bir yerde dursaydı eksen, göstermediği bir aralığı
+   etiketlerdi. */
+.ab-b-takim .centik.bas { bottom: 2px; left: 4%; transform: translateX(-50%); }
+.ab-b-takim .centik.son { bottom: 2px; left: 90%; transform: translateX(-50%); }
+/* Dikey çentikler y ekseninin yanında: üst uç eksen adının ALTINDA
+   (`.eksenad.y` üstte durur ve çakışırdı), alt uç x ekseninin üstünde. */
+.ab-b-takim .centik.y-ust { left: 14px; top: 16px; }
+.ab-b-takim .centik.y-alt { left: 14px; bottom: 24px; }
 .ab-b-takim .hedef {
   position: absolute; right: 0; top: 0; font-size: 11px; letter-spacing: .08em;
   text-transform: uppercase; color: var(--aksan); opacity: .85;

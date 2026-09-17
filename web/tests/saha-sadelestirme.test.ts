@@ -91,13 +91,23 @@ describe('saha · karar yüzeyinde tekrar ve yöntem notu yok', () => {
     expect(CSS).toMatch(/\.ab-b-katman \.katman-diger > summary \{[^}]*min-height: 24px/);
   });
 
-  it('gücü ölçülmemiş şeridinin yöntem notu ekranda değil title\'ta [SAH-SDL-001]', () => {
+  it('gücü ölçülmemiş şeridinin etiketi sebebi söyler ve `title` TAŞIMAZ [SAH-SDL-001]', () => {
+    /* KARAR DEĞİŞTİ (17 Eyl 2026) ve bu testin ESKİ hâli değişikliği
+       engelliyordu. Yöntem notu ("… dikey eksende yeri yok") bir tur
+       önce `title`a taşınmıştı; bu test onu ORADA arıyor, yani notun
+       `title`ta KALMASINI şart koşuyordu.
+
+       Ölçüldü: `title`, odaklanamayan bir `<p>`de hiçbir klavye ve
+       dokunma kullanıcısına ulaşmaz ve hiçbir tarayıcı onu odakta
+       göstermez — not "ikinci düzeye" değil ERİŞİLMEZ bir yere
+       taşınmıştı. Bugün sebebi etiketin KENDİSİ söylüyor ("Kurulu güç
+       ölçülmedi") ve sonucu konumu söylüyor: şerit eksenin ALTINDADIR.
+       Not silindi; ekranda tekrar da yok, erişilmez kopya da. */
     const s = GENEL.slice(GENEL.indexOf('<div className="ab-gucsuz">'));
     const p = s.slice(0, s.indexOf('</p>'));
-    const kapanis = p.indexOf('}>');
-    expect(p.slice(0, kapanis)).toMatch(/title=\{`Bu \$\{terim\('tesis', 'cogul'\)\} için uyum endeksi ölçüldü/);
-    expect(p.slice(kapanis + 2)).toMatch(/Kurulu güç ölçülmedi/);
-    expect(p.slice(kapanis + 2)).not.toMatch(/dikey eksende/);
+    expect(p, '`title` geri gelmiş — erişilmez kopya').not.toMatch(/title=/);
+    expect(p).toMatch(/Kurulu güç ölçülmedi/);
+    expect(p, 'yöntem notu ekrana geri yazılmış').not.toMatch(/dikey eksende/);
     expect(p).not.toMatch(/className="not"/);
   });
 

@@ -179,6 +179,19 @@ const EKLENEN_KAPILAR = [
      bir duruma yaslanan kapı yanlış sebeple geçebilir (POL-084 sınıfı). */
   'npm run tanik:dom-bos',
   'npm run kapi:dom-tanik',
+  /* DÖRDÜNCÜ BANT · 1366×768 KIRPILMA. Bu kapı vardı, ölçüyordu ve
+     kırmızı yakıyordu — ama CI'da KOŞMUYORDU; `kapi:farki` onu
+     "koşmuyor · KAPI" diye beyan ediyor, gerekçesi de "dördüncü bant
+     borç listesine girmedi" diyordu. Yani kusur sınıfı biliniyordu ve
+     ölçülmüyordu. Ölçüldü (17 Eyl 2026): CI'da koşan kırpılma kapısı
+     `yatay-tasma` 375 ve 768 GENİŞLİKLERİNİ tarıyor; yükseklik
+     sözleşmesi (`min-width: 1025px and min-height: 680px`) ikisinde de
+     KAPALI, yani `.ab-b-alan { overflow: hidden }` o bantlarda hiç
+     yok — kapı, kuralın var olduğu bir yere hiç uğramadan yeşildi.
+     `/` ekranında dört tesis bağının dördü birden görünmezken etiket
+     "4 tesis" diyordu ve CI bunu göremedi. Borç bugün sıfır (57
+     rotanın 57'si temiz, 27 sn) ve izin listesi YOK. */
+  'npm run tasarim:dizustu',
 ];
 
 describe('kapı kümesi bölünmeyle değişmez', () => {
@@ -224,8 +237,11 @@ describe('kapı kümesi bölünmeyle değişmez', () => {
        303 piksel sapıyordu.
        14 → 15: harita dokunulabilirlik kanıtı (`kanit:harita`). Aynı
        sınıf: vuruş dairesi kaynakta 11 yazıyordu ve doğru görünüyordu;
-       SVG ölçeği onu 375px'te 11px ÇAPA indiriyordu. */
-    expect(tarayicili).toHaveLength(15);
+       SVG ölçeği onu 375px'te 11px ÇAPA indiriyordu.
+       15 → 16: dizüstü bandı kapısı (`tasarim:dizustu`). Yeni bir araç
+       DEĞİL — vardı, ölçüyordu, kırmızı yakıyordu ve CI'da koşmuyordu;
+       `kapi-tasma` işine paylaşılan 3210 sunucusuyla eklendi. */
+    expect(tarayicili).toHaveLength(16);
     expect(new Set(tarayicili.map((a) => a.is)).size).toBe(4);
   });
 

@@ -1,5 +1,5 @@
 {
-  "uretilme": "2026-09-15T07:39:44.953Z",
+  "uretilme": "2026-09-17T16:40:44.964Z",
   "rota": [
     "/",
     "/aktivite",
@@ -9,11 +9,11 @@
     "/bakim",
     "/bildirimler",
     "/bulgular",
-    "/bulgular/cmtw74cma021qu37daplgqao2",
+    "/bulgular/cmu5qnvzr021qxk7ddtyss0ms",
     "/degerlendirme-aktarim",
     "/denetci-erisimi",
     "/denetimler",
-    "/denetimler/cmtw749j600cwu37dg814fskw",
+    "/denetimler/cmu5qnsyz00cwxk7dfwphoq8q",
     "/dokumanlar",
     "/egitimler",
     "/envanter",
@@ -42,7 +42,7 @@
     "/raporlar/takvim",
     "/regulasyonlar",
     "/riskler",
-    "/riskler/cmtw74byr01pru37dovmzikv3",
+    "/riskler/cmu5qnvds01prxk7dtv691cf7",
     "/saglik",
     "/saglik/reddedilenler",
     "/saklama",
@@ -50,12 +50,12 @@
     "/sistem",
     "/sistem/bilesenler",
     "/surecler",
-    "/surecler/cmtw7496k005ju37d48dgopla",
+    "/surecler/cmu5qnsn5005jxk7dabzinymu",
     "/tabanlar",
     "/tasinabilir-medya",
     "/tedarikciler",
     "/tesisler",
-    "/tesisler/cmtw748is0007u37dfc00mdvk",
+    "/tesisler/cmu5qnrzz0007xk7dy97qwdmh",
     "/topoloji",
     "/uyum",
     "/uyum/CBDDO",
@@ -82,7 +82,7 @@
       ]
     },
     {
-      "cumle": "8 satır görünüyor · kütük değişmez: kayıt güncellenmez, silinmez",
+      "cumle": "8 satır görünüyor · kütük değişmez: kayıt güncellenmez, silinmez · 9 kaydın aktörü bilinmiyor",
       "rotalar": [
         "/aktivite"
       ]
@@ -174,7 +174,7 @@
     {
       "cumle": "Eksikler ayrı sayılır — tek bir hazırlık puanı üretilmez: 2 değerlendirilmedi · 1 kanıtsız · 0 kanıtı bayat · 6 doğrulanmadı. Kapsam dışı kontrol paydaya girmez ama AYRI raporlanır: paydayı küçülterek oranı yükseltmek, kapsamı daraltarak \"iyileşmenin\" en kolay yoludur.",
       "rotalar": [
-        "/surecler/cmtw7496k005ju37d48dgopla"
+        "/surecler/cmu5qnsn5005jxk7dabzinymu"
       ]
     },
     {
@@ -342,7 +342,7 @@
     {
       "metin": "BOŞ · İLK KURULUM Bu bulgu için aksiyon planlanmadı. Aksiyonsuz bir bulgu kapanamaz: kapanış yapılan işin kaydına dayanır, beyana değil. AKSİYON PLANLA",
       "rotalar": [
-        "/bulgular/cmtw74cma021qu37daplgqao2"
+        "/bulgular/cmu5qnvzr021qxk7ddtyss0ms"
       ],
       "tur": "BosIlk",
       "sinif": "ab-blok",
@@ -472,7 +472,7 @@
     {
       "metin": "Kayıtlı üretim ünitesi yok — bu santral için hiç üretim ünitesi tanımlanmamış.ÜRETİM ÜNİTESİ TANIMLA",
       "rotalar": [
-        "/tesisler/cmtw748is0007u37dfc00mdvk"
+        "/tesisler/cmu5qnrzz0007xk7dy97qwdmh"
       ],
       "tur": "satirIci",
       "sinif": "bos",

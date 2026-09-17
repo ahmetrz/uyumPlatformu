@@ -1,5 +1,5 @@
 {
-  "uretilme": "2026-09-15T07:40:38.382Z",
+  "uretilme": "2026-09-17T16:41:38.186Z",
   "rota": [
     "/",
     "/aktivite",
@@ -9,11 +9,11 @@
     "/bakim",
     "/bildirimler",
     "/bulgular",
-    "/bulgular/cmtw74cma021qu37daplgqao2",
+    "/bulgular/cmu5qnvzr021qxk7ddtyss0ms",
     "/degerlendirme-aktarim",
     "/denetci-erisimi",
     "/denetimler",
-    "/denetimler/cmtw749j600cwu37dg814fskw",
+    "/denetimler/cmu5qnsyz00cwxk7dfwphoq8q",
     "/dokumanlar",
     "/egitimler",
     "/envanter",
@@ -42,7 +42,7 @@
     "/raporlar/takvim",
     "/regulasyonlar",
     "/riskler",
-    "/riskler/cmtw74byr01pru37dovmzikv3",
+    "/riskler/cmu5qnvds01prxk7dtv691cf7",
     "/saglik",
     "/saglik/reddedilenler",
     "/saklama",
@@ -50,12 +50,12 @@
     "/sistem",
     "/sistem/bilesenler",
     "/surecler",
-    "/surecler/cmtw7496k005ju37d48dgopla",
+    "/surecler/cmu5qnsn5005jxk7dabzinymu",
     "/tabanlar",
     "/tasinabilir-medya",
     "/tedarikciler",
     "/tesisler",
-    "/tesisler/cmtw748is0007u37dfc00mdvk",
+    "/tesisler/cmu5qnrzz0007xk7dy97qwdmh",
     "/topoloji",
     "/uyum",
     "/uyum/CBDDO",
@@ -69,23 +69,23 @@
   ],
   "atlanan": [
     {
-      "rota": "/bulgular/cmtw74cma021qu37daplgqao2",
+      "rota": "/bulgular/cmu5qnvzr021qxk7ddtyss0ms",
       "sebep": "HTTP 404"
     },
     {
-      "rota": "/denetimler/cmtw749j600cwu37dg814fskw",
+      "rota": "/denetimler/cmu5qnsyz00cwxk7dfwphoq8q",
       "sebep": "HTTP 404"
     },
     {
-      "rota": "/riskler/cmtw74byr01pru37dovmzikv3",
+      "rota": "/riskler/cmu5qnvds01prxk7dtv691cf7",
       "sebep": "HTTP 404"
     },
     {
-      "rota": "/surecler/cmtw7496k005ju37d48dgopla",
+      "rota": "/surecler/cmu5qnsn5005jxk7dabzinymu",
       "sebep": "HTTP 404"
     },
     {
-      "rota": "/tesisler/cmtw748is0007u37dfc00mdvk",
+      "rota": "/tesisler/cmu5qnrzz0007xk7dy97qwdmh",
       "sebep": "HTTP 404"
     },
     {

@@ -825,8 +825,9 @@ export const PLATFORM_SENARYOLARI: Senaryo[] = [
     eylem: 'Ekranı okur',
     beklenenSonuc: 'Kart adı ve tip adı cümle düzeninde; kaş etiketleri ve '
       + 'gezinme büyük harf kalır; tek ekran sözleşmesi bozulmaz (şeridin yöntem '
-      + 'notu 15 Eyl 2026 sadeleştirme turunda ekrandan title\'a taşındı — '
-      + 'SAH-SDL-001; bu vaka artık yalnız kart adı ve tip etiketini ölçer)',
+      + 'notu 15 Eyl 2026\'da title\'a taşınmış, 17 Eyl 2026\'da title erişilmez '
+      + 'olduğu için tümüyle SİLİNMİŞTİR — SAH-SDL-001; bu vaka artık yalnız '
+      + 'kart adı ve tip etiketini ölçer)',
     beklenenEkran: 'Saha · tesis şeridi ve takımyıldız',
     beklenenIz: 'yazma yok', beklenenBildirim: 'yok',
     katmanlar: ['UI'],
@@ -855,13 +856,50 @@ export const PLATFORM_SENARYOLARI: Senaryo[] = [
     rol: 'yönetici', kapsam: 'kurum geneli',
     onkosul: 'Saha açık, çekirdek mercek (iki sektör birlikte)', veriHali: 'normal',
     eylem: 'Katman panelini, gücü ölçülmemiş şeridini ve öncelik şeridini okur',
-    beklenenSonuc: 'Kalan tipler sayıyla ("Diğer 7 tip · 16 tesis", adlar title\'ta); '
-      + 'yöntem notu title\'ta; "ölçülemedi" yalnız Kritik risk kaleminde (risk '
-      + 'yoğunluğunda ancak kritik ve yüksek sıfırken); aynı adlı tipler sektör '
-      + 'adıyla ayrılır, tek sektörlü kiracı ek görmez',
+    beklenenSonuc: 'Kalan tipler sayıyla ("Diğer 7 tip · 16 tesis"), adlar '
+      + 'odaklanabilir açılır listede; gücü ölçülmemiş şeridinin yöntem notu '
+      + 'SİLİNMİŞTİR — sebebi etiketin kendisi ("Kurulu güç ölçülmedi"), sonucu '
+      + 'konumu (eksenin altında) söyler; "ölçülemedi" yalnız Kritik risk '
+      + 'kaleminde (risk yoğunluğunda ancak kritik ve yüksek sıfırken); aynı adlı '
+      + 'tipler sektör adıyla ayrılır, tek sektörlü kiracı ek görmez',
     beklenenEkran: 'Saha · katman paneli, takımyıldız, öncelik şeridi',
     beklenenIz: 'yazma yok', beklenenBildirim: 'yok',
     katmanlar: ['UI', 'DOMAIN'],
+  },
+  {
+    id: 'SAH-EKS-001', alan: 'Saha', rota: '/', eksen: 'arayuz',
+    amac: 'Takımyıldızın eksenleri sabitti (%0–100 · 0–enBüyükGüç) ve çizilen '
+      + 'dört tesis tuval genişliğinin %14,5\'ine, yüksekliğinin %31,9\'una '
+      + 'sıkışıyordu — ekranın en büyük yüzeyi portföyün karar sorusunu '
+      + 'okunamayacak bir yamada cevaplıyordu',
+    rol: 'yönetici', kapsam: 'kurum geneli',
+    onkosul: 'Saha açık; tuvale çizilen en az bir tesis var', veriHali: 'normal',
+    eylem: 'Takımyıldızı okur ve eksen çentiklerine bakar',
+    beklenenSonuc: 'Eksen penceresi ÇİZİLEN kümeden türetilir, uçları yuvarlanır '
+      + 've çentikte YAZILIR (yatayda "%50 → %80", dikeyde sayı ve paketten '
+      + 'gelen birimiyle); pencere en az iki adım '
+      + 'geniştir, uyum endeksinde [0, 100] sınırını delmez; konum pencere '
+      + 'içinde DOĞRUSALDIR (karekök ölçek kalkmıştır); dikey çentik yalnız '
+      + 'çizilen tesislerin birimi TEKSE sayı yazar',
+    beklenenEkran: 'Saha · takımyıldız',
+    beklenenIz: 'yazma yok', beklenenBildirim: 'yok',
+    katmanlar: ['UI'],
+  },
+  {
+    id: 'SAH-TUV-001', alan: 'Saha', rota: '/', eksen: 'arayuz',
+    amac: 'Künye çakışma çözücüsü künyeyi noktanın MERKEZİNDE sayıyordu; künye '
+      + 'ise yönüne göre noktanın altında ya da üstünde durur ve zıt yönlere '
+      + 'açılan iki künye merkezleri bir künye boyundan uzak olsa bile ekranda '
+      + 'üst üste biniyordu',
+    rol: 'yönetici', kapsam: 'kurum geneli',
+    onkosul: 'Saha açık; tuvalde birbirine yakın en az iki tesis var', veriHali: 'normal',
+    eylem: 'Takımyıldızdaki künyeleri okur',
+    beklenenSonuc: 'Çözücü künyenin YÖNLÜ dikey şeridini hesaplar; biri yukarı '
+      + 'biri aşağı açılan iki künye örtüşmez ve tarayıcı kapısı iki bantta da '
+      + 'sıfır çift ölçer',
+    beklenenEkran: 'Saha · takımyıldız',
+    beklenenIz: 'yazma yok', beklenenBildirim: 'yok',
+    katmanlar: ['UI'],
   },
   {
     id: 'SIS-CBK-001', alan: 'Sistem', rota: '/', eksen: 'arayuz',

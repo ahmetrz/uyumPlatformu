@@ -4,12 +4,12 @@
 
 | Ölçü | Değer |
 | --- | --- |
-| Senaryo | 417 |
-| Testi olan senaryo | 417 |
+| Senaryo | 419 |
+| Testi olan senaryo | 419 |
 | **GAP** | **0** |
 | Hayalet işaret (kütükte olmayan kimlik) | 0 |
 | Kütüksüz test dosyası | 0 |
-| Taranan test dosyası | 257 |
+| Taranan test dosyası | 258 |
 
 ## Katman başına kapsam
 
@@ -26,7 +26,7 @@
 | RESPONSIVE | 9 | 9 | 0 |
 | SCOPE | 34 | 34 | 0 |
 | SERVER | 159 | 159 | 0 |
-| UI | 148 | 148 | 0 |
+| UI | 150 | 150 | 0 |
 | VISUAL | 4 | 4 | 0 |
 | WORKFLOW | 39 | 39 | 0 |
 
@@ -406,11 +406,26 @@
 | `SAH-SER-001` | Saha | UI | `saha-sadelestirme.test.ts` | fotoğrafsız tesis aynı bandı düz zeminle alır — sahte görsel yok | evet | geçti |
 | `SAH-SER-001` | Saha | UI | `saha-sadelestirme.test.ts` | uygunsuz kartta çerçeve yok; skor rengi ve bağ başlığında SÖZCÜK | evet | geçti |
 | `SAH-SDL-001` | Saha | UI · DOMAIN | `saha-sadelestirme.test.ts` | katman panelinin kalan satırı SAYI söyler; adlar klavye ve dokunmayla açılan listede | evet | geçti |
-| `SAH-SDL-001` | Saha | UI · DOMAIN | `saha-sadelestirme.test.ts` | gücü ölçülmemiş şeridinin yöntem notu ekranda değil title\'ta | evet | geçti |
+| `SAH-SDL-001` | Saha | UI · DOMAIN | `saha-sadelestirme.test.ts` | gücü ölçülmemiş şeridinin etiketi sebebi söyler ve `title` TAŞIMAZ | evet | geçti |
 | `SAH-SDL-001` | Saha | UI · DOMAIN | `saha-sadelestirme.test.ts` | risk yoğunluğu "ölçülemedi"yi yalnız kritik ve yüksek sıfırken yazar | evet | geçti |
 | `SAH-SDL-001` | Saha | UI · DOMAIN | `saha-sadelestirme.test.ts` | çakışan ad sektörle ayrılır; çakışmayan ad olduğu gibi kalır | evet | geçti |
+| `SAH-EKS-001` | Saha | UI | `eksen-penceresi.test.ts` | ölçülen dört endeks, ESKİ SABİT EKSENİN dört katından fazla yayılır | evet | geçti |
+| `SAH-EKS-001` | Saha | UI | `eksen-penceresi.test.ts` | pencere ölçülen kümeyi KAPSAR ve uçları onluğa oturur | evet | geçti |
+| `SAH-EKS-001` | Saha | UI | `eksen-penceresi.test.ts` | GÜÇ ekseni adımını kendi büyüklüğünden seçer ve kümeyi kapsar | evet | geçti |
+| `SAH-EKS-001` | Saha | UI | `eksen-penceresi.test.ts` | tek noktalı kümede aralık sıfıra inmez | evet | geçti |
+| `SAH-EKS-001` | Saha | UI | `eksen-penceresi.test.ts` | BİR PUAN farkla ayrılan iki tesis tuvalin iki ucuna DÜŞMEZ | evet | geçti |
+| `SAH-EKS-001` | Saha | UI | `eksen-penceresi.test.ts` | uyum endeksi penceresi SINIRINI DELMEZ | evet | geçti |
+| `SAH-EKS-001` | Saha | UI | `eksen-penceresi.test.ts` | sınırlar asgari genişliğe yer vermiyorsa pencere SINIRI DELMEK yerine dar kalır | evet | geçti |
+| `SAH-EKS-001` | Saha | UI | `eksen-penceresi.test.ts` | BOŞ kümede pencere YOKTUR — uydurma aralık yazılmaz | evet | geçti |
+| `SAH-EKS-001` | Saha | UI | `eksen-penceresi.test.ts` | eşit aralıklı değerler eşit aralıklı oranlar verir | evet | geçti |
+| `SAH-EKS-001` | Saha | UI | `eksen-penceresi.test.ts` | pencere dışındaki değer KIRPILIR, tuvalden taşmaz | evet | geçti |
+| `SAH-EKS-001` | Saha | UI | `eksen-penceresi.test.ts` | adım 1 · 2 · 5 ve on katlarından biridir | evet | geçti |
+| `SAH-EKS-001` | Saha | UI | `eksen-penceresi.test.ts` | yayılım yoksa adım çöker değil, 1 olur | evet | geçti |
+| `SAH-EKS-001` | Saha | UI | `eksen-penceresi.test.ts` | ondalık adımda çentik ONDALIK yazar | evet | geçti |
+| `SAH-TUV-001` | Saha | UI | `kunye-yolu.test.ts` | DİKEY YÖNLÜ ÇAKIŞMA · yukarı açan künye ile aşağı açan | evet | geçti |
 | `SIS-CBK-001` | Sistem | UI · ACCESSIBILITY | `bekci/kaydirma-cubugu.test.ts` | ÖLÇÜM TABANI — tarama gerçekten kayan kap görüyor | evet | geçti |
-| `SIS-CBK-001` | Sistem | UI · ACCESSIBILITY | `bekci/kaydirma-cubugu.test.ts` | karar kabuğun KÖKÜNDE bir kez verilir ve jetondan gelir | evet | geçti |
+| `SIS-CBK-001` | Sistem | UI · ACCESSIBILITY | `bekci/kaydirma-cubugu.test.ts` | renk kararı kabuğun KÖKÜNDE bir kez verilir ve jetondan gelir | evet | geçti |
+| `SIS-CBK-001` | Sistem | UI · ACCESSIBILITY | `bekci/kaydirma-cubugu.test.ts` | incelik KALITIMSIZDIR: kabuğun altındaki her öğeye yazılır | evet | geçti |
 | `SIS-CBK-001` | Sistem | UI · ACCESSIBILITY | `bekci/kaydirma-cubugu.test.ts` | belge kökü aynı kararı taşır ve jetondan SAPMAZ | evet | geçti |
 | `SIS-CBK-001` | Sistem | UI · ACCESSIBILITY | `bekci/kaydirma-cubugu.test.ts` | hiçbir kap kararı `auto`ya geri çevirmez | evet | geçti |
 | `SIS-CBK-001` | Sistem | UI · ACCESSIBILITY | `bekci/kaydirma-cubugu.test.ts` | `::-webkit-scrollbar` yalnız gizleme biçiminde kalır | evet | geçti |

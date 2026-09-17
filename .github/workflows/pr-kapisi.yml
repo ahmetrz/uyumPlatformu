@@ -643,6 +643,18 @@ jobs:
         working-directory: web
         run: node arac/yatay-tasma.mjs
 
+      # DÖRDÜNCÜ BANT · 1366×768. `yatay-tasma` 375 ve 768 GENİŞLİKLERİNİ
+      # ölçer; ikisi de yükseklik sözleşmesinin açıldığı `min-width: 1025px`
+      # eşiğinin ALTINDADIR — yani `.ab-b-alan { overflow: hidden }` o iki
+      # bantta hiç etkin değildir ve kapı, kuralın VAR OLDUĞU hiçbir banda
+      # uğramadan yeşil yanar. Ölçüldü (17 Eyl 2026): `/` ekranında dört
+      # tesis bağının dördü de görünmezken etiket "4 tesis" diyordu; bunu
+      # gören tek araç `dizustu.mjs` idi ve CI'da koşmuyordu. Bugün borç
+      # sıfır (57 rotanın 57'si temiz, 27 sn) ve kapı bağlı.
+      - name: Dizüstü bandı kapısı (1366×768 kırpılma)
+        working-directory: web
+        run: npm run tasarim:dizustu
+
       # Gerekçe `kapi-rota` işinde yazılıdır.
       - name: Sunucuyu durdur
         if: always()

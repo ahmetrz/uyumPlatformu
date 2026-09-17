@@ -867,6 +867,30 @@ export const PLATFORM_SENARYOLARI: Senaryo[] = [
     katmanlar: ['UI', 'DOMAIN'],
   },
   {
+    id: 'SAH-SDL-002', alan: 'Saha', rota: '/', eksen: 'arayuz',
+    amac: 'Ekranın ölçeği karar değerinin TERSİNİ söylüyordu: durum '
+      + 'manşeti 68px, eylem taşıyan tek satır (müdahale kuyruğunun bulgu '
+      + 'başlığı) 13px — beş kat fark. Ray aynı 24 tesisi beşinci kez, '
+      + 'ekranın beşte birini alarak çiziyordu ve sunucunun verdiği sırada '
+      + 'duruyordu. Panel, kapsam daraltılmış olsa da koşulsuz "Grup '
+      + 'durumu" diyordu. Kuyrukta 26px\'lik sıra rakamları 1,30:1 '
+      + 'kontrastla duruyordu.',
+    rol: 'yönetici', kapsam: 'kurum geneli',
+    onkosul: 'Saha açık; müdahale kuyruğunda en az bir bulgu var', veriHali: 'normal',
+    eylem: 'Ekranı okur ve rayı tarar',
+    beklenenSonuc: 'Ekranın birincil işi MÜDAHALEDİR (ürün kararı, 17 Eyl '
+      + '2026) ve ölçek bunu izler: durum manşeti eylemli satırı üç kattan '
+      + 'fazla ezemez (oran bekçide, sabit sayı değil). Ray karar sırasına '
+      + 'dizilir — açık uygunsuzluğu olan tesis önde, sıralama kararlıdır — '
+      + 've kimlik şeridine iner; KALDIRILMAZ, çünkü dar bantta tesis '
+      + 'adlarının okunduğu tek yüzey odur. Panel etiketi kapsamdan türer. '
+      + 'Sıra rakamları silinmiştir: bilgi taşıyorsa erişilemez, '
+      + 'taşımıyorsa süstü.',
+    beklenenEkran: 'Saha · dikkat paneli, müdahale kuyruğu, tesis rayı',
+    beklenenIz: 'yazma yok', beklenenBildirim: 'yok',
+    katmanlar: ['UI'],
+  },
+  {
     id: 'SAH-EKS-001', alan: 'Saha', rota: '/', eksen: 'arayuz',
     amac: 'Takımyıldızın eksenleri sabitti (%0–100 · 0–enBüyükGüç) ve çizilen '
       + 'dört tesis tuval genişliğinin %14,5\'ine, yüksekliğinin %31,9\'una '

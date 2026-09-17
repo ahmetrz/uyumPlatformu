@@ -4,8 +4,8 @@
 
 | Ölçü | Değer |
 | --- | --- |
-| Senaryo | 420 |
-| Testi olan senaryo | 420 |
+| Senaryo | 421 |
+| Testi olan senaryo | 421 |
 | **GAP** | **0** |
 | Hayalet işaret (kütükte olmayan kimlik) | 0 |
 | Kütüksüz test dosyası | 0 |
@@ -26,7 +26,7 @@
 | RESPONSIVE | 9 | 9 | 0 |
 | SCOPE | 34 | 34 | 0 |
 | SERVER | 159 | 159 | 0 |
-| UI | 151 | 151 | 0 |
+| UI | 152 | 152 | 0 |
 | VISUAL | 4 | 4 | 0 |
 | WORKFLOW | 39 | 39 | 0 |
 
@@ -409,6 +409,10 @@
 | `SAH-SDL-001` | Saha | UI · DOMAIN | `saha-sadelestirme.test.ts` | gücü ölçülmemiş şeridinin etiketi sebebi söyler ve `title` TAŞIMAZ | evet | geçti |
 | `SAH-SDL-001` | Saha | UI · DOMAIN | `saha-sadelestirme.test.ts` | risk yoğunluğu "ölçülemedi"yi yalnız kritik ve yüksek sıfırken yazar | evet | geçti |
 | `SAH-SDL-001` | Saha | UI · DOMAIN | `saha-sadelestirme.test.ts` | çakışan ad sektörle ayrılır; çakışmayan ad olduğu gibi kalır | evet | geçti |
+| `SAH-SDL-002` | Saha | UI | `saha-sadelestirme.test.ts` | durum manşeti, eylemli satırı ÜÇ KATTAN fazla ezmez | evet | geçti |
+| `SAH-SDL-002` | Saha | UI | `saha-sadelestirme.test.ts` | HAYALET SIRA RAKAMLARI ekranda yok | evet | geçti |
+| `SAH-SDL-002` | Saha | UI | `saha-sadelestirme.test.ts` | ray KARAR SIRASINA dizilir — uygunsuzu olan önde | evet | geçti |
+| `SAH-SDL-002` | Saha | UI | `saha-sadelestirme.test.ts` | panel etiketi KAPSAMDAN türer — koşulsuz "Grup durumu" yok | evet | geçti |
 | `SAH-EKS-001` | Saha | UI | `eksen-penceresi.test.ts` | ölçülen dört endeks, ESKİ SABİT EKSENİN dört katından fazla yayılır | evet | geçti |
 | `SAH-EKS-001` | Saha | UI | `eksen-penceresi.test.ts` | pencere ölçülen kümeyi KAPSAR ve uçları onluğa oturur | evet | geçti |
 | `SAH-EKS-001` | Saha | UI | `eksen-penceresi.test.ts` | GÜÇ ekseni adımını kendi büyüklüğünden seçer ve kümeyi kapsar | evet | geçti |

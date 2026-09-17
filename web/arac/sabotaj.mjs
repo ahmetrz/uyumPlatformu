@@ -704,6 +704,47 @@ const SABOTAJLAR = [
     yaz: '    /* güvence kaldırıldı */',
     testler: ['tests/saha-sadelestirme.test.ts'],
   },
+  {
+    ad: 'Eksen penceresi sabit sınıra çakıldı (eski %0-100 ekseni)',
+    kural: 'Takımyıldız ekseni ÇİZİLEN kümeden türetilir; sabit eksende dört nokta tuvalin yüzde on dördüne sıkışıyordu',
+    dosya: 'app/(kabuk)/(flagship)/eksenPenceresi.ts',
+    ara: `  let alt = Math.floor(enAz / adim) * adim;
+  let ust = Math.ceil(enCok / adim) * adim;`,
+    yaz: `  /* SABOTAJ: pencere veriden değil sınırdan gelsin — eski sabit eksen */
+  let alt = taban ?? Math.floor(enAz / adim) * adim;
+  let ust = tavan ?? Math.ceil(enCok / adim) * adim;`,
+    testler: ['tests/eksen-penceresi.test.ts'],
+  },
+  {
+    ad: 'Pencerenin asgari genişliği kaldırıldı (yakınlaştırma yalanı)',
+    kural: 'Bir puan farkla ayrılan iki tesis tuvalin iki ucuna düşemez — pencere en az iki adım geniştir',
+    dosya: 'app/(kabuk)/(flagship)/eksenPenceresi.ts',
+    ara: '  const { taban, tavan, asgariAdim = 2 } = secenek;',
+    yaz: '  const { taban, tavan, asgariAdim = 1 } = secenek;  /* SABOTAJ */',
+    testler: ['tests/eksen-penceresi.test.ts'],
+  },
+  {
+    ad: 'Künye çakışma çözücüsü dikeyde YÖNSÜZ hâle döndürüldü',
+    kural: 'Künye noktanın merkezinde değil, yönüne göre altında ya da üstünde durur; zıt yönlere açılan iki künye merkezleri uzak olsa bile örtüşür',
+    dosya: 'app/(kabuk)/(flagship)/kunyeYolu.ts',
+    ara: `  return n.yukari
+    ? [n.y + yol * boy, n.y + (yol + 1) * boy]
+    : [n.y - (yol + 1) * boy, n.y - yol * boy];`,
+    yaz: `  /* SABOTAJ: eski MERKEZ modeli — künyenin yönü yok sayılır */
+  const merkez = n.y + (n.yukari ? 1 : -1) * yol * boy;
+  return [merkez - boy / 2, merkez + boy / 2];`,
+    testler: ['tests/kunye-yolu.test.ts'],
+  },
+  {
+    ad: 'Dizüstü bandı kapısı iş akışından çıkarıldı',
+    kural: 'Kapı TAŞIYAN bir iş kümenin dışında kalamaz; beyansız düşen kapı kırmızı yakar',
+    dosya: '../.github/workflows/pr-kapisi.yml',
+    ara: `      - name: Dizüstü bandı kapısı (1366×768 kırpılma)
+        working-directory: web
+        run: npm run tasarim:dizustu`,
+    yaz: '      # SABOTAJ: dizüstü kapısı sessizce düştü',
+    testler: ['tests/kapi-is-kapsami.test.ts'],
+  },
 ];
 
 function testKos(testler) {

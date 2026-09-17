@@ -67,7 +67,6 @@ const BEYAN = {
 
   'test:kapsam': { kapi: true, sebep: 'CI `npm test` koşuyor; kapsam raporu eşiksiz ve süreyi ikiye katlıyor — eşik konduğu gün bağlanır' },
   'tasarim:rota': { kapi: true, sebep: 'canlı sunucu · 4 bant × 58 rota; `rota:duman` ile örtüşüyor, ayrıştırılmadan bağlanırsa süre iki katına çıkar' },
-  'tasarim:dizustu': { kapi: true, sebep: 'canlı sunucu · 1366×768 kırpılma; `yatay-tasma` üç bandı ölçüyor, dördüncü bant borç listesine girmedi' },
   'tasarim:erisim': { kapi: true, sebep: 'canlı sunucu · `erisim-axe` bunun yerini aldı (axe-core, üç bant, cırcırlı); bu araç emekliye ayrılacak' },
   'tasarim:gorsel': { kapi: true, sebep: 'canlı sunucu · altın görüntüler depoda yok; altınsız koşarsa "altın yok" diye kırmızı yanar' },
   /* ÖLÇÜLDÜ 8 Eyl 2026, P1 ucunda: 9 koşum · ~25 dk · KUSURLU 6. Altısı

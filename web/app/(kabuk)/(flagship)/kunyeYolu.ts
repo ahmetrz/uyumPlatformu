@@ -98,6 +98,32 @@ function aralik(n: KunyeNoktasi, en: number): [number, number] {
   return n.sola ? [n.x - en, n.x] : [n.x, n.x + en];
 }
 
+/* KÜNYE DİKEYDE DE YÖNLÜDÜR — ve bu kural burada YOKTU.
+
+   Eski model künyeyi noktanın MERKEZİNDE sayıyordu: iki künye
+   `|Δy| < boy` ise çakışık, değilse ayrık. Oysa künye noktanın üstünde
+   ya da altında durur, ortasında değil (`kabuk.css`): doğal hâlde
+   `top: -9px`ten aşağı sarkar, `kunye-yukari` hâlinde `bottom: 4px`ten
+   yukarı çıkar. İki künye ZIT yönlere açıldığında merkezleri bir künye
+   boyundan uzak olsa bile kutuları ortada buluşur.
+
+   ÖLÇÜLDÜ (17 Eyl 2026 · 1440×900 · eksen penceresi geldikten sonra):
+   aynı endeksteki (73) iki tesisten biri künyesini aşağı, öbürü yukarı
+   açıyordu ve tuval yüzdesinde 11,9 birim uzaktılar — `boy` 11 olduğu
+   için model "ayrık" dedi ve ikisini de doğal yerinde bıraktı (yol 0).
+   Ekranda künyeler 16 piksel üst üste biniyordu ve tarayıcı kapısı
+   (`kanit:tuval`) iki bantta da kırmızı yaktı.
+
+   Bugün künyenin kapladığı DİKEY ŞERİT hesaplanır. Şerit yönlüdür ve
+   `yol` onu kendi yönünde iter — yani şeritler hiç örtüşmezse künyeler
+   de örtüşmez. Simetrik kural yatayda `aralik` ile zaten düzeltilmişti
+   (SIS-SAHA-001); bu, aynı körlüğün dikey yüzüdür. */
+function dikeyAralik(n: KunyeNoktasi, yol: number, boy: number): [number, number] {
+  return n.yukari
+    ? [n.y + yol * boy, n.y + (yol + 1) * boy]
+    : [n.y - (yol + 1) * boy, n.y - yol * boy];
+}
+
 /** Künyenin bulduğu yer: kaçıncı şerit ve hangi yana açıldığı. */
 export type KunyeYeri = {
   /** 0 = doğal yer; 1…`enCokYol` künyeyi kendi yönünde bir boy daha iter. */
@@ -128,22 +154,24 @@ export function kunyeYollari(
   /* Yerleşmiş künyelerin GERÇEK yeri — noktanın yeri değil. İkisini
      karıştırmak ikinci basamağı kör eder: yol 1'e itilmiş bir künye,
      bir üstteki noktanın doğal künyesiyle çakışabilir. */
-  const yerlesik: { a: number; b: number; y: number }[] = [];
+  const yerlesik: { a: number; b: number; yAlt: number; yUst: number }[] = [];
 
   noktalar.forEach((n, i) => {
-    const yon = n.yukari ? 1 : -1;
-    const dolu = (a: number, b: number, y: number) => yerlesik.some(
-      (o) => o.a < b && a < o.b && Math.abs(o.y - y) < boy,
+    const dolu = (a: number, b: number, yAlt: number, yUst: number) => yerlesik.some(
+      (o) => o.a < b && a < o.b && o.yAlt < yUst && yAlt < o.yUst,
     );
 
     let secilen: KunyeYeri | null = null;
     let kutu = aralik(n, en);
+    let dikey = dikeyAralik(n, 0, boy);
     for (const sola of [n.sola, !n.sola]) {
       const [a, b] = aralik({ ...n, sola }, en);
       for (let yol = 0; yol <= enCokYol; yol += 1) {
-        if (!dolu(a, b, n.y + yon * yol * boy)) {
+        const [yAlt, yUst] = dikeyAralik(n, yol, boy);
+        if (!dolu(a, b, yAlt, yUst)) {
           secilen = { yol, sola };
           kutu = [a, b];
+          dikey = [yAlt, yUst];
           break;
         }
       }
@@ -151,9 +179,12 @@ export function kunyeYollari(
     }
 
     const yer = secilen ?? { yol: 0, sola: n.sola };
-    if (!secilen) kutu = aralik(n, en);
+    if (!secilen) {
+      kutu = aralik(n, en);
+      dikey = dikeyAralik(n, 0, boy);
+    }
     yerler[i] = yer;
-    yerlesik.push({ a: kutu[0], b: kutu[1], y: n.y + yon * yer.yol * boy });
+    yerlesik.push({ a: kutu[0], b: kutu[1], yAlt: dikey[0], yUst: dikey[1] });
   });
 
   return yerler;

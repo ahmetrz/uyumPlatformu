@@ -61,6 +61,27 @@ for (const b of BANTLAR) {
   const o = await sayfa.evaluate(() => {
     const kok = document.querySelector('.ab-b-takim');
     if (!kok) return null;
+
+    /* ── TITLE-ONLY BİLGİ KATMANI ──────────────────────────────────
+       `title` odaklanamayan bir öğede DURUYORSA hiçbir klavye ve
+       dokunma kullanıcısına ulaşmaz; hiçbir tarayıcı onu odakta
+       göstermez ve ekran okuyucu desteği güvenilmezdir. Ölçüldü
+       (17 Eyl 2026 · `/` · 1440×900): 75 `title`ın 41'i odaklanamayan
+       öğedeydi ve içlerinde kontrol kodu, payda kuralı ve eksen
+       açıklaması gibi KARAR taşıyan bilgiler vardı.
+
+       ÖLÇÜT: odaklanamayan bir öğede `title` varsa, aynı metin o
+       öğenin ERİŞİLEBİLİR ADINDA da bulunmalıdır. O zaman `title`
+       yalnız fare kolaylığıdır, bilginin TEK kapısı değil. Bu kapı
+       ekranın tamamını tarar — kusur sınıfı tuvale özgü değil. */
+    const ODAKLANABILIR = 'a[href], button, input, select, textarea, summary, [tabindex]';
+    const titleKacaklari = [...document.querySelectorAll('[title]')]
+      .filter((e) => !(e.matches(ODAKLANABILIR) && e.tabIndex >= 0))
+      .filter((e) => (e.getAttribute('aria-label') || '').trim()
+        !== (e.getAttribute('title') || '').trim())
+      .map((e) => `${e.tagName.toLowerCase()}.${(typeof e.className === 'string'
+        ? e.className : '').trim().split(/\s+/).slice(0, 2).join('.')}`
+        + ` → ${(e.getAttribute('title') || '').slice(0, 50)}`);
     const kutu = (e) => { const r = e.getBoundingClientRect();
       return { x: r.x, y: r.y, w: r.width, h: r.height, cx: r.x + r.width / 2, cy: r.y + r.height / 2 }; };
     const cakisir = (a, c) => a.x < c.x + c.w && c.x < a.x + a.w && a.y < c.y + c.h && c.y < a.y + a.h;
@@ -83,9 +104,12 @@ for (const b of BANTLAR) {
         if (cakisir(seritOge[i].kutu, seritOge[j].kutu)) seritCakisma += 1;
       }
     }
+    const titleKacakSayi = titleKacaklari.length;
     const tuvalYuk = kok.querySelector('.ab-tuval')?.getBoundingClientRect().height ?? 0;
     return {
       tuvalYuk,
+      titleKacakSayi,
+      titleKacaklari: titleKacaklari.slice(0, 6),
       seritBasligi: (kok.querySelector('.ab-gucsuz .etiket')?.innerText ?? '').trim(),
       kunyeCakisma,
       seritCakisma,
@@ -125,6 +149,13 @@ for (const b of BANTLAR) {
   olc(b.ad, 'tuvalde künye çakışması yok', o.kunyeCakisma === 0, `${o.kunyeCakisma} çift`);
   olc(b.ad, 'güç şeridinde çakışma yok', o.seritCakisma === 0, `${o.seritCakisma} çift`);
 
+  /* TAVAN SIFIR ve gerekçeli istisna YOK: bilginin TEK kapısı `title`
+     olamaz. Sıfırdan yukarı çıkmak, ölçülebilir bir erişilebilirlik
+     borcunu sessizce geri getirmektir. */
+  olc(b.ad, 'odaklanamayan `title` bilgiyi tek başına taşımıyor',
+    o.titleKacakSayi === 0,
+    o.titleKacakSayi === 0 ? '0 kaçak' : `${o.titleKacakSayi} kaçak: ${o.titleKacaklari.join(' | ')}`);
+
   /* Şerit VARSA adını söylemeli; yoksa (gücü ölçülmemiş tesis yok)
      bu iddia atlanır — olmayan bir şeridi aramak yanlış kırmızı olurdu. */
   if (o.seritSayi > 0) {
@@ -154,8 +185,12 @@ await tarayici.close();
 /* Ölçüm tabanı: iki bant × (çizim + tavan + iki çakışma) = 8, şerit
    doluysa +2, ayrı yüzey +1. Tohumda gücü ölçülmemiş tesis var ve
    olmasaydı bu kapı zaten ölçecek bir şey bulamazdı. */
-/* 11 → 13: her bantta bir mutlak sınır iddiası daha. */
-const ASGARI_IDDIA = 13;
+/* 11 → 13: her bantta bir mutlak sınır iddiası daha.
+   13 → 15: her bantta `title` kaçağı iddiası. Kusur sınıfı tuvale özgü
+   değil — ekranın tamamı taranır — ama ölçüm ekranı ve bantları bu
+   kapının zaten kurduğu ortamdır; ayrı bir kapı aynı sunucuyu ikinci
+   kez ayağa kaldırırdı. */
+const ASGARI_IDDIA = 15;
 if (iddialar.length < ASGARI_IDDIA) {
   console.error(`\nÖLÇÜM YETERSİZ: ${iddialar.length} iddia, taban ${ASGARI_IDDIA}.`);
   console.error('  Ölçülmemiş bir kapı "geçti" diye yazılmaz.');

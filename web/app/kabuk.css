@@ -1049,8 +1049,17 @@
   display: flex; flex-direction: column; overflow: hidden; min-height: 0;
 }
 .ab-b-dikkat .endeks { display: flex; align-items: flex-end; gap: 16px; margin-top: 8px; }
+/* MANŞET 68 → 42px. Ekranın birincil işi MÜDAHALEDİR (ürün kararı,
+   17 Eyl 2026): "bugün neye dokunmalıyım". Ölçek bunun TERSİNİ
+   söylüyordu — durum 68px, eylem taşıyan bulgu başlığı 13px. Endeks
+   kaybolmaz, destekleyici olguya iner; 42px hâlâ paneldeki en büyük
+   sayıdır ve kuyruk başlıklarının (15px) neredeyse üç katıdır.
+
+   Kazanılan yükseklik KODSUZ olarak kuyruğa gider: `Mudahale` kutuyu
+   ölçüp sığan kadar kalem çizer (`Genel.tsx`), yani panelde açılan yer
+   doğrudan daha çok bulgu demektir. */
 .ab-b-dikkat .endeks .sayi {
-  font-family: var(--gorunum); font-weight: 600; font-size: 68px; line-height: .8;
+  font-family: var(--gorunum); font-weight: 600; font-size: 42px; line-height: .85;
   font-variant-numeric: tabular-nums;
 }
 .ab-b-dikkat .endeks .yan { padding-bottom: 10px; display: grid; gap: 3px; }
@@ -1058,7 +1067,10 @@
   font-family: var(--veri); font-size: 10px; letter-spacing: .14em;
   text-transform: uppercase; color: var(--i3);
 }
-.ab-b-dikkat .endeks .alt { font-family: var(--veri); font-size: 11px; color: var(--i3); } /* ölçüm taşır: 11px */
+/* CÜMLE GÖVDE AİLESİNDE. DESIGN.md: "Gövde nötr kalır; sayı ve kod daima
+   mono." Bu satır payda KURALINI söylüyor ("%14 bilinmeyen · paydaya
+   girmez") — ölçüm değil, cümle; yüzde kendi başına zaten tabular. */
+.ab-b-dikkat .endeks .alt { font-family: var(--ui); font-size: 11px; color: var(--i3); } /* ölçüm taşır: 11px */
 
 /* Liste yükseklik bütçesinden artanı alır; sığmayan kalem KIRPILMAZ:
    `Mudahale` (Genel.tsx) kutuyu ölçer, sığan kadar kalem çizer, kalanı
@@ -1085,15 +1097,21 @@
 .ab-b-dikkat .kalem .sap.md { background: var(--md); }
 .ab-b-dikkat .kalem .sap.pl { background: var(--pl); }
 .ab-b-dikkat .kalem .govde { flex: 1; min-width: 0; display: grid; gap: 6px; }
+/* 13 → 15px: ekranın tek EYLEMLİ satırı buydu ve kaş etiketlerinin
+   (10px) iki kademe üstünde, ray kartı adının (20px) iki kademe
+   altındaydı. Birincil iş müdahale olunca bu satır kuyruğun manşetidir. */
 .ab-b-dikkat .kalem .konu {
-  font-size: 13px; line-height: 1.35;
+  font-size: 15px; line-height: 1.35;
   /* Bütçe: kalem başlığı iki satırı geçmez; kalan bulgu ekranında okunur. */
   display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden;
 }
 .ab-b-dikkat .kalem .meta {
   font-size: 11px; line-height: 16px; color: var(--i3);
-  /* Tek satır: tesis · kod · termin. Uzunu üç nokta ile kısalır, tamamı
-     `title`ta; iki satıra sarması kalemi 15px büyütüp bütçeyi bozuyordu. */
+  /* Tek satır: tesis · termin · kod. Uzunu üç nokta ile kısalır (sessiz
+     kesme değil — kesilen parça bulgular ekranında tam durur); iki satıra
+     sarması kalemi 15px büyütüp bütçeyi bozuyordu.
+     Aile GÖVDEDİR: ad ve "12 gün gecikti" cümledir, yalnız kontrol kodu
+     kendi `.mono` kabuğunda kalır (DESIGN.md · sayı ve kod daima mono). */
   white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
 }
 /* Bütçeye sığmayan kalemler (JS: `Mudahale`) çizilmez; sayısı burada.
@@ -1128,8 +1146,10 @@
 }
 .ab-b-egilim .uc .iyi { color: var(--ok); }
 .ab-b-egilim .uc .kotu { color: var(--bd); }
+/* Aynı kural: boş durum bir CÜMLEDİR ("dönemsel kayıt yok — çizilecek
+   nokta yok"), kod sesiyle konuşmaz. */
 .ab-b-egilim-yok {
-  margin: 14px 0 0; font-family: var(--veri); font-size: 11px;
+  margin: 14px 0 0; font-family: var(--ui); font-size: 11px;
   line-height: 1.6; color: var(--i3);
 }
 
@@ -1249,10 +1269,23 @@
    yoktur ve şeridin adı bunu yazar. Ölçüldü (bağımsız audit): tabana
    çakılan dört tesis hem "gücü sıfır" yalanını söylüyor hem künyeleri
    şerit şerit yukarı itip başka kümelerin içine düşürüyordu. */
-.ab-b-takim .ab-gucsuz { flex: none; margin-top: 10px; padding-top: 8px; border-top: 1px dashed var(--hr2); }
-.ab-b-takim .ab-gucsuz .etiket { margin: 0 0 6px; font-size: 11px; color: var(--i3); letter-spacing: .04em; }
+/* ETİKET LİSTENİN AKIŞINDA, kendi satırında değil. Ölçüldü: ayrı satır
+   17px yazı + 6px boşluk = 23px yiyordu ve şeridi 77px'e çıkarıyordu;
+   o 23px, dar bantta güç şeridinin tamamının görünmemesiyle ödeniyordu.
+   Etiket ile kayıtlar ZATEN tek bilgi grubudur ("şunlar ölçülmedi: …");
+   ayrı satır grubu bölüyordu, birleştirmek onu geri kuruyor. */
+.ab-b-takim .ab-gucsuz {
+  /* Ayırıcı payı 18px'ten 14px'e: kesikli çizgi zaten grubu ayırıyor,
+     üstüne iki yanından geniş pay koymak aynı işi ikinci kez yapıyordu.
+     Kazanılan 4px, dar bantta şeridin İKİNCİ SATIRININ görünmesine
+     gidiyor — ölçüldü, 1366×768'de 2px taşma dört bağdan ikisini
+     düşürüyordu. */
+  flex: none; margin-top: 8px; padding-top: 6px; border-top: 1px dashed var(--hr2);
+  display: flex; flex-wrap: wrap; align-items: baseline; gap: 4px 14px;
+}
+.ab-b-takim .ab-gucsuz .etiket { margin: 0; flex: none; font-size: 11px; color: var(--i3); letter-spacing: .04em; }
 .ab-b-takim .ab-gucsuz .serit {
-  margin: 0; padding: 0; list-style: none;
+  margin: 0; padding: 0; list-style: none; flex: 1 1 auto; min-width: 0;
   display: flex; flex-wrap: wrap; gap: 4px 18px;
 }
 .ab-b-takim .ab-gucsuz .serit a {
@@ -1292,14 +1325,30 @@
 /* Genel tuvalin 420px tabanı burada KALKAR: takımyıldızı yüksekliğini tek
    ekran bütçesinden alır (1366×768'de ≈ 300px). Ölçüldü: taban dururken
    tuval 492/447 taşıyor, x ekseni adı notun altında kalıyordu. */
-/* TUVAL TASARLANDIĞI YÜKSEKLİĞİN ALTINA İNMEZ. `flex: 1` + `min-height:
-   0` tuvali viewport'a bırakıyordu ve 1280×800'de 203px'e iniyordu;
-   künye geometrisi ~300px'e göre ölçülmüştü, o yükseklikte dört künye
-   çakışmadan yerleşemiyordu (tuval kanıtı, ilk koşu). 280px, dört
-   künyenin üç şeritle sığdığı ölçülen tabandır; altına inmek yerine
-   bölüm büyür. */
+/* TUVAL TASARLANDIĞI YÜKSEKLİĞİN ALTINA İNMEZ — ama o yükseklik DEĞİŞTİ.
+   `flex: 1` + `min-height: 0` tuvali viewport'a bırakıyordu ve 1280×800'de
+   203px'e iniyordu; künye geometrisi ~300px'e göre ölçülmüştü ve orada
+   dört künye çakışmadan yerleşemiyordu (tuval kanıtı, ilk koşu). Taban
+   önce 280px oldu.
+
+   TABAN 280 → 245. Gerekçe, 280'i doğuran ÖLÇÜMÜN ÖNCÜLÜ DEĞİŞTİĞİ için
+   geçerlidir, sıkıştırmak istediğimiz için değil: 280 sabit %0–100
+   ekseniyle ölçülmüştü ve o eksende dört nokta tuval genişliğinin
+   %14,5'ine sıkışıyordu — künyeler yatayda birbirinin üstündeydi ve
+   ayrımın tamamını DİKEY şerit ladderı taşımak zorundaydı. Eksen
+   penceresi geldikten sonra yatay yayılım %48,6; künyeler doğal
+   yerlerinde duruyor ve ladder neredeyse hiç kullanılmıyor.
+
+   245 keyfî değil: 1366×768'de kolona 424px düşüyor ve pay şu —
+   36 (iç pay) + 71 (başlık) + 14 (üst boşluk) + 245 (tuval) + 54
+   (tek satıra inen güç şeridi) = 420. Güç şeridi artık kaydırmadan
+   GÖRÜNÜR; kaydırma yedek ağ olarak durur ve uzun bir kiracı adı şeridi
+   ikinci satıra taşırsa yine yakalar.
+
+   Sayı `kunyeYolu.ts`teki `TUVAL_TABAN_PX` ile AYNI olmak zorundadır ve
+   bekçi ikisini karşılaştırır: künye yüzdesi bu tabandan türetilir. */
 .ab-b-takim .ab-tuval-sar > .ab-tuval {
-  margin-top: 0; min-height: 280px; flex: 1;
+  margin-top: 0; min-height: 245px; flex: 1;
   /* Künye şeridi TUVAL YÜKSEKLİĞİNE göre ölçülür (`cqh`); aşağıdaki
      `--yol` hesabı bunu kullanır. Bkz. o kuralın gerekçesi. */
   container-type: size; container-name: tuval;
@@ -1310,9 +1359,16 @@
    künye çakışması ölçülen bir risktir. Aynı satırda taban hizasında
    durunca yükseklik maliyeti yok denecek kadar azdır. */
 .ab-b-takim .ab-takim-bas {
-  flex: none; display: flex; flex-direction: column; gap: 8px; min-width: 0;
+  flex: none; display: flex; flex-wrap: wrap; align-items: baseline;
+  gap: 4px 14px; min-width: 0;
 }
 .ab-b-takim .ab-takim-bas > .ust { flex: none; }
+/* Özet, başlığın YANINDA: iki satır 25px yiyordu ve dar bantta o 25px
+   güç şeridinin görünmemesiyle ödeniyordu. Üst çizgi kalkar — ayrı
+   satır olmadığı için ayıracak bir şey yok. */
+.ab-b-takim .ab-takim-bas > .ab-olculmemis {
+  flex: 1 1 auto; min-width: 0; padding-top: 0; border-top: 0;
+}
 
 /* ── Değerlendirilmemiş özeti ──────────────────────────────────────────
    Hiyerarşi bilinçli: SAYI en güçlü, oran onun hemen yanında daha sessiz,
@@ -1398,11 +1454,11 @@
    203px'e iniyor, %11 = 22px ve künye 34px; şerit künyeden dar olunca
    "ayırdım" diyen kural yine üst üste bindiriyordu. `max()` asimetriyi
    doğru yöne kuruyor — gerçek ayrım modelin varsaydığından AZ OLAMAZ,
-   çok olabilir. Yüzde `KUNYE_BOY` ile AYNIDIR (11) — ikisi ayrışırsa
+   çok olabilir. Yüzde `KUNYE_BOY` ile AYNIDIR (14, tabandan TÜRETİLİR) — ikisi ayrışırsa
    kural ekranda olmayan bir ayrımı varsayar. */
-.ab-b-takim .kunye { top: calc(-9px + var(--yol, 0) * max(34px, 11cqh)); }
+.ab-b-takim .kunye { top: calc(-9px + var(--yol, 0) * max(34px, 14cqh)); }
 .ab-b-takim .isaret.kunye-yukari .kunye {
-  top: auto; bottom: calc(4px + var(--yol, 0) * max(34px, 11cqh));
+  top: auto; bottom: calc(4px + var(--yol, 0) * max(34px, 14cqh));
 }
 .ab-b-takim .isaret.kunye-yukari .kunye::before { top: auto; bottom: 6px; }
 
@@ -1948,8 +2004,18 @@
    çerçeve yok; uygunsuzluk yığın çubuğunda, skor renginde ve bağ
    başlığında SÖZCÜKLE durur (SAH-SER-001). Fotoğrafı olmayan tesis aynı
    bandı düz panel zeminiyle alır: geometri eşit, sahte görsel yok. */
+/* RAY KİMLİK ŞERİDİNE İNDİ (ürün kararı, 17 Eyl 2026). Aynı 24 tesis
+   üst yarıda dört kodlamada zaten var (tuval işareti, güç şeridi,
+   değerlendirilmemiş özeti, katman panelinin tip kırılımı); ray beşinci
+   kez aynı kümeyi, üstelik ekranın beşte birini alarak çiziyordu.
+
+   KALDIRILMADI ve sebebi ölçüldü: `adapt` turundan sonra 1024 ve 375'te
+   tuval künyeleri çizilmiyor — tesis ADLARININ okunduğu tek yüzey bu
+   ray. Tekrar, bilgi kaybına tercih edilir; çözüm AĞIRLIĞI düşürmektir.
+   Yükseklik 132–168'den 104–124'e iner: fotoğraf bandı kimlik şeridine
+   döner, metin bloğu aynı kalır. */
 .ab-b-serit .kart {
-  position: relative; flex: 1 0 216px; height: clamp(132px, 18dvh, 168px); overflow: hidden;
+  position: relative; flex: 1 0 216px; height: clamp(104px, 14dvh, 124px); overflow: hidden;
   scroll-snap-align: start; border-right: 1px solid var(--hr);
   display: grid; grid-template-rows: minmax(0, 1fr) auto; background: var(--panel);
 }
@@ -4257,6 +4323,21 @@ details:not([open]) > *:not(summary) { display: none !important; }
      kayboluyordu, en pahalı duyarlılık kusuru budur. Yükseklik de sabit
      648px'ten serbeste geçer; üst üste binen üç panel oraya sığmaz. */
   .ab-b-alan { grid-template-columns: minmax(0, 1fr); height: auto; }
+
+  /* KÜNYE YÜZEYİ DAR BANTTA ÇİZİLMEZ — sayı ayarı değil, STRATEJİ.
+     Ölçüldü (17 Eyl 2026, `main` üzerinde de): 1024×768 ve 375×812'de
+     iki künye üst üste biniyordu. Sebep model ile ekranın birim
+     ayrışması: künye 106px sabit metin kutusu, `KUNYE_EN` ise tuval
+     yüzdesi — 1280'de %20,1 ederken 375'te %34,1 ediyor ve model %28
+     deyip "ayrık" sanıyor.
+
+     Sayıyı büyütmek çözmez: 311px'lik tuvalde uzun Türkçe adlar (~200px)
+     künyenin %64'ünü ister; iki künye hiçbir eşikle yan yana sığmaz. Dar
+     bantta serbest yüzen künye YANLIŞ BİÇİMDİR. İşaretler kalır (24×24
+     vuruş alanı, erişilebilir adı `aria-label`da tam), adlar hemen
+     altındaki rayda tam hâliyle durur — bilgi kaybolmaz, yalnız
+     okunamayan kopyası çizilmez. */
+  .ab-b-takim .isaret .kunye { display: none; }
   .ab-b-alan > aside, .ab-b-alan > .ab-b-takim { border-right: 0; }
   .ab-b-dikkat, .ab-b-katman { border-bottom: 1px solid var(--hr); }
   .ab-b-katman { border-left: 0; overflow-y: visible; }

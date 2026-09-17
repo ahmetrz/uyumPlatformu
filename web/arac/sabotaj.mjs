@@ -745,6 +745,48 @@ const SABOTAJLAR = [
     yaz: '      # SABOTAJ: dizüstü kapısı sessizce düştü',
     testler: ['tests/kapi-is-kapsami.test.ts'],
   },
+  {
+    ad: 'Tuval tabanı CSS ile model arasında ayrıştırıldı',
+    kural: 'Künye yüzdesi tuval TABANINDAN türer; CSS tabanı ile model tabanı aynı sayıdır',
+    dosya: 'app/kabuk.css',
+    ara: '  margin-top: 0; min-height: 245px; flex: 1;',
+    yaz: '  margin-top: 0; min-height: 300px; flex: 1;  /* SABOTAJ */',
+    testler: ['tests/kunye-yolu.test.ts'],
+  },
+  {
+    ad: 'Künye yüzdesi yeniden ELLE yazıldı (türetme kaldırıldı)',
+    kural: 'Piksel bir kutuyu değişken bir tuvale ölçen sabit yüzde, dar bantta çakışmayı geçirir',
+    dosya: 'app/(kabuk)/(flagship)/kunyeYolu.ts',
+    ara: 'export const KUNYE_BOY = Math.ceil((KUNYE_BOY_PX / TUVAL_TABAN_PX) * 100);',
+    yaz: 'export const KUNYE_BOY = 11;  /* SABOTAJ: eski elle yazılan yüzde */',
+    testler: ['tests/kunye-yolu.test.ts'],
+  },
+  {
+    ad: 'Durum manşeti yeniden eylemli satırı eziyor (42 → 68px)',
+    kural: 'Ekranın birincil işi müdahaledir; ölçek karar değerini izler',
+    dosya: 'app/kabuk.css',
+    ara: '  font-family: var(--gorunum); font-weight: 600; font-size: 42px; line-height: .85;',
+    yaz: '  font-family: var(--gorunum); font-weight: 600; font-size: 68px; line-height: .8;  /* SABOTAJ */',
+    testler: ['tests/saha-sadelestirme.test.ts'],
+  },
+  {
+    ad: 'Ray karar sırasını bıraktı (uygunsuz öne alınmıyor)',
+    kural: 'Ray karar sırasına dizilir: açık uygunsuzluğu olan tesis ilk ekranda',
+    dosya: 'app/(kabuk)/(flagship)/Genel.tsx',
+    ara: `          {[...tesisler]
+            .sort((a, b) => ((b.sayim.uyumsuz ?? 0) > 0 ? 1 : 0) - ((a.sayim.uyumsuz ?? 0) > 0 ? 1 : 0))
+            .map((s) => <SahaKarti key={s.id} s={s} />)}`,
+    yaz: '          {tesisler.map((s) => <SahaKarti key={s.id} s={s} />)}',
+    testler: ['tests/saha-sadelestirme.test.ts'],
+  },
+  {
+    ad: 'Panel etiketi yeniden koşulsuz "Grup durumu"',
+    kural: 'Kapsamı daraltılmış kullanıcıya "grup" demek, sayıların kapsamını yanlış beyan eder',
+    dosya: 'app/(kabuk)/(flagship)/Genel.tsx',
+    ara: '          <p className="etiket">{durumEtiketi} · {bugun}</p>',
+    yaz: '          <p className="etiket">Grup durumu · {bugun}</p>  {/* SABOTAJ */}',
+    testler: ['tests/saha-sadelestirme.test.ts'],
+  },
 ];
 
 function testKos(testler) {

@@ -902,6 +902,29 @@ export const PLATFORM_SENARYOLARI: Senaryo[] = [
     katmanlar: ['UI'],
   },
   {
+    id: 'SAH-TUV-002', alan: 'Saha', rota: '/', eksen: 'arayuz',
+    amac: 'Künye modeli ile ekran farklı birim kullanıyordu: künye kutusu '
+      + 'piksel, model ise tuval yüzdesi. Elle yazılan yüzde 1440\'ta '
+      + 'gerçeğin üstünde, 1366 ve 1280\'de altındaydı; dar bantta model '
+      + '"bu iki künye ayrık" deyip çakışmayı geçiriyordu. Aynı sapma '
+      + 'yatay eksende de vardı ve 1024 ile 375\'te birer çakışma olarak '
+      + 'ekranda duruyordu.',
+    rol: 'yönetici', kapsam: 'kurum geneli',
+    onkosul: 'Saha açık; tuvale çizilen en az iki tesis var', veriHali: 'normal',
+    eylem: 'Takımyıldızı beş bantta okur (1440 · 1366 · 1280 · 1024 · 375)',
+    beklenenSonuc: 'Künye yüzdesi tuval TABANINDAN türetilir ve en kötü '
+      + 'durumu alır; CSS tabanı, şerit adımı ve model sabiti aynı sayıyı '
+      + 'kullanır (bekçi üçünü karşılaştırır). Şerit tavanı PİKSELLE '
+      + 'yazılır — yüzdeyle yazılmış bir piksel sınırı tuval kısalınca '
+      + 'kendiliğinden kayıyordu. Serbest yüzen künye yüzeyi, tek kolona '
+      + 'inen dar bantta hiç çizilmez: orada uzun adlar tuvalin yarısından '
+      + 'geniştir ve hiçbir eşikle sığmaz; işaretler erişilebilir adlarıyla '
+      + 'kalır, adlar rayda tam durur. Beş bantta da çakışma sıfırdır.',
+    beklenenEkran: 'Saha · takımyıldız',
+    beklenenIz: 'yazma yok', beklenenBildirim: 'yok',
+    katmanlar: ['UI'],
+  },
+  {
     id: 'SIS-CBK-001', alan: 'Sistem', rota: '/', eksen: 'arayuz',
     amac: 'Kaydırma çubuğu ürünün dışında kalmıştı: ana sayfada kayan tek kap '
       + '(tesis şeridi, 3 624px taşma) çubuk için hiçbir karar taşımıyordu, '

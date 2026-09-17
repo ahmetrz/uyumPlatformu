@@ -1,8 +1,14 @@
+import { readFileSync } from 'node:fs';
+import path from 'node:path';
+import { fileURLToPath } from 'node:url';
 import { describe, expect, it } from 'vitest';
 import {
-  KUNYE_BOY, KUNYE_EN, KUNYE_EN_COK_YOL, kunyeYollari,
+  KUNYE_BOY, KUNYE_BOY_PX, KUNYE_EN, KUNYE_EN_COK_YOL, TUVAL_TABAN_PX, kunyeYollari,
   type KunyeNoktasi, type KunyeYeri,
 } from '@/app/(kabuk)/(flagship)/kunyeYolu';
+
+const CSS = readFileSync(
+  path.join(path.dirname(fileURLToPath(import.meta.url)), '../app/kabuk.css'), 'utf8');
 
 /* Takımyıldız künyelerinin çakışmaması — SIS-SAHA-001.
 
@@ -44,6 +50,47 @@ function ortusenler(noktalar: readonly KunyeNoktasi[], yerler: readonly KunyeYer
   }
   return n;
 }
+
+/* ═══════════════════════════════════════════════════════════════════════
+   SAH-TUV-002 · MODEL İLE EKRAN AYNI SAYIYI KULLANIR
+
+   Künye kutusu PİKSEL, tuval yüksekliği DEĞİŞKEN. Aradaki yüzde elle
+   yazıldığı sürece ikisi kaçınılmaz olarak ayrışır ve ayrıştığı an kural
+   "bu iki künye ayrık" diyerek çakışmayı geçirir. Ölçüldü (17 Eyl 2026):
+   elle yazılan %11, 1440×900'de gerçekte %10,5 · 1366×768'de %12,1'di.
+
+   Bugün yüzde TABANDAN türetilir. Bu blok türetmenin üç ucunu da bağlar:
+   TypeScript sabiti, CSS'teki tuval tabanı ve CSS'teki şerit adımı.
+   ═══════════════════════════════════════════════════════════════════════ */
+describe('SAH-TUV-002 · künye modeli tabandan TÜRETİLİR', () => {
+  it('CSS tuval tabanı ile `TUVAL_TABAN_PX` AYNI sayıdır [SAH-TUV-002]', () => {
+    const m = CSS.match(/\.ab-b-takim \.ab-tuval-sar > \.ab-tuval \{[^}]*min-height:\s*(\d+)px/);
+    expect(m, 'tuval tabanı kuralı bulunamadı — taşınmış olabilir').toBeTruthy();
+    expect(Number(m![1]),
+      'CSS tabanı ile model tabanı ayrıştı: künye yüzdesi yanlış türer').toBe(TUVAL_TABAN_PX);
+  });
+
+  it('yüzde EN KÖTÜ durumdan türer — az ayırmaz [SAH-TUV-002]', () => {
+    /* Tuval en kısayken künye en büyük payı kaplar; model o payı
+       kullanmalıdır. Aşağı yuvarlamak "ayrık" diyen bir yalan üretir. */
+    expect(KUNYE_BOY).toBe(Math.ceil((KUNYE_BOY_PX / TUVAL_TABAN_PX) * 100));
+    expect(KUNYE_BOY_PX / TUVAL_TABAN_PX * 100).toBeLessThanOrEqual(KUNYE_BOY);
+  });
+
+  it('CSS şerit adımı yüzdesi `KUNYE_BOY` ile aynıdır [SAH-TUV-002]', () => {
+    /* `--yol` künyeyi kendi yönünde bir künye boyu iter. CSS başka bir
+       yüzde kullanırsa kural ekranda olmayan bir ayrım varsayar. */
+    const adimlar = [...CSS.matchAll(/max\(34px,\s*(\d+)cqh\)/g)].map((x) => Number(x[1]));
+    expect(adimlar.length, 'şerit adımı kuralları bulunamadı').toBeGreaterThanOrEqual(2);
+    for (const a of adimlar) expect(a).toBe(KUNYE_BOY);
+  });
+
+  it('piksel taban, CSS künye kutusuyla tutarlıdır [SAH-TUV-002]', () => {
+    /* 34px iki satırlık künyenin ölçülen boyudur ve `max(34px, …)` içinde
+       CSS'te de yazılıdır; ikisi ayrışırsa taban yanlış yerden türer. */
+    expect(CSS).toContain(`max(${KUNYE_BOY_PX}px,`);
+  });
+});
 
 describe('Künye yolu · çakışma', () => {
   it('TEK nokta doğal yerinde kalır — gereksiz kaydırma yok', () => {
@@ -99,18 +146,27 @@ describe('Künye yolu · çakışma', () => {
   it('[SIS-SAHA-001] TAVANIN KENDİSİ SINIRLIDIR — sabotaj turunda yakalandı: '
     + 'iddia tavanı SABİTE karşı ölçüyordu, sabiti 99 yapmak kuralı '
     + 'sessizce geçiriyordu', () => {
-    /* Bir şerit `KUNYE_BOY` = %11 tuval yüksekliği; 300px tuvalde ≈ 33px.
-       Tasarım sınırı üç şerit ≈ 99px: saç telinin hâlâ okunduğu mesafe.
-       Bu sayıyı yükseltmek kuralı zayıflatmaktır ve GÖRÜNÜR olmalıdır —
+    /* SINIR PİKSELDİR — ve hep öyleydi. Bu iddia eskiden "üç şerit ≤ 33"
+       diyordu; 33 sayısı "%11 × 300px tuval ≈ 33px"ten geliyordu, yani
+       yüzdeyle yazılmış bir PİKSEL sınırıydı. Tuvalin yüksekliği
+       değiştiği an ölçüt kendiliğinden kaydı: taban 245'e inince aynı
+       34px'lik künye %14 oldu ve 3 × 14 = 42 > 33 diye KIRMIZI yandı —
+       oysa ekranda mesafe değişmemişti, hâlâ 3 × 34 = 102px.
+
+       Tasarım sınırı üç künye boyudur: saç telinin hâlâ doğru işareti
+       gösterdiği mesafe (ölçülen kusur 9 yoldu, ≈303px). Bugün doğrudan
+       pikselle yazılıyor. Tavan 105: ölçülen 102px'in üstünde küçük bir
+       pay bırakır (künye kutusu bir piksel oynarsa yanlış kırmızı
+       yanmasın), ama DÖRDÜNCÜ şerit (4 × 34 = 136px) geçemez.
+
+       Sayıyı yükseltmek kuralı zayıflatmaktır ve GÖRÜNÜR olmalıdır —
        "taban indirmesi ve tavan yükseltmesi gerekçe ister" kuralının bu
        kütükteki karşılığı. */
     expect(KUNYE_EN_COK_YOL, 'künye tavanı yükseltilmiş — gerekçesi '
       + '`kunyeYolu.ts` içinde yazılı olmalı ve bu sayı onunla birlikte '
       + 'değişmeli').toBeLessThanOrEqual(3);
-    expect(KUNYE_EN_COK_YOL * KUNYE_BOY, 'künye tuvalin üçte birinden '
-      + 'uzağa düşebiliyor').toBeLessThanOrEqual(33);
-    /* Yüzde ancak tuvalin yüksekliği sabitse anlamlıdır; taban
-       `.ab-tuval { min-height }` ile kurulur ve ikisi birlikte değişir. */
+    expect(KUNYE_EN_COK_YOL * KUNYE_BOY_PX, 'künye işaretinden üç künye '
+      + 'boyundan uzağa düşebiliyor — saç teli okunmaz').toBeLessThanOrEqual(105);
   });
 
   it('[SIS-SAHA-001] ÖLÇÜLEN KUSUR · künye İŞARETİNDEN KOPAMAZ — sınırsız '
@@ -170,14 +226,22 @@ describe('Künye yolu · çakışma', () => {
   it('[SAH-TUV-001] DİKEY YÖNLÜ ÇAKIŞMA · yukarı açan künye ile aşağı açan '
     + 'künye merkezleri UZAK olsa bile örtüşür', () => {
     /* ÖLÇÜLEN KUSUR (17 Eyl 2026 · 1440×900 · eksen penceresi geldikten
-       sonra): aynı endeksteki (73) iki tesis, tuval yüzdesinde 11,9
-       birim uzakta. `KUNYE_BOY` 11 olduğu için eski
-       merkez modeli "ayrık" dedi, ikisi de yol 0'da kaldı ve ekranda
-       künyeler 16 piksel üst üste bindi; `kanit:tuval` iki bantta da
-       kırmızı yaktı. Sayılar ekrandan alınmıştır. */
+       sonra): aynı endeksteki iki tesis, tuval yüzdesinde 11,9 birim
+       uzakta. `KUNYE_BOY` o gün 11'di; merkez modeli "ayrık" dedi, ikisi
+       de yol 0'da kaldı ve ekranda künyeler 16 piksel üst üste bindi
+       (`kanit:tuval` iki bantta da kırmızı yaktı).
+
+       VAKA YENİDEN TEMELLENDİRİLDİ ve sebebi bir bulgudur: `KUNYE_BOY`
+       tabandan türetilince 14 oldu ve ölçülen o çift artık MERKEZ
+       modeliyle de yakalanıyor — iki düzeltme aynı çiftin üstünde
+       örtüşüyor. Örtüşen bir vaka, yönlülüğü İZOLE ETMEZ: model yanlış
+       sebeple geçer. Bu yüzden ayrım şimdi güncel `KUNYE_BOY`dan BÜYÜK
+       seçiliyor; merkez modeli burada kesinlikle "ayrık" der, yalnız
+       yönlü model çakışmayı görür. */
+    const ayrim = KUNYE_BOY + 1;
     const n: KunyeNoktasi[] = [
-      { x: 68.9, y: 21.8, yukari: false, sola: true },
-      { x: 68.9, y: 9.9, yukari: true, sola: true },
+      { x: 68.9, y: 8 + ayrim, yukari: false, sola: true },
+      { x: 68.9, y: 8, yukari: true, sola: true },
     ];
     /* Vakanın ZORLUĞU: merkezler bir künye boyundan UZAK. Bu satır
        olmazsa test, kolay bir vakayı çözüp geçmiş olabilir. */

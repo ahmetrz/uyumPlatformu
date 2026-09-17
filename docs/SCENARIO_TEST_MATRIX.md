@@ -4,8 +4,8 @@
 
 | Ölçü | Değer |
 | --- | --- |
-| Senaryo | 419 |
-| Testi olan senaryo | 419 |
+| Senaryo | 420 |
+| Testi olan senaryo | 420 |
 | **GAP** | **0** |
 | Hayalet işaret (kütükte olmayan kimlik) | 0 |
 | Kütüksüz test dosyası | 0 |
@@ -26,7 +26,7 @@
 | RESPONSIVE | 9 | 9 | 0 |
 | SCOPE | 34 | 34 | 0 |
 | SERVER | 159 | 159 | 0 |
-| UI | 150 | 150 | 0 |
+| UI | 151 | 151 | 0 |
 | VISUAL | 4 | 4 | 0 |
 | WORKFLOW | 39 | 39 | 0 |
 
@@ -423,6 +423,10 @@
 | `SAH-EKS-001` | Saha | UI | `eksen-penceresi.test.ts` | yayılım yoksa adım çöker değil, 1 olur | evet | geçti |
 | `SAH-EKS-001` | Saha | UI | `eksen-penceresi.test.ts` | ondalık adımda çentik ONDALIK yazar | evet | geçti |
 | `SAH-TUV-001` | Saha | UI | `kunye-yolu.test.ts` | DİKEY YÖNLÜ ÇAKIŞMA · yukarı açan künye ile aşağı açan | evet | geçti |
+| `SAH-TUV-002` | Saha | UI | `kunye-yolu.test.ts` | CSS tuval tabanı ile `TUVAL_TABAN_PX` AYNI sayıdır | evet | geçti |
+| `SAH-TUV-002` | Saha | UI | `kunye-yolu.test.ts` | yüzde EN KÖTÜ durumdan türer — az ayırmaz | evet | geçti |
+| `SAH-TUV-002` | Saha | UI | `kunye-yolu.test.ts` | CSS şerit adımı yüzdesi `KUNYE_BOY` ile aynıdır | evet | geçti |
+| `SAH-TUV-002` | Saha | UI | `kunye-yolu.test.ts` | piksel taban, CSS künye kutusuyla tutarlıdır | evet | geçti |
 | `SIS-CBK-001` | Sistem | UI · ACCESSIBILITY | `bekci/kaydirma-cubugu.test.ts` | ÖLÇÜM TABANI — tarama gerçekten kayan kap görüyor | evet | geçti |
 | `SIS-CBK-001` | Sistem | UI · ACCESSIBILITY | `bekci/kaydirma-cubugu.test.ts` | renk kararı kabuğun KÖKÜNDE bir kez verilir ve jetondan gelir | evet | geçti |
 | `SIS-CBK-001` | Sistem | UI · ACCESSIBILITY | `bekci/kaydirma-cubugu.test.ts` | incelik KALITIMSIZDIR: kabuğun altındaki her öğeye yazılır | evet | geçti |

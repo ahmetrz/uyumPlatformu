@@ -49,6 +49,24 @@ export type KunyeNoktasi = {
  *  Müdürlük" — ~200px; tuval ~700px ⇒ %28. İlk yazımda %17 denendi ve
  *  YETMEDİ: o iki künye hâlâ üst üste biniyordu (ölçüldü, düzeltme turu).
  *  İki satırlık künye 28px ≈ %11 (tuval ~260px). */
+/* SAYI DEĞİŞMEDİ, SINIRI BEYAN EDİLDİ. `KUNYE_EN` künyenin YATAY
+   kapladığı yer, tuval yüzdesi cinsinden — ve künye piksel genişliğinde
+   bir metin kutusudur (`white-space: nowrap`). Ölçüldü (17 Eyl 2026,
+   aynı dört tesis, künye 106px):
+
+     1440×900  tuval 688px → %15,4      1366×768  tuval 614px → %17,3
+     1280×800  tuval 528px → %20,1      375×812   tuval 311px → %34,1
+
+   Yani %28 masaüstünde FAZLA ayırır (zararsız: künye işaretine biraz
+   daha yakın durur), telefonda AZ ayırır — ve orada model "ayrık" derken
+   künyeler gerçekten biniyor. `main` üzerinde de ölçüldü: 1024×768 ve
+   375×812'de bu yüzden birer künye-künye çakışması VAR.
+
+   Sayıyı telefona göre büyütmek çözüm DEĞİLDİR: 311px tuvalde uzun
+   Türkçe adlar (~200px) künyenin %64'ünü ister; iki künye hiçbir sayıyla
+   yan yana sığmaz. Dar bantta çözüm STRATEJİDİR, sayı değil — künye
+   yüzeyi orada hiç çizilmez (`kabuk.css`, `.ab-b-alan` tek kolona
+   indiğinde) ve adlar rayda tam hâliyle durur. */
 export const KUNYE_EN = 28;
 /* Künye boyu TUVAL YÜZDESİDİR: 34px künye / ~300px tuval ≈ %11.
    Yüzde olması, sabitin tuval yüksekliğine BAĞIMLI olması demektir ve
@@ -63,7 +81,29 @@ export const KUNYE_EN = 28;
    seçim yapmak yerine varsayım gerçek kılındı: tuval artık tasarlandığı
    yüksekliğin ALTINA İNEMEZ (`.ab-tuval { min-height }`, kabuk.css) ve
    %11 her bantta 34px'e karşılık gelir. */
-export const KUNYE_BOY = 11;
+/** Künye kutusunun ÖLÇÜLEN piksel yüksekliği — iki satır (`kabuk.css`). */
+export const KUNYE_BOY_PX = 34;
+
+/** Tuvalin inebileceği EN KISA yükseklik (`.ab-tuval { min-height }`).
+ *  İki sayı BİRLİKTE değişir; ayrıştıkları an model ekranda olmayan bir
+ *  ayrım varsayar. Bekçi ikisini CSS'ten okuyup karşılaştırır. */
+export const TUVAL_TABAN_PX = 245;
+
+/* YÜZDE ARTIK TÜRETİLİR — VE EN KÖTÜ DURUMDAN.
+
+   Elle yazılan %11 iki yönde birden YANLIŞTI ve ölçüldü (17 Eyl 2026,
+   üretim derlemesi): künye her bantta 34px, tuval 1440×900'de 324px
+   (künye = %10,5), 1366×768 ve 1280×800'de 280px (künye = %12,1). Yani
+   model dar bantta gerçek künyeyi OLDUĞUNDAN KÜÇÜK sanıyor ve "bu iki
+   künye ayrık" diyerek çakışmayı geçiriyordu. Sabit bir yüzde, boyu
+   piksel olan bir kutuyu yüksekliği değişen bir tuvale ölçmeye çalışmanın
+   kaçınılmaz sonucudur.
+
+   Doğrusu EN KÖTÜ durumdur: tuval en kısayken künye en büyük payı kaplar.
+   Taban 245px olduğu için yüzde yukarı yuvarlanarak 14 çıkar. Daha uzun
+   tuvalde model fazla ayırır — bu zararsızdır (künye işaretine biraz daha
+   yakın durur); AZ ayırmak ise çakışma demektir. */
+export const KUNYE_BOY = Math.ceil((KUNYE_BOY_PX / TUVAL_TABAN_PX) * 100);
 
 /* KÜNYE KENDİ İŞARETİNDEN KOPAMAZ — ölçülen kusur (bağımsız audit,
    14 Eylül 2026, 1440×900). İlk yazımda yol sayısı SINIRSIZDI: üst sınır
@@ -89,6 +129,21 @@ export const KUNYE_BOY = 11;
    künyeden daha ağır bir kusurdur — okuyan kişi birincisini fark etmez,
    ikincisini fark eder. */
 export const KUNYE_EN_COK_YOL = 3;
+
+/* İŞARET KUTULARI ÇÖZÜCÜYE VERİLDİ VE GERİ ALINDI — ölçümle.
+
+   Kritik "çözücüye işaret kutularını besle" diyordu ve bir tur denendi:
+   künye başka bir tesisin işaretine inemesin. Ölçüldü (17 Eyl 2026, beş
+   bant): 1024×768'de bir çakışmayı kapattı, ama 1366×768, 1280×800 ve
+   375×812'de YENİ künye-künye çakışmaları doğurdu — kısıt artınca çözücü
+   üç şeridi de doldurup pes ediyor ve künyeyi doğal yerinde bırakıyor.
+   1280 kapı bandıdır, yani değişiklik `kanit:tuval`ı kırmızı yakıyordu.
+
+   Dahası teşhis YANLIŞTI: aynı beş bant `main` üzerinde ölçüldüğünde
+   1024 ve 375'teki çakışmalar ZATEN VARDI ve türü künye×künyeydi,
+   künye×işaret değil. Yani eklenen kısıt, ölçülen kusurun sebebine hiç
+   dokunmuyordu; 1024'ü düzeltmesi tesadüftü (fazladan baskı bir künyeyi
+   oynattı). Sebep aşağıda, `KUNYE_EN` yorumunda. */
 
 /* Künye YÖNLÜDÜR: işaretin sağına açılır, sağ yarıda (`.sola`) soluna.
    Simetrik bir "|Δx| < en" kuralı bu yüzden kördü — x=50'de sağa açılan

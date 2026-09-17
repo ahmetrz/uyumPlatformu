@@ -203,6 +203,13 @@ export default function Genel({
   /* Aynı görünen adı taşıyan iki tip (enerji · su "Merkez BT") sektörle
      ayrılır; çakışma yoksa ad olduğu gibi kalır (`tipEtiketi.ts`). */
   const tipEtiketi = tipEtiketleri(tipler);
+  /* Panelin adı KAPSAMDAN gelir. Kapsamı daraltılmış bir kullanıcıya
+     "Grup durumu" demek, ekranın gösterdiği sayıların kapsamını yanlış
+     beyan etmektir: sayılar zaten daraltılmış, yanlış olan tek şey
+     etiketti. Sayı da yazılır — "kaç tesis" kapsamın kendisidir. */
+  const durumEtiketi = kapsamli
+    ? `Kapsamınız · ${ozet.tesisSayisi} ${terim('tesis')}`
+    : 'Grup durumu';
 
   return (
     <main className="ab-b-saha ab-b-genel">
@@ -219,8 +226,13 @@ export default function Genel({
         <span className="perde" aria-hidden />
 
         {/* ── Dikkat paneli · 430px ─────────────────────────────────── */}
-        <aside className="ab-b-dikkat" aria-label="Grup durumu">
-          <p className="etiket">Grup durumu · {bugun}</p>
+        <aside className="ab-b-dikkat" aria-label={durumEtiketi}>
+          {/* ETİKET VERİDEN TÜRER. Ekran kapsam ne olursa olsun "Grup
+              durumu" diyordu: tek bir tesisin sorumlusu, yalnız kendi
+              tesisini gösteren bir ekranda "grup" yazısı okuyordu.
+              Kapsam bayrağı zaten vardı ve YALNIZ boş durum cümlesinde
+              kullanılıyordu — sayılar doğru daraltılmış, etiket yanlış. */}
+          <p className="etiket">{durumEtiketi} · {bugun}</p>
           <div className="endeks">
             <span className="sayi">{ozet.uyumYuzde === null ? '—' : `%${ozet.uyumYuzde}`}</span>
             <span className="yan">
@@ -352,8 +364,16 @@ export default function Genel({
             {ozet.gucYazi && ` · ${ozet.gucYazi}`}
           </span>
         </header>
+        {/* UYGUNSUZU OLAN ÖNDE. Ekranın birincil işi müdahale olduğuna
+            göre ray da karar sırasına dizilir: açık uygunsuzluğu olan
+            tesis, yatay kaydırma gerektirmeden ilk ekranda görünür.
+            Sıralama KARARLIDIR (`sort` kararlı) — eşit önceliktekiler
+            sunucunun verdiği sırayı korur, yani ölçülen hiçbir sıra
+            bozulmaz, yalnız öncelikli olanlar öne çekilir. */}
         <div className="kartlar">
-          {tesisler.map((s) => <SahaKarti key={s.id} s={s} />)}
+          {[...tesisler]
+            .sort((a, b) => ((b.sayim.uyumsuz ?? 0) > 0 ? 1 : 0) - ((a.sayim.uyumsuz ?? 0) > 0 ? 1 : 0))
+            .map((s) => <SahaKarti key={s.id} s={s} />)}
         </div>
       </section>
 
@@ -672,17 +692,28 @@ function Mudahale({ dikkat, toplamKayit, kapsamli }: {
                 bulguyu mevzuattaki yerine bağlayan tek anahtardır ve
                 satıra sığar; çerçeve kodun ön ekinde zaten okunur
                 (`EPDK-…`) ve bulgular ekranında tam hâliyle durur. */}
-            <span className="mono meta">
+            {/* AD VE GECİKME GÖVDE, KOD MONO. DESIGN.md: "Gövde nötr
+                kalır; sayı ve kod daima mono." Satırın tamamı mono olunca
+                tesis adı ve "12 gün gecikti" cümlesi de kod sesiyle
+                konuşuyordu; ölçüldü, ekrandaki 22 mono cümleden dördü bu
+                satırdı. */}
+            <span className="meta">
               {b.tesisAd}
               {terminKisa(b.gecikmisGun, b.hedefTarih) && ` · ${terminKisa(b.gecikmisGun, b.hedefTarih)}`}
-              {b.kontrolKodu && ` · ${b.kontrolKodu}`}
+              {b.kontrolKodu && <> · <span className="mono">{b.kontrolKodu}</span></>}
             </span>
           </span>
-          <span className="sira" aria-hidden>{String(i + 1).padStart(2, '0')}</span>
+          {/* SIRA RAKAMLARI SİLİNDİ (01 / 02 / 03). İki kusuru vardı:
+              rengi `--hr2` olduğu için 1,30:1 kontrastla okunamıyordu —
+              yani bilgi taşıyorsa erişilemez, taşımıyorsa süstü — ve
+              taşıdığı "sıra" zaten satırların DİZİLİŞİNDE var. Kuyruk
+              önceliğe göre sıralı; numaralandırmak aynı şeyi ikinci kez
+              söylüyordu. `aria-hidden` olması da bunu söylüyordu:
+              okuyucuya verilmeyen bir bilgi, gözle de gerekmiyordu. */}
         </Link>
       ))}
       {cizilecek > 0 && kalan > 0 && (
-        <Link href="/bulgular" className="mono kalan" title={`${kalan} bulgu daha · bulgular ekranı`}>+{kalan} diğer →</Link>
+        <Link href="/bulgular" className="kalan" title={`${kalan} bulgu daha · bulgular ekranı`}>+{kalan} diğer →</Link>
       )}
     </div>
   );
@@ -783,11 +814,15 @@ function Takimyildizi({ tesisler, gosterim = OLCULMEMIS_VARSAYILAN, serit, panel
       {/* Yön bilgisi ÜÇ kanaldan söyleniyordu (başlık kuyruğu, eksen
           adları, hedef köşesi); ikisi kaldı: eksen okları ("uyum endeksi →",
           "↑ kurulu güç") ve "↗ güçlü ve uyumlu" köşesi. Başlık kuyruğu
-          `title`a taşındı — aynı bilgi, bir kez. */}
-      {/* Başlık ve değerlendirilmemiş özeti AYNI satırda: özet ayrı bir
-          satıra inseydi tuvalden ~42px yükseklik alırdı ve 768px'te künye
-          çakışması ölçülen bir risk. Burada yükseklik maliyeti yok, tuval
-          hem enine (eski 176px kolon kalktı) hem boyuna kazanıyor. */}
+          önce `title`a taşınmış, sonra SİLİNMİŞTİ (odaklanamayan `title`
+          kimseye ulaşmıyor); yön bugün eksen adları ve pencere
+          çentikleriyle söyleniyor — aynı bilgi, bir kez. */}
+      {/* Başlık ve değerlendirilmemiş özeti AYNI SATIRDA — ve bu satır
+          artık gerçekten tek satır. Kap `column` olduğu için ikisi alt
+          alta düşüyordu ve 1366×768'de 71px yiyordu (ölçüldü); o 71px'in
+          25'i yalnız ayrılıktan geliyordu ve güç şeridinin görünmemesiyle
+          ödeniyordu. İkisi aynı bilgi grubudur: "bu tuval neyi çiziyor ve
+          neyi çizemiyor". Dar bantta sararlar; kolon zaten kayabilir. */}
       <div className="ab-takim-bas">
         {/* `title` KALKTI: yönü ekran zaten İKİ kanaldan söylüyor —
             eksen adları ("uyum endeksi →" · "↑ kurulu güç") ve artık
@@ -851,6 +886,11 @@ function Takimyildizi({ tesisler, gosterim = OLCULMEMIS_VARSAYILAN, serit, panel
               const uygunsuz = s.sayim.uyumsuz ?? 0;
               return (
                 <Link key={s.id} href={`/tesisler/${s.id}`}
+                  /* ERİŞİLEBİLİR AD BAĞIN KENDİNDE. Künye yüzeyi dar
+                     bantta çizilmiyor (kabuk.css); ad bağın METNİNDEN
+                     geliyor olsaydı orada bağın adı da yok olurdu ve
+                     geriye adsız bir elmas kalırdı. */
+                  aria-label={`${s.ad} · ${kartGucu(s) ?? '—'} · %${s.endeks}${uygunsuz > 0 ? ` · ${uygunsuz} uygunsuz` : ''}`}
                   title={`${s.ad} · ${kartGucu(s) ?? '—'} · %${s.endeks}${uygunsuz > 0 ? ` · ${uygunsuz} uygunsuz` : ''}`}
                   /* Odak sırası: uygunsuzu olan tesis öne (`oncelik`, tam
                      mürekkep + halka), temiz olan arkaya (ikincil mürekkep).

@@ -169,3 +169,54 @@ describe('tip etiketi · aynı ad, iki tip', () => {
     expect(e.get('C')).toBe('X · A (2)');
   });
 });
+
+/* ═══════════════════════════════════════════════════════════════════════
+   SAH-SDL-002 · EKRANIN BİRİNCİL İŞİ MÜDAHALEDİR
+
+   Ürün kararı (17 Eyl 2026): Saha ekranının TEK birincil işi "bugün neye
+   dokunmalıyım". Ölçek bunun TERSİNİ söylüyordu ve ölçüldü: durum
+   manşeti 68px, eylem taşıyan tek satır (bulgu başlığı) 13px — beş kat
+   fark, karar değerinin ters yönünde. Bu blok kararı sayıya bağlar;
+   sayısız bir karar, bir sonraki turda sessizce geri alınır.
+   ═══════════════════════════════════════════════════════════════════════ */
+describe('SAH-SDL-002 · hiyerarşi karar değerini izler', () => {
+  const px = (secici: string) => {
+    const blok = CSS.slice(CSS.indexOf(secici));
+    const m = blok.slice(0, blok.indexOf('}')).match(/font-size:\s*(\d+)px/);
+    return m ? Number(m[1]) : null;
+  };
+
+  it('durum manşeti, eylemli satırı ÜÇ KATTAN fazla ezmez [SAH-SDL-002]', () => {
+    const mansetPx = px('.ab-b-dikkat .endeks .sayi {');
+    const konuPx = px('.ab-b-dikkat .kalem .konu {');
+    expect(mansetPx, 'manşet ölçüsü okunamadı').toBeTruthy();
+    expect(konuPx, 'bulgu başlığı ölçüsü okunamadı').toBeTruthy();
+    /* Eşik ORAN, sabit sayı değil: ikisinden biri değişse de kural
+       ölçmeye devam eder. 68/13 = 5,2 idi; bugün 42/15 = 2,8. */
+    expect(mansetPx! / konuPx!,
+      'durum manşeti eylemli satırı yeniden eziyor').toBeLessThanOrEqual(3);
+  });
+
+  it('HAYALET SIRA RAKAMLARI ekranda yok [SAH-SDL-002]', () => {
+    /* 26px, `--hr2` rengiyle 1,30:1 — bilgi taşıyorsa erişilemez,
+       taşımıyorsa süs; `aria-hidden` olması ikincisini söylüyordu. */
+    expect(GENEL, 'sıra rakamları geri gelmiş').not.toMatch(/className="sira"/);
+  });
+
+  it('ray KARAR SIRASINA dizilir — uygunsuzu olan önde [SAH-SDL-002]', () => {
+    const bas = GENEL.indexOf('<div className="kartlar">');
+    const blok = GENEL.slice(bas, GENEL.indexOf('</div>', bas));
+    expect(blok, 'ray sunucunun verdiği sırayı olduğu gibi çiziyor')
+      .toMatch(/\.sort\(\(a, b\) =>/);
+    expect(blok).toMatch(/uyumsuz/);
+  });
+
+  it('panel etiketi KAPSAMDAN türer — koşulsuz "Grup durumu" yok [SAH-SDL-002]', () => {
+    /* Kapsamı daraltılmış kullanıcıya "Grup durumu" demek, ekranın
+       gösterdiği sayıların kapsamını yanlış beyan etmektir. */
+    expect(GENEL).toMatch(/const durumEtiketi = kapsamli/);
+    expect(GENEL, 'etiket yeniden sabit yazılmış')
+      .not.toMatch(/<p className="etiket">Grup durumu/);
+    expect(GENEL).toMatch(/aria-label=\{durumEtiketi\}/);
+  });
+});

@@ -25,6 +25,7 @@ kabul kriteridir (P0 · URN-KUR-003); ölü atıf eklemeyin.
 | Ürün / kod kuralları | `web/CLAUDE.md` → `web/AGENTS.md` (Next.js sürüm uyarısı) |
 | Ürün bağlamı ve sözlük | `web/PRODUCT.md` |
 | Tasarım sistemi | `web/DESIGN.md` |
+| Tasarım yönü · referans değerlendirmesi (ölçüldü) | `docs/TASARIM_YONU_REFERANSLARI.md` |
 | Veri modeli | `docs/ICERIK_MODELI.md` · `web/prisma/schema.prisma` |
 | İçerik omurgası kararı (SCF · UCF · mevzuat) | `docs/ICERIK_OMURGASI_KARARI.md` |
 | Mimari | `docs/MIMARI.md` |

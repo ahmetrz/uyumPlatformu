@@ -433,18 +433,18 @@ function HesapOzeti({ hesap, yetki, secYetki }: {
                   }}>
                   <span style={{ display: 'flex', alignItems: 'center', gap: 'var(--s8)' }}>
                     <Im durum={y.bitis ? 'tamam' : y.sonInceleme ? 'ok' : 'bd'} />
-                    <span style={{ fontSize: 'var(--t-cell)', fontWeight: 600 }}>
+                    <span style={{ fontSize: 'var(--t-govde)', fontWeight: 600 }}>
                       {y.kapsam ?? 'kapsam yazılmamış'}
                     </span>
                     <span style={{
                       marginLeft: 'auto', fontFamily: 'var(--veri)',
-                      fontSize: 'var(--t-code)', color: 'var(--i3)',
+                      fontSize: 'var(--t-veri)', color: 'var(--i3)',
                     }}>
                       {YETKI_ETIKET[y.yetkiSeviyesi ?? ''] ?? '—'}
                     </span>
                   </span>
                   <span style={{
-                    fontFamily: 'var(--veri)', fontSize: 'var(--t-code)',
+                    fontFamily: 'var(--veri)', fontSize: 'var(--t-veri)',
                     color: 'var(--i3)', lineHeight: 1.6,
                   }}>
                     {yetkiAltSatiri(y)}
@@ -522,12 +522,12 @@ function GrupOzeti({ grup, sec }: {
               }}>
               <Im durum={hesapDurumu(u)} />
               <span style={{ minWidth: 0 }}>
-                <span style={{ display: 'block', fontSize: 'var(--t-cell)', fontWeight: 600 }}>
+                <span style={{ display: 'block', fontSize: 'var(--t-govde)', fontWeight: 600 }}>
                   {u.hesapAdi}
                 </span>
                 <span style={{
                   display: 'block', marginTop: 2, fontFamily: 'var(--veri)',
-                  fontSize: 'var(--t-label)', color: 'var(--i3)',
+                  fontSize: 'var(--t-etiket)', color: 'var(--i3)',
                 }}>
                   {altSatir(u)}
                 </span>

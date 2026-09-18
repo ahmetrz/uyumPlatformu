@@ -320,11 +320,11 @@ export function IliskiEditoru({
                 onClick={() => sec(i.diger.id)}
                 style={{ background: 'none', border: 0, padding: 0, cursor: 'pointer',
                   textAlign: 'left', font: 'inherit', color: 'inherit', minWidth: 0, flex: 1 }}>
-                <span style={{ display: 'block', fontSize: 'var(--t-cell)', fontWeight: 600 }}>
+                <span style={{ display: 'block', fontSize: 'var(--t-govde)', fontWeight: 600 }}>
                   {i.diger.etiket}
                 </span>
                 <span style={{ display: 'block', marginTop: 2, fontFamily: 'var(--veri)',
-                  fontSize: 'var(--t-label)', color: 'var(--i3)' }}>
+                  fontSize: 'var(--t-etiket)', color: 'var(--i3)' }}>
                   {i.giden
                     ? `${ILISKI_CUMLE[i.tip] ?? etiketle(i.tip)} ${i.diger.etiket}`
                     : `${i.diger.etiket} ${ILISKI_CUMLE[i.tip] ?? etiketle(i.tip)} bu varlık`}

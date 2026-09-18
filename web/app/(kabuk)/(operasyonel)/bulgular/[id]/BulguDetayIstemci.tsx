@@ -478,7 +478,7 @@ export default function BulguDetayIstemci({ veri, esik = KANIT_ESIK_VARSAYILAN }
                     <div style={{ display: 'grid', gap: 'var(--s8)' }}>
                       {veri.kanitlar.length === 0 && (
                         <span style={{ display: 'inline-flex', alignItems: 'center', gap: 'var(--s8)',
-                          fontSize: 'var(--t-field)', color: 'var(--i3)' }}>
+                          fontSize: 'var(--t-govde)', color: 'var(--i3)' }}>
                           <Im durum="unk" ad="Kanıt bağlanmadı" />bağlı kanıt yok
                         </span>
                       )}
@@ -486,14 +486,14 @@ export default function BulguDetayIstemci({ veri, esik = KANIT_ESIK_VARSAYILAN }
                         const taze = kanitTazelik(new Date(k.baslangic), esik);
                         return (
                           <span key={k.id} style={{ display: 'flex', alignItems: 'center',
-                            gap: 'var(--s8)', fontSize: 'var(--t-field)' }}>
+                            gap: 'var(--s8)', fontSize: 'var(--t-govde)' }}>
                             <Im durum={taze.durum === 'uyumlu' ? 'ok'
                               : taze.durum === 'kismi' ? 'md' : 'unk'}
                               ad={`${etiketle(k.tip)} · ${taze.gun} gün önce`} />
                             <span style={{ minWidth: 0, overflow: 'hidden',
                               textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{k.ad}</span>
                             <span style={{ marginLeft: 'auto', fontFamily: 'var(--veri)',
-                              fontSize: 'var(--t-label)', color: 'var(--i3)' }}>{taze.gun} g</span>
+                              fontSize: 'var(--t-etiket)', color: 'var(--i3)' }}>{taze.gun} g</span>
                           </span>
                         );
                       })}
@@ -620,7 +620,7 @@ function RetestBlogu({
       style={{ marginTop: 'var(--s24)', display: 'grid', gap: 'var(--s14)' }}>
       <p className="etiket" style={{ margin: 0 }}>Retest</p>
       <label style={{ display: 'inline-flex', alignItems: 'center', gap: 'var(--s8)',
-        fontSize: 'var(--t-field)' }}>
+        fontSize: 'var(--t-govde)' }}>
         <input className="ab-gr" type="checkbox" checked={retestGerekli} disabled={bekliyor}
           onChange={(e) => retestDegistir(e.target.checked)} />
         Retest gerekli
@@ -735,14 +735,14 @@ function AksiyonPaneli({
       <div className="ab-panel-blok" style={{ marginTop: 'var(--s24)', display: 'grid', gap: 'var(--s12)' }}>
         <p className="etiket" style={{ margin: 0 }}>Doğrulama</p>
         {!dogrulanabilir ? (
-          <span style={{ fontSize: 'var(--t-field)', color: 'var(--i3)' }}>
+          <span style={{ fontSize: 'var(--t-govde)', color: 'var(--i3)' }}>
             {aksiyon.dogrulama === 'dogrulandi'
               ? 'Doğrulandı; yeniden doğrulama gerekmez.'
               : 'Doğrulama, aksiyon tamamlandığında yapılır.'}
           </span>
         ) : !dogrulayabilir ? (
           <span style={{ display: 'inline-flex', alignItems: 'center', gap: 'var(--s8)',
-            fontSize: 'var(--t-field)', color: 'var(--i3)' }}>
+            fontSize: 'var(--t-govde)', color: 'var(--i3)' }}>
             <Im durum="unk" ad="Doğrulama yetkisi yok" />
             {kendiAksiyonu
               ? 'Görev ayrılığı: kendi aksiyonunuzu doğrulayamazsınız.'
@@ -793,7 +793,7 @@ function DenetimIzi({ kayitlar }: { kayitlar: Veri['aktiviteler'] }) {
   if (kayitlar.length === 0) {
     return (
       <div className="ab-panel-blok">
-        <p style={{ margin: 0, fontFamily: 'var(--veri)', fontSize: 'var(--t-label)',
+        <p style={{ margin: 0, fontFamily: 'var(--veri)', fontSize: 'var(--t-etiket)',
           color: 'var(--i3)' }}>Kayıt yok</p>
       </div>
     );
@@ -803,11 +803,11 @@ function DenetimIzi({ kayitlar }: { kayitlar: Veri['aktiviteler'] }) {
       {kayitlar.map((k) => (
         <div key={k.id} style={{ display: 'grid', gap: 2,
           borderLeft: 'var(--bw-edge) solid var(--hr2)', paddingLeft: 'var(--s12)' }}>
-          <span style={{ fontSize: 'var(--t-field)' }}>
+          <span style={{ fontSize: 'var(--t-govde)' }}>
             <b style={{ fontWeight: 600 }}>{k.aktor}</b>{' '}
             {eylemCumlesi(k.eylem, k.varlikTipi === 'Bulgu' ? null : k.varlikTipi, k.alan, ET)}
           </span>
-          <span style={{ fontFamily: 'var(--veri)', fontSize: 'var(--t-label)', color: 'var(--i3)' }}>
+          <span style={{ fontFamily: 'var(--veri)', fontSize: 'var(--t-etiket)', color: 'var(--i3)' }}>
             {zamanTR(k.zaman)}
             {(k.once || k.sonra) && ` · ${etiketle(k.once, '—')} → ${etiketle(k.sonra, '—')}`}
             {k.dosya && ` · ${k.dosya}`}
@@ -959,19 +959,19 @@ function KokNedenBlogu({ veri, bekliyor, calistir, acik, ac }: {
           <Im durum={ANALIZ_SINIFI[durum]} ad={ANALIZ_SOZU[durum]} />
         </span>
         <div style={{ display: 'grid', gap: 'var(--s4)' }}>
-          <span style={{ fontSize: 'var(--t-field)' }}>{ANALIZ_SOZU[durum]}</span>
+          <span style={{ fontSize: 'var(--t-govde)' }}>{ANALIZ_SOZU[durum]}</span>
           {veri.kokNedenKategori && (
-            <span style={{ fontSize: 'var(--t-label)', color: 'var(--i2)' }}>
+            <span style={{ fontSize: 'var(--t-etiket)', color: 'var(--i2)' }}>
               {KOK_NEDEN_ETIKETI[veri.kokNedenKategori as KokNedenKategorisi]
                 ?? veri.kokNedenKategori}
             </span>
           )}
-          <span className="mono" style={{ fontSize: 'var(--t-label)', color: 'var(--i3)' }}>
+          <span className="mono" style={{ fontSize: 'var(--t-etiket)', color: 'var(--i3)' }}>
             {veri.kokNedenAnalizEden && veri.kokNedenAnalizZamani
               ? `${veri.kokNedenAnalizEden} · ${kisaTarih(veri.kokNedenAnalizZamani)}`
               : 'analizi kimin, ne zaman yaptığı kayıtlı değil'}
           </span>
-          <span style={{ fontSize: 'var(--t-label)',
+          <span style={{ fontSize: 'var(--t-etiket)',
             color: zorunlu ? 'var(--md)' : 'var(--i3)' }}>
             {zorunlu
               ? (tekrarMi
@@ -1022,7 +1022,7 @@ function KokNedenBlogu({ veri, bekliyor, calistir, acik, ac }: {
               }))}>
               Analizi kaydet
             </Dugme>
-            <span className="mono" style={{ fontSize: 'var(--t-label)', color: 'var(--i3)' }}>
+            <span className="mono" style={{ fontSize: 'var(--t-etiket)', color: 'var(--i3)' }}>
               {metin.trim().length}/{ANALIZ_ASGARI}
             </span>
           </div>
@@ -1070,19 +1070,19 @@ function TekrarBlogu({ veri, bekliyor, calistir }: {
             ad={z.kronik ? 'kronik' : 'tekrar'} />
         </span>
         <div style={{ display: 'grid', gap: 'var(--s4)' }}>
-          <span style={{ fontSize: 'var(--t-field)' }}>
+          <span style={{ fontSize: 'var(--t-govde)' }}>
             {z.kronik
               ? `KRONİK: bu kontrolde ${z.uzunluk} bulgu açıldı (eşik ${KRONIK_ESIK}). `
                 + 'Kapanışlar sorunu gidermiyor.'
               : `Bu kontrolde ${z.uzunluk} bulgu var.`}
           </span>
-          <span className="mono" style={{ fontSize: 'var(--t-label)', color: 'var(--i3)' }}>
+          <span className="mono" style={{ fontSize: 'var(--t-etiket)', color: 'var(--i3)' }}>
             {z.ortalamaAralikGun === null
               ? 'kapanışlar arası ortalama ölçülmedi'
               : `kapanıştan yeniden açılışa ortalama ${z.ortalamaAralikGun} gün`}
           </span>
           {veri.tekrarBulguId !== null && (
-            <span style={{ fontSize: 'var(--t-label)', color: 'var(--i2)' }}>
+            <span style={{ fontSize: 'var(--t-etiket)', color: 'var(--i2)' }}>
               Bağ: {TEKRAR_KAYNAK_SOZU[
                 veri.tekrarKaynagi === 'motor' ? 'motor' : 'elle']}
               {veri.tekrarPenceresiGun !== null
@@ -1099,18 +1099,18 @@ function TekrarBlogu({ veri, bekliyor, calistir }: {
             padding: 'var(--s8)',
             background: h.buMu ? 'var(--panel2)' : 'transparent',
             borderRadius: 4 }}>
-            <span className="mono" style={{ fontSize: 'var(--t-label)',
+            <span className="mono" style={{ fontSize: 'var(--t-etiket)',
               color: 'var(--i3)' }}>
               #{i + 1}
             </span>
             <div style={{ display: 'grid', gap: 2 }}>
-              <span style={{ fontSize: 'var(--t-label)',
+              <span style={{ fontSize: 'var(--t-etiket)',
                 fontWeight: h.buMu ? 600 : 400 }}>
                 {h.buMu
                   ? <>{h.baslik} <span style={{ color: 'var(--aksan)' }}>· bu kayıt</span></>
                   : <Link href={`/bulgular/${h.id}`}>{h.baslik}</Link>}
               </span>
-              <span className="mono" style={{ fontSize: 'var(--t-label)',
+              <span className="mono" style={{ fontSize: 'var(--t-etiket)',
                 color: 'var(--i3)' }}>
                 {kisaTarih(h.tespit)}
                 {h.kapanma ? ` → ${kisaTarih(h.kapanma)}` : ' → açık'}

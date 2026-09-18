@@ -298,7 +298,7 @@ export default function Duzenleyici({
 
         {onizlemeHatasi && (
           <p role="alert" style={{ margin: 'var(--s12) 0 0',
-            fontSize: 'var(--t-field)', color: 'var(--bd)' }}>{onizlemeHatasi}</p>
+            fontSize: 'var(--t-govde)', color: 'var(--bd)' }}>{onizlemeHatasi}</p>
         )}
 
         {onizleme && onizleme.sorunlar.length > 0 && (
@@ -307,7 +307,7 @@ export default function Duzenleyici({
               Kural sorunları · yayın bunları REDDEDER
             </p>
             <ul style={{ margin: 'var(--s8) 0 0', paddingLeft: 'var(--s18)',
-              fontSize: 'var(--t-field)', color: 'var(--i2)' }}>
+              fontSize: 'var(--t-govde)', color: 'var(--i2)' }}>
               {onizleme.sorunlar.map((s, i) => <li key={i}>{s}</li>)}
             </ul>
           </div>
@@ -357,7 +357,7 @@ export default function Duzenleyici({
                   display: 'grid', gap: 'var(--s6)' }}>
                   {secimAlanlari.map((a) => (
                     <li key={a.hedefAlan} style={{ display: 'flex', gap: 'var(--s10)',
-                      alignItems: 'baseline', fontSize: 'var(--t-code-lg)' }}>
+                      alignItems: 'baseline', fontSize: 'var(--t-veri)' }}>
                       <span style={{ fontWeight: 600, minWidth: 140 }}>{a.hedefAlan}</span>
                       <span style={{ fontFamily: 'var(--veri)',
                         color: a.kaynagi === 'kaynak' ? 'var(--i2)' : 'var(--unk)' }}>
@@ -372,7 +372,7 @@ export default function Duzenleyici({
                 </ul>
                 {secim.uygulama.sorunlar.length > 0 && (
                   <ul style={{ margin: 'var(--s10) 0 0', paddingLeft: 'var(--s18)',
-                    fontSize: 'var(--t-field)', color: 'var(--bd)' }}>
+                    fontSize: 'var(--t-govde)', color: 'var(--bd)' }}>
                     {secim.uygulama.sorunlar.map((s, i) => (
                       <li key={i}>
                         {s.etki === 'kayit' ? 'Kayıt düşer' : 'Alan boş kalır'} ·{' '}
@@ -393,7 +393,7 @@ export default function Duzenleyici({
         <div style={{ marginTop: 'var(--s12)', display: 'flex',
           gap: 'var(--s16)', alignItems: 'center', flexWrap: 'wrap' }}>
           <label style={{ display: 'flex', gap: 'var(--s8)', alignItems: 'center',
-            fontSize: 'var(--t-field)' }}>
+            fontSize: 'var(--t-govde)' }}>
             <input type="checkbox" checked={etkinlestir}
               onChange={(e) => setEtkinlestir(e.target.checked)} />
             Etkinleştir (işaretsiz = taslak, koşuda kullanılmaz)
@@ -406,7 +406,7 @@ export default function Duzenleyici({
         </div>
         {yayinHatasi && (
           <p role="alert" style={{ margin: 'var(--s12) 0 0',
-            fontSize: 'var(--t-field)', color: 'var(--bd)' }}>{yayinHatasi}</p>
+            fontSize: 'var(--t-govde)', color: 'var(--bd)' }}>{yayinHatasi}</p>
         )}
         <p className="ab-dip" style={{ marginTop: 'var(--s12)' }}>
           Yayın denetim izine yazılır. Etkinleştirilen sürüm aynı kodun eski

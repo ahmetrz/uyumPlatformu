@@ -376,16 +376,16 @@ function TesisCekmecesi({ tesis, kapat }: { tesis: Tesis; kapat: () => void }) {
         {test ? (
           <div style={{ borderLeft: 'var(--bw-edge) solid var(--hr2)', paddingLeft: 'var(--s12)',
             display: 'grid', gap: 'var(--s4)' }}>
-            <span style={{ fontSize: 'var(--t-field)', fontWeight: 600,
+            <span style={{ fontSize: 'var(--t-govde)', fontWeight: 600,
               color: gun !== null && gun > TEST_ESIGI ? 'var(--bd)' : 'var(--murekkep)' }}>
               {tarihTR(test.zaman)} · {gun} gün önce
             </span>
-            <span className="mono" style={{ fontSize: 'var(--t-label)', color: 'var(--i3)' }}>
+            <span className="mono" style={{ fontSize: 'var(--t-etiket)', color: 'var(--i3)' }}>
               {etiketle(test.sonuc)}{test.sureDk != null && ` · ${test.sureDk} dk`}
             </span>
           </div>
         ) : (
-          <p style={{ margin: 0, fontSize: 'var(--t-field)',
+          <p style={{ margin: 0, fontSize: 'var(--t-govde)',
             color: tesis.tesisKatmani.bagli ? 'var(--bd)' : 'var(--unk)' }}>
             {tesis.tesisKatmani.bagli
               ? `Geri yükleme testi kaydı yok — bu ${terim('tesis', 'bulunma')} yedeğin `
@@ -399,12 +399,12 @@ function TesisCekmecesi({ tesis, kapat }: { tesis: Tesis; kapat: () => void }) {
           <>
             <Segment ok={tesis.kosuOzeti.basarili} md={tesis.kosuOzeti.kismi}
               bd={tesis.kosuOzeti.basarisiz} />
-            <p className="mono" style={{ margin: 'var(--s10) 0 0', fontSize: 'var(--t-label)',
+            <p className="mono" style={{ margin: 'var(--s10) 0 0', fontSize: 'var(--t-etiket)',
               color: 'var(--i3)' }}>
               Son koşu {tarihTR(kosu.zaman)} · {etiketle(kosu.durum)}
             </p>
             {kosu.hata && (
-              <p style={{ margin: 'var(--s8) 0 0', fontSize: 'var(--t-field)', color: 'var(--bd)' }}>
+              <p style={{ margin: 'var(--s8) 0 0', fontSize: 'var(--t-govde)', color: 'var(--bd)' }}>
                 {kosu.hata}
               </p>
             )}
@@ -430,20 +430,20 @@ function TesisCekmecesi({ tesis, kapat }: { tesis: Tesis; kapat: () => void }) {
 
         {!vk.kaynakBagli && (
           <p style={{ margin: '0 0 var(--s12)', display: 'flex', alignItems: 'center',
-            gap: 'var(--s6)', fontSize: 'var(--t-field)', color: 'var(--unk)' }}>
+            gap: 'var(--s6)', fontSize: 'var(--t-govde)', color: 'var(--unk)' }}>
             <Im durum="unk" ad="Kaynak bağlı değil" />
             Konfigürasyon yedeği kaynağı bağlı değil — aşağıdaki liste bir açık
             değil, bir ölçüm boşluğudur.
           </p>
         )}
 
-        <p className="mono" style={{ margin: '0 0 var(--s8)', fontSize: 'var(--t-label)',
+        <p className="mono" style={{ margin: '0 0 var(--s8)', fontSize: 'var(--t-etiket)',
           color: 'var(--i3)' }}>
           Kanıtlı yedek açığı · {vk.yedeksiz.length}
         </p>
         {vk.yedeksiz.length === 0 ? (
           /* İYİ HABER boşluğu — çözüm gerektirmez. */
-          <p className="bos iyi" style={{ margin: '0 0 var(--s16)', fontSize: 'var(--t-field)', color: 'var(--i2)' }}>
+          <p className="bos iyi" style={{ margin: '0 0 var(--s16)', fontSize: 'var(--t-govde)', color: 'var(--i2)' }}>
             Kanıtlı yedek açığı yok — kritik varlıkların hepsinin yedeği ölçüldü.
           </p>
         ) : (
@@ -459,13 +459,13 @@ function TesisCekmecesi({ tesis, kapat }: { tesis: Tesis; kapat: () => void }) {
           </div>
         )}
 
-        <p className="mono" style={{ margin: '0 0 var(--s8)', fontSize: 'var(--t-label)',
+        <p className="mono" style={{ margin: '0 0 var(--s8)', fontSize: 'var(--t-etiket)',
           color: 'var(--i3)' }}>
           Ölçülmemiş · {vk.bilinmeyen.length}
         </p>
         {vk.bilinmeyen.length === 0 ? (
           /* İYİ HABER boşluğu — çözüm gerektirmez. */
-          <p className="bos iyi" style={{ margin: 0, fontSize: 'var(--t-field)', color: 'var(--i2)' }}>
+          <p className="bos iyi" style={{ margin: 0, fontSize: 'var(--t-govde)', color: 'var(--i2)' }}>
             Ölçülmemiş kritik varlık yok — her birinin yedek durumu biliniyor.
           </p>
         ) : (
@@ -495,7 +495,7 @@ function TesisCekmecesi({ tesis, kapat }: { tesis: Tesis; kapat: () => void }) {
               <div key={c} style={{ display: 'grid', gridTemplateColumns: '22px 1fr',
                 alignItems: 'start', gap: 'var(--s8)' }}>
                 <span style={{ paddingTop: 3 }}><Im durum="md" ad="Katman çelişkisi" /></span>
-                <span style={{ fontSize: 'var(--t-field)' }}>{c}</span>
+                <span style={{ fontSize: 'var(--t-govde)' }}>{c}</span>
               </div>
             ))}
           </div>
@@ -526,7 +526,7 @@ function TesisCekmecesi({ tesis, kapat }: { tesis: Tesis; kapat: () => void }) {
           Politikada hariç tutulan sistemler
         </p>
         {haric.length === 0 ? (
-          <p style={{ margin: 0, fontSize: 'var(--t-field)', color: 'var(--i2)' }}>
+          <p style={{ margin: 0, fontSize: 'var(--t-govde)', color: 'var(--i2)' }}>
             {p ? 'Beyan edilmiş kapsam dışı sistem yok.' : 'Politika yok — beyan da yok.'}
           </p>
         ) : (
@@ -535,7 +535,7 @@ function TesisCekmecesi({ tesis, kapat }: { tesis: Tesis; kapat: () => void }) {
               <div key={x} style={{ display: 'grid', gridTemplateColumns: '22px 1fr',
                 alignItems: 'start', gap: 'var(--s8)' }}>
                 <span style={{ paddingTop: 3 }}><Im durum="md" ad="Politikada hariç tutulmuş" /></span>
-                <span style={{ fontSize: 'var(--t-field)' }}>{x}</span>
+                <span style={{ fontSize: 'var(--t-govde)' }}>{x}</span>
               </div>
             ))}
           </div>
@@ -577,14 +577,14 @@ function DriftBlogu({ tesis }: { tesis: Tesis }) {
       </p>
 
       {d.satirlar.length === 0 ? (
-        <p style={{ margin: 0, fontSize: 'var(--t-field)', color: 'var(--unk)' }}>
+        <p style={{ margin: 0, fontSize: 'var(--t-govde)', color: 'var(--unk)' }}>
           Bu {terim('tesis', 'bulunma')} onaylı konfigürasyon tabanı da, özeti
           hesaplanmış konfigürasyon yedeği de yok — sapma ÖLÇÜLMEDİ,
           &quot;yok&quot; değil.
         </p>
       ) : (
         <>
-          <p className="mono" style={{ margin: '0 0 var(--s10)', fontSize: 'var(--t-label)',
+          <p className="mono" style={{ margin: '0 0 var(--s10)', fontSize: 'var(--t-etiket)',
             color: 'var(--i3)' }}>
             {d.acikSapma} açık sapma · {d.tabansiz} tabansız (ölçülmedi) ·
             {' '}{d.onayliSapma} onaylı değişiklik ·
@@ -592,7 +592,7 @@ function DriftBlogu({ tesis }: { tesis: Tesis }) {
             {d.oran !== null && ` (${d.ayni}/${d.olculen})`}
           </p>
           {d.oran === null && (
-            <p style={{ margin: '0 0 var(--s12)', fontSize: 'var(--t-field)',
+            <p style={{ margin: '0 0 var(--s12)', fontSize: 'var(--t-govde)',
               color: 'var(--unk)' }}>
               Karşılaştırılabilir cihaz yok; oran paydası boş — %0 da %100 de
               yalan olurdu.
@@ -640,14 +640,14 @@ function DriftSatiriGorunumu({ satir, yetkili }: {
       alignItems: 'start', gap: 'var(--s8)' }}>
       <span style={{ paddingTop: 3 }}><Im durum={im} ad={satir.gerekce} /></span>
       <div style={{ display: 'grid', gap: 'var(--s8)' }}>
-        <span style={{ fontSize: 'var(--t-field)', fontWeight: 600 }}>
+        <span style={{ fontSize: 'var(--t-govde)', fontWeight: 600 }}>
           {satir.etiket} · {satir.ad}
         </span>
-        <span style={{ fontSize: 'var(--t-field)',
+        <span style={{ fontSize: 'var(--t-govde)',
           color: im === 'unk' ? 'var(--unk)' : 'var(--i2)' }}>
           {satir.gerekce}
         </span>
-        <span className="mono" style={{ fontSize: 'var(--t-label)', color: 'var(--i3)' }}>
+        <span className="mono" style={{ fontSize: 'var(--t-etiket)', color: 'var(--i3)' }}>
           {satir.temelZamani
             ? `Taban ${tarihTR(satir.temelZamani)}`
             : 'Onaylı taban yok'}
@@ -657,7 +657,7 @@ function DriftSatiriGorunumu({ satir, yetkili }: {
             : 'karşılaştırılacak yedek yok'}
         </span>
         {satir.temelNotu && (
-          <span style={{ fontSize: 'var(--t-label)', color: 'var(--i2)' }}>
+          <span style={{ fontSize: 'var(--t-etiket)', color: 'var(--i2)' }}>
             Onay notu: {satir.temelNotu}
           </span>
         )}
@@ -726,7 +726,7 @@ function TestPlanla({ tesis }: { tesis: Tesis }) {
             {calisiyor ? 'Planlanıyor…' : 'Test planla'}
           </Dugme>
           {sonuc && (
-            <p style={{ margin: 0, fontSize: 'var(--t-field)',
+            <p style={{ margin: 0, fontSize: 'var(--t-govde)',
               color: sonuc.ok ? 'var(--ok)' : 'var(--bd)' }} role="status">
               {sonuc.mesaj}
             </p>

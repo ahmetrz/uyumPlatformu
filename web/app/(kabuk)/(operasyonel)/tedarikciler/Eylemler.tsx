@@ -67,7 +67,7 @@ export function TedarikciEylemleri({
     <CekmeceEylemler
       birincil={onayBekliyor ? (
         <div style={{ display: 'grid', gap: 'var(--s10)' }}>
-          <p style={{ margin: 0, fontSize: 'var(--t-cell)', color: 'var(--i2)' }}>
+          <p style={{ margin: 0, fontSize: 'var(--t-govde)', color: 'var(--i2)' }}>
             {tedarikci.ad} için uzaktan erişim kaydı kapatılacak.
             {tedarikci.varlikSayisi > 0
               && ` ${tedarikci.varlikSayisi} varlıktaki bağlantı hattı ayrıca saha tarafında kesilmelidir.`}
@@ -220,7 +220,7 @@ export function ErisimOturumlari({ t }: { t: T }) {
 
       {/* Kapsam cümlesi her hâlde yazılır; "oturum yok" ASLA denmez. */}
       <p style={{ margin: '0 0 var(--s12)', display: 'flex', alignItems: 'flex-start',
-        gap: 'var(--s8)', fontSize: 'var(--t-field)',
+        gap: 'var(--s8)', fontSize: 'var(--t-govde)',
         color: o.kapsam === 'kayit_var' ? 'var(--i2)' : 'var(--unk)' }}>
         {o.kapsam !== 'kayit_var'
           && <span style={{ paddingTop: 2 }}><Im durum="unk" ad="Ölçüm yok" /></span>}
@@ -240,7 +240,7 @@ export function ErisimOturumlari({ t }: { t: T }) {
             [`${o.sayaclar.mfaBilinmiyor} MFA`, o.sayaclar.mfaBilinmiyor],
             [`${o.sayaclar.izlemeBilinmiyor} izleme`, o.sayaclar.izlemeBilinmiyor],
           ]} />
-          <span style={{ fontSize: 'var(--t-label)', color: 'var(--i3)' }}>
+          <span style={{ fontSize: 'var(--t-etiket)', color: 'var(--i3)' }}>
             {o.uyumluSayisi} uyumlu · {o.suren} süren oturum
             {o.kaynakSistemler.length > 0 && ` · kaynak ${o.kaynakSistemler.join(', ')}`}
           </span>
@@ -253,7 +253,7 @@ export function ErisimOturumlari({ t }: { t: T }) {
             <div key={x} style={{ display: 'grid', gridTemplateColumns: '22px 1fr',
               alignItems: 'start', gap: 'var(--s8)' }}>
               <span style={{ paddingTop: 3 }}><Im durum="md" ad="Beyan ile ölçüm çelişiyor" /></span>
-              <span style={{ fontSize: 'var(--t-field)' }}>{x}</span>
+              <span style={{ fontSize: 'var(--t-govde)' }}>{x}</span>
             </div>
           ))}
         </div>
@@ -268,26 +268,26 @@ export function ErisimOturumlari({ t }: { t: T }) {
               <div style={{ display: 'flex', alignItems: 'baseline', gap: 'var(--s8)' }}>
                 <Im durum={s.ihlaller.length > 0 ? 'bd' : 'unk'}
                   ad={s.ihlaller.length > 0 ? 'Kanıtlı ihlal' : 'Ölçülmemiş alan'} />
-                <span className="mono" style={{ fontSize: 'var(--t-label)' }}>
+                <span className="mono" style={{ fontSize: 'var(--t-etiket)' }}>
                   {tarihTR(s.baslangic)}
                 </span>
-                <span style={{ fontSize: 'var(--t-label)', color: 'var(--i3)',
+                <span style={{ fontSize: 'var(--t-etiket)', color: 'var(--i3)',
                   marginLeft: 'auto' }}>
                   {s.tesisKod ?? `${terim('tesis')} kaydı yok`} · {s.kaynakSistem} · {s.durum}
                 </span>
               </div>
 
               {s.ihlaller.length > 0 && (
-                <span style={{ fontSize: 'var(--t-field)', color: 'var(--bd)' }}>
+                <span style={{ fontSize: 'var(--t-govde)', color: 'var(--bd)' }}>
                   {s.ihlaller.join(' · ')}
                 </span>
               )}
               {s.bilinmeyenler.length > 0 && (
-                <span style={{ fontSize: 'var(--t-label)', color: 'var(--unk)' }}>
+                <span style={{ fontSize: 'var(--t-etiket)', color: 'var(--unk)' }}>
                   ölçülmemiş: {s.bilinmeyenler.join(' · ')}
                 </span>
               )}
-              <span className="mono" style={{ fontSize: 'var(--t-label)', color: 'var(--i3)' }}>
+              <span className="mono" style={{ fontSize: 'var(--t-etiket)', color: 'var(--i3)' }}>
                 {s.hesapId ? `hesap ${s.hesapId}` : 'hesap kaydı yok'}
                 {s.talepReferansi ? ` · talep ${s.talepReferansi}` : ' · talep referansı yok'}
                 {s.kayitReferansi ? ` · kayıt ${s.kayitReferansi}` : ''}
@@ -313,7 +313,7 @@ function SayacSatiri({ etiket, durum, parcalar }: {
   const dolu = parcalar.filter(([, n]) => n > 0);
   return (
     <span style={{ display: 'flex', alignItems: 'baseline', gap: 'var(--s8)',
-      fontSize: 'var(--t-label)' }}>
+      fontSize: 'var(--t-etiket)' }}>
       <Im durum={durum} ad={etiket} />
       <span style={{ color: 'var(--i3)' }}>{etiket}</span>
       <span style={{ color: dolu.length > 0 ? `var(--${durum})` : 'var(--i3)',

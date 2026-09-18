@@ -65,7 +65,7 @@ function B({ no, ad, not, children }: {
         <h2 className="ab-bolum-basligi" style={{ margin: 0 }}>{ad}</h2>
         <span style={{ flex: 1, height: 1, background: 'var(--hr)' }} />
       </div>
-      {not && <p style={{ margin: '0 0 var(--s18)', fontSize: 'var(--t-cell)',
+      {not && <p style={{ margin: '0 0 var(--s18)', fontSize: 'var(--t-govde)',
         color: 'var(--i2)', maxWidth: 720 }}>{not}</p>}
       {children}
     </section>

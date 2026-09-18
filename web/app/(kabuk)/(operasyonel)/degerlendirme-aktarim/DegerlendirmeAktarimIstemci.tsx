@@ -87,7 +87,7 @@ export default function DegerlendirmeAktarimIstemci({
         />
 
         <section className="ab-ekran-govde" style={{ paddingTop: 'var(--s22)' }}>
-          <p style={{ margin: '0 0 var(--s18)', fontSize: 'var(--t-field)',
+          <p style={{ margin: '0 0 var(--s18)', fontSize: 'var(--t-govde)',
             color: ozet.kokensizUygulama > 0 ? 'var(--bd)' : 'var(--i2)' }}>
             {ozetCumlesi(ozet)}
           </p>
@@ -283,7 +283,7 @@ function AktarimPaneli({ kayit, uygulayabilir }: {
           <span style={{ paddingTop: 3 }}>
             <Im durum={AKTARIM_IM[kayit.durum]} ad={AKTARIM_SOZU[kayit.durum]} />
           </span>
-          <span style={{ fontSize: 'var(--t-field)' }}>
+          <span style={{ fontSize: 'var(--t-govde)' }}>
             {AKTARIM_SOZU[kayit.durum]}
           </span>
         </div>
@@ -409,7 +409,7 @@ function OnizlemeListesi({ satirlar }: { satirlar: OnizlemeSatiri[] }) {
             <Im durum={s.kabul ? (s.degisiyor ? 'md' : 'ok') : 'bd'}
               ad={s.kabul ? (s.degisiyor ? 'değişecek' : 'aynı') : 'elendi'} />
           </span>
-          <span style={{ fontSize: 'var(--t-label)' }}>
+          <span style={{ fontSize: 'var(--t-etiket)' }}>
             <span className="mono">{s.maddeKodu}</span>{' — '}
             {s.kabul
               ? (s.degisiyor

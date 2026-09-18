@@ -274,7 +274,7 @@ function Ara({ deger, degistir }: { deger: string; degistir: (v: string) => void
       style={{
         width: 118, background: 'none', border: 0,
         borderBottom: 'var(--bw-hair) solid var(--hr2)',
-        padding: '3px 0', fontFamily: 'var(--veri)', fontSize: 'var(--t-label)',
+        padding: '3px 0', fontFamily: 'var(--veri)', fontSize: 'var(--t-etiket)',
         letterSpacing: 'var(--tr-label)', textTransform: 'uppercase',
       }}
     />
@@ -419,11 +419,11 @@ function SurumPaneli({
         <div className="ab-panel-zincir">
           <Link href={`/uyum/${encodeURIComponent(reg.kod)}`}>
             <span style={{ minWidth: 0 }}>
-              <span style={{ display: 'block', fontSize: 'var(--t-cell)', fontWeight: 600 }}>
+              <span style={{ display: 'block', fontSize: 'var(--t-govde)', fontWeight: 600 }}>
                 {reg.kod} çerçevesi
               </span>
               <span style={{ display: 'block', marginTop: 2, fontFamily: 'var(--veri)',
-                fontSize: 'var(--t-label)', color: 'var(--i3)' }}>
+                fontSize: 'var(--t-etiket)', color: 'var(--i3)' }}>
                 uyum durumu
               </span>
             </span>
@@ -431,11 +431,11 @@ function SurumPaneli({
           </Link>
           <Link href="/eslestirme">
             <span style={{ minWidth: 0 }}>
-              <span style={{ display: 'block', fontSize: 'var(--t-cell)', fontWeight: 600 }}>
+              <span style={{ display: 'block', fontSize: 'var(--t-govde)', fontWeight: 600 }}>
                 Çapraz eşleme
               </span>
               <span style={{ display: 'block', marginTop: 2, fontFamily: 'var(--veri)',
-                fontSize: 'var(--t-label)', color: 'var(--i3)' }}>
+                fontSize: 'var(--t-etiket)', color: 'var(--i3)' }}>
                 madde denklikleri
               </span>
             </span>
@@ -443,11 +443,11 @@ function SurumPaneli({
           </Link>
           <Link href="/ice-aktarim">
             <span style={{ minWidth: 0 }}>
-              <span style={{ display: 'block', fontSize: 'var(--t-cell)', fontWeight: 600 }}>
+              <span style={{ display: 'block', fontSize: 'var(--t-govde)', fontWeight: 600 }}>
                 İçe aktarım
               </span>
               <span style={{ display: 'block', marginTop: 2, fontFamily: 'var(--veri)',
-                fontSize: 'var(--t-label)', color: 'var(--i3)' }}>
+                fontSize: 'var(--t-etiket)', color: 'var(--i3)' }}>
                 Excel katalog yükleme
               </span>
             </span>
@@ -481,9 +481,9 @@ function SurumSatiri({ surum, yazabilir, onaylayabilir, fark, aktiflestir, onizl
     <div style={{ padding: 'var(--s12) 0',
       borderBottom: 'var(--bw-hair) solid var(--hr)' }}>
       <div style={{ display: 'flex', alignItems: 'baseline', gap: 'var(--s10)' }}>
-        <span style={{ fontFamily: 'var(--veri)', fontSize: 'var(--t-code-lg)',
+        <span style={{ fontFamily: 'var(--veri)', fontSize: 'var(--t-veri)',
           fontWeight: 600 }}>{surum.etiket}</span>
-        <span style={{ marginLeft: 'auto', fontSize: 'var(--t-field)', color: 'var(--i3)' }}>
+        <span style={{ marginLeft: 'auto', fontSize: 'var(--t-govde)', color: 'var(--i3)' }}>
           {surumOzeti(surum)}
         </span>
       </div>
@@ -531,7 +531,7 @@ function FarkPaneli({ surum }: { surum: Surum }) {
   return (
     <>
       <div className="ab-panel-blok">
-        <p style={{ margin: 0, fontSize: 'var(--t-field)', color: 'var(--i2)' }}>
+        <p style={{ margin: 0, fontSize: 'var(--t-govde)', color: 'var(--i2)' }}>
           {surum.etiket} sürümü önceki katalogla karşılaştırıldı:
           {' '}{farklar.length} maddede içerik farkı var.
         </p>
@@ -561,7 +561,7 @@ function FarkPaneli({ surum }: { surum: Surum }) {
                   {f.ozet ?? '—'}
                   {f.etki && (
                     <span style={{ display: 'block', marginTop: 2,
-                      fontFamily: 'var(--veri)', fontSize: 'var(--t-label)',
+                      fontFamily: 'var(--veri)', fontSize: 'var(--t-etiket)',
                       color: 'var(--i3)' }}>{f.etki}</span>
                   )}
                 </span>
@@ -631,7 +631,7 @@ function EtkiOnizlemePaneli({ surum }: { surum: Surum }) {
 
       {sonuc && (
         <>
-          <p style={{ margin: '0 0 var(--s14)', fontSize: 'var(--t-field)',
+          <p style={{ margin: '0 0 var(--s14)', fontSize: 'var(--t-govde)',
             color: sonuc.ozet.yuksekEtki > 0 ? 'var(--bd)'
               : sonuc.ozet.ortaEtki > 0 ? 'var(--md)' : 'var(--i2)' }}>
             {sonuc.cumle}
@@ -669,14 +669,14 @@ function EtkiOnizlemePaneli({ surum }: { surum: Surum }) {
                 </span>
                 <div style={{ display: 'grid', gap: 2 }}>
                   <span style={{ fontFamily: 'var(--veri)',
-                    fontSize: 'var(--t-code)', fontWeight: 600 }}>
+                    fontSize: 'var(--t-veri)', fontWeight: 600 }}>
                     {r.maddeKodu}
                     <span style={{ marginLeft: 'var(--s8)', fontWeight: 400,
                       color: 'var(--i3)' }}>
                       {DEGISIM_SOZU[r.degisimTipi]}
                     </span>
                   </span>
-                  <span style={{ fontSize: 'var(--t-label)', color: 'var(--i2)' }}>
+                  <span style={{ fontSize: 'var(--t-etiket)', color: 'var(--i2)' }}>
                     {r.sonuc}
                   </span>
                 </div>
@@ -732,17 +732,17 @@ function KaynakBlogu({ reg, yazabilir }: { reg: Reg; yazabilir: boolean }) {
               <Im durum={TAKIP_SINIFI[durumlar[i]]} ad={TAKIP_SOZU[durumlar[i]]} />
             </span>
             <div style={{ display: 'grid', gap: 2 }}>
-              <span style={{ fontSize: 'var(--t-field)', fontWeight: 600 }}>{kk.ad}</span>
-              <span className="mono" style={{ fontSize: 'var(--t-label)',
+              <span style={{ fontSize: 'var(--t-govde)', fontWeight: 600 }}>{kk.ad}</span>
+              <span className="mono" style={{ fontSize: 'var(--t-etiket)',
                 color: kk.adres ? 'var(--i3)' : 'var(--unk)',
                 wordBreak: 'break-all' }}>
                 {kk.adres ?? 'adres girilmemiş — kurumdan alınacak'}
               </span>
-              <span style={{ fontSize: 'var(--t-label)', color: 'var(--i2)' }}>
+              <span style={{ fontSize: 'var(--t-etiket)', color: 'var(--i2)' }}>
                 {TAKIP_SOZU[durumlar[i]]}
                 {' · '}her {kk.araliksGun} günde bir bakılmalı
               </span>
-              <span className="mono" style={{ fontSize: 'var(--t-label)',
+              <span className="mono" style={{ fontSize: 'var(--t-etiket)',
                 color: 'var(--i3)' }}>
                 {kk.sonKontrol
                   ? `son bakış ${tarihTR(kk.sonKontrol)}`
@@ -750,7 +750,7 @@ function KaynakBlogu({ reg, yazabilir }: { reg: Reg; yazabilir: boolean }) {
                   : 'hiç bakılmadı'}
               </span>
               {kk.sonNot && (
-                <span style={{ fontSize: 'var(--t-label)', color: 'var(--i2)' }}>
+                <span style={{ fontSize: 'var(--t-etiket)', color: 'var(--i2)' }}>
                   Not: {kk.sonNot}
                 </span>
               )}

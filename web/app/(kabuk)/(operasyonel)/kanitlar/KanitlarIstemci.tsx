@@ -265,7 +265,7 @@ function KanitFormu({ maddeDurumlari, kapat }: {
   if (maddeDurumlari.length === 0) {
     return (
       <div className="ab-panel-blok">
-        <p style={{ margin: 0, fontSize: 'var(--t-field)', color: 'var(--i3)' }}>
+        <p style={{ margin: 0, fontSize: 'var(--t-govde)', color: 'var(--i3)' }}>
           <Im durum="unk" ad="Madde durumu yok" /> Kapsamınızda kanıt bağlanacak madde durumu yok;
           kanıt kaydı bir madde durumu olmadan açılmaz.
         </p>
@@ -330,7 +330,7 @@ function Ara({ deger, degistir }: { deger: string; degistir: (v: string) => void
       style={{
         width: 132, background: 'none', border: 0,
         borderBottom: 'var(--bw-hair) solid var(--hr2)',
-        padding: '3px 0', fontFamily: 'var(--veri)', fontSize: 'var(--t-label)',
+        padding: '3px 0', fontFamily: 'var(--veri)', fontSize: 'var(--t-etiket)',
         letterSpacing: 'var(--tr-label)', textTransform: 'uppercase',
       }}
     />
@@ -519,7 +519,7 @@ function KanitCekmecesi({ kanit, simdi, esik, kapat }: {
       ) : (
         <div className="ab-panel-blok" style={{ marginTop: 'var(--s24)' }}>
           <p className="etiket" style={{ margin: '0 0 var(--s10)' }}>Bağlı kayıtlar</p>
-          <p style={{ margin: 0, fontSize: 'var(--t-field)', color: 'var(--i3)' }}>
+          <p style={{ margin: 0, fontSize: 'var(--t-govde)', color: 'var(--i3)' }}>
             <Im durum="unk" ad="Bağlı kayıt yok" /> Bu kanıt hiçbir madde, bulgu ya da
             {' '}{terim('tesis', 'yonelme')} bağlı değil;
             neyi karşıladığı bilinmiyor.
@@ -747,7 +747,7 @@ function DosyaBlogu({ kanit }: { kanit: KanitSatiri }) {
           <div><dt>Sürüm</dt><dd>v{kanit.surum}</dd></div>
         </dl>
       ) : (
-        <p style={{ margin: 0, fontSize: 'var(--t-field)', color: 'var(--unk)' }}>
+        <p style={{ margin: 0, fontSize: 'var(--t-govde)', color: 'var(--unk)' }}>
           Bu kanıta dosya yüklenmedi.
           {kanit.dosyaYolu && (
             <> Kütükte bir yol metni var (<span className="mono">{kanit.dosyaYolu}</span>)
@@ -773,7 +773,7 @@ function DosyaBlogu({ kanit }: { kanit: KanitSatiri }) {
               }} />
           </Alan>
           {dosya && (
-            <p className="mono" style={{ margin: 0, fontSize: 'var(--t-label)', color: 'var(--i3)' }}>
+            <p className="mono" style={{ margin: 0, fontSize: 'var(--t-etiket)', color: 'var(--i3)' }}>
               {dosya.ad} · {bayt(dosya.boyut)} · {dosya.tip}
             </p>
           )}
@@ -787,7 +787,7 @@ function DosyaBlogu({ kanit }: { kanit: KanitSatiri }) {
           </Alan>
           {hata && <p className="ab-gr-hata" role="alert" style={{ margin: 0 }}>{hata}</p>}
           {ozet && (
-            <p style={{ margin: 0, fontSize: 'var(--t-field)' }} role="status">{ozet}</p>
+            <p style={{ margin: 0, fontSize: 'var(--t-govde)' }} role="status">{ozet}</p>
           )}
           <div style={{ display: 'flex', gap: 'var(--s10)' }}>
             <Dugme tur="birincil" disabled={bekliyor || !gecerli}
@@ -835,7 +835,7 @@ function SurumBlogu({ kanit }: { kanit: KanitSatiri }) {
         Sürüm geçmişi · {kanit.surumler.length}
       </p>
       {kanit.surumler.length === 0 ? (
-        <p style={{ margin: 0, fontSize: 'var(--t-field)', color: 'var(--unk)' }}>
+        <p style={{ margin: 0, fontSize: 'var(--t-govde)', color: 'var(--unk)' }}>
           Kayıtlı sürüm yok — bu kanıta hiç dosya yüklenmedi. Kütükteki
           sürüm sayacı (v{kanit.surum}) bir içerik geçmişini temsil ETMEZ.
         </p>
@@ -844,16 +844,16 @@ function SurumBlogu({ kanit }: { kanit: KanitSatiri }) {
           {kanit.surumler.map((sv) => (
             <div key={sv.surum} style={{ borderLeft: 'var(--bw-edge) solid var(--hr2)',
               paddingLeft: 'var(--s12)', display: 'grid', gap: 'var(--s3)' }}>
-              <span style={{ fontSize: 'var(--t-field)', fontWeight: 600 }}>
+              <span style={{ fontSize: 'var(--t-govde)', fontWeight: 600 }}>
                 v{sv.surum} · {sv.dosyaAdi ?? 'dosya adı kayıtlı değil'}
               </span>
-              <span className="mono" style={{ fontSize: 'var(--t-label)', color: 'var(--i3)' }}>
+              <span className="mono" style={{ fontSize: 'var(--t-etiket)', color: 'var(--i3)' }}>
                 {tarihTR(sv.zaman)}
                 {sv.yukleyen && ` · ${sv.yukleyen}`}
                 {sv.dosyaBoyut !== null && ` · ${bayt(sv.dosyaBoyut)}`}
                 {sv.dosyaHash && ` · ${sv.dosyaHash.slice(0, 12)}…`}
               </span>
-              <span style={{ fontSize: 'var(--t-label)', color: 'var(--i2)' }}>
+              <span style={{ fontSize: 'var(--t-etiket)', color: 'var(--i2)' }}>
                 {sv.gerekce}
               </span>
             </div>

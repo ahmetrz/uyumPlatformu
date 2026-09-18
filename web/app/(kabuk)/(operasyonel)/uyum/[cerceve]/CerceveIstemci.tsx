@@ -227,17 +227,17 @@ function KapsamPaneli({
             padding: 'var(--s12) var(--s14)' }}>
             <Ipucu genis metin={`${veri.kural.tam} — ${veri.kural.aciklama ?? ''}`}>
               <span className="ab-dugme satir"
-                style={{ fontFamily: 'var(--veri)', fontSize: 'var(--t-code-lg)', fontWeight: 500 }}>
+                style={{ fontFamily: 'var(--veri)', fontSize: 'var(--t-veri)', fontWeight: 500 }}>
                 {veri.kural.ad} · v{veri.kural.surum} ⓘ
               </span>
             </Ipucu>
             <span style={{ display: 'block', marginTop: 'var(--s6)',
-              fontSize: 'var(--t-code-lg)', lineHeight: 1.7, color: 'var(--i2)' }}>
+              fontSize: 'var(--t-veri)', lineHeight: 1.7, color: 'var(--i2)' }}>
               {veri.kural.satir}
             </span>
           </div>
         ) : (
-          <p style={{ margin: 0, fontSize: 'var(--t-field)', color: 'var(--i2)' }}>
+          <p style={{ margin: 0, fontSize: 'var(--t-govde)', color: 'var(--i2)' }}>
             Bu çerçeve için uygulanabilirlik kuralı tanımlı değil; kapsam yalnız
             uyum sürecinin tesis listesinden geliyor.
           </p>
@@ -251,7 +251,7 @@ function KapsamPaneli({
               {k.ad}
               {k.elIle && (
                 <span style={{ marginLeft: 'var(--s8)', fontFamily: 'var(--veri)',
-                  fontSize: 'var(--t-code)', color: 'var(--i3)' }}>el ile</span>
+                  fontSize: 'var(--t-veri)', color: 'var(--i3)' }}>el ile</span>
               )}
             </span>
             <span className="deger">{k.alt}</span>
@@ -304,7 +304,7 @@ function KuruPanel({
 
   if (!veri.kuru) {
     return (
-      <p style={{ margin: 0, fontSize: 'var(--t-field)', color: 'var(--i2)' }}>
+      <p style={{ margin: 0, fontSize: 'var(--t-govde)', color: 'var(--i2)' }}>
         Bu çerçevede aktif uygulanabilirlik kuralı yok; çalıştırılacak bir motor
         bulunmuyor.
       </p>
@@ -320,7 +320,7 @@ function KuruPanel({
   return (
     <>
       <div className="ab-panel-blok">
-        <p style={{ margin: 0, fontSize: 'var(--t-field)', color: 'var(--i2)' }}>
+        <p style={{ margin: 0, fontSize: 'var(--t-govde)', color: 'var(--i2)' }}>
           {veri.kural?.ad} · {veri.kuru.satirlar.length} aktif tesise karşı
           çalıştırıldı. Bu bir <b>önizleme</b>: hiçbir karar yazılmadı.
         </p>

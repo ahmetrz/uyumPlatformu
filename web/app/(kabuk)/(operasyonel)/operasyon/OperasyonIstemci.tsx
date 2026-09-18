@@ -306,14 +306,14 @@ function AsamaSeridi({ d, ix }: { d: D; ix: number }) {
                 padding: 'var(--s4) 0 var(--s4) var(--s12)',
                 borderLeft: `var(--bw-edge) solid ${simdiki ? 'var(--aksan)'
                   : gecti ? 'var(--ok)' : 'var(--hr2)'}`,
-                fontSize: 'var(--t-field)',
+                fontSize: 'var(--t-govde)',
                 fontWeight: simdiki ? 600 : 400,
                 color: simdiki ? 'var(--murekkep)' : gecti ? 'var(--i2)' : 'var(--i3)',
               }}>
               <span>{asamaEtiketi(a)}</span>
               {t && (
                 <span className="mono" style={{ marginLeft: 'auto',
-                  fontSize: 'var(--t-label)', color: 'var(--i3)' }}>{t}</span>
+                  fontSize: 'var(--t-etiket)', color: 'var(--i3)' }}>{t}</span>
               )}
             </li>
           );

@@ -236,7 +236,7 @@ function TesisHucresi({ t }: { t: T }) {
   const tesis = tesisOzeti(t.tesisler);
   return (
     <span style={{ display: 'flex', alignItems: 'center', gap: 'var(--s6)', minWidth: 0,
-      fontSize: 'var(--t-cell)', color: 'var(--i2)' }}>
+      fontSize: 'var(--t-govde)', color: 'var(--i2)' }}>
       {tesis.gorunen.length === 0 ? (
         <span style={{ color: 'var(--i3)' }} title="bağlı varlık kaydı yok">—</span>
       ) : (
@@ -252,7 +252,7 @@ function TesisHucresi({ t }: { t: T }) {
           {tesis.ekSayi > 0 && (
             <Ipucu genis metin={tesis.tam}>
               <button type="button" className="ab-dugme satir"
-                style={{ fontSize: 'var(--t-cell)', color: 'var(--i2)', whiteSpace: 'nowrap' }}>
+                style={{ fontSize: 'var(--t-govde)', color: 'var(--i2)', whiteSpace: 'nowrap' }}>
                 +{tesis.ekSayi}
               </button>
             </Ipucu>
@@ -298,7 +298,7 @@ function ErisimHucresi({ t }: { t: T }) {
     return (
       <Ipucu genis metin={t.oturum.gerekce}>
         <button type="button" className="ab-dugme satir"
-          style={{ fontSize: 'var(--t-cell)', fontWeight: 600, color: 'var(--bd)',
+          style={{ fontSize: 'var(--t-govde)', fontWeight: 600, color: 'var(--bd)',
             whiteSpace: 'nowrap' }}>
           {yontem} · {t.oturum.uyumsuzSayisi} uyumsuz
         </button>
@@ -320,7 +320,7 @@ function ErisimHucresi({ t }: { t: T }) {
     return (
       <Ipucu genis metin={t.oturum.gerekce}>
         <span style={{ display: 'inline-flex', alignItems: 'center', gap: 'var(--s6)',
-          fontSize: 'var(--t-cell)', color: 'var(--i2)', whiteSpace: 'nowrap' }}>
+          fontSize: 'var(--t-govde)', color: 'var(--i2)', whiteSpace: 'nowrap' }}>
           <Im durum="unk" ad="Beyan var, ölçüm yok" />
           {yontem} · beyan
         </span>
@@ -332,7 +332,7 @@ function ErisimHucresi({ t }: { t: T }) {
     return (
       <Ipucu genis metin={erisimAciklamasi(t)}>
         <button type="button" className="ab-dugme satir" onClick={(e) => e.stopPropagation()}
-          style={{ fontSize: 'var(--t-cell)', fontWeight: 600, color: 'var(--bd)' }}>
+          style={{ fontSize: 'var(--t-govde)', fontWeight: 600, color: 'var(--bd)' }}>
           izlenmiyor
         </button>
       </Ipucu>
@@ -344,7 +344,7 @@ function ErisimHucresi({ t }: { t: T }) {
     <Ipucu genis metin={erisimAciklamasi(t)}>
       <button type="button" className="ab-dugme satir" onClick={(e) => e.stopPropagation()}
         style={{ display: 'inline-flex', alignItems: 'center', gap: 'var(--s6)',
-          fontSize: 'var(--t-cell)', color: 'var(--i2)', whiteSpace: 'nowrap' }}>
+          fontSize: 'var(--t-govde)', color: 'var(--i2)', whiteSpace: 'nowrap' }}>
         <Im durum="unk" ad="Oturum kaydı bilinmiyor" />
         {yontem} · —
       </button>
@@ -493,8 +493,8 @@ function SertifikaSatiri({ s }: { s: SertifikaOzeti }) {
     <div style={{ background: 'var(--panel)', border: 'var(--bw-hair) solid var(--hr2)',
       padding: 'var(--s12) var(--s14)' }}>
       <div style={{ display: 'flex', alignItems: 'baseline', gap: 'var(--s10)' }}>
-        <span style={{ fontSize: 'var(--t-cell)', fontWeight: 600, minWidth: 0 }}>{s.ad}</span>
-        <span className="num" style={{ marginLeft: 'auto', fontSize: 'var(--t-cell)',
+        <span style={{ fontSize: 'var(--t-govde)', fontWeight: 600, minWidth: 0 }}>{s.ad}</span>
+        <span className="num" style={{ marginLeft: 'auto', fontSize: 'var(--t-govde)',
           fontWeight: 600, color: `var(--${durum})`, whiteSpace: 'nowrap' }}>
           {s.kalanGun < 0 ? `${Math.abs(s.kalanGun)}g önce` : `${s.kalanGun}g`}
         </span>

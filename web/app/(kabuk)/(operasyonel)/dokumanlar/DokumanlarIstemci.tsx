@@ -508,7 +508,7 @@ function BelgeCekmecesi({ belge, simdi, yazabilir, onaylayabilir, duzenle, kapat
 
       <div className="ab-panel-blok" style={{ marginTop: 'var(--s24)' }}>
         <p className="etiket" style={{ margin: '0 0 var(--s10)' }}>Dosyanın yeri</p>
-        <p style={{ margin: 0, fontSize: 'var(--t-field)' }}>
+        <p style={{ margin: 0, fontSize: 'var(--t-govde)' }}>
           {belge.disKaynak
             ? <span className="mono">{belge.disKaynak}</span>
             : <><Im durum="unk" ad="Kaynak kayıtlı değil" /> kaynak yolu kayıtlı değil</>}
@@ -524,7 +524,7 @@ function BelgeCekmecesi({ belge, simdi, yazabilir, onaylayabilir, duzenle, kapat
       ) : (
         <div className="ab-panel-blok" style={{ marginTop: 'var(--s24)' }}>
           <p className="etiket" style={{ margin: '0 0 var(--s10)' }}>Karşıladığı kontroller</p>
-          <p style={{ margin: 0, fontSize: 'var(--t-field)', color: 'var(--i3)' }}>
+          <p style={{ margin: 0, fontSize: 'var(--t-govde)', color: 'var(--i3)' }}>
             <Im durum="unk" ad="Kontrol bağı yok" /> Bu belge hiçbir kontrol gereğine bağlı değil;
             neyi karşıladığı bilinmiyor.
           </p>
@@ -537,7 +537,7 @@ function BelgeCekmecesi({ belge, simdi, yazabilir, onaylayabilir, duzenle, kapat
           {gecisler.length === 0 ? (
             /* NE YAPMALIYIM: bu belgenin yaşam döngüsü bitmiş; ileri yol
                YENİ SÜRÜMDÜR ve o belge listesinden açılır. */
-            <p className="bos" style={{ margin: 0, fontSize: 'var(--t-field)', color: 'var(--i3)' }}>
+            <p className="bos" style={{ margin: 0, fontSize: 'var(--t-govde)', color: 'var(--i3)' }}>
               Geçerli bir yaşam döngüsü adımı kalmadı — yürürlükten kalkmış
               belge geri döndürülmez; yerine yeni sürüm açılır.{' '}
               <Link href="/dokumanlar">Yeni sürüm aç</Link>
@@ -771,7 +771,7 @@ function Ara({ deger, degistir }: { deger: string; degistir: (v: string) => void
       style={{
         width: 132, background: 'none', border: 0,
         borderBottom: 'var(--bw-hair) solid var(--hr2)',
-        padding: '3px 0', fontFamily: 'var(--veri)', fontSize: 'var(--t-label)',
+        padding: '3px 0', fontFamily: 'var(--veri)', fontSize: 'var(--t-etiket)',
         letterSpacing: 'var(--tr-label)', textTransform: 'uppercase',
       }}
     />

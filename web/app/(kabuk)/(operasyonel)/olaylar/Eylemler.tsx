@@ -108,7 +108,7 @@ export function EtkiDogrulama({
             <div style={{ display: 'grid', gap: 'var(--s6)', marginTop: 'var(--s6)' }}>
               {dogrulanmis.map((a) => (
                 <div key={a} style={{ display: 'flex', alignItems: 'baseline',
-                  gap: 'var(--s10)', fontSize: 'var(--t-label)' }}>
+                  gap: 'var(--s10)', fontSize: 'var(--t-etiket)' }}>
                   <span style={{ color: 'var(--i2)' }}>
                     {ETKI_ALAN_ETIKET[a]} · {seviyeSozu(olay.etki[a])}
                   </span>
@@ -127,7 +127,7 @@ export function EtkiDogrulama({
 
       {acikAlan !== null && (
         <div style={{ display: 'grid', gap: 'var(--s12)' }}>
-          <p style={{ margin: 0, fontSize: 'var(--t-cell)', color: 'var(--i2)' }}>
+          <p style={{ margin: 0, fontSize: 'var(--t-govde)', color: 'var(--i2)' }}>
             <span style={{ display: 'inline-flex', alignItems: 'center', gap: 'var(--s6)' }}>
               <Im durum="unk" ad="Motor önerisi" />
               Motor önerisi: {seviyeSozu(olay.oneri?.degerler[acikAlan])}
@@ -168,7 +168,7 @@ export function EtkiDogrulama({
 
       {geriAlinan !== null && (
         <div style={{ display: 'grid', gap: 'var(--s12)' }}>
-          <p style={{ margin: 0, fontSize: 'var(--t-cell)', color: 'var(--i2)' }}>
+          <p style={{ margin: 0, fontSize: 'var(--t-govde)', color: 'var(--i2)' }}>
             {ETKI_ALAN_ETIKET[geriAlinan]} doğrulaması kaldırılacak — alan BOŞA
             döner, &quot;yok&quot; olmaz.
           </p>
@@ -494,17 +494,17 @@ export function OlayBaglari({ olay, adaylar, yazilabilir }: {
           const secilebilir = adaylar[tip].filter((a) => !bagliIdler.has(a.id));
           return (
             <div key={tip} style={{ display: 'grid', gap: 'var(--s6)' }}>
-              <span className="mono" style={{ fontSize: 'var(--t-label)', color: 'var(--i3)' }}>
+              <span className="mono" style={{ fontSize: 'var(--t-etiket)', color: 'var(--i3)' }}>
                 {BAG_ETIKET[tip]} · {mevcut.length}
               </span>
 
               {mevcut.length === 0 ? (
-                <span style={{ fontSize: 'var(--t-label)', color: 'var(--i3)' }}>
+                <span style={{ fontSize: 'var(--t-etiket)', color: 'var(--i3)' }}>
                   bağ yok
                 </span>
               ) : mevcut.map((b) => (
                 <div key={b.id} style={{ display: 'flex', alignItems: 'baseline',
-                  gap: 'var(--s10)', fontSize: 'var(--t-cell)' }}>
+                  gap: 'var(--s10)', fontSize: 'var(--t-govde)' }}>
                   <span className="mono" style={{ fontWeight: 600 }}>{b.kod}</span>
                   <span style={{ color: 'var(--i3)', minWidth: 0, overflow: 'hidden',
                     textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{b.alt}</span>

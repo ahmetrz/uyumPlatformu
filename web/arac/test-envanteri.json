@@ -1,7 +1,7 @@
 {
-  "imza": "4402d3344d278383ce5ec900922a0caa",
-  "dosya": 258,
-  "vaka": 4555,
+  "imza": "c5cb072f80595c298dc12e94bce22283",
+  "dosya": 259,
+  "vaka": 4564,
   "atlanan": 1,
   "dosyalar": {
     "tests/adaptor-yetenekleri.test.ts": {
@@ -158,6 +158,10 @@
     },
     "tests/bekci/terim-dogrulama.test.ts": {
       "vaka": 21,
+      "atlanan": 0
+    },
+    "tests/bekci/tipografi-olcegi.test.ts": {
+      "vaka": 9,
       "atlanan": 0
     },
     "tests/bekci/tuval-bilinmeyen.test.ts": {

@@ -1,0 +1,77 @@
+{
+  "_ne": "Tipografik ölçeğin DIŞINDA kalmasına izin verilen font-size bildirimleri.",
+  "_nicin": [
+    "Ürünün ekran tipografisi sekiz jetondan gelir (`--t-etiket` … `--t-dev`).",
+    "İki meşru sınıf o ölçeğe oturmaz ve zorlanırsa yalan söyler:",
+    "",
+    "  1 · BASKI — `@media print` blokları PUNTO kullanır (pt), piksel değil.",
+    "      Kâğıt ölçüsü ekran ölçüsünden bağımsızdır; 13px'lik bir gövdeyi",
+    "      kâğıda 13px diye basmak ne okunur ne anlamlıdır.",
+    "  2 · AKIŞKAN — plaka kimlik başlığı görüntü genişliğiyle ölçeklenir",
+    "      (`clamp`). Sabit bir kademeye oturtmak ya dar bantta taşırır ya",
+    "      geniş bantta ekranı boş bırakır; ölçülen karar akışkan olmasıdır."
+  ],
+  "_circir": [
+    "1 · TAVAN — bir değerin sayısı `azami`yi aşarsa kapı KIRMIZI.",
+    "2 · ALT KÜME — listede olmayan her jeton dışı bildirim KIRMIZI.",
+    "3 · ÖLÜ SATIR — kaynakta karşılığı kalmayan satır KIRMIZI; liste",
+    "    yalnız küçülür ve ölü referans taşıyamaz."
+  ],
+  "_olculdu": "2026-09-18 · app/kabuk.css · yorumlar çıkarılarak · 360 bildirim, 353'ü jetondan",
+  "istisnalar": [
+    {
+      "deger": "9pt",
+      "azami": 2,
+      "sinif": "baski",
+      "sebep": "Baskı bloğu punto kullanır: `.ab-baski-kunye` künyesi ve karne tablosu. Kâğıt ölçüsü ekran jetonundan türetilemez."
+    },
+    {
+      "deger": "8pt",
+      "azami": 1,
+      "sinif": "baski",
+      "sebep": "Baskı künyesinin ikincil satırı — kâğıtta bir kademe altı."
+    },
+    {
+      "deger": "16pt",
+      "azami": 1,
+      "sinif": "baski",
+      "sebep": "Karne başlığı, kâğıt sürümü."
+    },
+    {
+      "deger": "18pt",
+      "azami": 1,
+      "sinif": "baski",
+      "sebep": "Karne özetindeki sayı, kâğıt sürümü — başlıktan büyük olması bilinçli: kâğıtta gezinme yok, sayı ilk okunan şeydir."
+    },
+    {
+      "deger": "clamp(60px, 5.6vw, 78px)",
+      "azami": 1,
+      "sinif": "akiskan",
+      "sebep": "`.ab-b-plaka .kimlik h1` — tesis plakasının kimlik satırı. Geniş bantta ekranı taşıyan tek tipografik nesnedir ve sabit kademe ya taşırır ya boş bırakır."
+    },
+    {
+      "deger": "clamp(38px, 11vw, 60px)",
+      "azami": 1,
+      "sinif": "akiskan",
+      "sebep": "Aynı başlığın dar bant karşılığı; üst sınırı geniş bandın alt sınırına oturur ki iki kural arasında sıçrama olmasın."
+    },
+    {
+      "deger": "clamp(60px, 16vw, 84px)",
+      "azami": 1,
+      "sinif": "akiskan",
+      "sebep": "Giriş ekranının editoryal başlığı (`giris.module.css`). Sinematik giriş kendi sahne kararına tabidir (docs/SINEMATIK_GIRIS.md) ve başlık kamera hareketiyle birlikte ölçeklenir; sabit kademe o sahneyi kırar."
+    },
+    {
+      "deger": "clamp(42px, 13vw, 58px)",
+      "azami": 1,
+      "sinif": "akiskan",
+      "sebep": "Aynı başlığın dar bant karşılığı; üst sınırı geniş bandın alt sınırıyla sürekli olsun diye 58px'te durur."
+    },
+    {
+      "deger": "inherit",
+      "azami": 2,
+      "sinif": "kalitim",
+      "sebep": "BOY DEĞİL, BOY REDDİDİR. İki satır içi bağ (`.ab-dugme satir`) düğme görünümünü alır ama boyunu içinde durduğu METİNDEN almalıdır; kendi kademesini seçmesi, aynı cümlenin ortasında ölçek sıçraması üretir. Jeton vermek burada kusuru ÜRETİR, gidermez."
+    }
+  ]
+}

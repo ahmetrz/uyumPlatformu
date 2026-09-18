@@ -867,6 +867,33 @@ export const PLATFORM_SENARYOLARI: Senaryo[] = [
     katmanlar: ['UI', 'DOMAIN'],
   },
   {
+    id: 'URN-TIP-001', alan: 'Sistem', rota: '—', eksen: 'arayuz',
+    amac: 'Tipografik ölçek jetondan gelmiyordu. Ölçüldü (18 Eyl 2026, '
+      + 'yorumlar çıkarılarak): kabuk.css içindeki 360 font-size '
+      + 'bildiriminin 240\'ı (%66) jeton katmanını ATLIYORDU ve jeton '
+      + 'katmanının kendisi 15 jetonu 10 değere çakıştırıyordu — dördü '
+      + 'aynı 11px, üçü aynı 12,5px. `--t-code-lg` adında "büyük" diyor, '
+      + '`--t-code` ile aynı değeri taşıyordu. Üç piksel aralığında altı '
+      + 'kademe vardı ve tek başına 11px bildirimlerin %44\'üydü; üst uç '
+      + 'boştu. Kapının İLK yazımı da kör doğdu: yalnız kabuk.css\'e '
+      + 'bakıyordu ve TSX satır içi 305 başvuru ile giriş stilinin 15 '
+      + 'bildirimi evrenin dışındaydı — gerçek payda 360 değil 682.',
+    rol: 'geliştirici', kapsam: 'ürün geneli',
+    onkosul: 'Kaynak ağacı okunabilir', veriHali: 'normal',
+    eylem: 'Tipografi bekçisi kaynağı tarar',
+    beklenenSonuc: 'Ölçek SEKİZ kademedir (10 · 11 · 13 · 16 · 21 · 28 · '
+      + '40 · 58), her kademe TEK rol taşır ve komşu oran %8\'in altına '
+      + 'inemez. Bildirimlerin %95\'inden çoğu jetondan geçer; geçmeyen '
+      + 'her biri izin listesinde değeriyle, sayısıyla ve gerekçesiyle '
+      + 'durur (baskı puntosu · akışkan clamp · bilinçli inherit). İki '
+      + 'jeton aynı değeri taşıyamaz, tanımlanan her jeton kullanılır ve '
+      + 'BAŞVURULAN her jeton TANIMLIDIR — tanımsız var() özelliği '
+      + 'geçersiz kılar ve ekran sessizce kalıtıma döner.',
+    beklenenEkran: 'Ürün geneli — kaynak taraması',
+    beklenenIz: 'yazma yok', beklenenBildirim: 'yok',
+    katmanlar: ['UI'],
+  },
+  {
     id: 'SAH-SDL-002', alan: 'Saha', rota: '/', eksen: 'arayuz',
     amac: 'Ekranın ölçeği karar değerinin TERSİNİ söylüyordu: durum '
       + 'manşeti 68px, eylem taşıyan tek satır (müdahale kuyruğunun bulgu '

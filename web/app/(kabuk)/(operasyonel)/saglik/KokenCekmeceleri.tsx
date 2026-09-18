@@ -182,11 +182,11 @@ function DogrulamaKuyrugu({
               disabled={!ozet.dogrulayabilir}
               onChange={() => cevir(b.kokenId)} style={{ marginTop: 3 }} />
             <span style={{ minWidth: 0 }}>
-              <span style={{ display: 'block', fontSize: 'var(--t-field)' }}>
+              <span style={{ display: 'block', fontSize: 'var(--t-govde)' }}>
                 {etiketle(b.varlikTipi)} · {b.bekleyenGun} gündür bekliyor
               </span>
               <span className="mono" style={{ display: 'block', marginTop: 2,
-                fontSize: 'var(--t-label)', color: 'var(--i3)', wordBreak: 'break-all' }}>
+                fontSize: 'var(--t-etiket)', color: 'var(--i3)', wordBreak: 'break-all' }}>
                 {b.kaynakKayitId} · güven {guvenYazisi(b.guven)}
               </span>
               <span style={{ display: 'block', marginTop: 2 }}>
@@ -230,7 +230,7 @@ function DogrulamaKuyrugu({
           </div>
           {hata && (
             <p role="alert" style={{ margin: 'var(--s12) 0 0',
-              fontSize: 'var(--t-field)', color: 'var(--bd)' }}>{hata}</p>
+              fontSize: 'var(--t-govde)', color: 'var(--bd)' }}>{hata}</p>
           )}
           <p className="ab-panel-dip" style={{ margin: 'var(--s12) 0 0' }}>
             Doğrulama insanın işidir: hiçbir motor bu kuyruğu boşaltamaz.
@@ -264,11 +264,11 @@ function BayatListesi({ bayatlar, esikGun }: { bayatlar: BayatSatiri[]; esikGun:
               <Im durum="unk" ad="Kaydın güncelliği bilinmiyor" />
             </span>
             <span style={{ minWidth: 0 }}>
-              <span style={{ display: 'block', fontSize: 'var(--t-field)' }}>
+              <span style={{ display: 'block', fontSize: 'var(--t-govde)' }}>
                 {etiketle(b.varlikTipi)} · {b.gecenGun} gündür tazelenmedi
               </span>
               <span className="mono" style={{ display: 'block', marginTop: 2,
-                fontSize: 'var(--t-label)', color: 'var(--i3)' }}>
+                fontSize: 'var(--t-etiket)', color: 'var(--i3)' }}>
                 son aktarım {zamanTR(b.sonAktarim)} · güven {guvenYazisi(b.guven)}
               </span>
             </span>

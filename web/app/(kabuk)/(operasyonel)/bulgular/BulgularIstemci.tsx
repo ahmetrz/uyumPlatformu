@@ -354,7 +354,7 @@ function Ara({ deger, degistir }: { deger: string; degistir: (v: string) => void
       style={{
         width: 132, background: 'none', border: 0,
         borderBottom: 'var(--bw-hair) solid var(--hr2)',
-        padding: '3px 0', fontFamily: 'var(--veri)', fontSize: 'var(--t-label)',
+        padding: '3px 0', fontFamily: 'var(--veri)', fontSize: 'var(--t-etiket)',
         letterSpacing: 'var(--tr-label)', textTransform: 'uppercase',
       }}
     />
@@ -610,18 +610,18 @@ function BulguCekmecesi({ veri, kapat }: { veri: Secim; kapat: () => void }) {
       <div className="ab-panel-blok" style={{ marginTop: 'var(--s24)' }}>
         <p className="etiket" style={{ margin: '0 0 var(--s10)' }}>Denetim izi</p>
         {b.iz.length === 0 ? (
-          <p style={{ margin: 0, fontFamily: 'var(--veri)', fontSize: 'var(--t-label)',
+          <p style={{ margin: 0, fontFamily: 'var(--veri)', fontSize: 'var(--t-etiket)',
             color: 'var(--i3)' }}>Kayıt yok</p>
         ) : (
           <div style={{ display: 'grid', gap: 'var(--s10)' }}>
             {b.iz.map((k) => (
               <div key={k.id} style={{ display: 'grid', gap: 2,
                 borderLeft: 'var(--bw-edge) solid var(--hr2)', paddingLeft: 'var(--s12)' }}>
-                <span style={{ fontSize: 'var(--t-field)' }}>
+                <span style={{ fontSize: 'var(--t-govde)' }}>
                   <b style={{ fontWeight: 600 }}>{k.aktor}</b>{' '}
                   {eylemCumlesi(k.eylem, k.varlikTipi === 'Bulgu' ? null : k.varlikTipi, k.alan, ET)}
                 </span>
-                <span style={{ fontFamily: 'var(--veri)', fontSize: 'var(--t-label)', color: 'var(--i3)' }}>
+                <span style={{ fontFamily: 'var(--veri)', fontSize: 'var(--t-etiket)', color: 'var(--i3)' }}>
                   {zamanTR(k.zaman)}
                   {(k.once || k.sonra) && ` · ${etiketle(k.once, '—')} → ${etiketle(k.sonra, '—')}`}
                   {k.dosya && ` · ${k.dosya}`}
@@ -659,9 +659,9 @@ function Adim({ durum, ad, not }: { durum: Durum; ad: string; not: string }) {
       borderBottom: 'var(--bw-hair) solid var(--hr)' }}>
       <span style={{ paddingTop: 3 }}><Im durum={durum} /></span>
       <span style={{ minWidth: 0 }}>
-        <span style={{ display: 'block', fontSize: 'var(--t-field)', fontWeight: 600 }}>{ad}</span>
+        <span style={{ display: 'block', fontSize: 'var(--t-govde)', fontWeight: 600 }}>{ad}</span>
         <span style={{ display: 'block', marginTop: 2, fontFamily: 'var(--veri)',
-          fontSize: 'var(--t-label)', color: 'var(--i3)' }}>{not}</span>
+          fontSize: 'var(--t-etiket)', color: 'var(--i3)' }}>{not}</span>
       </span>
     </div>
   );

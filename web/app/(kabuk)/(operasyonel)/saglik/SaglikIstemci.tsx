@@ -367,7 +367,7 @@ function EntegrasyonTablosu({ ozet, bolum, secili, sec, kuyrugaAc, yazabilir, ye
         /* Ortam bir DURUM değil, kaydın niteliğidir: işaretçiyle değil
            kendi rengiyle yazılır ve üretim ayrı okunur. */
         <span key="o" className="mono" style={{ color: ortamRengi(c.ortam),
-          fontSize: 'var(--t-label)' }}>
+          fontSize: 'var(--t-etiket)' }}>
           {ortamYazisi(c.ortam)}
         </span>,
         s ? zamanTR(s.baslangic) : <span key="k" style={{ color: 'var(--i3)' }}>koşu kaydı yok</span>,
@@ -453,7 +453,7 @@ function SaglayiciDurumu({ ozet }: { ozet: EntegrasyonOzeti }) {
                 <Im durum={saglayiciImi(sg)}
                   ad={sg.bagli ? `${sg.ad} bağlı` : `${sg.ad} bağlı değil`} />
               </span>
-              <span style={{ minWidth: 0, fontSize: 'var(--t-field)', color: 'var(--i2)' }}>
+              <span style={{ minWidth: 0, fontSize: 'var(--t-govde)', color: 'var(--i2)' }}>
                 <span className="mono">{sg.ad}</span>
                 {not && <span style={{ color: 'var(--pl)' }}> · {not}</span>}
               </span>
@@ -473,7 +473,7 @@ function SaglayiciDurumu({ ozet }: { ozet: EntegrasyonOzeti }) {
     burada görünür: fark edilmeyen bir kuyruk, olmayan bir kuyruktur. */
 function ReddedilenBagi({ adet }: { adet: number }) {
   return (
-    <p style={{ margin: 'var(--s16) 0 0', fontSize: 'var(--t-field)' }}>
+    <p style={{ margin: 'var(--s16) 0 0', fontSize: 'var(--t-govde)' }}>
       <Link href="/saglik/reddedilenler" className="ab-dugme">
         {adet > 0
           ? `${adet} reddedilen kayıt inceleme bekliyor →`
@@ -648,10 +648,10 @@ function TipKokenleri({ bolum, secili, sec }: {
                 background: 'none', border: 0, padding: '2px 0', cursor: 'pointer',
                 color: 'inherit', font: 'inherit' }}>
               <span><Im durum={im} /></span>
-              <span style={{ minWidth: 0, fontSize: 'var(--t-field)' }}>
+              <span style={{ minWidth: 0, fontSize: 'var(--t-govde)' }}>
                 {etiketle(t.varlikTipi)}
               </span>
-              <span className="mono" style={{ fontSize: 'var(--t-label)', color: 'var(--i3)' }}>
+              <span className="mono" style={{ fontSize: 'var(--t-etiket)', color: 'var(--i3)' }}>
                 {/* Kökeni yok · doğrulama bekleyen · doğrulanmış */}
                 <span style={{ color: kokensizVar(t) ? 'var(--unk)' : undefined }}>
                   kökeni yok {kokensizYazisi(t)}
@@ -823,7 +823,7 @@ function HazirlikBolumu({ kontroller, saglayicilar, disSaglayicilar, baglantiIht
     <div style={{ display: 'grid', gap: 'var(--s26)' }}>
       <section className="ab-blok">
         <p className="etiket">Kurulum hazırlığı</p>
-        <p style={{ margin: '0 0 var(--s14)', fontSize: 'var(--t-field)',
+        <p style={{ margin: '0 0 var(--s14)', fontSize: 'var(--t-govde)',
           color: o.bozuk > 0 ? 'var(--bd)'
             : o.olculemeyenZorunlu > 0 ? 'var(--unk)'
               : o.calismayaHazir ? 'var(--ok)' : 'var(--md)' }}>
@@ -838,21 +838,21 @@ function HazirlikBolumu({ kontroller, saglayicilar, disSaglayicilar, baglantiIht
                 <Im durum={DURUM_SINIFI[k.durum]} ad={DURUM_SOZU[k.durum]} />
               </span>
               <div style={{ display: 'grid', gap: 'var(--s4)' }}>
-                <span style={{ fontSize: 'var(--t-field)', fontWeight: 600 }}>
+                <span style={{ fontSize: 'var(--t-govde)', fontWeight: 600 }}>
                   {k.ad}
                   {!k.zorunlu && (
                     <span className="mono" style={{ marginLeft: 'var(--s8)',
-                      fontSize: 'var(--t-label)', color: 'var(--i3)' }}>
+                      fontSize: 'var(--t-etiket)', color: 'var(--i3)' }}>
                       bilgi · zorunlu değil
                     </span>
                   )}
                 </span>
-                <span style={{ fontSize: 'var(--t-label)',
+                <span style={{ fontSize: 'var(--t-etiket)',
                   color: k.durum === 'bilinmiyor' ? 'var(--unk)' : 'var(--i2)' }}>
                   {k.ayrinti}
                 </span>
                 {k.yapilacak && (
-                  <span className="mono" style={{ fontSize: 'var(--t-label)', color: 'var(--i3)' }}>
+                  <span className="mono" style={{ fontSize: 'var(--t-etiket)', color: 'var(--i3)' }}>
                     Yapılacak: {k.yapilacak}
                   </span>
                 )}
@@ -878,19 +878,19 @@ function HazirlikBolumu({ kontroller, saglayicilar, disSaglayicilar, baglantiIht
                   ad={sg.bagli ? 'bağlı' : 'bağlı değil'} />
               </span>
               <div style={{ display: 'grid', gap: 'var(--s4)' }}>
-                <span style={{ fontSize: 'var(--t-field)', fontWeight: 600 }}>
+                <span style={{ fontSize: 'var(--t-govde)', fontWeight: 600 }}>
                   {AILE_ETIKETI[sg.aile]} · {sg.ad}
                 </span>
-                <span className="mono" style={{ fontSize: 'var(--t-label)', color: 'var(--i3)' }}>
+                <span className="mono" style={{ fontSize: 'var(--t-etiket)', color: 'var(--i3)' }}>
                   {sg.bagli ? 'bağlı' : 'BAĞLI DEĞİL'}
                   {' · '}çok örnek {sg.yetenek.cokOrnek ? 'evet' : 'HAYIR'}
                   {' · '}kalıcı {sg.yetenek.kalici ? 'evet' : 'hayır'}
                 </span>
-                <span style={{ fontSize: 'var(--t-label)', color: 'var(--i2)' }}>
+                <span style={{ fontSize: 'var(--t-etiket)', color: 'var(--i2)' }}>
                   {sg.ozet}
                 </span>
                 {sg.gereken && (
-                  <span style={{ fontSize: 'var(--t-label)', color: 'var(--unk)' }}>
+                  <span style={{ fontSize: 'var(--t-etiket)', color: 'var(--unk)' }}>
                     Gereken: {sg.gereken}
                   </span>
                 )}
@@ -939,21 +939,21 @@ function DisBagimlilikBolumu({ liste }: { liste: DisSaglayici[] }) {
                 ad={sg.bagli ? 'bağlı' : 'bağlı değil'} />
             </span>
             <div style={{ display: 'grid', gap: 'var(--s4)' }}>
-              <span style={{ fontSize: 'var(--t-field)', fontWeight: 600 }}>
+              <span style={{ fontSize: 'var(--t-govde)', fontWeight: 600 }}>
                 {DIS_AILE_ETIKETI[sg.aile]}
                 <span className="mono" style={{ marginLeft: 'var(--s8)',
-                  fontSize: 'var(--t-label)', color: 'var(--i3)' }}>
+                  fontSize: 'var(--t-etiket)', color: 'var(--i3)' }}>
                   {sg.ad}
                 </span>
               </span>
-              <span className="mono" style={{ fontSize: 'var(--t-label)',
+              <span className="mono" style={{ fontSize: 'var(--t-etiket)',
                 color: sg.bagli ? 'var(--i3)' : 'var(--unk)' }}>
                 {sg.bagli ? 'bağlı' : 'BAĞLI DEĞİL'}
               </span>
-              <span style={{ fontSize: 'var(--t-label)', color: 'var(--i2)' }}>
+              <span style={{ fontSize: 'var(--t-etiket)', color: 'var(--i2)' }}>
                 Bağlı değilken ürün: {sg.bagliDegilkenDavranis}
               </span>
-              <span style={{ fontSize: 'var(--t-label)', color: 'var(--unk)' }}>
+              <span style={{ fontSize: 'var(--t-etiket)', color: 'var(--unk)' }}>
                 Gereken: {sg.gereken}
               </span>
             </div>
@@ -1018,7 +1018,7 @@ function IhtiyacBolumu({ liste }: { liste: AdaptorIhtiyaci[] }) {
         {bagliOlmayan.map((x) => (
           <div key={x.tip}>
             <p className="mono" style={{ margin: '0 0 var(--s8)',
-              fontSize: 'var(--t-label)', color: 'var(--i3)' }}>
+              fontSize: 'var(--t-etiket)', color: 'var(--i3)' }}>
               {x.tip} · {x.kalemler.length} kalem ·
               {' '}sır referansı {x.gerekenSirlar.length > 0
                 ? x.gerekenSirlar.join(', ') : 'bildirilmedi'}
@@ -1040,14 +1040,14 @@ function IhtiyacBolumu({ liste }: { liste: AdaptorIhtiyaci[] }) {
                       ad={k.sir ? 'sır — değeri saklanmaz' : 'bilgi bekleniyor'} />
                   </span>
                   <div style={{ display: 'grid', gap: 'var(--s3)' }}>
-                    <span style={{ fontSize: 'var(--t-field)', fontWeight: 600 }}>
+                    <span style={{ fontSize: 'var(--t-govde)', fontWeight: 600 }}>
                       {k.ad}
                       <span className="mono" style={{ marginLeft: 'var(--s8)',
-                        fontSize: 'var(--t-label)', color: k.sir ? 'var(--md)' : 'var(--i3)' }}>
+                        fontSize: 'var(--t-etiket)', color: k.sir ? 'var(--md)' : 'var(--i3)' }}>
                         {IHTIYAC_TUR_SOZU[k.tur] ?? k.tur}{k.sir ? ' · SIR' : ''}
                       </span>
                     </span>
-                    <span style={{ fontSize: 'var(--t-label)', color: 'var(--i2)' }}>
+                    <span style={{ fontSize: 'var(--t-etiket)', color: 'var(--i2)' }}>
                       {k.aciklama}
                     </span>
                   </div>

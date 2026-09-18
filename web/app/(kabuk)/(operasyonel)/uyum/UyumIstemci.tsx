@@ -382,7 +382,7 @@ export default function UyumIstemci({
 
         {cerceve.taslak ? (
           <div className="ab-panel-blok" style={{ marginTop: 'var(--s16)' }}>
-            <p style={{ margin: 0, fontSize: 'var(--t-cell)', lineHeight: 1.7 }}>
+            <p style={{ margin: 0, fontSize: 'var(--t-govde)', lineHeight: 1.7 }}>
               Bu çerçevenin <b>aktif sürümü yok</b>: {cerceve.taslak.surumEtiketi} sürümü{' '}
               <b>TASLAK</b> ({cerceve.taslak.maddeSayisi} madde). Kontroller ölçülmedi — sıfır değil.{' '}
               <b>Aktifleştirme insan kararıdır</b>: sürümü karşılaştırıp aktifleştirmek{' '}

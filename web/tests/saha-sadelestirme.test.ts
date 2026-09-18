@@ -180,9 +180,18 @@ describe('tip etiketi · aynı ad, iki tip', () => {
    sayısız bir karar, bir sonraki turda sessizce geri alınır.
    ═══════════════════════════════════════════════════════════════════════ */
 describe('SAH-SDL-002 · hiyerarşi karar değerini izler', () => {
+  /* Jeton tablosu: ölçek 18 Eyl 2026'da jetona taşındı, bu yüzden kural
+     artık literal px değil `var(--t-*)` yazıyor. Yardımcı jetonu ÇÖZER —
+     iddia zayıflatılmaz, yalnız okunacağı yer değişir. */
+  const JETON = new Map(
+    [...CSS.matchAll(/(--t-[a-z-]+):\s*([0-9.]+)px\s*;/g)].map((m) => [m[1], Number(m[2])] as const),
+  );
   const px = (secici: string) => {
     const blok = CSS.slice(CSS.indexOf(secici));
-    const m = blok.slice(0, blok.indexOf('}')).match(/font-size:\s*(\d+)px/);
+    const govde = blok.slice(0, blok.indexOf('}'));
+    const jeton = govde.match(/font-size:\s*var\((--t-[a-z-]+)\)/);
+    if (jeton) return JETON.get(jeton[1]) ?? null;
+    const m = govde.match(/font-size:\s*([0-9.]+)px/);
     return m ? Number(m[1]) : null;
   };
 
@@ -192,7 +201,7 @@ describe('SAH-SDL-002 · hiyerarşi karar değerini izler', () => {
     expect(mansetPx, 'manşet ölçüsü okunamadı').toBeTruthy();
     expect(konuPx, 'bulgu başlığı ölçüsü okunamadı').toBeTruthy();
     /* Eşik ORAN, sabit sayı değil: ikisinden biri değişse de kural
-       ölçmeye devam eder. 68/13 = 5,2 idi; bugün 42/15 = 2,8. */
+       ölçmeye devam eder. 68/13 = 5,2 idi; ölçek jetona taşındıktan sonra 40/16 = 2,5. */
     expect(mansetPx! / konuPx!,
       'durum manşeti eylemli satırı yeniden eziyor').toBeLessThanOrEqual(3);
   });

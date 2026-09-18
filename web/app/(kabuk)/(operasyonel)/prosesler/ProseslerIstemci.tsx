@@ -287,11 +287,11 @@ function BagSatiriGorunumu({ bag }: { bag: BagSatiri }) {
       alignItems: 'start', gap: 'var(--s8)' }}>
       <span style={{ paddingTop: 3 }}><Im durum={bagImi(bag)} ad={bagSozu(bag)} /></span>
       <span style={{ minWidth: 0 }}>
-        <span style={{ display: 'block', fontSize: 'var(--t-cell)', fontWeight: 600 }}>
+        <span style={{ display: 'block', fontSize: 'var(--t-govde)', fontWeight: 600 }}>
           {bag.etiket} · {bag.ad}
         </span>
         <span className="mono" style={{ display: 'block', marginTop: 2,
-          fontSize: 'var(--t-label)',
+          fontSize: 'var(--t-etiket)',
           color: bag.tekNokta === null ? 'var(--unk)' : 'var(--i3)' }}>
           {ROL_ETIKET[bag.rol] ?? bag.rol} · {bagSozu(bag)}
           {bag.aciklama && ` · ${bag.aciklama}`}
@@ -490,7 +490,7 @@ export default function ProseslerIstemci({
             {surec.adimlar.length === 0 && (
               /* NE YAPMALIYIM: adımsız süreç uyum zincirinin başlangıç
                  noktasıdır; çözüm süreç tanımındadır. */
-              <p className="bos" style={{ margin: 0, fontSize: 'var(--t-field)', color: 'var(--unk)' }}>
+              <p className="bos" style={{ margin: 0, fontSize: 'var(--t-govde)', color: 'var(--unk)' }}>
                 Adım tanımlanmadı — bu süreç için hiçbir kırılım yok ve
                 zincir hiç kurulmadı; varlık da bağlanamaz.{' '}
                 <Link href="/surecler">Süreci tanımla</Link>
@@ -499,23 +499,23 @@ export default function ProseslerIstemci({
             {surec.adimlar.map((a) => (
               <div key={a.id} style={{ marginTop: 'var(--s16)',
                 borderLeft: 'var(--bw-edge) solid var(--hr2)', paddingLeft: 'var(--s12)' }}>
-                <p style={{ margin: 0, fontSize: 'var(--t-field)', fontWeight: 600 }}>
+                <p style={{ margin: 0, fontSize: 'var(--t-govde)', fontWeight: 600 }}>
                   {a.sira}. {a.kod} · {a.ad}
                 </p>
                 <p className="mono" style={{ margin: 'var(--s4) 0 var(--s10)',
-                  fontSize: 'var(--t-label)', color: 'var(--i3)' }}>
+                  fontSize: 'var(--t-etiket)', color: 'var(--i3)' }}>
                   RTO {saat(a.rtoSaat)} · RPO {saat(a.rpoSaat)} ·
                   {' '}etki {ETKI_ETIKETI[etkiDuzeyi(a.uretimEtkisi)]}
                 </p>
                 {a.aciklama && (
-                  <p style={{ margin: '0 0 var(--s10)', fontSize: 'var(--t-label)',
+                  <p style={{ margin: '0 0 var(--s10)', fontSize: 'var(--t-etiket)',
                     color: 'var(--i2)' }}>{a.aciklama}</p>
                 )}
 
                 {a.varliklar.length === 0 ? (
                   /* NE YAPMALIYIM: kopuk halkanın çözümü envanterdedir ve
                      bağ oradan kurulur. */
-                  <p className="bos" style={{ margin: 0, fontSize: 'var(--t-field)', color: 'var(--md)' }}>
+                  <p className="bos" style={{ margin: 0, fontSize: 'var(--t-govde)', color: 'var(--md)' }}>
                     Bu adıma hiç varlık bağlanmadı — zincirin kopuk halkası;
                     etki analizi bu adımı boş geçer.{' '}
                     <Link href="/envanter">Varlık bağla</Link>

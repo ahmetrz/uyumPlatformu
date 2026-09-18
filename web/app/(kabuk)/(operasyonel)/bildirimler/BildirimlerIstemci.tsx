@@ -140,7 +140,7 @@ export default function BildirimlerIstemci({
         <section className="ab-ekran-govde" style={{ paddingTop: 'var(--s26)' }}>
           {hata && (
             <p role="alert" style={{ margin: '0 0 var(--s14)',
-              fontSize: 'var(--t-field)', color: 'var(--bd)' }}>{hata}</p>
+              fontSize: 'var(--t-govde)', color: 'var(--bd)' }}>{hata}</p>
           )}
 
           <Filtreler secenekler={MERCEKLER} aktif={mercek}

@@ -204,7 +204,7 @@ function RedOzeti({ r, yazabilir, kapat }: {
       {r.incelemeNotu && (
         <div className="ab-panel-blok" style={{ marginTop: 'var(--s22)' }}>
           <p className="etiket" style={{ margin: '0 0 var(--s8)' }}>İnceleme notu</p>
-          <p style={{ margin: 0, fontSize: 'var(--t-field)', color: 'var(--i2)' }}>
+          <p style={{ margin: 0, fontSize: 'var(--t-govde)', color: 'var(--i2)' }}>
             {r.incelemeNotu}
           </p>
         </div>
@@ -216,7 +216,7 @@ function RedOzeti({ r, yazabilir, kapat }: {
           <pre className="mono" style={{ margin: 0, padding: 'var(--s12)',
             whiteSpace: 'pre-wrap', wordBreak: 'break-word', maxHeight: 260,
             overflow: 'auto', background: 'var(--panel)',
-            border: 'var(--bw-edge) solid var(--hr2)', fontSize: 'var(--t-label)' }}>
+            border: 'var(--bw-edge) solid var(--hr2)', fontSize: 'var(--t-etiket)' }}>
             {r.hamJson}
           </pre>
         ) : (

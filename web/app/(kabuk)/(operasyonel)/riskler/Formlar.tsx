@@ -194,11 +194,11 @@ export function RiskFormu({
 
       <div style={{ display: 'flex', alignItems: 'baseline', gap: 'var(--s12)',
         paddingTop: 'var(--s14)', borderTop: 'var(--bw-hair) solid var(--hr)' }}>
-        <span style={{ fontSize: 'var(--t-metric)', lineHeight: 'var(--lh-metric)',
+        <span style={{ fontSize: 'var(--t-bolum)', lineHeight: 'var(--lh-metric)',
           fontWeight: 700, fontVariantNumeric: 'tabular-nums',
           color: `var(--${skorDurumu(skor)})` }}>
           {skor ?? '—'}
-          <span style={{ fontSize: 'var(--t-metric-den)', fontWeight: 400,
+          <span style={{ fontSize: 'var(--t-govde)', fontWeight: 400,
             color: 'var(--i3)' }}> / {SKOR_TAVANI}</span>
         </span>
         <span className="etiket">hesaplanan skor</span>

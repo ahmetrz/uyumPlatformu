@@ -421,11 +421,11 @@ function Ozet({
                 padding: 'var(--s12) var(--s14)',
               }}>
                 <span style={{ minWidth: 0, flex: 1 }}>
-                  <span style={{ display: 'block', fontSize: 'var(--t-cell)', fontWeight: 600 }}>
+                  <span style={{ display: 'block', fontSize: 'var(--t-govde)', fontWeight: 600 }}>
                     {rolEtiketi(y.rol)}
                   </span>
                   <span style={{ display: 'block', marginTop: 2, fontFamily: 'var(--veri)',
-                    fontSize: 'var(--t-label)', color: kapsamsiz(y) ? 'var(--md)' : 'var(--i3)' }}>
+                    fontSize: 'var(--t-etiket)', color: kapsamsiz(y) ? 'var(--md)' : 'var(--i3)' }}>
                     {yetkiKapsami(y, sozluk)}
                   </span>
                 </span>
@@ -542,7 +542,7 @@ function EkipKutugu({ ekipler, tesisler, adaylar, yetkili }: {
 
       {ekipler.length === 0 ? (
         <div className="ab-panel-blok">
-          <p style={{ margin: 0, fontSize: 'var(--t-field)', color: 'var(--unk)' }}>
+          <p style={{ margin: 0, fontSize: 'var(--t-govde)', color: 'var(--unk)' }}>
             Tanımlı ekip yok — bütün sahiplik kişilere bağlı ve kişi
             ayrıldığında kayıt öksüz kalır.
           </p>
@@ -556,16 +556,16 @@ function EkipKutugu({ ekipler, tesisler, adaylar, yetkili }: {
               <p className="etiket" style={{ margin: '0 0 var(--s8)' }}>
                 {e.kod} · {EKIP_TIP_ETIKETI[e.tip as EkipTipi] ?? e.tip}
               </p>
-              <p style={{ margin: '0 0 var(--s8)', fontSize: 'var(--t-field)', fontWeight: 600 }}>
+              <p style={{ margin: '0 0 var(--s8)', fontSize: 'var(--t-govde)', fontWeight: 600 }}>
                 {e.ad}
               </p>
               <p className="mono" style={{ margin: '0 0 var(--s10)',
-                fontSize: 'var(--t-label)', color: 'var(--i3)' }}>
+                fontSize: 'var(--t-etiket)', color: 'var(--i3)' }}>
                 {e.tesisAd ?? `kurumsal (${t('tesis', 'yonelme')} bağlı değil)`} · {e.varlikSayisi} varlık ·
                 {' '}{aktifUye} aktif üye{e.aktif ? '' : ' · ekip pasif'}
               </p>
               {bosEkip && (
-                <p style={{ margin: '0 0 var(--s10)', fontSize: 'var(--t-field)',
+                <p style={{ margin: '0 0 var(--s10)', fontSize: 'var(--t-govde)',
                   color: 'var(--bd)' }}>
                   Aktif üyesi yok: bu ekibe atanmış {e.varlikSayisi} varlık
                   ekranda sahipli görünür, gerçekte kimse sorumlu değil.
@@ -611,7 +611,7 @@ function Ara({ deger, degistir }: { deger: string; degistir: (v: string) => void
       style={{
         width: 118, background: 'none', border: 0,
         borderBottom: 'var(--bw-hair) solid var(--hr2)',
-        padding: '3px 0', fontFamily: 'var(--veri)', fontSize: 'var(--t-label)',
+        padding: '3px 0', fontFamily: 'var(--veri)', fontSize: 'var(--t-etiket)',
         letterSpacing: 'var(--tr-label)', textTransform: 'uppercase',
       }}
     />

@@ -588,7 +588,7 @@ function TokenTekSefer({ uretilen, kapat }: { uretilen: Uretilen; kapat: () => v
     <div style={{ display: 'grid', gap: 'var(--s16)' }}>
       <Alan etiket="Tam token · yalnız şimdi">
         <span className="ab-gr" style={{ display: 'block', fontFamily: 'var(--veri)',
-          fontSize: 'var(--t-code-lg)', lineHeight: 1.6, wordBreak: 'break-all',
+          fontSize: 'var(--t-veri)', lineHeight: 1.6, wordBreak: 'break-all',
           userSelect: 'all' }}>
           {uretilen.token}
         </span>

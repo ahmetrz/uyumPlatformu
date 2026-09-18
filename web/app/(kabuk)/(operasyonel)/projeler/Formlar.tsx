@@ -181,10 +181,10 @@ export function BaglantiFormu({ proje, maddeler, bulgular, kapat }: {
               gap: 'var(--s10)' }}>
               <span style={{ minWidth: 0, flex: 1, overflow: 'hidden',
                 textOverflow: 'ellipsis', whiteSpace: 'nowrap',
-                fontSize: 'var(--t-cell)' }}>
+                fontSize: 'var(--t-govde)' }}>
                 {b.kod}
               </span>
-              <span style={{ fontFamily: 'var(--veri)', fontSize: 'var(--t-label)',
+              <span style={{ fontFamily: 'var(--veri)', fontSize: 'var(--t-etiket)',
                 color: 'var(--i3)' }}>{b.tur === 'madde' ? 'kontrol' : b.tur}</span>
               <button type="button" className="ab-dugme satir" disabled={bekliyor}
                 onClick={() => calistir(() => projeBaglantiSil({ id: b.id }))}>

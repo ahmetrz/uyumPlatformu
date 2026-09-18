@@ -617,11 +617,11 @@ function Fazlar({ fazlar, simdi }: { fazlar: Faz[]; simdi: number }) {
             gap: 'var(--s10)', padding: 'var(--s8) 0',
             borderBottom: 'var(--bw-hair) solid var(--hr)' }}>
             <Im durum={durum} ad={`${f.ad} · ${FAZ_SOZU[durum]}`} />
-            <span style={{ flex: 1, minWidth: 0, fontSize: 'var(--t-cell)',
+            <span style={{ flex: 1, minWidth: 0, fontSize: 'var(--t-govde)',
               overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
               {f.ad}
             </span>
-            <span style={{ fontFamily: 'var(--veri)', fontSize: 'var(--t-label)',
+            <span style={{ fontFamily: 'var(--veri)', fontSize: 'var(--t-etiket)',
               color: gecikme !== null ? 'var(--bd)' : 'var(--i3)' }}>
               {gecikme !== null ? `+${gecikme} g` : ceyrek(f.gerceklesen ?? f.hedef)}
             </span>

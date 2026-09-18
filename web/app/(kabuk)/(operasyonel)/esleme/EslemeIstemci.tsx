@@ -325,7 +325,7 @@ export default function EslemeIstemci({
             )}
             {acikSurum && acikSurum.hata && (
               <p role="alert" style={{ margin: 'var(--s10) 0 0',
-                fontSize: 'var(--t-field)', color: 'var(--bd)' }}>{acikSurum.hata}</p>
+                fontSize: 'var(--t-govde)', color: 'var(--bd)' }}>{acikSurum.hata}</p>
             )}
             {acikSurum && !acikSurum.hata && (
               <div style={{ marginTop: 'var(--s12)' }}>
@@ -336,7 +336,7 @@ export default function EslemeIstemci({
                   display: 'grid', gap: 'var(--s6)' }}>
                   {acikSurum.kurallar.map((k, i) => (
                     <li key={i} style={{ fontFamily: 'var(--veri)',
-                      fontSize: 'var(--t-label)', color: 'var(--i2)' }}>
+                      fontSize: 'var(--t-etiket)', color: 'var(--i2)' }}>
                       {k.kaynakAlan} → {k.hedefAlan}
                       {k.donusum && k.donusum !== 'yok' ? ` · ${k.donusum}` : ''}
                       {k.zorunlu ? ' · zorunlu' : ''}

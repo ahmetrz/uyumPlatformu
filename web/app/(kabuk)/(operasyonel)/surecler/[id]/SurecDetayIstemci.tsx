@@ -432,7 +432,7 @@ function Ozet({ kayit, yazabilir, ekipler, git }: {
 
       <div className="ab-panel-blok" style={{ marginTop: 'var(--s24)' }}>
         <p className="etiket" style={{ margin: '0 0 var(--s10)' }}>Madde metni</p>
-        <p style={{ margin: 0, fontSize: 'var(--t-cell)', lineHeight: 1.7, color: 'var(--i2)' }}>
+        <p style={{ margin: 0, fontSize: 'var(--t-govde)', lineHeight: 1.7, color: 'var(--i2)' }}>
           {kayit.madde.metin}
         </p>
         <p className="ab-panel-dip" style={{ margin: 'var(--s12) 0 0' }}>
@@ -549,7 +549,7 @@ function SahiplikBlogu({ kayit, ekipler }: {
         Sorumluluk ve doğrulama (UY-07)
       </p>
       <p style={{ margin: '0 0 var(--s12)', display: 'flex', alignItems: 'center',
-        gap: 'var(--s8)', fontSize: 'var(--t-field)' }}>
+        gap: 'var(--s8)', fontSize: 'var(--t-govde)' }}>
         <Im durum={SAHIPLIK_SINIFI[sahiplik]} ad={SAHIPLIK_SOZU[sahiplik]} />
         {SAHIPLIK_SOZU[sahiplik]}
       </p>
@@ -579,7 +579,7 @@ function SahiplikBlogu({ kayit, ekipler }: {
       </dl>
 
       {dogrulama === 'degerlendirme_sonrasi_degisti' && (
-        <p style={{ margin: 'var(--s10) 0 0', fontSize: 'var(--t-field)', color: 'var(--bd)' }}>
+        <p style={{ margin: 'var(--s10) 0 0', fontSize: 'var(--t-govde)', color: 'var(--bd)' }}>
           Doğrulamadan SONRA değerlendirme değişti: ekrandaki damga artık
           başka bir kararı işaret ediyor. Damga silinmedi — silmek, hiç
           doğrulanmamış izlenimi verirdi; yeniden doğrulanması gerekir.
@@ -709,7 +709,7 @@ function HazirlikBlogu({ kayitlar, simdi }: {
   return (
     <section className="ab-blok">
       <p className="etiket">Denetime hazırlık (UY-16)</p>
-      <p style={{ margin: '0 0 var(--s12)', fontSize: 'var(--t-field)',
+      <p style={{ margin: '0 0 var(--s12)', fontSize: 'var(--t-govde)',
         color: o.savunulamaz > 0 ? 'var(--bd)' : o.zayif > 0 ? 'var(--md)' : 'var(--i2)' }}>
         {kapsamaCumlesi(o)}
       </p>
@@ -847,7 +847,7 @@ function TestBlogu({ kayit, yazabilir }: {
       </p>
       {kayit.testler.length > 0 && (
         <ul style={{ margin: '0 0 var(--s12)', paddingLeft: '1.1em',
-          fontSize: 'var(--t-cell)', color: 'var(--i2)', lineHeight: 1.7 }}>
+          fontSize: 'var(--t-govde)', color: 'var(--i2)', lineHeight: 1.7 }}>
           {kayit.testler.map((t) => (
             <li key={t.id}>
               {tarihTR(t.testTarihi)} · {YONTEM_ETIKETI[t.yontem as 'tasarim' | 'isleyis']

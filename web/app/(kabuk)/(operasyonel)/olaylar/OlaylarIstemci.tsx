@@ -305,7 +305,7 @@ function UretimHucresi({ o }: { o: OlayKaydi }) {
   return (
     <Ipucu genis metin={o.oneri?.dayanaklar.uretimEtkisi ?? ''}>
       <span style={{ display: 'inline-flex', alignItems: 'center', gap: 'var(--s6)',
-        fontSize: 'var(--t-cell)', color: 'var(--i2)', whiteSpace: 'nowrap',
+        fontSize: 'var(--t-govde)', color: 'var(--i2)', whiteSpace: 'nowrap',
         borderBottom: '1px dashed var(--hr2)' }}>
         <Im durum="unk" ad="Motor önerisi — doğrulanmadı" />
         {seviyeSozu(onerilen)} · öneri
@@ -531,21 +531,21 @@ function EtkiSatiri({
   const oneriDurumu: Durum = 'unk';
   return (
     <>
-      <span style={{ fontSize: 'var(--t-label)', color: 'var(--i2)' }}>
+      <span style={{ fontSize: 'var(--t-etiket)', color: 'var(--i2)' }}>
         {ETKI_ALAN_ETIKET[alan]}
       </span>
 
       {/* Öneri: DAİMA gri + elmas. Doğrulanmış değerle aynı ağırlığı almaz. */}
       <span style={{ minWidth: 0 }}>
         {oneriBozuk ? (
-          <span style={{ fontSize: 'var(--t-label)', color: 'var(--bd)' }}>
+          <span style={{ fontSize: 'var(--t-etiket)', color: 'var(--bd)' }}>
             öneri kaydı okunamadı
           </span>
         ) : (
           <Ipucu genis metin={dayanak ?? 'dayanak kaydı yok'}>
             <button type="button" className="ab-dugme satir"
               style={{ display: 'inline-flex', alignItems: 'center', gap: 'var(--s6)',
-                fontSize: 'var(--t-cell)', color: 'var(--i2)', textAlign: 'left' }}>
+                fontSize: 'var(--t-govde)', color: 'var(--i2)', textAlign: 'left' }}>
               <Im durum={oneriDurumu} ad="Motor önerisi" />
               {seviyeSozu(onerilen)}
             </button>
@@ -554,7 +554,7 @@ function EtkiSatiri({
       </span>
 
       {/* Doğrulanmış etki: gerçek değer. Yoksa TİRE — sıfır ya da "yok" değil. */}
-      <span style={{ fontSize: 'var(--t-cell)', fontWeight: dogrulanmis ? 600 : 400,
+      <span style={{ fontSize: 'var(--t-govde)', fontWeight: dogrulanmis ? 600 : 400,
         color: dogrulanmis ? `var(--${seviyeDurumu(alan, dogrulanmis)})` : 'var(--i3)' }}>
         {dogrulanmis ? seviyeSozu(dogrulanmis) : '—'}
       </span>
@@ -611,7 +611,7 @@ function Halka({ h }: { h: HalkaGorunumu }) {
           <span key={`${a.ad}-${i}`} style={{ display: 'inline-flex', alignItems: 'baseline',
             gap: 'var(--s6)' }}>
             {i > 0 && <span aria-hidden style={{ color: 'var(--i3)' }}>→</span>}
-            <span title={a.alt} style={{ fontFamily: 'var(--veri)', fontSize: 'var(--t-label)',
+            <span title={a.alt} style={{ fontFamily: 'var(--veri)', fontSize: 'var(--t-etiket)',
               fontWeight: 600 }}>{a.ad}</span>
           </span>
         ))}
@@ -621,7 +621,7 @@ function Halka({ h }: { h: HalkaGorunumu }) {
       </p>
       {h.kopukluk && (
         <p style={{ margin: 'var(--s8) 0 0', display: 'flex', alignItems: 'center',
-          gap: 'var(--s6)', fontSize: 'var(--t-label)', color: 'var(--unk)' }}>
+          gap: 'var(--s6)', fontSize: 'var(--t-etiket)', color: 'var(--unk)' }}>
           <Im durum="unk" ad="Zincir kopuk" />
           zincir burada kopuyor — {kopuklukSozu(sozluk)[h.kopukluk] ?? h.kopukluk}
         </p>

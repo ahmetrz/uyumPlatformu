@@ -1,15 +1,24 @@
 {
-  "_ne": "Tipografik ölçeğin DIŞINDA kalmasına izin verilen font-size bildirimleri.",
+  "_ne": "Tipografik jeton kümelerinin DIŞINDA kalmasına izin verilen bildirimler.",
+  "_eksenler": {
+    "boy": "font-size · --t-*  (sekiz kademe)",
+    "iz": "letter-spacing · --tr-*  (beş rol)",
+    "satir": "line-height · --lh-*  (beş rol)"
+  },
   "_nicin": [
-    "Ürünün ekran tipografisi sekiz jetondan gelir (`--t-etiket` … `--t-dev`).",
-    "İki meşru sınıf o ölçeğe oturmaz ve zorlanırsa yalan söyler:",
+    "Üç eksenin de ekran değeri jetondan gelir. Jetona ZORLANMASI kusur",
+    "üreten üç sınıf vardır ve hepsi burada, değeriyle ve sayısıyla durur:",
     "",
     "  1 · BASKI — `@media print` blokları PUNTO kullanır (pt), piksel değil.",
-    "      Kâğıt ölçüsü ekran ölçüsünden bağımsızdır; 13px'lik bir gövdeyi",
-    "      kâğıda 13px diye basmak ne okunur ne anlamlıdır.",
-    "  2 · AKIŞKAN — plaka kimlik başlığı görüntü genişliğiyle ölçeklenir",
-    "      (`clamp`). Sabit bir kademeye oturtmak ya dar bantta taşırır ya",
-    "      geniş bantta ekranı boş bırakır; ölçülen karar akışkan olmasıdır."
+    "      Kâğıt ölçüsü ekran ölçüsünden bağımsızdır.",
+    "  2 · AKIŞKAN — görüntü genişliğiyle ölçeklenen başlık (`clamp`). Sabit",
+    "      bir kademe ya dar bantta taşırır ya geniş bantta ekranı boş bırakır.",
+    "  3 · KUTU GEOMETRİSİ — sabit yükseklikli bir rozette ya da düğmede",
+    "      `line-height` tipografik satır aralığı DEĞİL dikey ortalama",
+    "      aracıdır; orana çevirmek ortalamayı bozar.",
+    "",
+    "Dördüncü bir sınıf daha var ve tek satırdır: ÖLÇÜLMÜŞ BİR KARAR.",
+    "Kayıtlı bir düzeltmeyi jeton uğruna ezmek, düzeltmeyi geri almaktır."
   ],
   "_circir": [
     "1 · TAVAN — bir değerin sayısı `azami`yi aşarsa kapı KIRMIZI.",
@@ -17,61 +26,98 @@
     "3 · ÖLÜ SATIR — kaynakta karşılığı kalmayan satır KIRMIZI; liste",
     "    yalnız küçülür ve ölü referans taşıyamaz."
   ],
-  "_olculdu": "2026-09-18 · app/kabuk.css · yorumlar çıkarılarak · 360 bildirim, 353'ü jetondan",
+  "_olculdu": "2026-09-18 · üç yüzey (CSS + TSX satır içi) · boy 682'nin 671'i · iz 104'ün 104'ü · satır 83'ün 78'i jetondan",
   "istisnalar": [
     {
+      "eksen": "boy",
       "deger": "9pt",
       "azami": 2,
       "sinif": "baski",
       "sebep": "Baskı bloğu punto kullanır: `.ab-baski-kunye` künyesi ve karne tablosu. Kâğıt ölçüsü ekran jetonundan türetilemez."
     },
     {
+      "eksen": "boy",
       "deger": "8pt",
       "azami": 1,
       "sinif": "baski",
       "sebep": "Baskı künyesinin ikincil satırı — kâğıtta bir kademe altı."
     },
     {
+      "eksen": "boy",
       "deger": "16pt",
       "azami": 1,
       "sinif": "baski",
       "sebep": "Karne başlığı, kâğıt sürümü."
     },
     {
+      "eksen": "boy",
       "deger": "18pt",
       "azami": 1,
       "sinif": "baski",
       "sebep": "Karne özetindeki sayı, kâğıt sürümü — başlıktan büyük olması bilinçli: kâğıtta gezinme yok, sayı ilk okunan şeydir."
     },
     {
+      "eksen": "boy",
       "deger": "clamp(60px, 5.6vw, 78px)",
       "azami": 1,
       "sinif": "akiskan",
       "sebep": "`.ab-b-plaka .kimlik h1` — tesis plakasının kimlik satırı. Geniş bantta ekranı taşıyan tek tipografik nesnedir ve sabit kademe ya taşırır ya boş bırakır."
     },
     {
+      "eksen": "boy",
       "deger": "clamp(38px, 11vw, 60px)",
       "azami": 1,
       "sinif": "akiskan",
       "sebep": "Aynı başlığın dar bant karşılığı; üst sınırı geniş bandın alt sınırına oturur ki iki kural arasında sıçrama olmasın."
     },
     {
+      "eksen": "boy",
       "deger": "clamp(60px, 16vw, 84px)",
       "azami": 1,
       "sinif": "akiskan",
-      "sebep": "Giriş ekranının editoryal başlığı (`giris.module.css`). Sinematik giriş kendi sahne kararına tabidir (docs/SINEMATIK_GIRIS.md) ve başlık kamera hareketiyle birlikte ölçeklenir; sabit kademe o sahneyi kırar."
+      "sebep": "Giriş ekranının editoryal başlığı (`giris.module.css`). Sinematik giriş kendi sahne kararına tabidir (docs/SINEMATIK_GIRIS.md) ve başlık kamera hareketiyle birlikte ölçeklenir."
     },
     {
+      "eksen": "boy",
       "deger": "clamp(42px, 13vw, 58px)",
       "azami": 1,
       "sinif": "akiskan",
       "sebep": "Aynı başlığın dar bant karşılığı; üst sınırı geniş bandın alt sınırıyla sürekli olsun diye 58px'te durur."
     },
     {
+      "eksen": "boy",
       "deger": "inherit",
       "azami": 2,
       "sinif": "kalitim",
       "sebep": "BOY DEĞİL, BOY REDDİDİR. İki satır içi bağ (`.ab-dugme satir`) düğme görünümünü alır ama boyunu içinde durduğu METİNDEN almalıdır; kendi kademesini seçmesi, aynı cümlenin ortasında ölçek sıçraması üretir. Jeton vermek burada kusuru ÜRETİR, gidermez."
+    },
+    {
+      "eksen": "satir",
+      "deger": "14px",
+      "azami": 1,
+      "sinif": "kutu",
+      "sebep": "`.ab-sayac` rozeti — `min-width: 18px` ve sabit dikey ritimle çizilir; satır aralığı burada metnin değil KUTUNUN ölçüsüdür."
+    },
+    {
+      "eksen": "satir",
+      "deger": "16px",
+      "azami": 2,
+      "sinif": "kutu",
+      "sebep": "Tek satıra kilitli meta satırı ve 24px yüksekliğe oturan `.kalan` bağı — ikisinde de değer dikey ortalamayı kurar, orana çevirmek ortalamayı bozar."
+    },
+    {
+      "eksen": "satir",
+      "deger": "20px",
+      "azami": 1,
+      "sinif": "kutu",
+      "sebep": "`min-height: 22px` olan küçük düğme; metin kutunun içinde ortalanır."
+    },
+    {
+      "eksen": "satir",
+      "deger": ".92",
+      "azami": 1,
+      "sinif": "olculmus-karar",
+      "sebep": "`.ab-b-plaka .kimlik h1` — ÖLÇÜLMÜŞ bir düzeltmedir (SIS-KBK-031): satır aralığı .84'ten .92'ye çıkarıldı ki küçük harf kuyruğu (g · y · ş) bir alt satıra girmesin. En yakın jeton (.85) o kusuru geri getirirdi; kayıtlı bir düzeltmeyi jeton uğruna ezmek düzeltmeyi geri almaktır."
     }
   ]
 }

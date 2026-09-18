@@ -1,0 +1,72 @@
+{
+  "_ne": "Paylaşılan tablo bileşeninin (`components/kabuk/tablo.tsx`) DIŞINDA ham `<table>` çizmesine izin verilen yüzeyler.",
+  "_nicin": [
+    "Ürünün kütük grameri TEK yerden çıkar: `VeriTablosu` çizer, `Tablo`",
+    "eski satır biçimini ona çevirir, `Matris` ve `GenisleyenSatir` aynı",
+    "kabı kullanır. Yedinci bir tablo eklemek bedava görünür — kolon kaşı,",
+    "yapışkan başlık, kaydırma bölgesinin odak durağı, sıralama tuşu ve",
+    "boş durum cümlesi orada YENİDEN yazılır ve ilk gün doğru olur.",
+    "İkinci gün paylaşılan bileşen değişir, kopya değişmez ve kimse",
+    "görmez: ekran yine tablo gibi görünür.",
+    "",
+    "Bu yüzden ham tablo YASAK değil BEYANLI'dır ve sayısı yalnız küçülür.",
+    "",
+    "İKİ SINIF VAR ve ikincisi daha sıkıdır:",
+    "",
+    "  1 · KENDİ GRAMERİ — kendi sınıfını ve kendi kurallarını taşır",
+    "      (baskı karnesi, fark tablosu, kontrast matrisi). Paylaşılan",
+    "      CSS'e hiç dokunmaz; kaymaya açık yüzeyi yoktur.",
+    "  2 · PAYLAŞILAN SINIF (`ab-vt`) — paylaşılan CSS'i MİRAS ALIR ve",
+    "      böylece paylaşılan grameri VAAT EDER. Vaat ettiği için yapısal",
+    "      sözleşmesi ayrıca ölçülür: kaydırma kabı `aria-busy`, kolon",
+    "      kaşı `.kolonbas`, iskelet satırı `tr.iskelet`. Sözleşmeyi",
+    "      kaybeden kopya, sınıfı taşımaya devam ettiği için EKRANDA",
+    "      doğru görünür — kapı olmadan kimse fark etmez."
+  ],
+  "_circir": [
+    "1 · ALT KÜME — listede olmayan her ham tablo KIRMIZI.",
+    "2 · TAVAN — bir dosyadaki ham tablo sayısı `azami`yi aşamaz.",
+    "3 · ÖLÜ SATIR — kaynakta karşılığı kalmayan satır KIRMIZI.",
+    "4 · SÖZLEŞME — `paylasilanSinif` satırı yapısal işaretleri taşımalı.",
+    "5 · ÖLÇÜM TABANI — tarama en az N ham tablo görmeli (kör tarayıcı",
+    "    sıfır kusur raporlar; bu deponun dört kez ölçtüğü sınıf budur)."
+  ],
+  "_olculdu": "2026-09-18 · app + components · 6 ham tablo · 5 kendi grameri · 1 paylaşılan sınıf",
+  "istisnalar": [
+    {
+      "dosya": "app/(kabuk)/(operasyonel)/raporlar/karne/Karne.tsx",
+      "sinif": "ab-karne-tablo",
+      "azami": 1,
+      "paylasilanSinif": false,
+      "sebep": "Baskı karnesi. Kâğıt sürümü punto (`pt`) ile çizilir, yapışkan başlığı ve sıralama tuşu YOKTUR — kâğıtta sıralama diye bir eylem yok. Paylaşılan bileşenin her davranışı burada ölü kod olurdu."
+    },
+    {
+      "dosya": "app/(kabuk)/(operasyonel)/yonetim-tezgahi/KonsolFormlar.tsx",
+      "sinif": "ab-fark",
+      "azami": 1,
+      "paylasilanSinif": false,
+      "sebep": "Fark tablosu: kayıt ÖNCE/SONRA. Satır başlığı `th[scope=row]`dur — kütükte satır başlığı yoktur, satır bir KAYITTIR. İki grameri tek bileşende toplamak, seçim ve sıralamayı anlamsız kıldığı yerde taşımak olurdu."
+    },
+    {
+      "dosya": "app/(kabuk)/(operasyonel)/yardim/page.tsx",
+      "sinif": "ab-yardim-tablo",
+      "azami": 1,
+      "paylasilanSinif": false,
+      "sebep": "Yardım ekranının durağan alan/kabuk çizelgesi — veri değil BELGE. Satırları kayıt değildir, seçilemez, süzülemez ve bir kütük boş durumu taşımaz."
+    },
+    {
+      "dosya": "app/(kabuk)/(operasyonel)/sistem/page.tsx",
+      "sinif": "ab-sistem-tablo",
+      "azami": 2,
+      "paylasilanSinif": false,
+      "sebep": "Kontrast matrisi (iki yüzey: renk jetonu × zemin). Hücre bir ÖLÇÜMDÜR, kayıt değil; kolon sayısı zemin listesinden gelir. `Matris` uyum durumu çizer, kontrast oranı değil."
+    },
+    {
+      "dosya": "app/(kabuk)/(operasyonel)/tedarikciler/loading.tsx",
+      "sinif": "ab-vt",
+      "azami": 1,
+      "paylasilanSinif": true,
+      "sebep": "SERİLEŞTİRME SINIRI. `loading.tsx` bir SUNUCU bileşenidir (Suspense yedeği anında render edilir, `async` olamaz); `VeriTablosu` ise `'use client'`tır ve kolon tanımı FONKSİYON taşır (`VtKolon.hucre`). Sunucudan istemciye fonksiyon geçirilemez — React sınırda atar. Yani bu kopya bir tercih değil, sınırın sonucudur. (Ölçüldü ve YANLIŞ bir gerekçe elendi: 'demete sokardı' dayanaksızdı — `TedarikcilerIstemci.tsx` zaten `VeriTablosu` içe aktarıyor, rota demeti onu çoktan taşıyor. Üstelik maliyet anlatan bir cümle gerekçe sayılmaz.) Sınırın BEDELİ ölçülür: paylaşılan iskelet değişirse bu değişmez, bu yüzden dördüncü diş yapısal sözleşmeyi (`aria-busy` · `.kolonbas` · `tr.iskelet` · `.ab-vt-sar`) kaybeden kopyayı KIRMIZI yakar."
+    }
+  ]
+}

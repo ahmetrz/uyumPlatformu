@@ -341,9 +341,9 @@ const SABOTAJLAR = [
     kural: '13px ve üstü büyük harf yalnız gezinme ve koddur; tesis adı veridir',
     dosya: 'app/kabuk.css',
     ara: `  /* cümle düzeni — tesis adı veridir, kaş değil (SIS-KBK-031) */
-  font-family: var(--gorunum); font-size: var(--t-bolum); line-height: 1.1;`,
+  font-family: var(--gorunum); font-size: var(--t-bolum); line-height: var(--lh-manset);`,
     yaz: `  /* cümle düzeni — tesis adı veridir, kaş değil (SIS-KBK-031) */
-  font-family: var(--gorunum); font-size: var(--t-bolum); line-height: 1.1; text-transform: uppercase;`,
+  font-family: var(--gorunum); font-size: var(--t-bolum); line-height: var(--lh-manset); text-transform: uppercase;`,
     testler: ['tests/bekci/buyuk-harf.test.ts', 'tests/odak-yayma.test.ts'],
   },
   {
@@ -351,10 +351,10 @@ const SABOTAJLAR = [
     kural: 'h2 başlığı hiçbir boyda büyük harf olmaz',
     dosya: 'app/kabuk.css',
     ara: `  margin: 12px 0 0; font-family: var(--gorunum); font-weight: 600;
-  font-size: var(--t-manset); line-height: 1.1;
+  font-size: var(--t-manset); line-height: var(--lh-manset);
 }`,
     yaz: `  margin: 12px 0 0; font-family: var(--gorunum); font-weight: 600;
-  font-size: var(--t-manset); line-height: 1.1; text-transform: uppercase;
+  font-size: var(--t-manset); line-height: var(--lh-manset); text-transform: uppercase;
 }`,
     testler: ['tests/bekci/buyuk-harf.test.ts'],
   },
@@ -362,7 +362,7 @@ const SABOTAJLAR = [
     ad: 'Bir kaş kuralı büyük harfi bıraktı — tarama daha az şey görüyor',
     kural: 'Büyük harf kuralı sayısı ölçüm tabanının altına sessizce inemez',
     dosya: 'app/kabuk.css',
-    ara: `  font-family: var(--veri); font-size: var(--t-veri); letter-spacing: .1em;
+    ara: `  font-family: var(--veri); font-size: var(--t-veri); letter-spacing: var(--tr-etiket);
   text-transform: uppercase; text-decoration: none;
 }
 .ab-atla:focus, .ab-atla:focus-visible {`,
@@ -781,8 +781,14 @@ const SABOTAJLAR = [
     ad: 'Bir bildirim jeton katmanını yeniden ATLADI',
     kural: 'Her font-size ya jetondan geçer ya izin listesinde beyanlıdır',
     dosya: 'app/kabuk.css',
-    ara: '  font-size: var(--t-ekran); line-height: 1.15; letter-spacing: -.01em;',
-    yaz: '  font-size: 26px; line-height: 1.15; letter-spacing: -.01em;',
+    /* Hedef `.ab-lede h1`e daraltıldı: jeton adları sadeleşince aynı üç
+       bildirimlik dizge İKİ kuralda birden geçer oldu ve araç tekillik
+       ister. Ekran başlığı arketiptir; jeton katmanını orada atlamak,
+       kusurun en görünür hâlidir. */
+    ara: `  margin: 0; font-family: var(--gorunum); font-weight: 500;
+  font-size: var(--t-ekran); line-height: var(--lh-manset); letter-spacing: var(--tr-manset);`,
+    yaz: `  margin: 0; font-family: var(--gorunum); font-weight: 500;
+  font-size: 26px; line-height: var(--lh-manset); letter-spacing: var(--tr-manset);`,
     testler: ['tests/bekci/tipografi-olcegi.test.ts'],
   },
   {
@@ -797,7 +803,7 @@ const SABOTAJLAR = [
     ad: 'Durum manşeti yeniden eylemli satırı eziyor (ölçekten 68px\'e)',
     kural: 'Ekranın birincil işi müdahaledir; ölçek karar değerini izler',
     dosya: 'app/kabuk.css',
-    ara: '  font-family: var(--gorunum); font-weight: 600; font-size: var(--t-manset); line-height: .85;',
+    ara: '  font-family: var(--gorunum); font-weight: 600; font-size: var(--t-manset); line-height: var(--lh-sikisik);',
     yaz: '  font-family: var(--gorunum); font-weight: 600; font-size: 68px; line-height: .8;  /* SABOTAJ */',
     testler: ['tests/saha-sadelestirme.test.ts'],
   },
@@ -818,6 +824,92 @@ const SABOTAJLAR = [
     ara: '          <p className="etiket">{durumEtiketi} · {bugun}</p>',
     yaz: '          <p className="etiket">Grup durumu · {bugun}</p>  {/* SABOTAJ */}',
     testler: ['tests/saha-sadelestirme.test.ts'],
+  },
+
+  /* ── ÜÇ EKSENLİ TİPOGRAFİ KAPISI · iz ve satır aralığı ────────────── */
+  {
+    ad: 'İki harf aralığı jetonu aynı değeri taşısın (ad ayrım vaat eder, değer vermez)',
+    kural: 'Ad, değerin vermediği bir ayrımı vaat ettiğinde en sinsi kusuru üretir: değeri okuyan kimse yoktur, ADI okunur',
+    dosya: 'app/kabuk.css',
+    ara: '  --tr-gezinme: .06em;   /* gezinme · düğme büyük harfi — hafif */',
+    yaz: '  --tr-gezinme: .14em;   /* SABOTAJ — etiket jetonuyla çakışıyor */',
+    testler: ['tests/bekci/tipografi-olcegi.test.ts'],
+  },
+  {
+    ad: 'Satır aralığı bildirimini jeton katmanından kaçır',
+    kural: 'Üç eksenin de ekran değeri jetondan gelir; kaçan bildirim izin listesinde EKSENİYLE ve gerekçesiyle durmalı',
+    dosya: 'app/kabuk.css',
+    ara: '.ab-a-panel .kimlik .cumle { margin: 12px 0 0; font-size: var(--t-govde); line-height: var(--lh-govde); color: var(--i2); }',
+    yaz: '.ab-a-panel .kimlik .cumle { margin: 12px 0 0; font-size: var(--t-govde); line-height: 1.55; color: var(--i2); }  /* SABOTAJ */',
+    testler: ['tests/bekci/tipografi-olcegi.test.ts'],
+  },
+  {
+    ad: 'Ayırt edilemez satır aralığı kademesi ekle (1,2 ile 1,25 arası %4)',
+    kural: '%8\'in altında bir adım ekranda ayırt edilmez ve hiyerarşi değil TEKRAR üretir — 1,15 ile 1,2 bu yüzden tek role indi',
+    dosya: 'app/kabuk.css',
+    ara: '  --lh-baslik: 1.4;      /* satır ve kart başlığı */',
+    yaz: '  --lh-baslik: 1.25;     /* SABOTAJ — manşetle arası %4 */',
+    testler: ['tests/bekci/tipografi-olcegi.test.ts'],
+  },
+
+  /* ── TABLO GRAMERİ KAPISI ─────────────────────────────────────────── */
+  {
+    ad: 'Paylaşılan sınıfı taşıyan iskelet yapısal sözleşmesini kaybetsin',
+    kural: 'ab-vt sınıfı paylaşılan grameri VAAT EDER; kolon kaşı düşen kopya ekranda doğru görünür, ekran okuyucuda sütun başlığı kalmaz',
+    dosya: 'app/(kabuk)/(operasyonel)/tedarikciler/loading.tsx',
+    ara: '                  <th key={b} scope="col"><span className="kolonbas">{b}</span></th>',
+    yaz: '                  <th key={b} scope="col"><span>{b}</span></th>  {/* SABOTAJ */}',
+    testler: ['tests/bekci/tablo-grameri.test.ts'],
+  },
+  {
+    ad: 'Beyansız yedinci ham tablo ekle',
+    kural: 'Paylaşılan bileşen dışındaki her ham <table> dosyasıyla, sınıfıyla ve gerekçesiyle beyanlıdır; sayısı yalnız küçülür',
+    dosya: 'app/(kabuk)/(operasyonel)/yardim/page.tsx',
+    ara: '        <div className="ab-yardim-tablo-sar">',
+    yaz: '        <table className="ab-kacak-tablo"><tbody><tr><td>SABOTAJ</td></tr></tbody></table>\n        <div className="ab-yardim-tablo-sar">',
+    testler: ['tests/bekci/tablo-grameri.test.ts'],
+  },
+  {
+    ad: 'Matris ızgarasının tablo rolünü düşür',
+    kural: 'Matris <table> DEĞİLDİR; tabloluğu YALNIZ ARIA rollerinde durur — rol düşerse ekranda hiçbir şey değişmez, ekran okuyucuda her şey değişir',
+    dosya: 'components/kabuk/tablo.tsx',
+    ara: '        <span className="kolonbas" role="columnheader">{konuBasligi}</span>',
+    yaz: '        <span className="kolonbas">{konuBasligi}</span>  {/* SABOTAJ */}',
+    testler: ['tests/bekci/tablo-grameri.test.ts'],
+  },
+  {
+    ad: 'Tablo sarmalayıcısını kendi <table>\'ına kaçır',
+    kural: 'Tablo bir SARMALAYICIDIR; kendi çizimine geçerse 46 ekran sessizce ikinci bir gramere düşer, dosya başlığı "tek semantik çekirdek" demeye devam ederken',
+    dosya: 'components/kabuk/tablo.tsx',
+    ara: '    <VeriTablosu<Satir>\n      etiket={etiket ?? `${konuBasligi} kütüğü`}',
+    yaz: '    <VeriTabloSABOTAJ<Satir>\n      etiket={etiket ?? `${konuBasligi} kütüğü`}',
+    testler: ['tests/bekci/tablo-grameri.test.ts'],
+  },
+
+  /* ── KABUK KROMU · başlık ve ayak ─────────────────────────────────── */
+  {
+    ad: 'Gezinme sekmesini markayla aynı kademeye geri çıkar',
+    kural: 'Marka barın TEK 16px nesnesidir; sekme aynı kademeye çıkınca altı eşit ağırlıklı nesne olur ve hiyerarşi kaybolur',
+    dosya: 'app/kabuk.css',
+    ara: '  font-family: var(--gorunum); font-size: var(--t-govde); font-weight: 600;\n  letter-spacing: var(--tr-gezinme); text-transform: uppercase;\n  color: var(--i3); border-bottom: 2px solid transparent;',
+    yaz: '  font-family: var(--gorunum); font-size: var(--t-baslik); font-weight: 600;  /* SABOTAJ */\n  letter-spacing: var(--tr-gezinme); text-transform: uppercase;\n  color: var(--i3); border-bottom: 2px solid transparent;',
+    testler: ['tests/bekci/kabuk-kromu.test.ts'],
+  },
+  {
+    ad: 'Ayak telifini koda göm (kiracı adı yapılandırmadan gelmesin)',
+    kural: 'Kiracı adı koda gömülürse su kiracısı kurunca başlıkta kendi adını, ayakta "Demo Enerji" görür; üstelik "Enerji" çekirdekte duran bir SEKTÖR sözcüğü olur',
+    dosya: 'components/kabuk/Kabuk.tsx',
+    ara: '      <span className="telif">© {new Date().getFullYear()} {veri.kiraciAd}</span>',
+    yaz: '      <span className="telif">© 2026 Demo Enerji</span>  {/* SABOTAJ */}',
+    testler: ['tests/bekci/kabuk-kromu.test.ts'],
+  },
+  {
+    ad: 'Ayakta telifi bağ kümesinin arkasına geri at',
+    kural: 'Telif bir künye satırıdır, gezinme değil; bağ kümesinin içine düşünce dört bağla tek küme gibi okunur',
+    dosya: 'components/kabuk/Kabuk.tsx',
+    ara: '      <span className="telif">© {new Date().getFullYear()} {veri.kiraciAd}</span>\n      {/* ── GEZİNME KÜMESİ · sağda ───────────────────────────────────',
+    yaz: '      {/* SABOTAJ — telif bağların ardına atıldı */}\n      {/* ── GEZİNME KÜMESİ · sağda ───────────────────────────────────',
+    testler: ['tests/bekci/kabuk-kromu.test.ts'],
   },
 ];
 

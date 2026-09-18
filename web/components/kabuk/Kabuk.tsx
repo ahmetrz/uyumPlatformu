@@ -370,17 +370,40 @@ const ORTAM_ADI: Record<KabukVerisi['ortam'], string> = {
 function Ayak({ veri }: { veri: KabukVerisi }) {
   return (
     <footer className="ab-alt ab-baskida-gizle">
-      <span className="kunye">
-        {veri.kunye}
-        <span className="mono"> · v{veri.surum} · {ORTAM_ADI[veri.ortam]}</span>
-      </span>
+      {/* ── KİMLİK KÜMESİ · solda ────────────────────────────────────
+          Üç öğe de aynı soruyu yanıtlar: "bu kurulum NEDİR". Ayrı bir
+          kutu ya da çizgi açmazlar; kümeyi boşluk kurar. */}
+      <span className="kunye">{veri.kunye}</span>
+      {/* Derleme koordinatı. Başlıktaki "Örnek veri" işaretiyle TEKRAR
+          DEĞİLDİR: o işaret "bu sayılar gerçek mi" sorusunu yanıtlar ve
+          bir UYARIDIR; bu dize "hangi derlemedeyim" sorusunu yanıtlar ve
+          destek kaydına yazılacak koordinattır. İki ayrı karar amacı. */}
+      <span className="surum mono">v{veri.surum} · {ORTAM_ADI[veri.ortam]}</span>
+      {/* ── TELİF KİRACININ ADIDIR, SABİT DEĞİL ──────────────────────
+          Ölçüldü (18 Eyl 2026): burada `© 2026 Demo Enerji` KODA
+          GÖMÜLÜYDÜ. Başlık kiracı adını yapılandırmadan okuyordu
+          (`veri.kiraciAd`), ayak okumuyordu — yani su kiracısı kurunca
+          başlıkta "ŞEHİR SU", ayakta "Demo Enerji" yazıyordu. Üstelik
+          "Enerji" ÇEKİRDEK bir kabuk bileşeninde duran bir SEKTÖR
+          sözcüğüydü (sektör bağımsızlık kuralı).
+
+          Marka kapısı bunu göremiyordu: nöbetçi adla yalnız `MARKA_AD`
+          sızıntısını ölçüyor, `KIRACI_AD` için böyle bir diş yoktu.
+          Kapıya o diş eklendi (`arac/marka-kapisi.mjs`).
+
+          Yıl da sabit yazılmaz: bir sonraki yıl ürün kendi künyesinde
+          bayat bir tarih gösterirdi. */}
+      <span className="telif">© {new Date().getFullYear()} {veri.kiraciAd}</span>
+      {/* ── GEZİNME KÜMESİ · sağda ───────────────────────────────────
+          "Nereye gidebilirim". `margin-left: auto` ile kimlik kümesinden
+          ayrılır; eskiden telif bu kümenin İÇİNE düşüyor ve bağlarla tek
+          küme gibi okunuyordu. */}
       <nav aria-label="Ayak bağları">
         <Link href="/yardim">Yardım</Link>
         <Link href="/yardim#yardim-destek">Destek</Link>
         <Link href="/yardim#yardim-kisayol">Kısayollar</Link>
         <Link href="/sistem">Tasarım sistemi</Link>
       </nav>
-      <span className="telif">© 2026 Demo Enerji</span>
     </footer>
   );
 }

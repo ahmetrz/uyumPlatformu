@@ -194,7 +194,7 @@ export function RiskFormu({
 
       <div style={{ display: 'flex', alignItems: 'baseline', gap: 'var(--s12)',
         paddingTop: 'var(--s14)', borderTop: 'var(--bw-hair) solid var(--hr)' }}>
-        <span style={{ fontSize: 'var(--t-bolum)', lineHeight: 'var(--lh-metric)',
+        <span style={{ fontSize: 'var(--t-bolum)', lineHeight: 'var(--lh-birim)',
           fontWeight: 700, fontVariantNumeric: 'tabular-nums',
           color: `var(--${skorDurumu(skor)})` }}>
           {skor ?? '—'}

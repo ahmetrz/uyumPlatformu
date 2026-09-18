@@ -27,8 +27,8 @@ typography:
     fontFamily: "Barlow Condensed, Inter, sans-serif"
     fontSize: "28px"
     fontWeight: 500
-    lineHeight: 1.15
-    letterSpacing: "0.01em"
+    lineHeight: 1.2
+    letterSpacing: "-0.01em"
   headline:
     fontFamily: "var(--gorunum)"
     fontSize: "21px"
@@ -247,12 +247,11 @@ manşet. Gövde nötr kalır; sayı ve kod daima mono. Kabuk değişince görün
 ve mono ailesi değişir, kademe değişmez.
 
 ### Hierarchy
-- **Display** (A/B 500, 26px, 1.15, **cümle düzeni** · C 400, 34px, 1.1): ekran başlığı `.ab-lede h1`; vurgu `<b>` ile 700 ve gerekirse durum rengi. Büyük harf DEĞİLDİR (15 Eyl 2026): kabukta 74 büyük harfli kural var, başlık da büyük harf olunca hiçbir şey öne çıkmıyordu — ölçüldü, kullanıcı geri bildirimi. Başlık, ekranda başka kayıtta konuşan tek büyük şeydir ve mümkünse CEVABI taşır ("8 uygunsuz — nerede, ve neden?").
 **SEKİZ KADEME, HER KADEME TEK ROL** (18 Eyl 2026'da yeniden kuruldu). Ölçek jetondan gelir ve ürünün %98'i jetondan geçer; kalan 11 bildirim baskı puntosu, akışkan `clamp` ya da bilinçli `inherit`tir ve kapıda adıyla beyanlıdır (`tests/bekci/tipografi-olcegi.test.ts`, URN-TIP-001).
 
 - **Dev** (58px, 1) `--t-dev`: tek sayının ekranı taşıdığı yer — panel tepesi.
 - **Manşet** (40px) `--t-manset`: pano / kök hata / durum manşeti.
-- **Ekran** (A/B 500, 28px, 1.15, **cümle düzeni**) `--t-ekran`: ekran başlığı `.ab-lede h1`; vurgu `<b>` ile 700 ve gerekirse durum rengi. Büyük harf DEĞİLDİR (15 Eyl 2026).
+- **Ekran** (A/B 500, 28px, 1.2, **cümle düzeni**) `--t-ekran`: ekran başlığı `.ab-lede h1`; vurgu `<b>` ile 700 ve gerekirse durum rengi. Büyük harf DEĞİLDİR (15 Eyl 2026).
 - **Bölüm** (500, 21px, 1.2, `-.01em`) `--t-bolum`: bölüm başlığı `.ab-bolum-basligi`; ölçüt satırı değeri de bu kademededir (mono, tabular) — boy aynı, ROL ailesiyle ayrılır.
 - **Başlık** (500, 16px) `--t-baslik`: odak kartı, satır başlığı, lead.
 - **Gövde** (400, 13px, 1.6) `--t-govde`: hücre, form alanı, düzyazı, çekmece cümlesi. Düzyazı en fazla bir cümle, 560–620px.
@@ -260,6 +259,40 @@ ve mono ailesi değişir, kademe değişmez.
 - **Etiket** (mono, 10px, `.14em`, büyük harf) `--t-etiket`: YAPISAL KAŞ etiketi `.etiket` — bölüm adı, kolon kaşı; kendi başına bilgi taşımaz. Veri, sayı ve olgu bu kademeye inmez, 11px `--t-veri`de durur.
 
 Komşu kademeler arasındaki oran üste doğru HIZLANIR (1,10 → 1,18 → 1,23 → 1,31 → 1,33 → 1,43 → 1,45) ve bu bir kapıdır: %8'in altında bir adım ekranda ayırt edilmez ve hiyerarşi değil tekrar üretir. Eski ölçekte üç piksel aralığında altı kademe vardı (11 · 12 · 12,5 · 13 · 13,5 · 14) ve tek başına 11px bütün bildirimlerin %44'üydü.
+
+**ÜÇ EKSEN, AYNI DİSİPLİN.** Boy tek başına hiyerarşi kurmaz: harf
+aralığı (`--tr-*`) ve satır aralığı (`--lh-*`) de jetondan gelir ve aynı
+kapıda ölçülür (üç eksen · sekiz diş). Ölçüldü (18 Eyl 2026): iz ekseni
+104 bildirimde **11 benzersiz değer**, satır ekseni 83 bildirimde **25
+benzersiz değer** taşıyordu; bugün beşer rol var ve bildirimlerin %100'ü
+(iz) ve %94'ü (satır) jetondan geçiyor.
+
+| İz `--tr-*` | Değer | Rol |
+| --- | --- | --- |
+| `govde` | `0` | normal metin — izsiz |
+| `gezinme` | `.06em` | gezinme · düğme büyük harfi |
+| `etiket` | `.14em` | kaş etiketi |
+| `kolonbas` | `.18em` | kolon kaşı — en geniş, yapısal |
+| `manset` | `-.01em` | manşet · başlık — sıkıştırma |
+
+| Satır `--lh-*` | Değer | Rol |
+| --- | --- | --- |
+| `birim` | `1` | tabular ölçüm — satır aralığı yok |
+| `sikisik` | `.85` | büyük manşet sayısı |
+| `manset` | `1.2` | ekran ve bölüm başlığı |
+| `baslik` | `1.4` | satır ve kart başlığı |
+| `govde` | `1.6` | gövde · dipnot · düzyazı |
+
+`1,15` ile `1,2` TEK ROLE indi: aradaki %4'lük fark hiçbir okuyucuya
+hiyerarşi anlatmaz — boy ekseninde geçerli olan %8 eşiği burada da
+geçerlidir. Satır ekseninin beş bildirimi jetona ZORLANMAZ ve sebebi
+sınıfıyla kütüktedir: dördü KUTU GEOMETRİSİDİR (`14px` · `16px`×2 ·
+`20px` — sabit yükseklikli rozet ve düğmede dikey ortalama aracı,
+tipografik satır aralığı değil), biri ÖLÇÜLMÜŞ BİR KARARDIR (`.92`,
+SIS-KBK-031: plaka kimlik başlığında `g · y · ş` kuyruğu alt satıra
+girmesin diye `.84`ten çıkarılmıştı; en yakın jeton `.85` o kusuru geri
+getirirdi).
+
 
 ### Named Rules
 **The İki Taban Rule.** Prototip kolon başlığını 8.5px, ray etiketini 7.5px çiziyordu. Üründe İKİ taban vardır ve ikisi ayrı iş yapar: İÇERİK taşıyan her şey — eylem (düğme), sayı, olgu, ölçüm — en az **11px** (`--t-veri`); yalnız yapısal KAŞ etiketi **10px**'e (`--t-etiket`) inebilir. Ölçüldü (2026-09-02): tek kademedeyken `Çıkış` düğmesi 10px, risk matrisinin hücre sayıları ve portföy künyeleri 9px kalıyordu — hiçbiri dekoratif değil. 9px ve altı üründe yoktur.
@@ -345,9 +378,10 @@ sınıfları (`.etiket .deger .cumle .mono .eylem .kod .konu .alt .sag`).
 - **Error:** `.hata` 11px `--bd` tek satır, `aria-invalid`; snackbar ve toast yok.
 
 ### Navigation
-- **Alan sekmeleri** (`.ab-ust > nav`): beş alan (`ALANLAR`: Saha · Portföy · Uyum · Varlık · Risk), Barlow Condensed 15px büyük harf, aktif sekme bakır alt çizgi, `aria-current="page"` tekil. Rota → alan eşlemesi `alanSec` (yonler.ts).
+- **Alan sekmeleri** (`.ab-ust > nav`): beş alan (`ALANLAR`: Saha · Portföy · Uyum · Varlık · Risk), Barlow Condensed **13px** (`--t-govde`) 600 büyük harf. Marka bir kademe ÜSTTEDİR (16px `--t-baslik`) ve barın tek 16px nesnesidir — ölçüldü (18 Eyl 2026): ikisi de 16px'ken 56px'lik barda altı eşit ağırlıklı tipografik nesne vardı ve hiçbiri öne çıkmıyordu. Aktif sekme ÜÇ ipucu taşır (mürekkep · panel zemini · bakır alt çizgi), `aria-current="page"` tekil. Rota → alan eşlemesi `alanSec` (yonler.ts). Bekçi: `tests/bekci/kabuk-kromu.test.ts` (URN-KBK-022).
 - **İkincil sıra** (`.ab-ikincil`): alanın bölümleri (`IKINCIL`), gruplar 10px etiketle ayrılır; aktif öğe mürekkep + 500 + bakır alt çizgi, `aria-current="true"`. Sekmede yeri olmayan ekran kendi dizinini (`.ab-c-ekrandizin[data-dizin="ekran"]`) verebilir.
 - **Üst bağlar**: Bildirimler · Ayarlar · Yardım · Çıkış; okunmamış bildirim rozeti sayıdır (`99+` tavan, sıfırda rozet yok). Komut paleti Ctrl/⌘+K.
+- **Ayak** (`.ab-alt`): İKİ küme, iki soru. Solda KİMLİK (künye · sürüm+ortam · telif) — "bu kurulum nedir"; sağda GEZİNME (Yardım · Destek · Kısayollar · Tasarım sistemi) — "nereye gidebilirim". Kümeleri boşluk ayırır, yeni kutu ya da çizgi değil. Telif kiracı adını ve yılı HESAPLAR (`veri.kiraciAd` · `getFullYear()`); koda gömülmesi kapıyı kırmızı yakar (aynı bekçi + `arac/marka-kapisi.mjs` kiracı nöbetçisi). Bağların alt çizgisi `--hr`de dinlenir, odak ve hover'da bakıra çıkar; 24px dokunma hedefi korunur.
 - **Bağlam çubuğu** (`BaglamCubugu`, `.ab-baglam`): en fazla üç seviyelik kırıntı (orta segment kısalır), sağda üretim tipine göre gruplu santral seçici; fotoğrafı olmayan santral tipografik döşeme alır.
 
 ### Tables (`Tablo`, `Matris`, `GenisleyenSatir`)

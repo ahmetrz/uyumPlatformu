@@ -1,7 +1,7 @@
 {
-  "imza": "c5cb072f80595c298dc12e94bce22283",
-  "dosya": 259,
-  "vaka": 4564,
+  "imza": "c70f8391d4d31f600950c174f4b5910f",
+  "dosya": 261,
+  "vaka": 4590,
   "atlanan": 1,
   "dosyalar": {
     "tests/adaptor-yetenekleri.test.ts": {
@@ -77,6 +77,10 @@
       "atlanan": 0
     },
     "tests/bekci/gunluk-sir.test.ts": {
+      "vaka": 5,
+      "atlanan": 0
+    },
+    "tests/bekci/kabuk-kromu.test.ts": {
       "vaka": 5,
       "atlanan": 0
     },
@@ -156,12 +160,16 @@
       "vaka": 6,
       "atlanan": 0
     },
+    "tests/bekci/tablo-grameri.test.ts": {
+      "vaka": 6,
+      "atlanan": 0
+    },
     "tests/bekci/terim-dogrulama.test.ts": {
       "vaka": 21,
       "atlanan": 0
     },
     "tests/bekci/tipografi-olcegi.test.ts": {
-      "vaka": 9,
+      "vaka": 24,
       "atlanan": 0
     },
     "tests/bekci/tuval-bilinmeyen.test.ts": {

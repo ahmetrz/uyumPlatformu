@@ -66,7 +66,7 @@
       "sinif": "ab-vt",
       "azami": 1,
       "paylasilanSinif": true,
-      "sebep": "Suspense YEDEĞİ: anında render edilmek zorunda, bu yüzden `async` olamaz ve `'use client'` olan `VeriTablosu`yu çağırmak yükleme iskeletine sıralama, seçim ve klavye gezinmesinin tamamını demete sokardı. Kopya BİLİNÇLİDİR; bedeli de bilinçli: paylaşılan iskelet değişirse bu değişmez. Dördüncü diş o bedeli ölçer — yapısal sözleşme (kaydırma kabında `aria-busy`, kolon kaşında `.kolonbas`, iskelet satırında `tr.iskelet`) kaybolursa KIRMIZI."
+      "sebep": "SERİLEŞTİRME SINIRI. `loading.tsx` bir SUNUCU bileşenidir (Suspense yedeği anında render edilir, `async` olamaz); `VeriTablosu` ise `'use client'`tır ve kolon tanımı FONKSİYON taşır (`VtKolon.hucre`). Sunucudan istemciye fonksiyon geçirilemez — React sınırda atar. Yani bu kopya bir tercih değil, sınırın sonucudur. (Ölçüldü ve YANLIŞ bir gerekçe elendi: 'demete sokardı' dayanaksızdı — `TedarikcilerIstemci.tsx` zaten `VeriTablosu` içe aktarıyor, rota demeti onu çoktan taşıyor. Üstelik maliyet anlatan bir cümle gerekçe sayılmaz.) Sınırın BEDELİ ölçülür: paylaşılan iskelet değişirse bu değişmez, bu yüzden dördüncü diş yapısal sözleşmeyi (`aria-busy` · `.kolonbas` · `tr.iskelet` · `.ab-vt-sar`) kaybeden kopyayı KIRMIZI yakar."
     }
   ]
 }

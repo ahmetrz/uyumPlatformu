@@ -250,7 +250,85 @@ gerekçeyle ve daha büyük bir kademede (16px) zaten listedeydi. Kuralın istis
 kategorisi bu satırı hep kapsıyordu, yalnız eşiğin altında olduğu için
 görünmüyordu.
 
-## 8. Açık kalan
+## 8. Faz 3 · disiplin iki eksene daha yayıldı — ÖLÇÜLDÜ (18 Eylül 2026)
+
+Faz 3'ün kapsam kararı "component grameri" idi (tablo · çekmece · boş durum ·
+durum işaretleri). Ölçüm o kapsamın **üç dörtlüsünü dayanaksız çıkardı** ve bu
+bir bulgudur — kapsamı sessizce daraltmak yerine yazılı olarak yönlendirdim:
+
+| Aday | Ölçüm | Karar |
+| --- | --- | --- |
+| Boş durum | eylemsiz 0 · nedensiz 1, üç sınıfta da SIFIRDA KİLİTLİ (R-G eki) | dokunulmaz |
+| Durum işaretleri | `Im`/glif tek kaynak, `null` = kapsam dışı ayrımı kurulu | dokunulmaz |
+| Çekmece | tek bileşen ailesi (`Cekmece*`), ayrışma ölçülmedi | dokunulmaz |
+| Tablo | **bulgu var** — aşağıda | kapı yazıldı |
+
+Sağlam olan yeniden kurulmaz. Faz 3 bunun yerine Faz 2'nin ölçtüğü ama
+kapatmadığı sapmaya gitti: **jeton disiplini yalnız BOY eksenindeydi.**
+
+| Eksen | Bildirim | Benzersiz değer (önce) | Jetondan geçen (önce → sonra) |
+| --- | --- | --- | --- |
+| boy `--t-*` | 682 | 23 | %33 → **%98** (Faz 2) |
+| harf aralığı `--tr-*` | 104 | 20 | %15 → **%100** |
+| satır aralığı `--lh-*` | 83 | 25 | %5 → **%94** |
+
+Kusur üç eksende de aynıydı ve Faz 2'nin kusuruyla aynı sınıftı: jeton katmanı
+VARDI, ürün onu kullanmıyordu; üstelik `--tr-section` · `--tr-screen` ·
+`--tr-board` **üçü de `-.01em`** taşıyordu — üç ad, tek değer. Bugün beşer rol
+var, çakışma yok ve üç eksen de aynı sekiz dişli kapıdan geçiyor
+(`tests/bekci/tipografi-olcegi.test.ts`, URN-TIP-001).
+
+`1,15` ile `1,2` **tek role indi**: %4'lük bir fark hiçbir okuyucuya hiyerarşi
+anlatmaz. Satır ekseninin jetona zorlanmayan beş bildirimi sınıfıyla beyanlıdır
+— dördü kutu geometrisi (sabit yükseklikli rozet/düğmede dikey ortalama
+aracıdır, tipografik satır aralığı değil), biri ölçülmüş bir karar (`.92`,
+SIS-KBK-031).
+
+**Ölçüm tabanı da kusurluydu ve düzeltildi:** taban yalnız `boy` eksenindeydi,
+yani iz ya da satır tarayıcısı sıfıra düşse kapı yeşil kalırdı. Bugün taban
+EKSEN BAŞINADIR (682 · 104 · 83).
+
+### 8.1 Tablo bulgusu — göç planı yanlış soruyu soruyordu
+
+İlk ölçüm `<Tablo>` 46 dosyada, `<VeriTablosu>` 7 dosyada dedi ve bu "iki rakip
+bileşen, 48 ekran göç edecek" diye okunacaktı. **Kaynağı okuyunca dayanaksız
+çıktı:** `Tablo` bir rakip değil, `VeriTablosu` üzerine SARMALAYICIDIR — eski
+satır biçimini kolon biçimine çevirip çizimi ona bırakır. 48 ekranı "göç
+ettirmek" aynı yolu ikinci kez çağırmak olurdu.
+
+Gerçek kusur altı ham `<table>` bildirimindeydi ve **beşi haklıydı** (baskı
+karnesi · fark tablosu · yardım çizelgesi · kontrast matrisi ×2 — her biri
+kendi gramerini taşıyor, paylaşılan CSS'e dokunmuyor). Altıncısı bulgudur:
+`tedarikciler/loading.tsx` paylaşılan sınıfı (`ab-vt`) ELLE yazıyor. Paylaşılan
+CSS'i miras aldığı için ekranda doğru görünür, `VeriTablosu`nun kendi iskelet
+dalıyla hiçbir bağı yoktur ve biri değişirse öbürü değişmez. Kopya bilinçlidir
+(Suspense yedeği `'use client'` bileşeni çağıramaz); bedeli artık ÖLÇÜLÜYOR —
+yapısal sözleşmesini kaybederse kapı kırmızı (`tests/bekci/tablo-grameri.test.ts`,
+URN-TBL-001, altı diş).
+
+### 8.2 Sabotaj iki kez kendi kapımı düzeltti (R-E)
+
+Yedi yeni sabotajın biri kırmızı yakmadı: *Matris ızgarasının tablo rolünü
+düşür.* Diş, rolün kaynakta **bulunmasını** ölçüyordu; konu sütununun rolü
+silindiğinde veri sütunlarının rolü hâlâ oradaydı ve kapı yeşil kaldı. Bu,
+deponun kütüğünde adı konmuş sınıftır — *"kapı yalnız maddenin VARLIĞINI
+ölçüyordu"*. Düzeltme: her kolon kaşı tek tek ölçülür. İkinci tur **7/7**.
+
+Aynı dişin ÖNCEKİ yazımı da yanlıştı ve onu kapının kendisi buldu: `Matris`in
+de `VeriTablosu` çağırdığını VARSAYMIŞTIM. `Matris` bir `<table>` değil, ARIA
+rolleriyle tablo olan bir CSS ızgarasıdır — sütun sayısı veriden geldiği için.
+Varsayım kaynağa bakılarak düzeltildi.
+
+### 8.3 Faz 2'den sağ kalan ölü satır
+
+`DESIGN.md` hâlâ `- **Display** (A/B 500, 26px, 1.15 …)` maddesini taşıyordu:
+ölçek 28px ve 1,2 iken **iki değer de yanlış**. İki parti hayatta kalmasının
+sebebi ölçüldü — `tests/uyum-odak.test.ts` "cümle düzeni kararı belgede
+yazılıdır" iddiasını **eski kademe adına** çakılı sınıyordu, yani ölü satırı
+canlı tutan şey kapının kendisiydi. Kapı bugün jetona (`--t-ekran`) bağlanır ve
+`**Display**` ibaresinin YOKLUĞUNU ayrıca ölçer.
+
+## 9. Açık kalan
 
 - #13'ün hareket grameri henüz **hiçbir arketipte denenmedi**; yukarıdaki
   "girer" kararı, denenmeye değer olduğu kararıdır, çalıştığı kararı değildir.

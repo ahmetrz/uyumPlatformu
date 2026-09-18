@@ -117,10 +117,28 @@ describe('saha · karar yüzeyinde tekrar ve yöntem notu yok', () => {
        sıfırken ölçülemeyen varsa sözcük yine ekrandadır. */
     const bas = GENEL.indexOf('kpiRiskYogunlugu: (');
     const k = GENEL.slice(bas, GENEL.indexOf('  };', bas));
-    expect(k).toMatch(/\{risk\.kritik === 0 && risk\.yuksek === 0 && olculemeyenRisk > 0 && \(/);
-    expect(k).not.toMatch(/\n\s*\{olculemeyenRisk > 0 && \(/);
+    /* ── İDDİA KOŞULDADIR, BİÇİMDE DEĞİL ────────────────────────────
+       İlk yazım kaynağın tam satır düzenine çakılıydı (`… > 0 && \(`)
+       ve kalem bir satır kaydığında kırmızı yandı — oysa koşul
+       birebir aynıydı. Böyle bir test, iddiasını değil BİÇİMİNİ
+       korur: doğru bir düzenlemeyi cezalandırır, yanlış bir koşulu
+       aynı biçimde yazan birini geçirir. Bugün üç koşul ayrı ayrı
+       aranır ve araya giren boşluk/satır sonu serbesttir. */
+    expect(k, 'risk yoğunluğu "ölçülemedi"yi kritik sıfır koşuluna bağlamıyor')
+      .toMatch(/risk\.kritik === 0\s*&&\s*risk\.yuksek === 0\s*&&\s*olculemeyenRisk > 0/);
+    /* Koşulsuz yazım YASAK: aynı sayı satırda ikinci kez karar taşımaz.
+
+       İLK YAZIM SABOTAJDA YANMADI (R-E bulgusu): kalıp `&& \(` biçimini
+       arıyordu, oysa JSX fragmanı (`&& <>`) da aynı kusuru üretir.
+       Diş, yazımın BİÇİMİNİ değil, JSX ifade kabının NEYLE BAŞLADIĞINI
+       ölçer: kap doğrudan `olculemeyenRisk > 0` ile başlıyorsa koşul
+       kaldırılmış demektir. */
+    expect(k, 'risk yoğunluğu "ölçülemedi"yi KOŞULSUZ yazıyor — '
+      + 'kritik/yüksek sıfır koşulu kaldırılmış')
+      .not.toMatch(/\{\s*olculemeyenRisk > 0\s*&&/);
     const kr = GENEL.slice(GENEL.indexOf('kpiKritikRisk: ('), GENEL.indexOf('kpiGecikmisAksiyon: ('));
-    expect(kr).toMatch(/\{olculemeyenRisk > 0 && \(/);
+    expect(kr, 'kritik risk kalemi ölçülemeyeni koşula bağlamıyor')
+      .toMatch(/\{olculemeyenRisk > 0 &&/);
   });
 });
 

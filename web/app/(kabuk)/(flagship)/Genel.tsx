@@ -489,9 +489,23 @@ function OncelikSeridi({ ozet, risk, sira }: { ozet: Ozet; risk: RiskIzgarasi; s
         title={`Artık skor ≥ 15 · açık veya işlemde${olculemeyenRisk > 0 ? ` · ${olculemeyenRisk} risk ölçülemedi (olasılık/etki girilmemiş)` : ''}`}>
         <span className="etiket">Kritik risk</span>
         <span className="mono deger">{ozet.kritikRisk}</span>
-        {olculemeyenRisk > 0 && (
-          <span className="cumle"><span className="unk">{olculemeyenRisk} ölçülemedi</span></span>
-        )}
+        {/* ── ÖLÇÜ GÖRÜNÜR OLMALI ────────────────────────────────────
+            Bu kalem ve "Risk yoğunluğu" aynı satırda İKİ FARKLI "kritik"
+            sayısı gösteriyordu (ölçüldü: 6 ve 8) ve farkı yalnız
+            `title`ta yazıyordu. Sayılar doğru — tanımlar farklı: burası
+            ARTIK SKORU ≥ 15 olanları sayar, öbürü olasılık × en büyük
+            etki matrisinin kritik bandını. Ama okuyanın elinde yalnız
+            aynı sözcük ve iki farklı sayı vardı; ya biri yanlış sanılır
+            ya hiç fark edilmez.
+
+            Depo bu sınıfı bir kez düzeltmişti: kritik bilgi yalnız
+            `title`ta duramaz (odaklanamaz, dokunmatikte hiç açılmaz).
+            Ölçü artık cümlede. Satır sayısı DEĞİŞMİYOR — ölçülemeyen
+            sayısı aynı cümleye katılır, ikinci satır açılmaz. */}
+        <span className="cumle">
+          artık skor ≥ 15
+          {olculemeyenRisk > 0 && <> · <span className="unk">{olculemeyenRisk} ölçülemedi</span></>}
+        </span>
       </Link>
     ),
     kpiGecikmisAksiyon: (
@@ -541,9 +555,14 @@ function OncelikSeridi({ ozet, risk, sira }: { ozet: Ozet; risk: RiskIzgarasi; s
             Tek istisna: kritik ve yüksek sıfırken ölçülemeyen varsa
             bilinmeyen durumu SÖZCÜKLE söylenmek zorundadır, renk tek
             kanal olamaz (SAH-SDL-001). */}
-        {risk.kritik === 0 && risk.yuksek === 0 && olculemeyenRisk > 0 && (
-          <span className="cumle"><span className="unk">{olculemeyenRisk} ölçülemedi</span></span>
-        )}
+        {/* Bu kalemin "kritik"i MATRİS BANDIDIR, artık skor değil —
+            bir üstteki kalemle aynı sözcüğü kullandığı için ölçüsü
+            görünür yazılır. Cümle yuvası zaten boştu. */}
+        <span className="cumle">
+          olasılık × etki
+          {risk.kritik === 0 && risk.yuksek === 0 && olculemeyenRisk > 0
+            && <> · <span className="unk">{olculemeyenRisk} ölçülemedi</span></>}
+        </span>
       </Link>
     ),
   };

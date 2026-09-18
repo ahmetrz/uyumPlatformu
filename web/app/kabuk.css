@@ -2141,6 +2141,25 @@
 .ab-b-serit .kartlar {
   display: flex; overflow-x: auto; scroll-snap-type: x proximity;
 }
+/* ── ŞERİDİN SONUNDAKİ KAPI ──────────────────────────────────────────
+   Tesis kartı DEĞİL, portföye giden bağ: fotoğrafı yok, skoru yok,
+   durum çubuğu yok. Kartlarla aynı genişlikte durmaz — yarı genişlikte,
+   çünkü bir kayıt değil bir EYLEMDİR ve kayıtlarla ağırlık yarıştırmaz. */
+.ab-b-serit .kart.tumu {
+  flex: none; width: 132px; display: flex; flex-direction: column;
+  justify-content: center; gap: 4px; padding: 0 16px;
+  border-left: 1px solid var(--hr); background: var(--panel);
+}
+.ab-b-serit .kart.tumu .say {
+  font-family: var(--gorunum); font-size: var(--t-bolum); line-height: var(--lh-birim);
+  color: var(--murekkep);
+}
+.ab-b-serit .kart.tumu .soz {
+  font-family: var(--veri); font-size: var(--t-veri); letter-spacing: var(--tr-gezinme);
+  color: var(--i3);
+}
+.ab-b-serit .kart.tumu:hover .soz { color: var(--aksan); }
+
 .ab-b-serit .kartlar::after {
   content: ''; position: sticky; right: 0; flex: none; width: 40px;
   align-self: stretch; pointer-events: none;

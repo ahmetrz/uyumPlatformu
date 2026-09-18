@@ -364,16 +364,53 @@ export default function Genel({
             {ozet.gucYazi && ` · ${ozet.gucYazi}`}
           </span>
         </header>
-        {/* UYGUNSUZU OLAN ÖNDE. Ekranın birincil işi müdahale olduğuna
-            göre ray da karar sırasına dizilir: açık uygunsuzluğu olan
-            tesis, yatay kaydırma gerektirmeden ilk ekranda görünür.
-            Sıralama KARARLIDIR (`sort` kararlı) — eşit önceliktekiler
-            sunucunun verdiği sırayı korur, yani ölçülen hiçbir sıra
-            bozulmaz, yalnız öncelikli olanlar öne çekilir. */}
+        {/* ── ŞERİT ÖLÇÜLENLERİ TAŞIR — ÖLÇÜLDÜ, TEKRAR BULUNDU ──────────
+            Kullanıcı şeridin kaydırma çubuğunu iki kez bildirdi. Sebep
+            çubukta değil UZUNLUKTAYDI: 24 kart × 218px = 5 224px ve
+            1914px'lik bantta başparmak %37.
+
+            İlk plan "yalnız müdahale gerektirenleri göster" idi; ÖLÇÜM
+            ONU ÇÜRÜTTÜ (18 Eyl 2026): 24 tesisin 6'sının uygunsuzu var,
+            **16'sı ÖLÇÜLMEMİŞ**, 2'si ölçülmüş ve temiz. "Müdahale
+            gerektiren" = uygunsuz + bilinmeyen = 22/24; süzmek yalnız
+            iki kartı düşürürdü. Şerit çok şey gösterdiği için uzun
+            değil — tesislerin ÜÇTE İKİSİ ölçülmediği için uzun.
+
+            Asıl bulgu bir TEKRARDI: o 16 tesis aynı ekranda İKİ KEZ
+            duruyor. Takımyıldızın değerlendirilmemiş bandı onları
+            sayısıyla (16/24), güç toplamıyla, ilk üç adıyla ve
+            açılır paneliyle zaten gösteriyor — şerit aynı 16 adı ikinci
+            kez, bu kez 3 488px yer kaplayarak tekrarlıyordu. Tekrar eden
+            bir değer, farklı bir karar amacı taşımıyorsa bilişsel yük
+            kusurudur.
+
+            BİLGİ GİZLENMİYOR ("bilinmeyen ≠ sıfır"): ölçülmemişler
+            bandında adlarıyla ve sayısıyla durur, başlık portföyün
+            TAMAMINI söyler (sayı ve güç toplamı) ve şeridin sonundaki bağ
+            hepsine götürür. Şerit yalnız ÖLÇÜLEN uyumun karar sırasını
+            taşır — uygunsuzu olan önde.
+
+            Bekçi: hiçbir ÖLÇÜLEN tesis şeritten sessizce düşemez
+            (`tests/bekci/saha-serit.test.ts`, SAH-SER-002). */}
         <div className="kartlar">
           {[...tesisler]
+            .filter((s) => s.endeks !== null)
             .sort((a, b) => ((b.sayim.uyumsuz ?? 0) > 0 ? 1 : 0) - ((a.sayim.uyumsuz ?? 0) > 0 ? 1 : 0))
             .map((s) => <SahaKarti key={s.id} s={s} />)}
+          {/* Portföyün tamamına giden kapı. Şeridin SONUNDA durur: karar
+              sırası önce, gezinme sonra. */}
+          {/* Kart TERİMİ TAŞIMAZ ve bu bilinçli: "24 tesisler" Türkçede
+              yanlıştır (sayıdan sonra tekil gelir) ve doğru eki uydurmak
+              sektör bağımsızlığını kırardı: terim sözlükten gelir ve her
+              sektörün terimi FARKLI ek alır. Terimi bir üstteki başlık
+              zaten söylüyor (ad · sayı · güç); kart yalnız sayıyı ve kapıyı
+              taşır. Erişilebilir adı terimi İÇERİR, çünkü ekran
+              okuyucu başlığı o an duymuyor olabilir. */}
+          <Link href="/tesisler" className="kart tumu"
+            aria-label={`${ozet.tesisSayisi} ${tBas('tesis', 'cogul').toLocaleLowerCase('tr-TR')} — tümünü aç`}>
+            <span className="say">{ozet.tesisSayisi}</span>
+            <span className="soz">tümü →</span>
+          </Link>
         </div>
       </section>
 

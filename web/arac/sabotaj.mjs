@@ -941,6 +941,24 @@ const SABOTAJLAR = [
     yaz: '  --cubuk: #343B3E;  /* SABOTAJ — 1,72:1, tabanın altı */',
     testler: ['tests/bekci/kabuk-kromu.test.ts'],
   },
+
+  /* ── SAHA ŞERİDİ · süzgeç ölçütü ──────────────────────────────────── */
+  {
+    ad: 'Şerit süzgecini uygunsuzluğa çevir (bir uygunsuz gizlenebilir)',
+    kural: 'Süzgeç ölçütü yalnız ÖLÇÜLMÜŞLÜKTÜR; uygunsuzluğa göre süzmek karar gerektiren bir tesisi sessizce düşürebilir',
+    dosya: 'app/(kabuk)/(flagship)/Genel.tsx',
+    ara: '            .filter((s) => s.endeks !== null)',
+    yaz: '            .filter((s) => (s.sayim.uyumsuz ?? 0) > 0)  /* SABOTAJ */',
+    testler: ['tests/bekci/saha-serit.test.ts'],
+  },
+  {
+    ad: 'Süzülen kümeyi takımyıldızdan da kopar (16 tesis ekrandan silinir)',
+    kural: 'Süzülen küme BAŞKA bir yüzeyde adıyla durmalı — yoksa "bilinmeyen ≠ sıfır" çiğnenir',
+    dosya: 'app/(kabuk)/(flagship)/Genel.tsx',
+    ara: '          serit={olculmemisSerit} panelAcik={olculmemisAcik} setPanelAcik={setOlculmemisAcik}',
+    yaz: '          serit={[]} panelAcik={olculmemisAcik} setPanelAcik={setOlculmemisAcik}  /* SABOTAJ */',
+    testler: ['tests/bekci/saha-serit.test.ts'],
+  },
 ];
 
 function testKos(testler) {

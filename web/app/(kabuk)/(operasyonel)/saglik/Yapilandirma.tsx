@@ -213,12 +213,12 @@ export function ConnectorYapilandirma({
 
       {sorunlar.length > 0 && (
         <ul style={{ margin: 'var(--s12) 0 0', paddingLeft: 'var(--s16)',
-          fontSize: 'var(--t-field)', color: 'var(--md)' }}>
+          fontSize: 'var(--t-govde)', color: 'var(--md)' }}>
           {sorunlar.map((x) => <li key={x}>{x}</li>)}
         </ul>
       )}
       {gerekceEksik && (
-        <p style={{ margin: 'var(--s10) 0 0', fontSize: 'var(--t-field)', color: 'var(--md)' }}>
+        <p style={{ margin: 'var(--s10) 0 0', fontSize: 'var(--t-govde)', color: 'var(--md)' }}>
           Ortam {ORTAM_SOZU[c?.ortam ?? ''] ?? 'bilinmiyor'} → {ORTAM_SOZU[f.ortam]}{' '}
           değiştiriliyor; gerekçe zorunlu.
         </p>
@@ -232,7 +232,7 @@ export function ConnectorYapilandirma({
 
       {(hata || ayarHatasi) && (
         <p role="alert" style={{ margin: 'var(--s12) 0 0',
-          fontSize: 'var(--t-field)', color: 'var(--bd)' }}>
+          fontSize: 'var(--t-govde)', color: 'var(--bd)' }}>
           {ayarHatasi ?? hata}
         </p>
       )}
@@ -327,7 +327,7 @@ function KapsamAlani({ c }: { c: ConnectorSagligi }) {
       <div className="ab-panel-blok" style={{ marginTop: 'var(--s24)' }}>
         <p className="etiket" style={{ margin: 0 }}>Tesis kapsamı</p>
         <p role="alert" style={{ margin: 'var(--s8) 0 0',
-          fontSize: 'var(--t-field)', color: 'var(--bd)' }}>
+          fontSize: 'var(--t-govde)', color: 'var(--bd)' }}>
           Kapsam okunamadı: {okumaHatasi ?? 'bilinmeyen sebep'}
         </p>
       </div>
@@ -344,11 +344,11 @@ function KapsamAlani({ c }: { c: ConnectorSagligi }) {
   return (
     <div className="ab-panel-blok" style={{ marginTop: 'var(--s24)' }}>
       <p className="etiket" style={{ margin: '0 0 var(--s8)' }}>Tesis kapsamı</p>
-      <p style={{ margin: 0, fontSize: 'var(--t-field)', color: 'var(--md)' }}>
+      <p style={{ margin: 0, fontSize: 'var(--t-govde)', color: 'var(--md)' }}>
         Kayıtlı: {kapsamCumlesi(gorunum.kodlar, tesisTerimi)}
       </p>
       <p style={{ margin: 'var(--s4) 0 var(--s12)',
-        fontSize: 'var(--t-label)', color: 'var(--i3)' }}>
+        fontSize: 'var(--t-etiket)', color: 'var(--i3)' }}>
         Kaynak · {KAPSAM_KAYNAK_SOZU[gorunum.kaynak]}
       </p>
 
@@ -356,7 +356,7 @@ function KapsamAlani({ c }: { c: ConnectorSagligi }) {
         {gorunum.secenekler.length === 0 && (
           /* NEDEN + NE YAPMALIYIM: kapsam seçilemiyorsa sebebi connector
              değil, TANIM eksikliğidir; çözüm tanım ekranındadır. */
-          <p className="bos" style={{ margin: 0, fontSize: 'var(--t-field)', color: 'var(--md)' }}>
+          <p className="bos" style={{ margin: 0, fontSize: 'var(--t-govde)', color: 'var(--md)' }}>
             Tanımlı tesis yok — kapsam seçilemez ve connector kurum geneli
             çalışır; önce kapsam öğesi tanımlanmalı.{' '}
             <Link href="/yonetim-tezgahi?bolum=tanim">Tanımlara git</Link>
@@ -364,7 +364,7 @@ function KapsamAlani({ c }: { c: ConnectorSagligi }) {
         )}
         {gorunum.secenekler.map((t) => (
           <label key={t.kod} style={{ display: 'flex', gap: 'var(--s8)',
-            alignItems: 'baseline', fontSize: 'var(--t-field)' }}>
+            alignItems: 'baseline', fontSize: 'var(--t-govde)' }}>
             <input type="checkbox" checked={secili.includes(t.kod)}
               onChange={() => cevir(t.kod)} />
             <span className="mono">{t.kod}</span>
@@ -383,7 +383,7 @@ function KapsamAlani({ c }: { c: ConnectorSagligi }) {
 
       {uyarilar.length > 0 && (
         <ul style={{ margin: 'var(--s12) 0 0', paddingLeft: 'var(--s16)',
-          fontSize: 'var(--t-field)', color: 'var(--md)' }}>
+          fontSize: 'var(--t-govde)', color: 'var(--md)' }}>
           {uyarilar.map((x) => <li key={x}>{x}</li>)}
         </ul>
       )}
@@ -403,7 +403,7 @@ function KapsamAlani({ c }: { c: ConnectorSagligi }) {
 
       {hata && (
         <p role="alert" style={{ margin: 'var(--s12) 0 0',
-          fontSize: 'var(--t-field)', color: 'var(--bd)' }}>{hata}</p>
+          fontSize: 'var(--t-govde)', color: 'var(--bd)' }}>{hata}</p>
       )}
 
       <p className="ab-panel-dip" style={{ margin: 'var(--s14) 0 0' }}>
@@ -431,7 +431,7 @@ function SirAlani({ f, yaz, kayitliMaske }: {
       </Alan>
       {kayitliMaske && (
         <p className="mono" style={{ margin: 'var(--s8) 0 0',
-          fontSize: 'var(--t-label)', color: 'var(--i3)' }}>
+          fontSize: 'var(--t-etiket)', color: 'var(--i3)' }}>
           Kayıtlı adres · {kayitliMaske}
         </p>
       )}
@@ -518,11 +518,11 @@ export function ConnectorEylemleri({
           {kuru && <KuruSonucu durum={kuru.durum} ozet={kuru.ozet} />}
           {senkron && (
             <p className="mono" style={{ margin: 'var(--s12) 0 0',
-              fontSize: 'var(--t-label)', color: 'var(--i2)' }}>{senkron}</p>
+              fontSize: 'var(--t-etiket)', color: 'var(--i2)' }}>{senkron}</p>
           )}
           {(hata || etkinlikHatasi) && (
             <p role="alert" style={{ margin: 'var(--s12) 0 0',
-              fontSize: 'var(--t-field)', color: 'var(--bd)' }}>
+              fontSize: 'var(--t-govde)', color: 'var(--bd)' }}>
               {hata ?? etkinlikHatasi}
             </p>
           )}
@@ -547,10 +547,10 @@ function TestSatiri({ sonuc }: { sonuc: TestSonucu }) {
       gap: 'var(--s8)', alignItems: 'start', marginTop: 'var(--s12)' }}>
       <span style={{ paddingTop: 3 }}><Im durum={im} ad={TEST_SOZU[sonuc.tur]} /></span>
       <span style={{ minWidth: 0 }}>
-        <span style={{ display: 'block', fontSize: 'var(--t-field)',
+        <span style={{ display: 'block', fontSize: 'var(--t-govde)',
           color: `var(--${im})` }}>{TEST_SOZU[sonuc.tur]}</span>
         <span className="mono" style={{ display: 'block', marginTop: 2,
-          fontSize: 'var(--t-label)', color: 'var(--i3)', wordBreak: 'break-word' }}>
+          fontSize: 'var(--t-etiket)', color: 'var(--i3)', wordBreak: 'break-word' }}>
           {sonuc.ayrinti}
         </span>
       </span>
@@ -570,23 +570,23 @@ function KuruSonucu({ durum, ozet }: { durum: string; ozet: KuruOzet | null }) {
           <Im durum={durum === 'basarisiz' ? 'bd' : 'pl'} ad="Kuru koşu — hiçbir kayıt yazılmadı" />
         </span>
         <span style={{ minWidth: 0 }}>
-          <span style={{ display: 'block', fontSize: 'var(--t-field)', color: 'var(--pl)' }}>
+          <span style={{ display: 'block', fontSize: 'var(--t-govde)', color: 'var(--pl)' }}>
             Kuru koşu · hiçbir kayıt yazılmadı, imleç ilerlemedi
           </span>
           {ozet ? (
             <>
               <span className="mono" style={{ display: 'block', marginTop: 2,
-                fontSize: 'var(--t-label)', color: 'var(--i3)' }}>
+                fontSize: 'var(--t-etiket)', color: 'var(--i3)' }}>
                 {kuruSayacYazisi(ozet.sayaclar)}
               </span>
               <span className="mono" style={{ display: 'block', marginTop: 2,
-                fontSize: 'var(--t-label)', color: 'var(--i3)' }}>
+                fontSize: 'var(--t-etiket)', color: 'var(--i3)' }}>
                 {kuruEslesmeYazisi(ozet.sayaclar)}
               </span>
             </>
           ) : (
             <span style={{ display: 'block', marginTop: 2,
-              fontSize: 'var(--t-label)', color: 'var(--unk)' }}>
+              fontSize: 'var(--t-etiket)', color: 'var(--unk)' }}>
               Rapor üretilemedi — koşu {durum} ile kapandı.
             </span>
           )}
@@ -604,13 +604,13 @@ export function KuruAyrinti({ ozet }: { ozet: KuruOzet }) {
     <>
       {ozet.eslemeProfili && (
         <p className="mono" style={{ margin: 'var(--s8) 0 0',
-          fontSize: 'var(--t-label)', color: 'var(--i3)' }}>
+          fontSize: 'var(--t-etiket)', color: 'var(--i3)' }}>
           eşleme profili · {ozet.eslemeProfili.kod} v{ozet.eslemeProfili.surum}
         </p>
       )}
       {ozet.redSebepleri.length > 0 && (
         <ul style={{ margin: 'var(--s8) 0 0', paddingLeft: 'var(--s16)',
-          fontSize: 'var(--t-label)', color: 'var(--md)' }}>
+          fontSize: 'var(--t-etiket)', color: 'var(--md)' }}>
           {ozet.redSebepleri.slice(0, 5).map((r) => (
             <li key={r.sebep}>{r.sebep} · {r.adet}</li>
           ))}
@@ -618,7 +618,7 @@ export function KuruAyrinti({ ozet }: { ozet: KuruOzet }) {
       )}
       {ozet.uyarilar.length > 0 && (
         <ul style={{ margin: 'var(--s8) 0 0', paddingLeft: 'var(--s16)',
-          fontSize: 'var(--t-label)', color: 'var(--unk)' }}>
+          fontSize: 'var(--t-etiket)', color: 'var(--unk)' }}>
           {ozet.uyarilar.map((u) => <li key={u}>{u}</li>)}
         </ul>
       )}
@@ -650,7 +650,7 @@ export function EslemeProfilSecimi({
   return (
     <div className="ab-panel-blok" style={{ marginTop: 'var(--s24)' }}>
       <p className="etiket" style={{ margin: '0 0 var(--s10)' }}>Eşleme profili</p>
-      <p className="mono" style={{ margin: 0, fontSize: 'var(--t-field)',
+      <p className="mono" style={{ margin: 0, fontSize: 'var(--t-govde)',
         color: etkin.kaynak === 'bagli' && !etkin.profil ? 'var(--bd)' : 'var(--i2)' }}>
         {profilYazisi(etkin)}
       </p>
@@ -679,7 +679,7 @@ export function EslemeProfilSecimi({
           </div>
           {hata && (
             <p role="alert" style={{ margin: 'var(--s10) 0 0',
-              fontSize: 'var(--t-field)', color: 'var(--bd)' }}>{hata}</p>
+              fontSize: 'var(--t-govde)', color: 'var(--bd)' }}>{hata}</p>
           )}
         </>
       )}

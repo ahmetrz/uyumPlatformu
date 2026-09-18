@@ -92,15 +92,15 @@ export function VarlikYedegi({ varlik, kaynakBagli }: {
       </span>
       <span style={{ minWidth: 0 }}>
         <button type="button" className="ab-dugme satir"
-          style={{ display: 'block', textAlign: 'left', fontSize: 'var(--t-field)' }}
+          style={{ display: 'block', textAlign: 'left', fontSize: 'var(--t-govde)' }}
           onClick={() => (acik ? setAcik(false) : ac())}>
           {varlik.ad}
         </button>
         <span className="mono" style={{ display: 'block', marginTop: 2,
-          fontSize: 'var(--t-label)', color: 'var(--i3)' }}>
+          fontSize: 'var(--t-etiket)', color: 'var(--i3)' }}>
           {varlik.etiket} · {varlik.kritiklik} · envanter beyanı &quot;{varlik.beyan}&quot;
         </span>
-        <span style={{ display: 'block', marginTop: 4, fontSize: 'var(--t-label)',
+        <span style={{ display: 'block', marginTop: 4, fontSize: 'var(--t-etiket)',
           color: 'var(--i2)' }}>
           {varlik.gerekce}
         </span>
@@ -109,7 +109,7 @@ export function VarlikYedegi({ varlik, kaynakBagli }: {
           <div style={{ marginTop: 'var(--s10)', borderLeft: 'var(--bw-edge) solid var(--hr2)',
             paddingLeft: 'var(--s12)', display: 'grid', gap: 'var(--s10)' }}>
             {yukleniyor && (
-              <span style={{ fontSize: 'var(--t-label)', color: 'var(--i3)' }}>
+              <span style={{ fontSize: 'var(--t-etiket)', color: 'var(--i3)' }}>
                 Yedek kayıtları okunuyor…
               </span>
             )}
@@ -117,7 +117,7 @@ export function VarlikYedegi({ varlik, kaynakBagli }: {
 
             {veri && (
               <>
-                <p style={{ margin: 0, fontSize: 'var(--t-label)', color: 'var(--i2)' }}>
+                <p style={{ margin: 0, fontSize: 'var(--t-etiket)', color: 'var(--i2)' }}>
                   Yedek: <b style={{ color: `var(--${ucDurum(veri.varlik.sonuc)})` }}>
                     {UC_DEGER_SOZU[veri.varlik.sonuc]}</b> · son bilinen iyi:{' '}
                   <b style={{ color: `var(--${ucDurum(veri.iyi.sonuc)})` }}>
@@ -131,7 +131,7 @@ export function VarlikYedegi({ varlik, kaynakBagli }: {
                   /* NE YAPMALIYIM: ölçüm boşluğunun çözümü connector
                      yapılandırmasıdır — yedek platformu bağlanmadan kayıt
                      doğmaz. */
-                  <p className="bos" style={{ margin: 0, fontSize: 'var(--t-label)', color: 'var(--unk)' }}>
+                  <p className="bos" style={{ margin: 0, fontSize: 'var(--t-etiket)', color: 'var(--unk)' }}>
                     Hiç yedek kaydı yok — bu &quot;yedek alınmıyor&quot; değil,
                     &quot;ölçülmedi&quot; demektir.{' '}
                     <Link href="/saglik?bolum=yapilandirma">Kaynağı bağla</Link>
@@ -141,7 +141,7 @@ export function VarlikYedegi({ varlik, kaynakBagli }: {
                     {veri.kayitlar.map((y) => (
                       <div key={y.id} style={{ display: 'grid', gap: 'var(--s4)' }}>
                         <span style={{ display: 'flex', alignItems: 'baseline',
-                          gap: 'var(--s8)', fontSize: 'var(--t-label)' }}>
+                          gap: 'var(--s8)', fontSize: 'var(--t-etiket)' }}>
                           <Im durum={y.basarili ? (y.dogrulandi ? 'ok' : 'unk') : 'bd'}
                             ad={!y.basarili ? 'Başarısız yedek'
                               : y.dogrulandi ? 'Okunabilirliği doğrulanmış'
@@ -153,7 +153,7 @@ export function VarlikYedegi({ varlik, kaynakBagli }: {
                           </span>
                         </span>
                         {y.hata && (
-                          <span style={{ fontSize: 'var(--t-label)', color: 'var(--bd)' }}>
+                          <span style={{ fontSize: 'var(--t-etiket)', color: 'var(--bd)' }}>
                             {y.hata}
                           </span>
                         )}
@@ -200,10 +200,10 @@ export function VarlikYedegi({ varlik, kaynakBagli }: {
 
                 {veri.kontroller.length > 0 && (
                   <div style={{ display: 'grid', gap: 'var(--s6)' }}>
-                    <span className="mono" style={{ fontSize: 'var(--t-label)',
+                    <span className="mono" style={{ fontSize: 'var(--t-etiket)',
                       color: 'var(--i3)' }}>Uyum bağı · ÖNERİ</span>
                     {veri.kontroller.map((c) => (
-                      <span key={c.maddeKodu} style={{ fontSize: 'var(--t-label)',
+                      <span key={c.maddeKodu} style={{ fontSize: 'var(--t-etiket)',
                         color: 'var(--i2)' }}>
                         <b className="mono">{c.maddeKodu}</b> · {c.katki === 'destekler' ? 'destekler'
                           : c.katki === 'zayiflatir' ? 'zayıflatır' : 'kanıt yok'} — {c.oneri}
@@ -241,11 +241,11 @@ export function BulguIsle({ bulgu, yetkili }: { bulgu: YedekBulgusu; yetkili: bo
         <Im durum={bulguDurumu(bulgu.kural)} ad={BULGU_SOZU[bulgu.kural] ?? bulgu.kural} />
       </span>
       <span style={{ minWidth: 0, display: 'grid', gap: 'var(--s4)' }}>
-        <span style={{ fontSize: 'var(--t-field)' }}>
+        <span style={{ fontSize: 'var(--t-govde)' }}>
           {BULGU_SOZU[bulgu.kural] ?? bulgu.kural}
         </span>
-        <span style={{ fontSize: 'var(--t-label)', color: 'var(--i2)' }}>{bulgu.aciklama}</span>
-        <span className="mono" style={{ fontSize: 'var(--t-label)', color: 'var(--i3)' }}>
+        <span style={{ fontSize: 'var(--t-etiket)', color: 'var(--i2)' }}>{bulgu.aciklama}</span>
+        <span className="mono" style={{ fontSize: 'var(--t-etiket)', color: 'var(--i3)' }}>
           {zamanTR(bulgu.olusturuldu)} tarihinde motor tarafından açıldı
         </span>
 
@@ -317,7 +317,7 @@ export function PolitikaFormu({ tesis, kapat }: { tesis: Tesis; kapat: () => voi
         <input className="ab-gr" value={v.ad} onChange={(e) => setV({ ...v, ad: e.target.value })} />
       </Alan>
       {adUyari && (
-        <p style={{ margin: 0, fontSize: 'var(--t-label)', color: 'var(--md)' }}>
+        <p style={{ margin: 0, fontSize: 'var(--t-etiket)', color: 'var(--md)' }}>
           Ad &quot;{tesis.ad}&quot; ile başlamıyor — kayıt bu {terim('tesis', 'yonelme')}
           {' '}bağlanmaz.
         </p>
@@ -564,16 +564,16 @@ export function SapmaKarari({ sapma, yetkili }: { sapma: Sapma; yetkili: boolean
         <Im durum={SAPMA_SINIFI[durum]} ad={SAPMA_ETIKETI[durum]} />
       </span>
       <div style={{ display: 'grid', gap: 'var(--s6)' }}>
-        <span style={{ fontSize: 'var(--t-field)' }}>
+        <span style={{ fontSize: 'var(--t-govde)' }}>
           {sapma.aciklama ?? 'Gözlenen konfigürasyon onaylı tabandan farklı.'}
         </span>
-        <span className="mono" style={{ fontSize: 'var(--t-label)', color: 'var(--i3)' }}>
+        <span className="mono" style={{ fontSize: 'var(--t-etiket)', color: 'var(--i3)' }}>
           {SAPMA_ETIKETI[durum]} · şiddet {sapma.siddet === 'bilinmiyor' ? 'ölçülmedi' : sapma.siddet}
           {' · '}{tarihTR(sapma.olusturuldu)}
           {sapma.degisiklikRef && ` · değişiklik ${sapma.degisiklikRef}`}
         </span>
         {kapali && (
-          <span style={{ fontSize: 'var(--t-label)', color: 'var(--i2)' }}>
+          <span style={{ fontSize: 'var(--t-etiket)', color: 'var(--i2)' }}>
             {sapma.kararGerekcesi ?? 'Gerekçe yazılmamış.'}
             {sapma.kararZamani && ` — ${zamanTR(sapma.kararZamani)}`}
             {sapma.kararVeren && ` · ${sapma.kararVeren}`}

@@ -152,7 +152,7 @@ export default function OmurIstemci({
       <>
         {o.v.ad}
         {o.v.tedarikciAd && (
-          <span style={{ fontFamily: 'var(--veri)', fontSize: 'var(--t-label)', color: 'var(--i3)' }}>
+          <span style={{ fontFamily: 'var(--veri)', fontSize: 'var(--t-etiket)', color: 'var(--i3)' }}>
             {' · '}{o.v.tedarikciAd}
           </span>
         )}
@@ -163,7 +163,7 @@ export default function OmurIstemci({
       o.v.tesisAd ?? <Bos key="t" />,
       <TelafiHucresi key="k" o={o} />,
       o.proje
-        ? <span key="p" style={{ fontFamily: 'var(--veri)', fontSize: 'var(--t-code)',
+        ? <span key="p" style={{ fontFamily: 'var(--veri)', fontSize: 'var(--t-veri)',
           color: 'var(--aksan)' }}>{o.proje.kod}</span>
         : <Bos key="p" />,
     ],
@@ -268,7 +268,7 @@ function TelafiHucresi({ o }: { o: Omur }) {
   const ilk = o.v.kontroller[0];
   const kalan = o.v.kontroller.length - 1;
   return (
-    <span style={{ fontFamily: 'var(--veri)', fontSize: 'var(--t-code)', overflow: 'hidden',
+    <span style={{ fontFamily: 'var(--veri)', fontSize: 'var(--t-veri)', overflow: 'hidden',
       textOverflow: 'ellipsis', whiteSpace: 'nowrap', display: 'block' }}>
       {ilk.kod}{kalan > 0 ? ` +${kalan}` : ''}
     </span>
@@ -330,7 +330,7 @@ function OmurCekmecesi({ o, simdi, kapat }: { o: Omur; simdi: number; kapat: () 
       ) : (
         <div className="ab-panel-blok" style={{ marginTop: 'var(--s24)' }}>
           <p className="etiket" style={{ margin: '0 0 var(--s10)' }}>Zincir</p>
-          <p style={{ margin: 0, fontFamily: 'var(--veri)', fontSize: 'var(--t-label)',
+          <p style={{ margin: 0, fontFamily: 'var(--veri)', fontSize: 'var(--t-etiket)',
             color: 'var(--i3)' }}>
             Bağlı proje, risk ya da telafi edici kontrol yok
           </p>

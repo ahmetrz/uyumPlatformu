@@ -283,7 +283,7 @@ function PaketCekmecesi({ kapsam, bugun, kapat }: {
               <span style={{ color: `var(--${IMZA_SINIFI[uretim.imzaDurumu]})` }}>
                 {IMZA_SOZU[uretim.imzaDurumu]}
               </span>
-              <span style={{ fontSize: 'var(--t-label)', color: 'var(--i2)' }}>
+              <span style={{ fontSize: 'var(--t-etiket)', color: 'var(--i2)' }}>
                 {uretim.imzaBeyani}
               </span>
             </span>

@@ -460,7 +460,7 @@ function SkorHucresi({ risk }: { risk: R }) {
   return (
     <span style={{ display: 'flex', alignItems: 'center', gap: 'var(--s8)' }}>
       <span style={{
-        fontFamily: 'var(--veri)', fontSize: 'var(--t-lead)', fontWeight: 600,
+        fontFamily: 'var(--veri)', fontSize: 'var(--t-baslik)', fontWeight: 600,
         color: `var(--${durum})`, fontVariantNumeric: 'tabular-nums', minWidth: '2ch',
         textAlign: 'right',
       }}>

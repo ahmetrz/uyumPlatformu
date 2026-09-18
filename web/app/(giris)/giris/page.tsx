@@ -89,7 +89,7 @@ export default async function Giris({ searchParams }: {
               Enerji üretiminde <b>BT/OT uyumu</b> tek kütükte
             </h1>
             <p style={{ margin: 'var(--s16) 0 0', maxWidth: 560,
-              fontSize: 'var(--t-cell)', color: 'rgba(246,244,238,.76)' }}>
+              fontSize: 'var(--t-govde)', color: 'rgba(246,244,238,.76)' }}>
               Regülasyon maddeleri, tesis kapsamı, bulgu ve kanıt zinciri ile
               değişmez denetim izi.
             </p>

@@ -81,6 +81,16 @@ const BUYUK_BOY_IZINLI: [string, string][] = [
   ['.ab-ust > nav a', 'alan sekmesi — birincil gezinme (DESIGN.md · Alan sekmeleri)'],
   ['.ab-ikincil a', 'ikincil sıra — gezinme'],
   ['.ab-bolum-menu [role=\'menuitem\']', 'katlanan sıranın paneli — gezinme'],
+  /* 18 Eyl 2026 · tipografik ölçek jetona taşınırken eşiğin ÖNÜNE GELDİ:
+     kural 12,5px'ti (eşiğin altı, görünmüyordu), gövde kademesi 13px
+     olunca ölçüldü ve ihlal olarak çıktı. Satır bir GEVŞETME DEĞİLDİR:
+     `.ab-hesap-menu` bir `role="menu" aria-label="Hesap"` yüzeyidir ve
+     kalemleri Profil · Ayarlar · Çıkış — ad, cümle ya da değer değil,
+     gezinme. Kardeşi `.ab-bolum-menu [role='menuitem']` aynı gerekçeyle
+     ve daha büyük bir kademede (16px) zaten listede. Kuralın istisna
+     kategorisi bu satırı hep kapsıyordu; yalnız eşiğin altında olduğu
+     için görünmüyordu. */
+  ['.ab-hesap-menu [role=\'menuitem\']', 'hesap menüsü — gezinme (Profil · Ayarlar · Çıkış)'],
   ['.ab-bolum-dugme .oge-ad', 'bölüm seçici düğmesi — gezinme, "neredeyim"'],
   ['.ab-b-portfoy-ust nav button', 'üretim tipi sekmeleri — portföyün süzgeç gezinmesi'],
   ['.ab-b-ikili .birim .kod', 'birim KODU — kod zaten büyük harftir, dönüşüm yalnız tutarlılık'],

@@ -90,17 +90,17 @@ function KosuListesi({ kosular }: { kosular: Kosu[] }) {
                 <Im durum={kosuImi(k.durum)} ad={kosuAdi(k.durum)} />
               </span>
               <span style={{ minWidth: 0 }}>
-                <span style={{ display: 'block', fontSize: 'var(--t-field)' }}>
+                <span style={{ display: 'block', fontSize: 'var(--t-govde)' }}>
                   {zamanTR(k.baslangic)}
                 </span>
                 <span className="mono" style={{ display: 'block', marginTop: 2,
-                  fontSize: 'var(--t-label)', color: 'var(--i3)' }}>
+                  fontSize: 'var(--t-etiket)', color: 'var(--i3)' }}>
                   {k.islenen} → {k.uretilen} · {sureFmt(k.sureMs)}
                   {k.denemeNo > 1 && ` · ${k.denemeNo}. deneme`}
                 </span>
                 {k.hata && (
                   <span style={{ display: 'block', marginTop: 4,
-                    fontSize: 'var(--t-field)', color: 'var(--bd)' }}>
+                    fontSize: 'var(--t-govde)', color: 'var(--bd)' }}>
                     {kisalt(k.hata, 140)}
                   </span>
                 )}
@@ -196,7 +196,7 @@ export function ConnectorOzeti({ c, ozet, yazabilir, kapat }: {
       {c.sonHataOzeti && (
         <div className="ab-panel-blok" style={{ marginTop: 'var(--s16)' }}>
           <p className="etiket" style={{ margin: '0 0 var(--s8)' }}>Son hatanın izi</p>
-          <p className="mono" style={{ margin: 0, fontSize: 'var(--t-label)',
+          <p className="mono" style={{ margin: 0, fontSize: 'var(--t-etiket)',
             color: 'var(--i2)', wordBreak: 'break-word' }}>{c.sonHataOzeti}</p>
           <p className="ab-panel-dip" style={{ margin: 'var(--s6) 0 0' }}>
             Aynı iz tekrar ediyorsa hata da tekrar ediyor demektir.
@@ -222,7 +222,7 @@ export function ConnectorOzeti({ c, ozet, yazabilir, kapat }: {
 
       <div className="ab-panel-blok" style={{ marginTop: 'var(--s24)' }}>
         <p className="etiket" style={{ margin: '0 0 var(--s10)' }}>Kimlik · sır referansı</p>
-        <p className="mono" style={{ margin: 0, fontSize: 'var(--t-field)' }}>
+        <p className="mono" style={{ margin: 0, fontSize: 'var(--t-govde)' }}>
           {KIMLIK_TIP[c.kimlikTipi] ?? etiketle(c.kimlikTipi)}
           {c.kimlikTipi === 'none' ? '' : ` · ${c.sirMaskeli}`}
         </p>
@@ -231,7 +231,7 @@ export function ConnectorOzeti({ c, ozet, yazabilir, kapat }: {
           veritabanında tutulmaz, loglanmaz ve bu ekrana hiçbir koşulda gelmez.
         </p>
         {c.kimlikGerekce && (
-          <p style={{ margin: 'var(--s10) 0 0', fontSize: 'var(--t-field)',
+          <p style={{ margin: 'var(--s10) 0 0', fontSize: 'var(--t-govde)',
             color: 'var(--pl)' }}>
             {c.kimlikGerekce}
           </p>
@@ -244,7 +244,7 @@ export function ConnectorOzeti({ c, ozet, yazabilir, kapat }: {
       {c.imlec && (
         <div className="ab-panel-blok" style={{ marginTop: 'var(--s24)' }}>
           <p className="etiket" style={{ margin: '0 0 var(--s10)' }}>Senkronizasyon imleci</p>
-          <p className="mono" style={{ margin: 0, fontSize: 'var(--t-label)',
+          <p className="mono" style={{ margin: 0, fontSize: 'var(--t-etiket)',
             wordBreak: 'break-all', color: 'var(--i2)' }}>{c.imlec}</p>
         </div>
       )}
@@ -252,7 +252,7 @@ export function ConnectorOzeti({ c, ozet, yazabilir, kapat }: {
       {s && (s.reddedilen > 0 || s.sayacTutarsiz || s.yinelenenTutarsiz || s.ayrinti) && (
         <div className="ab-panel-blok" style={{ marginTop: 'var(--s24)' }}>
           <p className="etiket" style={{ margin: '0 0 var(--s10)' }}>Son koşunun sayaçları</p>
-          <p style={{ margin: 0, fontSize: 'var(--t-field)', color: 'var(--i2)' }}>
+          <p style={{ margin: 0, fontSize: 'var(--t-govde)', color: 'var(--i2)' }}>
             {s.alinan} alındı · {s.kabulEdilen} kabul · {s.reddedilen} red ·
             {' '}{s.yinelenen} yinelenen
           </p>
@@ -261,7 +261,7 @@ export function ConnectorOzeti({ c, ozet, yazabilir, kapat }: {
             <p className="ab-panel-dip" style={{ margin: 'var(--s8) 0 0' }}>{s.ayrinti}</p>
           )}
           {s.reddSebebiEksik && (
-            <p style={{ margin: 'var(--s8) 0 0', fontSize: 'var(--t-field)', color: 'var(--md)' }}>
+            <p style={{ margin: 'var(--s8) 0 0', fontSize: 'var(--t-govde)', color: 'var(--md)' }}>
               {s.reddedilen} kayıt reddedildi ama sebebi yazılmamış — reddedilen
               kayıtlar sessizce yok sayılmış olabilir.
             </p>
@@ -270,12 +270,12 @@ export function ConnectorOzeti({ c, ozet, yazabilir, kapat }: {
               Yinelenen ayrı bir kova DEĞİLDİR — delta koşuda yinelenen
               normaldir ve tutarsızlık sayılmaz. */}
           {s.sayacTutarsiz && (
-            <p style={{ margin: 'var(--s8) 0 0', fontSize: 'var(--t-field)', color: 'var(--md)' }}>
+            <p style={{ margin: 'var(--s8) 0 0', fontSize: 'var(--t-govde)', color: 'var(--md)' }}>
               Sayaçlar tutmuyor: alınan ≠ kabul + red.
             </p>
           )}
           {s.yinelenenTutarsiz && (
-            <p style={{ margin: 'var(--s8) 0 0', fontSize: 'var(--t-field)', color: 'var(--md)' }}>
+            <p style={{ margin: 'var(--s8) 0 0', fontSize: 'var(--t-govde)', color: 'var(--md)' }}>
               Yinelenen sayısı kabul edileni aşıyor; yinelenen kabul edilenlerin
               alt kümesi olmalıydı.
             </p>
@@ -290,7 +290,7 @@ export function ConnectorOzeti({ c, ozet, yazabilir, kapat }: {
             <p className="etiket" style={{ margin: '0 0 var(--s10)' }}>Önceki hata</p>
             {/* Hata metni duruyor ama connector artık hatalı değil: kaybolmaz,
                 ama kritik renge de boyanmaz. */}
-            <p style={{ margin: 0, fontSize: 'var(--t-field)', color: 'var(--i2)' }}>
+            <p style={{ margin: 0, fontSize: 'var(--t-govde)', color: 'var(--i2)' }}>
               {kisalt(hataMetni, 220)}
             </p>
           </div>
@@ -321,7 +321,7 @@ function GerekenSirlar({ c }: { c: ConnectorSagligi }) {
         <span style={{ paddingTop: 3 }}>
           <Im durum={sirBeyanImi(sirlar)} ad={sirBeyanYazisi(sirlar)} />
         </span>
-        <span style={{ fontSize: 'var(--t-field)', color: 'var(--i2)' }}>
+        <span style={{ fontSize: 'var(--t-govde)', color: 'var(--i2)' }}>
           {sirBeyanYazisi(sirlar)}
         </span>
       </div>
@@ -329,7 +329,7 @@ function GerekenSirlar({ c }: { c: ConnectorSagligi }) {
         <div style={{ display: 'grid', gap: 'var(--s6)', marginTop: 'var(--s10)' }}>
           {sirlar.map((x) => (
             <p key={x.referans} className="mono" style={{ margin: 0,
-              fontSize: 'var(--t-label)',
+              fontSize: 'var(--t-etiket)',
               color: x.durum === 'var' ? 'var(--i3)'
                 : x.durum === 'yok' ? 'var(--pl)' : 'var(--unk)' }}>
               {x.maske}{x.sebep ? ` · ${x.sebep}` : ''}
@@ -378,11 +378,11 @@ function KuruGecmisi({ c }: { c: ConnectorSagligi }) {
               <Im durum={kuruImi(g)} ad="Kuru koşu — hiçbir kayıt yazılmadı" />
             </span>
             <span style={{ minWidth: 0 }}>
-              <span style={{ display: 'block', fontSize: 'var(--t-field)' }}>
+              <span style={{ display: 'block', fontSize: 'var(--t-govde)' }}>
                 {zamanTR(g.baslangic)} · {TETIKLEYEN[g.tetikleyen] ?? etiketle(g.tetikleyen)}
               </span>
               <span className="mono" style={{ display: 'block', marginTop: 2,
-                fontSize: 'var(--t-label)', color: 'var(--i3)' }}>
+                fontSize: 'var(--t-etiket)', color: 'var(--i3)' }}>
                 {g.kuruOzet
                   ? kuruSayacYazisi(g.kuruOzet.sayaclar)
                   : g.kuruOzetBozuk
@@ -391,7 +391,7 @@ function KuruGecmisi({ c }: { c: ConnectorSagligi }) {
               </span>
               {g.kuruOzet && (
                 <span className="mono" style={{ display: 'block', marginTop: 2,
-                  fontSize: 'var(--t-label)', color: 'var(--i3)' }}>
+                  fontSize: 'var(--t-etiket)', color: 'var(--i3)' }}>
                   {kuruEslesmeYazisi(g.kuruOzet.sayaclar)}
                 </span>
               )}
@@ -423,7 +423,7 @@ function ZamanlayiciBlogu({ c, ozet }: { c: ConnectorSagligi; ozet: EntegrasyonO
           <Im durum={im} ad={cevap.tur === 'vadeli' ? 'Vadesi geldi'
             : cevap.tur === 'koşmuyor' ? 'Otomatik koşmuyor' : 'Zamanlayıcı durumu bilinmiyor'} />
         </span>
-        <span style={{ fontSize: 'var(--t-field)', color: 'var(--i2)' }}>{cevap.cumle}</span>
+        <span style={{ fontSize: 'var(--t-govde)', color: 'var(--i2)' }}>{cevap.cumle}</span>
       </div>
     </div>
   );
@@ -439,7 +439,7 @@ function SaglayiciSatiri({ sirMaskeli, ozet }: {
   const s = ozet.saglayicilar.find((x) => x.ad === ad);
   if (!s) {
     return (
-      <p style={{ margin: 'var(--s10) 0 0', fontSize: 'var(--t-field)', color: 'var(--bd)' }}>
+      <p style={{ margin: 'var(--s10) 0 0', fontSize: 'var(--t-govde)', color: 'var(--bd)' }}>
         &lsquo;{ad}&rsquo; adında kayıtlı bir sır sağlayıcısı yok — bu referans çözülemez.
       </p>
     );
@@ -452,7 +452,7 @@ function SaglayiciSatiri({ sirMaskeli, ozet }: {
         <Im durum={saglayiciImi(s)}
           ad={s.bagli ? `${s.ad} sağlayıcısı bağlı` : `${s.ad} sağlayıcısı bağlı değil`} />
       </span>
-      <span style={{ fontSize: 'var(--t-field)', color: 'var(--i2)' }}>
+      <span style={{ fontSize: 'var(--t-govde)', color: 'var(--i2)' }}>
         <span className="mono">{s.ad}</span>
         {not && <> · {not}</>}
       </span>
@@ -482,25 +482,25 @@ function ConnectorGecmisi({ gecmis }: { gecmis: KosuSatiri[] }) {
                   ad={g.bayat ? 'Koşu bayat — süreç yanıt vermiyor' : kosuAdi(g.durum)} />
               </span>
               <span style={{ minWidth: 0 }}>
-                <span style={{ display: 'block', fontSize: 'var(--t-field)' }}>
+                <span style={{ display: 'block', fontSize: 'var(--t-govde)' }}>
                   {zamanTR(g.baslangic)} · {TETIKLEYEN[g.tetikleyen] ?? etiketle(g.tetikleyen)}
                 </span>
                 <span className="mono" style={{ display: 'block', marginTop: 2,
-                  fontSize: 'var(--t-label)', color: 'var(--i3)' }}>
+                  fontSize: 'var(--t-etiket)', color: 'var(--i3)' }}>
                   {g.alinan} → {g.kabulEdilen} · {g.reddedilen} red · {g.yinelenen} yinelenen
                   {' · '}{sureFmt(g.sureMs)}
                   {g.denemeNo > 1 && ` · ${g.denemeNo}. deneme`}
                 </span>
                 {(g.durum === 'basarisiz' || g.hataSinifi) && (
                   <span style={{ display: 'block', marginTop: 2,
-                    fontSize: 'var(--t-label)',
+                    fontSize: 'var(--t-etiket)',
                     color: hataSinifiYazisi(g).eksik ? 'var(--md)' : 'var(--i3)' }}>
                     {hataSinifiYazisi(g).metin}
                   </span>
                 )}
                 {g.korelasyonId && (
                   <span className="mono" style={{ display: 'block', marginTop: 2,
-                    fontSize: 'var(--t-label)', color: 'var(--i3)', wordBreak: 'break-all' }}>
+                    fontSize: 'var(--t-etiket)', color: 'var(--i3)', wordBreak: 'break-all' }}>
                     korelasyon · {g.korelasyonId}
                   </span>
                 )}
@@ -561,7 +561,7 @@ function HataBlogu({ metin }: { metin: string }) {
       <pre className="mono" style={{ margin: 0, padding: 'var(--s12)',
         whiteSpace: 'pre-wrap', wordBreak: 'break-word',
         background: 'var(--panel)', border: 'var(--bw-edge) solid var(--bd)',
-        fontSize: 'var(--t-label)', color: 'var(--bd)' }}>
+        fontSize: 'var(--t-etiket)', color: 'var(--bd)' }}>
         {metin}
       </pre>
     </div>

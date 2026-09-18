@@ -235,7 +235,7 @@ export function EkipFormu({ ekip, tesisler, kapat }: {
           onChange={(e) => setF({ ...f, eposta: e.target.value })} />
       </Alan>
       <label style={{ display: 'flex', alignItems: 'center', gap: 'var(--s8)',
-        fontSize: 'var(--t-field)' }}>
+        fontSize: 'var(--t-govde)' }}>
         <input type="checkbox" checked={f.aktif}
           onChange={(e) => setF({ ...f, aktif: e.target.checked })} />
         Ekip aktif
@@ -328,11 +328,11 @@ export function UyeSatiri({ ekip, uye, yetkili }: {
       background: 'var(--panel)', border: 'var(--bw-hair) solid var(--hr2)',
       padding: 'var(--s10) var(--s12)' }}>
       <span style={{ minWidth: 0, flex: 1 }}>
-        <span style={{ display: 'block', fontSize: 'var(--t-cell)', fontWeight: 600 }}>
+        <span style={{ display: 'block', fontSize: 'var(--t-govde)', fontWeight: 600 }}>
           {uye.ad}
         </span>
         <span style={{ display: 'block', marginTop: 2, fontFamily: 'var(--veri)',
-          fontSize: 'var(--t-label)', color: uye.aktif ? 'var(--i3)' : 'var(--bd)' }}>
+          fontSize: 'var(--t-etiket)', color: uye.aktif ? 'var(--i3)' : 'var(--bd)' }}>
           {UYELIK_ROL_ETIKETI[uye.rol as keyof typeof UYELIK_ROL_ETIKETI] ?? uye.rol}
           {!uye.aktif && ' · hesap kapalı, üyelik duruyor'}
         </span>
@@ -384,7 +384,7 @@ export function SahiplikDevri({ hesap, adaylar, yetkili }: {
           kayıt da yok.
         </p>
       ) : !hesap.aktif ? (
-        <p style={{ margin: 'var(--s10) 0 0', fontSize: 'var(--t-field)', color: 'var(--bd)' }}>
+        <p style={{ margin: 'var(--s10) 0 0', fontSize: 'var(--t-govde)', color: 'var(--bd)' }}>
           Hesap kapalı ama {s.toplam} varlık hâlâ bu kişinin üstünde:
           ekranlarda &quot;sahibi var&quot; yazar, gerçekte sahip yoktur.
         </p>
@@ -452,7 +452,7 @@ export function SahiplikDevri({ hesap, adaylar, yetkili }: {
               onChange={(e) => setGerekce(e.target.value)} />
           </Alan>
           {hata && <p className="ab-gr-hata" role="alert" style={{ margin: 0 }}>{hata}</p>}
-          {ozet && <p style={{ margin: 0, fontSize: 'var(--t-field)' }} role="status">{ozet}</p>}
+          {ozet && <p style={{ margin: 0, fontSize: 'var(--t-govde)' }} role="status">{ozet}</p>}
           <div style={{ display: 'flex', gap: 'var(--s10)' }}>
             <Dugme tur="birincil" disabled={bekliyor || !gecerli}
               onClick={() => calistir(async () => {

@@ -109,7 +109,7 @@ export function KararEylemleri({
           {satir.eslesen && (
             <>
               <label style={{ display: 'flex', gap: 'var(--s8)', alignItems: 'center',
-                marginTop: 'var(--s10)', fontSize: 'var(--t-code-lg)', color: 'var(--i2)' }}>
+                marginTop: 'var(--s10)', fontSize: 'var(--t-veri)', color: 'var(--i2)' }}>
                 <input type="checkbox" checked={uzerineYaz}
                   onChange={(e) => setUzerineYaz(e.target.checked)} />
                 Farklı gelen alanlar mevcut değeri ezsin
@@ -222,7 +222,7 @@ export function TopluKararTepsisi({
         display: 'grid', gap: 'var(--s6)' }}>
         {secilenler.map((s) => (
           <li key={s.id} style={{ display: 'flex', alignItems: 'center', gap: 'var(--s10)',
-            fontSize: 'var(--t-code-lg)' }}>
+            fontSize: 'var(--t-veri)' }}>
             <span style={{ fontWeight: 600 }}>{s.konu}</span>
             <span style={{ fontFamily: 'var(--veri)', color: 'var(--i3)' }}>
               {s.eslesen ? s.eslesen.etiket : 'eşleşme yok'} · {guvenYazisi(s.guvenSkoru)}

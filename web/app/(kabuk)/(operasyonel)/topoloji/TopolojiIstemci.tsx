@@ -316,7 +316,7 @@ export default function TopolojiIstemci({
               display: 'grid', gap: 'var(--s6)' }}>
               {temelSeridi.map((t) => (
                 <li key={t.kapsamId} style={{ display: 'flex', gap: 'var(--s10)',
-                  alignItems: 'baseline', fontSize: 'var(--t-code-lg)' }}>
+                  alignItems: 'baseline', fontSize: 'var(--t-veri)' }}>
                   <span style={{ fontWeight: 600, minWidth: 90 }}>{t.tesisKodu}</span>
                   <span style={{ fontFamily: 'var(--veri)',
                     color: t.temelVar ? 'var(--i2)' : 'var(--unk)' }}>

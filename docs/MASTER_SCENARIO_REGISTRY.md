@@ -13,7 +13,7 @@ it('kapsam dışı varlığa yazılamaz [ENV-YAZ-003]', …)
 Ayrı bir eşleme tablosu tutulsaydı, tablo ilk yeniden adlandırmada
 testten ayrışır ve kimse görmezdi.
 
-Senaryo: **421** · testli: **421** · GAP: **0**
+Senaryo: **422** · testli: **422** · GAP: **0**
 
 ## Aktivite · 2 senaryo
 
@@ -390,7 +390,7 @@ Senaryo: **421** · testli: **421** · GAP: **0**
 | `SAY-KMP-001` | /sayim | BT yöneticisi · kendi tesisi | Kapsamda hiç varlık yok · yok | Sayım açmayı dener | Açılmaz — sıfır paydalı kampanya olamaz | Neden açılmadığı yazılır | yazma yok | yok | `faz-g-varlik.test.ts` |
 | `SAY-KMP-002` | /sayim | BT yöneticisi · kendi tesisi | Satır "bulunamadı" işaretlendi · kısmi | Sonucu kaydeder | Varlık SİLİNMEZ — envanterden düşürme ayrı bir karardır | "Sayılmadı" ile "bulunamadı" ayrı durumlardır | Sayım satırı · guncelleme | yok | `faz-g-eylem.test.ts` |
 
-## Sistem · 89 senaryo
+## Sistem · 90 senaryo
 
 | ID | Rota | Rol · kapsam | Ön koşul · veri | Eylem | Beklenen sonuç | Ekran | Denetim izi | Görev/bildirim | Test |
 | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- |
@@ -401,6 +401,7 @@ Senaryo: **421** · testli: **421** · GAP: **0**
 | `SIS-RSP-001` | — | sahadaki kullanıcı · kendi kapsamı | Ekran dar · normal | Ekranı daraltır | Sayfa yatay kaymaz; içerik yeniden akar | Kritik bilgi gizlenmez | yazma yok | yok | `senaryo-platform.test.ts` · `senaryo-platform.test.ts` · `senaryo-platform.test.ts` |
 | `SIS-DIL-001` | — | son kullanıcı · kendi kapsamı | — · normal | Ekranlardaki metinleri okur | Kullanıcıya dönük metinlerde teknik jargon yoktur | Türkçe, kısa, kurumsal | yazma yok | yok | `senaryo-platform.test.ts` |
 | `SIS-KBK-031` | — | ürün ekibi · kurum geneli | Kabuk CSS’i okunur · normal | Her büyük harf kuralı boyuyla birlikte sınıflanır; 13px ve üstü olanlar izin listesiyle karşılaştırılır; ad/başlık/cümle sınıfları kaş boyunun üstünde büyük harf taşıyamaz | İzin dışı büyük boy büyük harf 0; izin listesinde ölü satır 0; boyunu bildirmeyen kural 0; tarama tabanın altına inmez | Veri, ad ve cümle cümle düzeninde; kaş ve gezinme büyük harf | yazma yok | yok | `bekci/buyuk-harf.test.ts` · `bekci/buyuk-harf.test.ts` · `bekci/buyuk-harf.test.ts` · `bekci/buyuk-harf.test.ts` · `bekci/buyuk-harf.test.ts` |
+| `URN-TIP-001` | — | geliştirici · ürün geneli | Kaynak ağacı okunabilir · normal | Tipografi bekçisi kaynağı tarar | Ölçek SEKİZ kademedir (10 · 11 · 13 · 16 · 21 · 28 · 40 · 58), her kademe TEK rol taşır ve komşu oran %8'in altına inemez. Bildirimlerin %95'inden çoğu jetondan geçer; geçmeyen her biri izin listesinde değeriyle, sayısıyla ve gerekçesiyle durur (baskı puntosu · akışkan clamp · bilinçli inherit). İki jeton aynı değeri taşıyamaz, tanımlanan her jeton kullanılır ve BAŞVURULAN her jeton TANIMLIDIR — tanımsız var() özelliği geçersiz kılar ve ekran sessizce kalıtıma döner. | Ürün geneli — kaynak taraması | yazma yok | yok | `bekci/tipografi-olcegi.test.ts` · `bekci/tipografi-olcegi.test.ts` · `bekci/tipografi-olcegi.test.ts` · `bekci/tipografi-olcegi.test.ts` · `bekci/tipografi-olcegi.test.ts` · `bekci/tipografi-olcegi.test.ts` · `bekci/tipografi-olcegi.test.ts` · `bekci/tipografi-olcegi.test.ts` · `bekci/tipografi-olcegi.test.ts` |
 | `SIS-CBK-001` | / | yönetici · kurum geneli | Saha açık; kayan kap var (tesis şeridi taşıyor) · normal | Fareyle şeridi kaydırır; klasik kaydırma çubuğu çizen bir masaüstü tarayıcıda bakar | Çubuk ince ve palet içinde (`--cubuk`); karar `.ab` kökünde bir kez verilir ve her kayan kaba kalıtımla iner; belge kökü aynı değeri taşır; çubuk gizlenmez (kayan içeriğin tek işareti) ve klasik kipe düşüren `::-webkit-scrollbar` renk/boy kuralı yoktur | Saha · tesis şeridi ve kabuğun tüm kayan kapları | yazma yok | yok | `bekci/kaydirma-cubugu.test.ts` · `bekci/kaydirma-cubugu.test.ts` · `bekci/kaydirma-cubugu.test.ts` · `bekci/kaydirma-cubugu.test.ts` · `bekci/kaydirma-cubugu.test.ts` · `bekci/kaydirma-cubugu.test.ts` · `bekci/kaydirma-cubugu.test.ts` · `bekci/kaydirma-cubugu.test.ts` · `bekci/kaydirma-cubugu.test.ts` |
 | `SIS-SAHA-020` | / | telefonla bakan kullanıcı · kendi kapsamı | Müdahale listesine sığmayan bulgu var · normal | Saha ekranını açar ve listenin sonundaki bağa dokunur | Bağ kutusu en az 24px; bütçeye sığmayan bir kalem düşse bile ulaşılamayan bir bağ bırakılmaz | Saha · müdahale gerektirenler | yazma yok | yok | `kabuk-gezinme.test.ts` |
 | `SIS-SAHA-021` | / | ürün ekibi · kurum geneli | Yükseklik hem CSS’te hem bileşende yazılı · normal | İki sayı karşılaştırılır | Aynıdırlar; ayrışırlarsa bütçe hesabı sessizce yanlış olur ve son kalem kutudan taşar | Bütçe hesabı doğru | yazma yok | yok | `kabuk-gezinme.test.ts` |

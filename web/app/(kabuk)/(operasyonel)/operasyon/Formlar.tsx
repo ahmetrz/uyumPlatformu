@@ -34,7 +34,7 @@ function ucDegerCoz(m: string): boolean | null {
 
 const ONAY_KUTUSU: React.CSSProperties = {
   display: 'flex', gap: 'var(--s8)', alignItems: 'flex-start',
-  fontSize: 'var(--t-code-lg)', color: 'var(--i2)',
+  fontSize: 'var(--t-veri)', color: 'var(--i2)',
 };
 
 export function DegisiklikFormu({ degisiklik, tesisler, kapat }: {
@@ -321,9 +321,9 @@ export function KapiListesi({ d }: { d: D }) {
                   ? `${k.ad} kaydedilmedi` : `${k.ad} alınmadı`} />
             </span>
             <span style={{ minWidth: 0 }}>
-              <span style={{ display: 'block', fontSize: 'var(--t-field)' }}>{k.ad}</span>
+              <span style={{ display: 'block', fontSize: 'var(--t-govde)' }}>{k.ad}</span>
               <span className="mono" style={{ display: 'block', marginTop: 2,
-                fontSize: 'var(--t-label)', color: 'var(--i3)' }}>
+                fontSize: 'var(--t-etiket)', color: 'var(--i3)' }}>
                 {k.deger ?? 'kaydedilmedi'}
               </span>
             </span>
@@ -381,7 +381,7 @@ export function OlayBagi({ d, adaylar }: { d: D; adaylar: OlayAdayi[] }) {
         <div style={{ display: 'grid', gap: 'var(--s6)', marginBottom: 'var(--s10)' }}>
           {d.olaylar.map((o) => (
             <div key={o.id} style={{ display: 'flex', alignItems: 'baseline',
-              gap: 'var(--s10)', fontSize: 'var(--t-cell)' }}>
+              gap: 'var(--s10)', fontSize: 'var(--t-govde)' }}>
               <span className="mono" style={{ fontWeight: 600 }}>{o.kod}</span>
               <span style={{ color: 'var(--i3)', minWidth: 0, overflow: 'hidden',
                 textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{o.alt}</span>

@@ -189,7 +189,7 @@ export function AktiflestirmeOnayi({ surum, kapat }: { surum: Surum; kapat: () =
 
   return (
     <div style={{ display: 'grid', gap: 'var(--s12)' }}>
-      <p style={{ margin: 0, fontSize: 'var(--t-field)', color: 'var(--i2)' }}>
+      <p style={{ margin: 0, fontSize: 'var(--t-govde)', color: 'var(--i2)' }}>
         {surum.etiket} yürürlüğe girecek: yürürlükteki sürüm arşive iner, kod
         bazında diff üretilir ve değişen maddeler için aktif kampanyaların
         kapsamındaki her {t('tesis')} için yeni değerlendirme açılır.

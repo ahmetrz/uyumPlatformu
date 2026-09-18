@@ -4,12 +4,12 @@
 
 | Ölçü | Değer |
 | --- | --- |
-| Senaryo | 421 |
-| Testi olan senaryo | 421 |
+| Senaryo | 422 |
+| Testi olan senaryo | 422 |
 | **GAP** | **0** |
 | Hayalet işaret (kütükte olmayan kimlik) | 0 |
 | Kütüksüz test dosyası | 0 |
-| Taranan test dosyası | 258 |
+| Taranan test dosyası | 259 |
 
 ## Katman başına kapsam
 
@@ -26,7 +26,7 @@
 | RESPONSIVE | 9 | 9 | 0 |
 | SCOPE | 34 | 34 | 0 |
 | SERVER | 159 | 159 | 0 |
-| UI | 152 | 152 | 0 |
+| UI | 153 | 153 | 0 |
 | VISUAL | 4 | 4 | 0 |
 | WORKFLOW | 39 | 39 | 0 |
 
@@ -409,6 +409,15 @@
 | `SAH-SDL-001` | Saha | UI · DOMAIN | `saha-sadelestirme.test.ts` | gücü ölçülmemiş şeridinin etiketi sebebi söyler ve `title` TAŞIMAZ | evet | geçti |
 | `SAH-SDL-001` | Saha | UI · DOMAIN | `saha-sadelestirme.test.ts` | risk yoğunluğu "ölçülemedi"yi yalnız kritik ve yüksek sıfırken yazar | evet | geçti |
 | `SAH-SDL-001` | Saha | UI · DOMAIN | `saha-sadelestirme.test.ts` | çakışan ad sektörle ayrılır; çakışmayan ad olduğu gibi kalır | evet | geçti |
+| `URN-TIP-001` | Sistem | UI | `bekci/tipografi-olcegi.test.ts` | ÖLÇÜM TABANI · tarama üç yüzeyi de görüyor | evet | geçti |
+| `URN-TIP-001` | Sistem | UI | `bekci/tipografi-olcegi.test.ts` | BİRİNCİ DİŞ · jeton dışı her bildirim izin listesinde | evet | geçti |
+| `URN-TIP-001` | Sistem | UI | `bekci/tipografi-olcegi.test.ts` | İKİNCİ DİŞ · istisna sayısı tavanı aşmıyor | evet | geçti |
+| `URN-TIP-001` | Sistem | UI | `bekci/tipografi-olcegi.test.ts` | ÜÇÜNCÜ DİŞ · izin listesinde ölü satır yok | evet | geçti |
+| `URN-TIP-001` | Sistem | UI | `bekci/tipografi-olcegi.test.ts` | DÖRDÜNCÜ DİŞ · iki jeton aynı değeri taşımıyor | evet | geçti |
+| `URN-TIP-001` | Sistem | UI | `bekci/tipografi-olcegi.test.ts` | BEŞİNCİ DİŞ · tanımlanan her jeton kullanılıyor | evet | geçti |
+| `URN-TIP-001` | Sistem | UI | `bekci/tipografi-olcegi.test.ts` | ALTINCI DİŞ · başvurulan her jeton TANIMLI | evet | geçti |
+| `URN-TIP-001` | Sistem | UI | `bekci/tipografi-olcegi.test.ts` | ÖLÇEK · kademeler artan, tekrarsız ve ayırt edilebilir | evet | geçti |
+| `URN-TIP-001` | Sistem | UI | `bekci/tipografi-olcegi.test.ts` | KAPSAM · bildirimlerin ezici çoğunluğu jetondan geçiyor | evet | geçti |
 | `SAH-SDL-002` | Saha | UI | `saha-sadelestirme.test.ts` | durum manşeti, eylemli satırı ÜÇ KATTAN fazla ezmez | evet | geçti |
 | `SAH-SDL-002` | Saha | UI | `saha-sadelestirme.test.ts` | HAYALET SIRA RAKAMLARI ekranda yok | evet | geçti |
 | `SAH-SDL-002` | Saha | UI | `saha-sadelestirme.test.ts` | ray KARAR SIRASINA dizilir — uygunsuzu olan önde | evet | geçti |

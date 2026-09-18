@@ -1,6 +1,6 @@
 ---
 name: Uyum ve Yönetişim Platformu
-description: Tek koyu kabuk, Saha dili (Barlow Condensed · Inter · JetBrains Mono, bakır aksan), üç yoğunluk (amiral · operasyonel · tezgâh), radius 0, saç çizgisiyle kompozisyon, mono/tabular sayı.
+description: Tek koyu kabuk, Saha dili (Barlow Condensed · Inter · JetBrains Mono, bakır aksan), üç yoğunluk (amiral · operasyonel · tezgâh), sekiz kademeli tipografik ölçek, radius 0, saç çizgisiyle kompozisyon, mono/tabular sayı.
 colors:
   zemin: "#0A0C0D"
   panel: "#0F1213"
@@ -25,29 +25,29 @@ colors:
 typography:
   display:
     fontFamily: "Barlow Condensed, Inter, sans-serif"
-    fontSize: "26px"
+    fontSize: "28px"
     fontWeight: 500
     lineHeight: 1.15
     letterSpacing: "0.01em"
   headline:
     fontFamily: "var(--gorunum)"
-    fontSize: "18px"
+    fontSize: "21px"
     fontWeight: 500
     lineHeight: 1.2
     letterSpacing: "-0.01em"
   title:
     fontFamily: "var(--ui)"
-    fontSize: "14px"
+    fontSize: "16px"
     fontWeight: 500
     lineHeight: 1.4
   body:
     fontFamily: "var(--ui)"
-    fontSize: "12.5px"
+    fontSize: "13px"
     fontWeight: 400
     lineHeight: 1.6
   metric:
     fontFamily: "var(--veri)"
-    fontSize: "19px"
+    fontSize: "21px"
     fontWeight: 400
     lineHeight: 1
     fontVariation: "tabular-nums"
@@ -248,16 +248,21 @@ ve mono ailesi değişir, kademe değişmez.
 
 ### Hierarchy
 - **Display** (A/B 500, 26px, 1.15, **cümle düzeni** · C 400, 34px, 1.1): ekran başlığı `.ab-lede h1`; vurgu `<b>` ile 700 ve gerekirse durum rengi. Büyük harf DEĞİLDİR (15 Eyl 2026): kabukta 74 büyük harfli kural var, başlık da büyük harf olunca hiçbir şey öne çıkmıyordu — ölçüldü, kullanıcı geri bildirimi. Başlık, ekranda başka kayıtta konuşan tek büyük şeydir ve mümkünse CEVABI taşır ("8 uygunsuz — nerede, ve neden?").
-- **Board** (34px, 1.1): pano / kök hata başlığı `--t-board`.
-- **Headline** (500, 18px, 1.2, `-.01em`): bölüm başlığı `.ab-bolum-basligi`.
-- **Title** (500, 14px): odak kartı ve lead `--t-lead`.
-- **Body** (400, 12.5px, 1.6): hücre, form, düzyazı `--t-cell / --t-body / --t-field`; tablo konusu 13.5px; çekmece cümlesi 12.5px. Düzyazı en fazla bir cümle, 560–620px.
-- **Metric** (mono, 19px, tabular; C'de görüntü ailesi 24px): ölçüt satırı değeri; payda 12px `--i3`.
-- **Colhead** (mono, 11px, `.18em`, büyük harf): kolon başlığı `.kolonbas` — 11px zemini buradadır.
-- **Label** (mono, 10px, `.14em`, büyük harf): YAPISAL KAŞ etiketi `.etiket` — bölüm adı, kolon kaşı; kendi başına bilgi taşımaz. Veri, sayı ve olgu bu kademeye inmez, 11px `--t-code`ta durur.
+**SEKİZ KADEME, HER KADEME TEK ROL** (18 Eyl 2026'da yeniden kuruldu). Ölçek jetondan gelir ve ürünün %98'i jetondan geçer; kalan 11 bildirim baskı puntosu, akışkan `clamp` ya da bilinçli `inherit`tir ve kapıda adıyla beyanlıdır (`tests/bekci/tipografi-olcegi.test.ts`, URN-TIP-001).
+
+- **Dev** (58px, 1) `--t-dev`: tek sayının ekranı taşıdığı yer — panel tepesi.
+- **Manşet** (40px) `--t-manset`: pano / kök hata / durum manşeti.
+- **Ekran** (A/B 500, 28px, 1.15, **cümle düzeni**) `--t-ekran`: ekran başlığı `.ab-lede h1`; vurgu `<b>` ile 700 ve gerekirse durum rengi. Büyük harf DEĞİLDİR (15 Eyl 2026).
+- **Bölüm** (500, 21px, 1.2, `-.01em`) `--t-bolum`: bölüm başlığı `.ab-bolum-basligi`; ölçüt satırı değeri de bu kademededir (mono, tabular) — boy aynı, ROL ailesiyle ayrılır.
+- **Başlık** (500, 16px) `--t-baslik`: odak kartı, satır başlığı, lead.
+- **Gövde** (400, 13px, 1.6) `--t-govde`: hücre, form alanı, düzyazı, çekmece cümlesi. Düzyazı en fazla bir cümle, 560–620px.
+- **Veri** (mono, 11px) `--t-veri`: kolon başlığı `.kolonbas` (`.18em`, büyük harf), kod, sayı, yardımcı metin — 11px zemini buradadır.
+- **Etiket** (mono, 10px, `.14em`, büyük harf) `--t-etiket`: YAPISAL KAŞ etiketi `.etiket` — bölüm adı, kolon kaşı; kendi başına bilgi taşımaz. Veri, sayı ve olgu bu kademeye inmez, 11px `--t-veri`de durur.
+
+Komşu kademeler arasındaki oran üste doğru HIZLANIR (1,10 → 1,18 → 1,23 → 1,31 → 1,33 → 1,43 → 1,45) ve bu bir kapıdır: %8'in altında bir adım ekranda ayırt edilmez ve hiyerarşi değil tekrar üretir. Eski ölçekte üç piksel aralığında altı kademe vardı (11 · 12 · 12,5 · 13 · 13,5 · 14) ve tek başına 11px bütün bildirimlerin %44'üydü.
 
 ### Named Rules
-**The İki Taban Rule.** Prototip kolon başlığını 8.5px, ray etiketini 7.5px çiziyordu. Üründe İKİ taban vardır ve ikisi ayrı iş yapar: İÇERİK taşıyan her şey — eylem (düğme), sayı, olgu, ölçüm — en az **11px** (`--t-code`); yalnız yapısal KAŞ etiketi **10px**'e (`--t-label`) inebilir. Ölçüldü (2026-09-02): tek kademedeyken `Çıkış` düğmesi 10px, risk matrisinin hücre sayıları ve portföy künyeleri 9px kalıyordu — hiçbiri dekoratif değil. 9px ve altı üründe yoktur.
+**The İki Taban Rule.** Prototip kolon başlığını 8.5px, ray etiketini 7.5px çiziyordu. Üründe İKİ taban vardır ve ikisi ayrı iş yapar: İÇERİK taşıyan her şey — eylem (düğme), sayı, olgu, ölçüm — en az **11px** (`--t-veri`); yalnız yapısal KAŞ etiketi **10px**'e (`--t-etiket`) inebilir. Ölçüldü (2026-09-02): tek kademedeyken `Çıkış` düğmesi 10px, risk matrisinin hücre sayıları ve portföy künyeleri 9px kalıyordu — hiçbiri dekoratif değil. 9px ve altı üründe yoktur.
 
 **The Büyük Harf Rule.** Büyük harf YAPISAL KAŞA aittir — veriye, ada, cümleye değil. Ölçüldü (15 Eyl 2026, odak turu): ana sayfada 83 büyük harfli metin parçasının 24'ü tesis adıydı (20px), 3'ü üretim tipi adı (18px), biri tam bir cümle; portföyde seçili tesis adı 34px, tesis dosyasında 78px büyük harfti. Kaşla aynı sesle konuşan veri, kaşı işlevsiz kılar. Kural iki dişlidir: (1) ad, başlık (h1/h2), cümle, boş durum ve değer hiçbir boyda büyük harf olmaz; (2) **13px ve üstü büyük harf yalnız gezinme ve koddur** (alan sekmesi, ikincil sıra, bölüm seçici, üretim tipi sekmeleri, birim kodu) — izin listesi bekçide adıyla durur ve yalnız küçülür (`tests/bekci/buyuk-harf.test.ts`, URN-KBK-021). Cümle ve sayı taşıyan bir satır `.etiket` değil `.ab-dip`tir.
 

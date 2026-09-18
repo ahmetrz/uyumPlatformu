@@ -21,7 +21,7 @@ export function Ara({ deger, degistir, etiket }: {
       style={{
         width: 118, background: 'none', border: 0,
         borderBottom: 'var(--bw-hair) solid var(--hr2)',
-        padding: '3px 0', fontFamily: 'var(--veri)', fontSize: 'var(--t-label)',
+        padding: '3px 0', fontFamily: 'var(--veri)', fontSize: 'var(--t-etiket)',
         letterSpacing: 'var(--tr-label)', textTransform: 'uppercase',
       }}
     />

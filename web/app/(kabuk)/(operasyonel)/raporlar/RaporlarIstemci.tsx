@@ -234,12 +234,12 @@ function DagilimSatiri({ etiket, oran, durum, sag, not }: {
   return (
     <div className="ab-dagilim" style={{ alignItems: 'center', padding: 'var(--s12) 0',
       borderBottom: 'var(--bw-hair) solid var(--hr)' }}>
-      <span style={{ fontSize: 'var(--t-cell)', fontWeight: 600 }}>{etiket}</span>
+      <span style={{ fontSize: 'var(--t-govde)', fontWeight: 600 }}>{etiket}</span>
       <Bar oran={oran} durum={durum} />
-      <span style={{ fontFamily: 'var(--veri)', fontSize: 'var(--t-label)', color: 'var(--i3)' }}>
+      <span style={{ fontFamily: 'var(--veri)', fontSize: 'var(--t-etiket)', color: 'var(--i3)' }}>
         {not ?? ''}
       </span>
-      <span style={{ textAlign: 'right', fontFamily: 'var(--veri)', fontSize: 'var(--t-row)',
+      <span style={{ textAlign: 'right', fontFamily: 'var(--veri)', fontSize: 'var(--t-govde)',
         fontWeight: 600, fontVariantNumeric: 'tabular-nums' }}>
         {sag}
       </span>

@@ -223,7 +223,7 @@ export default function RiskDetayIstemci({ veri }: { veri: DetayVerisi }) {
                     <span key={h.anahtar} style={{ display: 'contents' }}>
                       {i > 0 && (
                         <span aria-hidden style={{ width: 28, display: 'grid', placeItems: 'center',
-                          fontFamily: 'var(--veri)', fontSize: 'var(--t-code-lg)', color: 'var(--i3)' }}>
+                          fontFamily: 'var(--veri)', fontSize: 'var(--t-veri)', color: 'var(--i3)' }}>
                           →
                         </span>
                       )}
@@ -268,7 +268,7 @@ export default function RiskDetayIstemci({ veri }: { veri: DetayVerisi }) {
                       }}>
                         <Im durum={a.im} enKotu={a.asti} ad={a.baslik} />
                         <span style={{ minWidth: 0 }}>
-                          <span style={{ display: 'block', fontSize: 'var(--t-body)',
+                          <span style={{ display: 'block', fontSize: 'var(--t-govde)',
                             fontWeight: a.asti ? 600 : 500,
                             color: a.asti ? 'var(--murekkep)' : 'var(--i2)',
                             overflow: 'hidden', textOverflow: 'ellipsis',
@@ -277,18 +277,18 @@ export default function RiskDetayIstemci({ veri }: { veri: DetayVerisi }) {
                           </span>
                           {a.asti && (
                             <span style={{ display: 'block', marginTop: 'var(--s3)',
-                              fontFamily: 'var(--veri)', fontSize: 'var(--t-code)',
+                              fontFamily: 'var(--veri)', fontSize: 'var(--t-veri)',
                               color: 'var(--bd)' }}>
                               hedef +{a.asim} gün
                             </span>
                           )}
                         </span>
-                        <span style={{ fontSize: 'var(--t-cell)',
+                        <span style={{ fontSize: 'var(--t-govde)',
                           color: a.sorumlu ? 'var(--i2)' : 'var(--md)' }}>
                           {a.sorumlu ?? 'atanmadı'}
                         </span>
                         <span style={{ justifySelf: 'end', fontFamily: 'var(--veri)',
-                          fontSize: 'var(--t-code-lg)',
+                          fontSize: 'var(--t-veri)',
                           color: a.asti ? 'var(--bd)' : 'var(--i3)' }}>
                           {a.hedef ? tarihTR(a.hedef) : '—'}
                         </span>
@@ -366,12 +366,12 @@ function ZincirKarti({ halka }: { halka: Halka }) {
   const ic: ReactNode = (
     <>
       <Im durum={halka.durum} ad={halka.kod} />
-      <span style={{ display: 'block', marginTop: 'var(--s9)', fontSize: 'var(--t-body)',
+      <span style={{ display: 'block', marginTop: 'var(--s9)', fontSize: 'var(--t-govde)',
         fontWeight: 600, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
         {halka.kod}
       </span>
       <span style={{ display: 'block', marginTop: 'var(--s2)', fontFamily: 'var(--veri)',
-        fontSize: 'var(--t-code)', color: 'var(--i3)' }}>
+        fontSize: 'var(--t-veri)', color: 'var(--i3)' }}>
         {halka.not}
       </span>
     </>

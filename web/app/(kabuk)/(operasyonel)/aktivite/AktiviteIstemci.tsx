@@ -234,7 +234,7 @@ function IzCekmecesi({ kayit, komsular, kapat }: {
           <b style={{ fontWeight: 700 }}>{aktorMetni(kayit)}</b>{' '}
           {eylemCumlesi(kayit.eylem, kayit.varlikTipi, kayit.alan, ET)}
         </p>
-        <p style={{ margin: 'var(--s10) 0 0', fontSize: 'var(--t-cell)', color: 'var(--i2)' }}>
+        <p style={{ margin: 'var(--s10) 0 0', fontSize: 'var(--t-govde)', color: 'var(--i2)' }}>
           {zamanTR(kayit.zaman)}
         </p>
       </div>
@@ -249,7 +249,7 @@ function IzCekmecesi({ kayit, komsular, kapat }: {
       <div className="ab-panel-blok" style={{ marginTop: 'var(--s22)' }}>
         <p className="etiket" style={{ margin: '0 0 var(--s10)' }}>Değişim</p>
         {degisim ? (
-          <p style={{ margin: 0, fontSize: 'var(--t-cell)', fontFamily: 'var(--veri)' }}>
+          <p style={{ margin: 0, fontSize: 'var(--t-govde)', fontFamily: 'var(--veri)' }}>
             {degisim}
           </p>
         ) : (
@@ -269,11 +269,11 @@ function IzCekmecesi({ kayit, komsular, kapat }: {
               borderLeft: 'var(--bw-edge) solid',
               borderLeftColor: k.id === kayit.id ? 'var(--aksan)' : 'var(--hr2)',
               paddingLeft: 'var(--s12)' }}>
-              <span style={{ fontSize: 'var(--t-field)' }}>
+              <span style={{ fontSize: 'var(--t-govde)' }}>
                 <b style={{ fontWeight: 600 }}>{aktorMetni(k)}</b>{' '}
                 {eylemCumlesi(k.eylem, k.varlikTipi === kayit.varlikTipi ? null : k.varlikTipi, k.alan, ET)}
               </span>
-              <span style={{ fontFamily: 'var(--veri)', fontSize: 'var(--t-label)', color: 'var(--i3)' }}>
+              <span style={{ fontFamily: 'var(--veri)', fontSize: 'var(--t-etiket)', color: 'var(--i3)' }}>
                 {zamanTR(k.zaman)}
                 {degisimMetni(k) && ` · ${degisimMetni(k)}`}
               </span>
@@ -311,7 +311,7 @@ function Ara({ deger, degistir }: { deger: string; degistir: (v: string) => void
       style={{
         width: 118, background: 'none', border: 0,
         borderBottom: 'var(--bw-hair) solid var(--hr2)',
-        padding: '3px 0', fontFamily: 'var(--veri)', fontSize: 'var(--t-label)',
+        padding: '3px 0', fontFamily: 'var(--veri)', fontSize: 'var(--t-etiket)',
         letterSpacing: 'var(--tr-label)', textTransform: 'uppercase',
       }}
     />

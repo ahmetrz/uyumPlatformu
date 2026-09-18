@@ -341,9 +341,9 @@ const SABOTAJLAR = [
     kural: '13px ve üstü büyük harf yalnız gezinme ve koddur; tesis adı veridir',
     dosya: 'app/kabuk.css',
     ara: `  /* cümle düzeni — tesis adı veridir, kaş değil (SIS-KBK-031) */
-  font-family: var(--gorunum); font-size: 20px; line-height: 1.1;`,
+  font-family: var(--gorunum); font-size: var(--t-bolum); line-height: 1.1;`,
     yaz: `  /* cümle düzeni — tesis adı veridir, kaş değil (SIS-KBK-031) */
-  font-family: var(--gorunum); font-size: 20px; line-height: 1.1; text-transform: uppercase;`,
+  font-family: var(--gorunum); font-size: var(--t-bolum); line-height: 1.1; text-transform: uppercase;`,
     testler: ['tests/bekci/buyuk-harf.test.ts', 'tests/odak-yayma.test.ts'],
   },
   {
@@ -351,10 +351,10 @@ const SABOTAJLAR = [
     kural: 'h2 başlığı hiçbir boyda büyük harf olmaz',
     dosya: 'app/kabuk.css',
     ara: `  margin: 12px 0 0; font-family: var(--gorunum); font-weight: 600;
-  font-size: 34px; line-height: 1.1;
+  font-size: var(--t-manset); line-height: 1.1;
 }`,
     yaz: `  margin: 12px 0 0; font-family: var(--gorunum); font-weight: 600;
-  font-size: 34px; line-height: 1.1; text-transform: uppercase;
+  font-size: var(--t-manset); line-height: 1.1; text-transform: uppercase;
 }`,
     testler: ['tests/bekci/buyuk-harf.test.ts'],
   },
@@ -362,11 +362,11 @@ const SABOTAJLAR = [
     ad: 'Bir kaş kuralı büyük harfi bıraktı — tarama daha az şey görüyor',
     kural: 'Büyük harf kuralı sayısı ölçüm tabanının altına sessizce inemez',
     dosya: 'app/kabuk.css',
-    ara: `  font-family: var(--veri); font-size: 11px; letter-spacing: .1em;
+    ara: `  font-family: var(--veri); font-size: var(--t-veri); letter-spacing: .1em;
   text-transform: uppercase; text-decoration: none;
 }
 .ab-atla:focus, .ab-atla:focus-visible {`,
-    yaz: `  font-family: var(--veri); font-size: 11px; letter-spacing: .1em;
+    yaz: `  font-family: var(--veri); font-size: var(--t-veri); letter-spacing: .1em;
   text-decoration: none;
 }
 .ab-atla:focus, .ab-atla:focus-visible {`,
@@ -762,10 +762,42 @@ const SABOTAJLAR = [
     testler: ['tests/kunye-yolu.test.ts'],
   },
   {
-    ad: 'Durum manşeti yeniden eylemli satırı eziyor (42 → 68px)',
+    ad: 'İki jeton aynı değere çakıştı (--t-code-lg sınıfı)',
+    kural: 'Aynı değeri taşıyan iki jeton, olmayan bir ayrımı vaat eder',
+    dosya: 'app/kabuk.css',
+    ara: '  --t-ekran: 28px;',
+    yaz: '  --t-ekran: 21px;',
+    testler: ['tests/bekci/tipografi-olcegi.test.ts'],
+  },
+  {
+    ad: 'Komşu kademe ayırt edilemez hâle geldi (üç pikselde altı kademe)',
+    kural: 'Komşu kademeler arasındaki oran %8\'in altına inemez',
+    dosya: 'app/kabuk.css',
+    ara: '  --t-baslik: 16px;',
+    yaz: '  --t-baslik: 14px;',
+    testler: ['tests/bekci/tipografi-olcegi.test.ts'],
+  },
+  {
+    ad: 'Bir bildirim jeton katmanını yeniden ATLADI',
+    kural: 'Her font-size ya jetondan geçer ya izin listesinde beyanlıdır',
+    dosya: 'app/kabuk.css',
+    ara: '  font-size: var(--t-ekran); line-height: 1.15; letter-spacing: -.01em;',
+    yaz: '  font-size: 26px; line-height: 1.15; letter-spacing: -.01em;',
+    testler: ['tests/bekci/tipografi-olcegi.test.ts'],
+  },
+  {
+    ad: 'Satır içi stil TANIMSIZ jetona başvurdu (ekran sessizce kalıtıma düşer)',
+    kural: 'Başvurulan her --t-* jetonu TANIMLI olmalıdır',
+    dosya: 'app/(kabuk)/(operasyonel)/envanter/Formlar.tsx',
+    ara: "<span style={{ display: 'block', fontSize: 'var(--t-govde)', fontWeight: 600 }}>",
+    yaz: "<span style={{ display: 'block', fontSize: 'var(--t-cell)', fontWeight: 600 }}>",
+    testler: ['tests/bekci/tipografi-olcegi.test.ts'],
+  },
+  {
+    ad: 'Durum manşeti yeniden eylemli satırı eziyor (ölçekten 68px\'e)',
     kural: 'Ekranın birincil işi müdahaledir; ölçek karar değerini izler',
     dosya: 'app/kabuk.css',
-    ara: '  font-family: var(--gorunum); font-weight: 600; font-size: 42px; line-height: .85;',
+    ara: '  font-family: var(--gorunum); font-weight: 600; font-size: var(--t-manset); line-height: .85;',
     yaz: '  font-family: var(--gorunum); font-weight: 600; font-size: 68px; line-height: .8;  /* SABOTAJ */',
     testler: ['tests/saha-sadelestirme.test.ts'],
   },

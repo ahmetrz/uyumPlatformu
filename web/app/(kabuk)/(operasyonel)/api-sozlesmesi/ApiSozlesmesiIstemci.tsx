@@ -137,7 +137,7 @@ export default function ApiSozlesmesiIstemci({
         {acik && (
           <pre style={{
             marginTop: 'var(--s12)', maxHeight: '52vh', overflow: 'auto',
-            fontFamily: 'var(--veri)', fontSize: 'var(--t-code)', lineHeight: 1.55,
+            fontFamily: 'var(--veri)', fontSize: 'var(--t-veri)', lineHeight: 1.55,
             background: 'var(--panel2)', padding: 'var(--s12)', borderRadius: 3,
             userSelect: 'all',
           }}>{belge}</pre>

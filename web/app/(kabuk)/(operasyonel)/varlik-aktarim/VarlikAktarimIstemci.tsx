@@ -503,7 +503,7 @@ function AktarimCekmecesi({
       {a.hataMesaji && (
         <div className="ab-panel-blok" style={{ marginTop: 'var(--s20)' }}>
           <p className="etiket" style={{ margin: '0 0 var(--s8)' }}>Geri alma nedeni</p>
-          <p style={{ margin: 0, fontSize: 'var(--t-cell)', color: 'var(--bd)' }}>{a.hataMesaji}</p>
+          <p style={{ margin: 0, fontSize: 'var(--t-govde)', color: 'var(--bd)' }}>{a.hataMesaji}</p>
         </div>
       )}
 
@@ -543,7 +543,7 @@ const Bos = () => <span style={{ color: 'var(--i3)' }}>—</span>;
 
 function Mono({ children, renk }: { children: React.ReactNode; renk?: string }) {
   return (
-    <span style={{ fontFamily: 'var(--veri)', fontSize: 'var(--t-code)', color: renk,
+    <span style={{ fontFamily: 'var(--veri)', fontSize: 'var(--t-veri)', color: renk,
       overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', display: 'block' }}>
       {children}
     </span>
@@ -566,7 +566,7 @@ function DuzTablo({
         {satirlar.map((s, i) => (
           <div key={i} style={{ display: 'grid', gridTemplateColumns: genislikler,
             gap: 'var(--s14)', padding: 'var(--s10) 0', alignItems: 'center',
-            fontSize: 'var(--t-cell)', borderBottom: 'var(--bw-hair) solid var(--hr)' }}>
+            fontSize: 'var(--t-govde)', borderBottom: 'var(--bw-hair) solid var(--hr)' }}>
             {s.map((h, j) => <span key={j} style={{ minWidth: 0 }}>{h}</span>)}
           </div>
         ))}

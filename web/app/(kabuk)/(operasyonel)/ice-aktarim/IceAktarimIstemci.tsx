@@ -387,7 +387,7 @@ const Bilinmiyor = () => <span style={{ color: 'var(--i3)' }}>bilinmiyor</span>;
 
 function Mono({ children, renk }: { children: ReactNode; renk?: string }) {
   return (
-    <span style={{ fontFamily: 'var(--veri)', fontSize: 'var(--t-code)', color: renk,
+    <span style={{ fontFamily: 'var(--veri)', fontSize: 'var(--t-veri)', color: renk,
       overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', display: 'block' }}>
       {children}
     </span>
@@ -410,7 +410,7 @@ function DuzTablo({
         {satirlar.map((s, i) => (
           <div key={i} style={{ display: 'grid', gridTemplateColumns: genislikler,
             gap: 'var(--s14)', padding: 'var(--s10) 0', alignItems: 'center',
-            fontSize: 'var(--t-cell)', borderBottom: 'var(--bw-hair) solid var(--hr)' }}>
+            fontSize: 'var(--t-govde)', borderBottom: 'var(--bw-hair) solid var(--hr)' }}>
             {s.map((h, j) => <span key={j} style={{ minWidth: 0 }}>{h}</span>)}
           </div>
         ))}

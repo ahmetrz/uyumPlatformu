@@ -1,7 +1,7 @@
 {
-  "imza": "f638c5c43f2dda4c531adeb1b76411e9",
-  "dosya": 260,
-  "vaka": 4585,
+  "imza": "c70f8391d4d31f600950c174f4b5910f",
+  "dosya": 261,
+  "vaka": 4590,
   "atlanan": 1,
   "dosyalar": {
     "tests/adaptor-yetenekleri.test.ts": {
@@ -77,6 +77,10 @@
       "atlanan": 0
     },
     "tests/bekci/gunluk-sir.test.ts": {
+      "vaka": 5,
+      "atlanan": 0
+    },
+    "tests/bekci/kabuk-kromu.test.ts": {
       "vaka": 5,
       "atlanan": 0
     },

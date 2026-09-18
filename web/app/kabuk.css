@@ -499,18 +499,43 @@
   letter-spacing: var(--tr-etiket); text-transform: uppercase; color: var(--aksan);
 }
 .ab-ust > nav { display: flex; align-items: stretch; }
+/* ── ÖLÇÜLDÜ: MARKA İLE GEZİNME AYNI KADEMEDE YARIŞIYORDU ────────────
+   Sekme de marka da `--t-baslik` (16px) taşıyordu; tek fark ağırlıktı
+   (700 / 500). Sonuç: marka "marka" gibi okunmuyor, beş sekme de "beş
+   başlık" gibi okunuyordu — 56px'lik bir barda altı eşit ağırlıklı
+   tipografik nesne.
+
+   Sekme BİR KADEME İNER (13px / 600). Marka barın tek 16px nesnesi olur
+   ve sekmeler bir RAY hâline gelir. 13px, büyük harf kuralının eşiğinin
+   ÜSTÜNDEDİR (`13px ve üstü büyük harf yalnız gezinme ve koddur`) — yani
+   bu bir istisna değil, kuralın kendi kapsamıdır ve izin listesindeki
+   satır canlı kalır (`tests/bekci/buyuk-harf.test.ts`).
+
+   Dolgu 20px'te KALIR: boy düşünce sekme daralırdı ve dokunma hedefi de
+   onunla daralırdı. */
 .ab-ust > nav a {
   display: flex; align-items: center; padding: 0 20px;
-  font-family: var(--gorunum); font-size: var(--t-baslik); font-weight: 500;
+  font-family: var(--gorunum); font-size: var(--t-govde); font-weight: 600;
   letter-spacing: var(--tr-gezinme); text-transform: uppercase;
   color: var(--i3); border-bottom: 2px solid transparent;
 }
 .ab-ust > nav a:hover { color: var(--murekkep); }
-.ab-ust > nav a[aria-current='page'] { color: var(--murekkep); border-bottom-color: var(--aksan); }
+/* Aktif sekme ÜÇ ipucu taşır: mürekkep + bakır alt çizgi + panel zemini.
+   Zemin yalnız AKTİF olana verilir, hover'a değil: beş sekme üzerinde
+   gezinen fare, beş kez yanıp sönen bir alan üretirdi. */
+.ab-ust > nav a[aria-current='page'] {
+  color: var(--murekkep); background: var(--panel); border-bottom-color: var(--aksan);
+}
 /* Sağ küme HİÇBİR GENİŞLİKTE DÜŞMEZ: arama ve çıkış her zaman erişilir.
    Ölçüldü (eski A çubuğu): 1366px'te 181px taşıyor, Çıkış ekran dışında
    kalıyordu. Kişi bloğu ilk daralan/düşen öğedir (`dar-gizle`). */
-.ab-ust .sag { margin-left: auto; display: flex; align-items: stretch; gap: 0; padding: 0 0 0 12px; flex: none; }
+/* Yardımcı küme kendi bölgesidir ve mercekten AYRILIR: sol saç çizgisi
+   barı okunur kılar — `marka │ gezinme … mercek │ yardımcılar`. Üç dikey
+   çizginin üçü de FARKLI bir yazmaç ayırır; süs değil yapıdır. */
+.ab-ust .sag {
+  margin-left: auto; display: flex; align-items: stretch; gap: 0; flex: none;
+  border-left: 1px solid var(--hr); padding: 0 0 0 14px;
+}
 .ab-ust .sag > * { align-self: center; }
 /* Yardımcı eylemler birincil gezinmeyle ağırlık YARIŞTIRMAZ: çerçeve yok,
    dört eş düğme yok. Bildirim çerçevesiz bir bağ, dikkat yalnız sayaç
@@ -978,8 +1003,16 @@
     gap: 8px 16px; padding: 8px 16px;
   }
 }
+/* ── ÜÇ KİMLİK ÖĞESİ, TEK KÜME ────────────────────────────────────
+   Künye · sürüm · telif aynı soruyu yanıtlar ("bu kurulum NEDİR") ve
+   solda tek küme olur. Eskiden telif bağ kümesinin SAĞINDA duruyordu
+   (`nav { margin-left: auto }` + 24px oluk) ve bağlarla tek küme gibi
+   okunuyordu — oysa telif bir gezinme değil bir künye satırıdır. */
 .ab-alt .kunye { color: var(--i2); }
-.ab-alt .kunye .mono { font-size: var(--t-veri); color: var(--i3); }
+/* Sürüm bir DERLEME KOORDİNATIDIR; okunması gerekir (destek kaydına
+   yazılır), bu yüzden künyenin kuyruğundaki soluk griden bir adım öne
+   alınır — ama künyenin önüne geçmez. */
+.ab-alt .surum { font-size: var(--t-veri); color: var(--i2); }
 .ab-alt nav { display: inline-flex; gap: 16px; margin-left: auto; }
 /* Ayak sarınca bağ kümesi de sarar ve sağa itilmez. Kural temel kuralın
    ARDINDA durur: bir üstteki `max-width: 700px` bloğunun içine
@@ -996,10 +1029,16 @@
 .ab-alt nav a {
   display: inline-flex; align-items: center; min-height: 24px;
   color: var(--i3); line-height: var(--lh-manset);
-  text-decoration: underline; text-decoration-color: var(--hr2);
+  /* Alt çizgi KALIR ama bir kademe geri çekilir (`--hr2` → `--hr`).
+     Dört alt çizgi 11px'lik bir satırda gürültüydü; silmek ise bağ
+     duyusunu düşürürdü. Odak ve hover'da bakıra çıkar — yani ipucu
+     kaybolmaz, yalnız DİNLENİR. */
+  text-decoration: underline; text-decoration-color: var(--hr);
   text-underline-offset: 3px;
 }
-.ab-alt nav a:hover { color: var(--murekkep); text-decoration-color: var(--aksan); }
+.ab-alt nav a:hover, .ab-alt nav a:focus-visible {
+  color: var(--murekkep); text-decoration-color: var(--aksan);
+}
 .ab-alt .telif { color: var(--i3); }
 /* Amiral: iki satır sıkışır ama BİRLEŞMEZ — durum 26px (panel zemini,
    canlı veri) + ayak 22px (zemin, kurumsal künye). Eski tek 28px şerit

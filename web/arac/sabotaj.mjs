@@ -879,6 +879,32 @@ const SABOTAJLAR = [
     yaz: '    <VeriTabloSABOTAJ<Satir>\n      etiket={etiket ?? `${konuBasligi} kütüğü`}',
     testler: ['tests/bekci/tablo-grameri.test.ts'],
   },
+
+  /* ── KABUK KROMU · başlık ve ayak ─────────────────────────────────── */
+  {
+    ad: 'Gezinme sekmesini markayla aynı kademeye geri çıkar',
+    kural: 'Marka barın TEK 16px nesnesidir; sekme aynı kademeye çıkınca altı eşit ağırlıklı nesne olur ve hiyerarşi kaybolur',
+    dosya: 'app/kabuk.css',
+    ara: '  font-family: var(--gorunum); font-size: var(--t-govde); font-weight: 600;\n  letter-spacing: var(--tr-gezinme); text-transform: uppercase;\n  color: var(--i3); border-bottom: 2px solid transparent;',
+    yaz: '  font-family: var(--gorunum); font-size: var(--t-baslik); font-weight: 600;  /* SABOTAJ */\n  letter-spacing: var(--tr-gezinme); text-transform: uppercase;\n  color: var(--i3); border-bottom: 2px solid transparent;',
+    testler: ['tests/bekci/kabuk-kromu.test.ts'],
+  },
+  {
+    ad: 'Ayak telifini koda göm (kiracı adı yapılandırmadan gelmesin)',
+    kural: 'Kiracı adı koda gömülürse su kiracısı kurunca başlıkta kendi adını, ayakta "Demo Enerji" görür; üstelik "Enerji" çekirdekte duran bir SEKTÖR sözcüğü olur',
+    dosya: 'components/kabuk/Kabuk.tsx',
+    ara: '      <span className="telif">© {new Date().getFullYear()} {veri.kiraciAd}</span>',
+    yaz: '      <span className="telif">© 2026 Demo Enerji</span>  {/* SABOTAJ */}',
+    testler: ['tests/bekci/kabuk-kromu.test.ts'],
+  },
+  {
+    ad: 'Ayakta telifi bağ kümesinin arkasına geri at',
+    kural: 'Telif bir künye satırıdır, gezinme değil; bağ kümesinin içine düşünce dört bağla tek küme gibi okunur',
+    dosya: 'components/kabuk/Kabuk.tsx',
+    ara: '      <span className="telif">© {new Date().getFullYear()} {veri.kiraciAd}</span>\n      {/* ── GEZİNME KÜMESİ · sağda ───────────────────────────────────',
+    yaz: '      {/* SABOTAJ — telif bağların ardına atıldı */}\n      {/* ── GEZİNME KÜMESİ · sağda ───────────────────────────────────',
+    testler: ['tests/bekci/kabuk-kromu.test.ts'],
+  },
 ];
 
 function testKos(testler) {

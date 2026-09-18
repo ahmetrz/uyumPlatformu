@@ -897,6 +897,38 @@ export const PLATFORM_SENARYOLARI: Senaryo[] = [
     katmanlar: ['UI'],
   },
   {
+    id: 'URN-KBK-022', alan: 'Sistem', rota: '—', eksen: 'arayuz',
+    amac: 'Kabuk kromu (56px başlık · 32px ayak) her ekranda durur; '
+      + 'oradaki bir kusur 49 rotanın hepsine dağılır. Ölçüldü '
+      + '(18 Eyl 2026): (1) marka ile gezinme AYNI kademede yarışıyordu '
+      + '— ikisi de 16px, tek fark ağırlıktı; 56px\'lik barda altı eşit '
+      + 'ağırlıklı tipografik nesne vardı. (2) Ayak telifi kiracı adını '
+      + 'KODA GÖMMÜŞTÜ (`© 2026 Demo Enerji`): başlık adı '
+      + 'yapılandırmadan okuyordu, ayak okumuyordu — su kiracısı '
+      + 'kurduğunda başlıkta kendi adını, ayakta "Demo Enerji" '
+      + 'görüyordu ve "Enerji" ÇEKİRDEK bir bileşende duran bir SEKTÖR '
+      + 'sözcüğüydü; yıl da sabitti. Marka kapısı bunu göremiyordu, '
+      + 'çünkü nöbetçiyle yalnız ÜRÜN adını koruyordu. (3) Telif bağ '
+      + 'kümesinin içine düşüyor, dört bağla tek küme gibi okunuyordu.',
+    rol: 'geliştirici', kapsam: 'ürün geneli',
+    onkosul: 'Kaynak ağacı okunabilir', veriHali: 'normal',
+    eylem: 'Kabuk kromu bekçisi kaynağı tarar; marka kapısı nöbetçi '
+      + 'ADLARLA derleyip çıktıyı okur',
+    beklenenSonuc: 'Marka kademesi gezinmeden KESİNLİKLE büyüktür '
+      + '(16px / 13px). Aktif sekme ÜÇ ipucu taşır — mürekkep, panel '
+      + 'zemini ve bakır alt çizgi; durum yalnız renkle anlatılmaz. '
+      + 'Kiracı adı kabuk bileşenine düz dizge olarak GİRMEZ; telif '
+      + 'satırı adı `veri.kiraciAd`den, yılı takvimden hesaplar. '
+      + 'Ayakta kimlik kümesi (künye · sürüm · telif) gezinme '
+      + 'kümesinden ÖNCE gelir. Marka kapısı iki nöbetçi taşır ve '
+      + 'kiracı adı sızıntısını KABUK KROMUYLA sınırlı tarar — '
+      + 'beyanlı bir sınırdır, çünkü tohum verisinde tesis adları o adı '
+      + 'meşru olarak taşır (ölçüldü: 567 dosya).',
+    beklenenEkran: 'Kabuk · başlık ve ayak (bütün rotalar)',
+    beklenenIz: 'yazma yok', beklenenBildirim: 'yok',
+    katmanlar: ['UI'],
+  },
+  {
     id: 'URN-TBL-001', alan: 'Sistem', rota: '—', eksen: 'arayuz',
     amac: 'Kütük gramerinin tek yerden çıktığı İDDİA edilmişti; ölçüm '
       + 'iddiayı doğruladı ama BAŞKA bir kaymayı ortaya çıkardı. '

@@ -378,9 +378,10 @@ sınıfları (`.etiket .deger .cumle .mono .eylem .kod .konu .alt .sag`).
 - **Error:** `.hata` 11px `--bd` tek satır, `aria-invalid`; snackbar ve toast yok.
 
 ### Navigation
-- **Alan sekmeleri** (`.ab-ust > nav`): beş alan (`ALANLAR`: Saha · Portföy · Uyum · Varlık · Risk), Barlow Condensed 15px büyük harf, aktif sekme bakır alt çizgi, `aria-current="page"` tekil. Rota → alan eşlemesi `alanSec` (yonler.ts).
+- **Alan sekmeleri** (`.ab-ust > nav`): beş alan (`ALANLAR`: Saha · Portföy · Uyum · Varlık · Risk), Barlow Condensed **13px** (`--t-govde`) 600 büyük harf. Marka bir kademe ÜSTTEDİR (16px `--t-baslik`) ve barın tek 16px nesnesidir — ölçüldü (18 Eyl 2026): ikisi de 16px'ken 56px'lik barda altı eşit ağırlıklı tipografik nesne vardı ve hiçbiri öne çıkmıyordu. Aktif sekme ÜÇ ipucu taşır (mürekkep · panel zemini · bakır alt çizgi), `aria-current="page"` tekil. Rota → alan eşlemesi `alanSec` (yonler.ts). Bekçi: `tests/bekci/kabuk-kromu.test.ts` (URN-KBK-022).
 - **İkincil sıra** (`.ab-ikincil`): alanın bölümleri (`IKINCIL`), gruplar 10px etiketle ayrılır; aktif öğe mürekkep + 500 + bakır alt çizgi, `aria-current="true"`. Sekmede yeri olmayan ekran kendi dizinini (`.ab-c-ekrandizin[data-dizin="ekran"]`) verebilir.
 - **Üst bağlar**: Bildirimler · Ayarlar · Yardım · Çıkış; okunmamış bildirim rozeti sayıdır (`99+` tavan, sıfırda rozet yok). Komut paleti Ctrl/⌘+K.
+- **Ayak** (`.ab-alt`): İKİ küme, iki soru. Solda KİMLİK (künye · sürüm+ortam · telif) — "bu kurulum nedir"; sağda GEZİNME (Yardım · Destek · Kısayollar · Tasarım sistemi) — "nereye gidebilirim". Kümeleri boşluk ayırır, yeni kutu ya da çizgi değil. Telif kiracı adını ve yılı HESAPLAR (`veri.kiraciAd` · `getFullYear()`); koda gömülmesi kapıyı kırmızı yakar (aynı bekçi + `arac/marka-kapisi.mjs` kiracı nöbetçisi). Bağların alt çizgisi `--hr`de dinlenir, odak ve hover'da bakıra çıkar; 24px dokunma hedefi korunur.
 - **Bağlam çubuğu** (`BaglamCubugu`, `.ab-baglam`): en fazla üç seviyelik kırıntı (orta segment kısalır), sağda üretim tipine göre gruplu santral seçici; fotoğrafı olmayan santral tipografik döşeme alır.
 
 ### Tables (`Tablo`, `Matris`, `GenisleyenSatir`)

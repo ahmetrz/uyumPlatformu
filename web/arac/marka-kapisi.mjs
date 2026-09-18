@@ -68,11 +68,24 @@ const DERLEME = path.join(WEB, '.next');
    ama çakışmadığından emin olun. */
 const NOBETCI = 'ZZ-MARKA-NOBETCI-7';
 
-/** `lib/marka.ts`teki varsayılan ad — kapının aradığı "sızıntı" dizgesi. */
-function varsayilanAd() {
+/* ── İKİNCİ AD, İKİNCİ NÖBETÇİ ────────────────────────────────────────
+   Kapı doğduğunda YALNIZ `MARKA_AD`ı koruyordu ve bu bir körlüktü.
+   Ölçüldü (18 Eyl 2026): ayak `© 2026 Demo Enerji` dizgesini KODA
+   GÖMMÜŞTÜ (`components/kabuk/Kabuk.tsx`). Başlık kiracı adını
+   yapılandırmadan okuyordu, ayak okumuyordu — yani su kiracısı
+   `NEXT_PUBLIC_KIRACI_AD="Şehir Su"` verip kurduğunda başlıkta
+   "ŞEHİR SU", ayakta "Demo Enerji" yazıyordu. Üstelik "Enerji" ÇEKİRDEK
+   bir kabuk bileşeninde duran bir SEKTÖR sözcüğüydü.
+
+   Kapı yeşildi, çünkü sızıntıyı aradığı dizge ürün adıydı — kiracı adı
+   değil. İki ad var, iki nöbetçi olur. */
+const NOBETCI_KIRACI = 'ZZ-KIRACI-NOBETCI-7';
+
+/** `lib/marka.ts`teki bir varsayılan — kapının aradığı "sızıntı" dizgesi. */
+function varsayilan(ad) {
   const kaynak = readFileSync(path.join(WEB, 'lib', 'marka.ts'), 'utf8');
-  const m = /export const MARKA_AD = [^|]*\|\| '([^']+)'/.exec(kaynak);
-  if (!m) throw new Error('lib/marka.ts içinde MARKA_AD varsayılanı bulunamadı');
+  const m = new RegExp(`export const ${ad} = [^|]*\\|\\| '([^']+)'`).exec(kaynak);
+  if (!m) throw new Error(`lib/marka.ts içinde ${ad} varsayılanı bulunamadı`);
   return m[1];
 }
 
@@ -96,10 +109,14 @@ function derle() {
      ölçtüğü çıktıyı yarım bırakır ve nöbetçi adı "hiçbir yüzeyde yok"
      diye okunur — yani kapı YANLIŞ YEŞİL verir. (`derleme-ortami.mjs`) */
   if (!yerVarMi('marka:kapi')) process.exit(1);
-  console.log(`derleme: NEXT_PUBLIC_MARKA_AD="${NOBETCI}" · NEXT_PUBLIC_DEMO=1`);
+  console.log(`derleme: NEXT_PUBLIC_MARKA_AD="${NOBETCI}" · `
+    + `NEXT_PUBLIC_KIRACI_AD="${NOBETCI_KIRACI}" · NEXT_PUBLIC_DEMO=1`);
   execFileSync('npx', ['next', 'build'], {
     cwd: WEB,
-    env: { ...process.env, NEXT_PUBLIC_DEMO: '1', NEXT_PUBLIC_MARKA_AD: NOBETCI },
+    env: {
+      ...process.env, NEXT_PUBLIC_DEMO: '1',
+      NEXT_PUBLIC_MARKA_AD: NOBETCI, NEXT_PUBLIC_KIRACI_AD: NOBETCI_KIRACI,
+    },
     stdio: ['ignore', 'ignore', 'inherit'],
   });
 }
@@ -126,10 +143,63 @@ const YUZEYLER = [
   },
 ];
 
+/* Kiracı adının görünmesi GEREKEN yüzeyler. İkisi de `KIRACI_AD`ı
+   okumalı; yalnız biri okursa ürün kendi künyesinde iki farklı kuruma
+   ait olduğunu söyler. */
+/* React Sunucu Bileşeni çıktısı bitişik ifadeleri `<!-- -->` ile ayırır:
+   `© {yil} {ad}` → `© <!-- -->2026<!-- --> <!-- -->Demo Enerji`. Yüzeyin
+   METNİNİ ölçmek isteyen bir kalıp bu ayraçları temizlemelidir; ölçüldü —
+   ilk yazımda `[^<]*` ilk ayraçta kesiliyordu ve kapı, DOĞRU çalışan bir
+   kodu "telif satırı boş" diye kırmızı yakıyordu. */
+const govdeMetni = (html, sinif) => {
+  const m = new RegExp(`<span class="${sinif}">([\\s\\S]*?)</span>`).exec(html);
+  return m ? m[1].replace(/<!--[\\s\\S]*?-->/g, '').replace(/<[^>]*>/g, '').trim() : null;
+};
+
+const KIRACI_YUZEYLERI = [
+  {
+    dosya: 'uyum/index.html', nerede: 'kabuk sözcük markası (birinci satır)',
+    cikar: (s) => /<a class="marka"[^>]*>([^<]*)</.exec(s)?.[1] ?? null,
+    /* Marka ilk satırı ekranda BÜYÜK HARFTİR (`toLocaleUpperCase('tr-TR')`);
+       karşılaştırma bu yüzden kasadan bağımsız yapılır. */
+    kasasiz: true,
+  },
+  {
+    dosya: 'uyum/index.html', nerede: 'ayak telif satırı',
+    cikar: (s) => govdeMetni(s, 'telif'),
+  },
+];
+
+/* ── (a) KİRACI ADI İÇİN KAPSAM DARALIR — ÖLÇÜLMÜŞ BİR KARAR ─────────
+   Ürün adı için (a) bütün çıktıyı tarar: ürün adının veride işi yoktur,
+   her geçtiği yer bir sızıntıdır. KİRACI adı için aynısı YAPILAMAZ ve
+   bu ölçüldü: nöbetçi koşumunda varsayılan kiracı adı **567 dosyada**
+   geçti — çünkü tohum verisinde tesis adları ("Demo Enerji Genel
+   Müdürlük") meşru olarak o adı taşır. Genel bir tarama veriyi
+   sızıntıdan ayıramaz ve kapı ya hep kırmızı yanar ya susturulur.
+
+   Bu yüzden kiracı adının (a) ölçümü KABUK KROMUYLA sınırlıdır:
+   başlık (`<header class="ab-ust">`) ve ayak (`<footer class="ab-alt">`).
+   Kromda geçen bir kiracı adı, nöbetçi koşumunda YALNIZCA koda gömülü
+   olabilir — orada veri yoktur. Sınır beyanlıdır: krom DIŞINDA koda
+   gömülmüş bir kiracı adını bu kapı görmez; onu (b) yüzey listesi
+   büyüdükçe görür. */
+const KROM = [
+  { ad: 'başlık', kalip: /<header class="ab-ust"[\s\S]*?<\/header>/ },
+  { ad: 'ayak', kalip: /<footer class="ab-alt[^"]*"[\s\S]*?<\/footer>/ },
+];
+
 function main() {
-  const ad = varsayilanAd();
-  if (ad === NOBETCI) {
+  const ad = varsayilan('MARKA_AD');
+  const kiraciAd = varsayilan('KIRACI_AD');
+  if (ad === NOBETCI || kiraciAd === NOBETCI_KIRACI) {
     console.error('marka kapısı: varsayılan ad nöbetçiyle aynı — ölçüm anlamsız.');
+    process.exit(1);
+  }
+  if (ad === kiraciAd) {
+    /* İki ad aynı olursa (a) ölçümü hangi adın sızdığını söyleyemez ve
+       kapı bir adı öbürünün arkasına saklar. */
+    console.error('marka kapısı: ürün adı ile kiracı adı AYNI — iki sızıntı ayırt edilemez.');
     process.exit(1);
   }
 
@@ -141,29 +211,53 @@ function main() {
 
   const dosyalar = ciktiDosyalari(CIKTI);
 
-  /* (a) — varsayılan ad işlenmiş yüzeylerin HİÇBİRİNDE geçmemeli. */
-  const sizinti = dosyalar
-    .filter((f) => readFileSync(f, 'utf8').includes(ad))
+  /* (a) — varsayılan ADLARIN İKİSİ DE işlenmiş yüzeylerin hiçbirinde
+     geçmemeli. Ürün adı ile kiracı adı ayrı ayrı aranır ki kırmızı
+     yandığında HANGİ adın sızdığı belli olsun. */
+  const sizintiAra = (deger) => dosyalar
+    .filter((f) => readFileSync(f, 'utf8').includes(deger))
     .map((f) => path.relative(CIKTI, f));
+  const sizinti = sizintiAra(ad);
+  /* Kiracı adı YALNIZ kabuk kromunda aranır (yukarıdaki gerekçe). */
+  const kiraciSizinti = [];
+  for (const f of dosyalar.filter((x) => x.endsWith('.html'))) {
+    const html = readFileSync(f, 'utf8');
+    for (const { ad: bolge, kalip } of KROM) {
+      const dilim = kalip.exec(html)?.[0];
+      if (dilim && dilim.includes(kiraciAd)) {
+        kiraciSizinti.push(`${path.relative(CIKTI, f)} · ${bolge}`);
+      }
+    }
+  }
 
   /* (b) — nöbetçi, görünmesi gereken yüzeylerde geçmeli. */
-  const eksik = [];
-  for (const { dosya, nerede, cikar } of YUZEYLER) {
-    const yol = path.join(CIKTI, dosya);
-    if (!existsSync(yol)) { eksik.push(`${dosya} · ${nerede}: dosya üretilmemiş`); continue; }
-    const bulunan = cikar(readFileSync(yol, 'utf8'));
-    if (bulunan === null) { eksik.push(`${dosya} · ${nerede}: yüzey bulunamadı (biçim değişmiş)`); continue; }
-    if (!bulunan.includes(NOBETCI)) eksik.push(`${dosya} · ${nerede}: "${bulunan}"`);
-  }
+  const eksikAra = (yuzeyler, nobetci) => {
+    const cikti = [];
+    for (const { dosya, nerede, cikar, kasasiz } of yuzeyler) {
+      const yol = path.join(CIKTI, dosya);
+      if (!existsSync(yol)) { cikti.push(`${dosya} · ${nerede}: dosya üretilmemiş`); continue; }
+      const bulunan = cikar(readFileSync(yol, 'utf8'));
+      if (bulunan === null) { cikti.push(`${dosya} · ${nerede}: yüzey bulunamadı (biçim değişmiş)`); continue; }
+      const iki = kasasiz
+        ? bulunan.toLocaleUpperCase('tr-TR').includes(nobetci.toLocaleUpperCase('tr-TR'))
+        : bulunan.includes(nobetci);
+      if (!iki) cikti.push(`${dosya} · ${nerede}: "${bulunan}"`);
+    }
+    return cikti;
+  };
+  const eksik = eksikAra(YUZEYLER, NOBETCI);
+  const kiraciEksik = eksikAra(KIRACI_YUZEYLERI, NOBETCI_KIRACI);
 
   /* Ölçüm bitti; nöbetçi taşıyan derleme çıktısı bırakılmaz. */
   rmSync(CIKTI, { recursive: true, force: true });
   rmSync(DERLEME, { recursive: true, force: true });
 
   console.log(`\ntaranan çıktı dosyası: ${dosyalar.length}`);
-  console.log(`(a) varsayılan ad sızıntısı: ${sizinti.length}`
+  console.log(`(a) ÜRÜN adı sızıntısı:   ${sizinti.length}`
     + ' (işlenmiş yüzeyler; JS demeti taranmaz)');
-  console.log(`(b) nöbetçi eksik olan yüzey: ${eksik.length} / ${YUZEYLER.length}`);
+  console.log(`(a) KİRACI adı sızıntısı: ${kiraciSizinti.length}`);
+  console.log(`(b) ürün nöbetçisi eksik:   ${eksik.length} / ${YUZEYLER.length}`);
+  console.log(`(b) kiracı nöbetçisi eksik: ${kiraciEksik.length} / ${KIRACI_YUZEYLERI.length}`);
   console.log('not: statik demoda /giris bir yönlendirme koçanıdır; giriş ekranının '
     + 'hero metni ÖLÇÜLMEDİ (canlı sunucu ister).');
 
@@ -172,16 +266,26 @@ function main() {
     for (const f of sizinti.slice(0, 20)) console.log(`  ${f}`);
     if (sizinti.length > 20) console.log(`  … ve ${sizinti.length - 20} dosya daha`);
   }
+  if (kiraciSizinti.length > 0) {
+    console.log(`\nSIZINTI — KİRACI adı "${kiraciAd}" çıktıda geçiyor; bir yer `
+      + 'kiracı adını yapılandırmadan okumuyor:');
+    for (const f of kiraciSizinti.slice(0, 20)) console.log(`  ${f}`);
+    if (kiraciSizinti.length > 20) console.log(`  … ve ${kiraciSizinti.length - 20} dosya daha`);
+  }
   if (eksik.length > 0) {
-    console.log('\nEKSİK — nöbetçi ad şu yüzeylerde görünmüyor:');
+    console.log('\nEKSİK — ürün nöbetçisi şu yüzeylerde görünmüyor:');
     for (const e of eksik) console.log(`  ${e}`);
   }
+  if (kiraciEksik.length > 0) {
+    console.log('\nEKSİK — kiracı nöbetçisi şu yüzeylerde görünmüyor:');
+    for (const e of kiraciEksik) console.log(`  ${e}`);
+  }
 
-  if (sizinti.length > 0 || eksik.length > 0) {
+  if (sizinti.length + kiraciSizinti.length + eksik.length + kiraciEksik.length > 0) {
     console.log('\nmarka kapısı: KIRMIZI');
     process.exit(1);
   }
-  console.log('\nmarka kapısı: ürün adı tek kaynaktan geliyor (URN-KUR-004).');
+  console.log('\nmarka kapısı: ürün adı VE kiracı adı tek kaynaktan geliyor (URN-KUR-004).');
 }
 
 main();

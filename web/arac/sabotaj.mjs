@@ -911,6 +911,54 @@ const SABOTAJLAR = [
     yaz: '      {/* SABOTAJ — telif bağların ardına atıldı */}\n      {/* ── GEZİNME KÜMESİ · sağda ───────────────────────────────────',
     testler: ['tests/bekci/kabuk-kromu.test.ts'],
   },
+  {
+    ad: 'Sektör ADLARINI yeniden büyük harf yap (değer kaş sesiyle konuşsun)',
+    kural: 'Büyük harf YAPISAL KAŞA aittir; sektör adı içerik paketinden gelen bir DEĞERDİR ve kaşla aynı sesle konuşunca kaşı işlevsiz kılar',
+    dosya: 'app/kabuk.css',
+    ara: `.ab-mercek button {
+  display: inline-flex; align-items: center; padding: 0 10px;
+  font-family: var(--veri); font-size: var(--t-veri); letter-spacing: var(--tr-gezinme);
+  color: var(--i3);`,
+    yaz: `.ab-mercek button {
+  display: inline-flex; align-items: center; padding: 0 10px;
+  font-family: var(--veri); font-size: var(--t-veri); letter-spacing: var(--tr-gezinme);
+  text-transform: uppercase; color: var(--i3);  /* SABOTAJ */`,
+    testler: ['tests/bekci/kabuk-kromu.test.ts'],
+  },
+  {
+    ad: 'Kaydırma çubuğunu üçüncül metinden yüksek sesli yap',
+    kural: 'Bir KONTROL, ayırdığı içerikten daha okunaklı çizilemez — üst sınır --i3',
+    dosya: 'app/kabuk.css',
+    ara: '  --cubuk: #6A7679;',
+    yaz: '  --cubuk: #A6AEB1;  /* SABOTAJ — üçüncül metnin üstüne çıktı */',
+    testler: ['tests/bekci/kabuk-kromu.test.ts'],
+  },
+  {
+    ad: 'Kaydırma çubuğunu erişilebilirlik tabanının altına indir',
+    kural: 'Çubuk metin değil KONTROLDÜR; WCAG 1.4.11 metin dışı kontrast eşiği 3:1 ve bu taban görsel bir şikâyetle düşürülemez',
+    dosya: 'app/kabuk.css',
+    ara: '  --cubuk: #6A7679;',
+    yaz: '  --cubuk: #343B3E;  /* SABOTAJ — 1,72:1, tabanın altı */',
+    testler: ['tests/bekci/kabuk-kromu.test.ts'],
+  },
+
+  /* ── SAHA ŞERİDİ · süzgeç ölçütü ──────────────────────────────────── */
+  {
+    ad: 'Şerit süzgecini uygunsuzluğa çevir (bir uygunsuz gizlenebilir)',
+    kural: 'Süzgeç ölçütü yalnız ÖLÇÜLMÜŞLÜKTÜR; uygunsuzluğa göre süzmek karar gerektiren bir tesisi sessizce düşürebilir',
+    dosya: 'app/(kabuk)/(flagship)/Genel.tsx',
+    ara: '            .filter((s) => s.endeks !== null)',
+    yaz: '            .filter((s) => (s.sayim.uyumsuz ?? 0) > 0)  /* SABOTAJ */',
+    testler: ['tests/bekci/saha-serit.test.ts'],
+  },
+  {
+    ad: 'Süzülen kümeyi takımyıldızdan da kopar (16 tesis ekrandan silinir)',
+    kural: 'Süzülen küme BAŞKA bir yüzeyde adıyla durmalı — yoksa "bilinmeyen ≠ sıfır" çiğnenir',
+    dosya: 'app/(kabuk)/(flagship)/Genel.tsx',
+    ara: '          serit={olculmemisSerit} panelAcik={olculmemisAcik} setPanelAcik={setOlculmemisAcik}',
+    yaz: '          serit={[]} panelAcik={olculmemisAcik} setPanelAcik={setOlculmemisAcik}  /* SABOTAJ */',
+    testler: ['tests/bekci/saha-serit.test.ts'],
+  },
 ];
 
 function testKos(testler) {

@@ -364,16 +364,53 @@ export default function Genel({
             {ozet.gucYazi && ` · ${ozet.gucYazi}`}
           </span>
         </header>
-        {/* UYGUNSUZU OLAN ÖNDE. Ekranın birincil işi müdahale olduğuna
-            göre ray da karar sırasına dizilir: açık uygunsuzluğu olan
-            tesis, yatay kaydırma gerektirmeden ilk ekranda görünür.
-            Sıralama KARARLIDIR (`sort` kararlı) — eşit önceliktekiler
-            sunucunun verdiği sırayı korur, yani ölçülen hiçbir sıra
-            bozulmaz, yalnız öncelikli olanlar öne çekilir. */}
+        {/* ── ŞERİT ÖLÇÜLENLERİ TAŞIR — ÖLÇÜLDÜ, TEKRAR BULUNDU ──────────
+            Kullanıcı şeridin kaydırma çubuğunu iki kez bildirdi. Sebep
+            çubukta değil UZUNLUKTAYDI: 24 kart × 218px = 5 224px ve
+            1914px'lik bantta başparmak %37.
+
+            İlk plan "yalnız müdahale gerektirenleri göster" idi; ÖLÇÜM
+            ONU ÇÜRÜTTÜ (18 Eyl 2026): 24 tesisin 6'sının uygunsuzu var,
+            **16'sı ÖLÇÜLMEMİŞ**, 2'si ölçülmüş ve temiz. "Müdahale
+            gerektiren" = uygunsuz + bilinmeyen = 22/24; süzmek yalnız
+            iki kartı düşürürdü. Şerit çok şey gösterdiği için uzun
+            değil — tesislerin ÜÇTE İKİSİ ölçülmediği için uzun.
+
+            Asıl bulgu bir TEKRARDI: o 16 tesis aynı ekranda İKİ KEZ
+            duruyor. Takımyıldızın değerlendirilmemiş bandı onları
+            sayısıyla (16/24), güç toplamıyla, ilk üç adıyla ve
+            açılır paneliyle zaten gösteriyor — şerit aynı 16 adı ikinci
+            kez, bu kez 3 488px yer kaplayarak tekrarlıyordu. Tekrar eden
+            bir değer, farklı bir karar amacı taşımıyorsa bilişsel yük
+            kusurudur.
+
+            BİLGİ GİZLENMİYOR ("bilinmeyen ≠ sıfır"): ölçülmemişler
+            bandında adlarıyla ve sayısıyla durur, başlık portföyün
+            TAMAMINI söyler (sayı ve güç toplamı) ve şeridin sonundaki bağ
+            hepsine götürür. Şerit yalnız ÖLÇÜLEN uyumun karar sırasını
+            taşır — uygunsuzu olan önde.
+
+            Bekçi: hiçbir ÖLÇÜLEN tesis şeritten sessizce düşemez
+            (`tests/bekci/saha-serit.test.ts`, SAH-SER-002). */}
         <div className="kartlar">
           {[...tesisler]
+            .filter((s) => s.endeks !== null)
             .sort((a, b) => ((b.sayim.uyumsuz ?? 0) > 0 ? 1 : 0) - ((a.sayim.uyumsuz ?? 0) > 0 ? 1 : 0))
             .map((s) => <SahaKarti key={s.id} s={s} />)}
+          {/* Portföyün tamamına giden kapı. Şeridin SONUNDA durur: karar
+              sırası önce, gezinme sonra. */}
+          {/* Kart TERİMİ TAŞIMAZ ve bu bilinçli: "24 tesisler" Türkçede
+              yanlıştır (sayıdan sonra tekil gelir) ve doğru eki uydurmak
+              sektör bağımsızlığını kırardı: terim sözlükten gelir ve her
+              sektörün terimi FARKLI ek alır. Terimi bir üstteki başlık
+              zaten söylüyor (ad · sayı · güç); kart yalnız sayıyı ve kapıyı
+              taşır. Erişilebilir adı terimi İÇERİR, çünkü ekran
+              okuyucu başlığı o an duymuyor olabilir. */}
+          <Link href="/tesisler" className="kart tumu"
+            aria-label={`${ozet.tesisSayisi} ${tBas('tesis', 'cogul').toLocaleLowerCase('tr-TR')} — tümünü aç`}>
+            <span className="say">{ozet.tesisSayisi}</span>
+            <span className="soz">tümü →</span>
+          </Link>
         </div>
       </section>
 
@@ -452,9 +489,23 @@ function OncelikSeridi({ ozet, risk, sira }: { ozet: Ozet; risk: RiskIzgarasi; s
         title={`Artık skor ≥ 15 · açık veya işlemde${olculemeyenRisk > 0 ? ` · ${olculemeyenRisk} risk ölçülemedi (olasılık/etki girilmemiş)` : ''}`}>
         <span className="etiket">Kritik risk</span>
         <span className="mono deger">{ozet.kritikRisk}</span>
-        {olculemeyenRisk > 0 && (
-          <span className="cumle"><span className="unk">{olculemeyenRisk} ölçülemedi</span></span>
-        )}
+        {/* ── ÖLÇÜ GÖRÜNÜR OLMALI ────────────────────────────────────
+            Bu kalem ve "Risk yoğunluğu" aynı satırda İKİ FARKLI "kritik"
+            sayısı gösteriyordu (ölçüldü: 6 ve 8) ve farkı yalnız
+            `title`ta yazıyordu. Sayılar doğru — tanımlar farklı: burası
+            ARTIK SKORU ≥ 15 olanları sayar, öbürü olasılık × en büyük
+            etki matrisinin kritik bandını. Ama okuyanın elinde yalnız
+            aynı sözcük ve iki farklı sayı vardı; ya biri yanlış sanılır
+            ya hiç fark edilmez.
+
+            Depo bu sınıfı bir kez düzeltmişti: kritik bilgi yalnız
+            `title`ta duramaz (odaklanamaz, dokunmatikte hiç açılmaz).
+            Ölçü artık cümlede. Satır sayısı DEĞİŞMİYOR — ölçülemeyen
+            sayısı aynı cümleye katılır, ikinci satır açılmaz. */}
+        <span className="cumle">
+          artık skor ≥ 15
+          {olculemeyenRisk > 0 && <> · <span className="unk">{olculemeyenRisk} ölçülemedi</span></>}
+        </span>
       </Link>
     ),
     kpiGecikmisAksiyon: (
@@ -504,9 +555,14 @@ function OncelikSeridi({ ozet, risk, sira }: { ozet: Ozet; risk: RiskIzgarasi; s
             Tek istisna: kritik ve yüksek sıfırken ölçülemeyen varsa
             bilinmeyen durumu SÖZCÜKLE söylenmek zorundadır, renk tek
             kanal olamaz (SAH-SDL-001). */}
-        {risk.kritik === 0 && risk.yuksek === 0 && olculemeyenRisk > 0 && (
-          <span className="cumle"><span className="unk">{olculemeyenRisk} ölçülemedi</span></span>
-        )}
+        {/* Bu kalemin "kritik"i MATRİS BANDIDIR, artık skor değil —
+            bir üstteki kalemle aynı sözcüğü kullandığı için ölçüsü
+            görünür yazılır. Cümle yuvası zaten boştu. */}
+        <span className="cumle">
+          olasılık × etki
+          {risk.kritik === 0 && risk.yuksek === 0 && olculemeyenRisk > 0
+            && <> · <span className="unk">{olculemeyenRisk} ölçülemedi</span></>}
+        </span>
       </Link>
     ),
   };

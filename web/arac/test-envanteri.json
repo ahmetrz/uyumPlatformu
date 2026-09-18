@@ -1,7 +1,7 @@
 {
-  "imza": "c70f8391d4d31f600950c174f4b5910f",
-  "dosya": 261,
-  "vaka": 4590,
+  "imza": "d6a31fd21df1c34ba9927bcfc552589f",
+  "dosya": 262,
+  "vaka": 4596,
   "atlanan": 1,
   "dosyalar": {
     "tests/adaptor-yetenekleri.test.ts": {
@@ -81,7 +81,7 @@
       "atlanan": 0
     },
     "tests/bekci/kabuk-kromu.test.ts": {
-      "vaka": 5,
+      "vaka": 7,
       "atlanan": 0
     },
     "tests/bekci/kapsam-omurga.test.ts": {
@@ -146,6 +146,10 @@
     },
     "tests/bekci/sabotaj-kacagi.test.ts": {
       "vaka": 3,
+      "atlanan": 0
+    },
+    "tests/bekci/saha-serit.test.ts": {
+      "vaka": 4,
       "atlanan": 0
     },
     "tests/bekci/sektor-terimi.test.ts": {

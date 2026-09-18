@@ -31,7 +31,7 @@
     "tanik.veriYuzeyi": 17,
     "tanik.kapsam": 35,
     "kabuk.darBantBildirimi": 310,
-    "kabuk.buyukHarfKurali": 62,
+    "kabuk.buyukHarfKurali": 60,
     "kabuk.kayanKap": 24,
     "tipografi.bildirim": 682,
     "tipografi.izBildirimi": 104,
@@ -51,6 +51,12 @@
       "yeni": 219,
       "sebep": "Odaklanamayan title'lardaki politika cümleleri KALDIRILDI: title klavye ve dokunma kullanıcısına hiç ulaşmıyordu, yani o cümleler kullanıcının göremediği iddialardı. Kalması gerekenler görünür metne çıktı (payda kuralı, eğilim boş hâlinin sebebi, kontrol kodu), tekrar olanlar silindi. Popülasyon 220'den 219'a indi.",
       "tarih": "2026-09-17"
+    },
+    "kabuk.buyukHarfKurali": {
+      "eski": 62,
+      "yeni": 60,
+      "sebep": "Kapsam BİLEREK daraldı: başlıktaki iki büyük harf kuralı kaldırıldı — .ab-mercek button (sektör ADLARI içerik paketinden gelen DEĞERDİR, kaş değil) ve .ab-ust .bildirim (yardımcı kümenin eylem etiketi). Ürünün kendi kuralı büyük harfi yapısal kaşa ayırır; kabuk onu kendi barında çiğniyordu. Ölçüldü (18 Eyl 2026): ekranda 17 büyük harfli dize vardı, 9'a indi. Kural sayısındaki 62 → 60 düşüşü bu iki kaldırmanın tamamıdır; hiçbir yüzey ölçüm dışında kalmadı.",
+      "tarih": "2026-09-18"
     }
   }
 }

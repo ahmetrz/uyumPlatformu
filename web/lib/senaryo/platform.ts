@@ -897,6 +897,38 @@ export const PLATFORM_SENARYOLARI: Senaryo[] = [
     katmanlar: ['UI'],
   },
   {
+    id: 'SAH-SER-002', alan: 'Saha', rota: '/', eksen: 'arayuz',
+    amac: 'Saha şeridinin kaydırma çubuğu kullanıcı tarafından İKİ KEZ '
+      + 'bildirildi (15 ve 18 Eyl 2026): "siteden bağımsız, kötü ve çok '
+      + 'dikkat çekiyor". Çubuğun RENGİ düşürülemez (WCAG 1.4.11 · 3:1, '
+      + 'dört zeminde ölçülü) ve GİZLENEMEZ (gizleme izni kabuk gezinme '
+      + 'raylarıyla sınırlı, URN-CBK-001). Kalan tek yol uzunluktu: '
+      + '24 kart × 218px = 5 224px; 1914px bantta başparmak %37. '
+      + 'İlk plan "yalnız müdahale gerektirenleri göster" idi ve ÖLÇÜM '
+      + 'ONU ÇÜRÜTTÜ: 6 tesisin uygunsuzu var, 16\'sı ÖLÇÜLMEMİŞ, 2\'si '
+      + 'temiz — "müdahale gerektiren" 22/24 eder ve süzmek iki kartı '
+      + 'düşürürdü. Asıl bulgu TEKRARDI: o 16 tesis aynı ekranda iki kez '
+      + 'duruyor — takımyıldızın değerlendirilmemiş bandında (sayı, güç, '
+      + 'ilk üç ad, açılır panel) ve şeritte 16 kart olarak.',
+    rol: 'BT direktörü', kapsam: 'kurum geneli',
+    onkosul: 'Portföyde hem ölçülmüş hem ölçülmemiş tesis var',
+    veriHali: 'kısmi',
+    eylem: 'Saha ekranı açılır, şerit incelenir',
+    beklenenSonuc: 'Şerit YALNIZ uyumu ÖLÇÜLMÜŞ tesisleri taşır ve '
+      + 'süzgeç ölçütü `endeks !== null`dur — uygunsuzluğa, skora ya da '
+      + 'tipe göre süzmek bir uygunsuzu gizleyebilirdi. Süzülen küme '
+      + 'KAYBOLMAZ ("bilinmeyen ≠ sıfır"): değerlendirilmemişler '
+      + 'takımyıldızın kendi bandında adlarıyla ve sayısıyla durur. '
+      + 'Başlık portföyün TAMAMINI söyler, şeridin uzunluğunu değil; '
+      + 'şeridin sonunda tümüne giden bağ vardır ve bağ SONDA durur — '
+      + 'karar sırası önce, gezinme sonra. Ölçüldü: içerik 5 224px\'ten '
+      + '1 900px\'e indi; 1914px bantta şerit artık HİÇ KAYMIYOR, '
+      + '1366px\'te başparmak %26\'dan %72\'ye çıktı.',
+    beklenenEkran: 'Saha · tesis şeridi',
+    beklenenIz: 'yazma yok', beklenenBildirim: 'yok',
+    katmanlar: ['UI'],
+  },
+  {
     id: 'URN-KBK-022', alan: 'Sistem', rota: '—', eksen: 'arayuz',
     amac: 'Kabuk kromu (56px başlık · 32px ayak) her ekranda durur; '
       + 'oradaki bir kusur 49 rotanın hepsine dağılır. Ölçüldü '
@@ -920,7 +952,15 @@ export const PLATFORM_SENARYOLARI: Senaryo[] = [
       + 'Kiracı adı kabuk bileşenine düz dizge olarak GİRMEZ; telif '
       + 'satırı adı `veri.kiraciAd`den, yılı takvimden hesaplar. '
       + 'Ayakta kimlik kümesi (künye · sürüm · telif) gezinme '
-      + 'kümesinden ÖNCE gelir. Marka kapısı iki nöbetçi taşır ve '
+      + 'kümesinden ÖNCE gelir. Başlıkta büyük harf YALNIZ yapı ve '
+      + 'birincil gezinmededir ve kural sayısı TAVANLIDIR (ölçüldü: '
+      + 'ekrandaki 17 büyük harfli dizeden 9\'a, kaynaktaki 5 kurala '
+      + 'indi; sektör adı, unvan ve eylem etiketi DEĞERDİR, kaş değil). '
+      + 'Büyük harf bekçisi yalnız >=13px\'e baktığı için barın 10-11px '
+      + 'yükünü göremiyordu; o körlük buradan kapanır. Kaydırma çubuğu '
+      + 'İKİ SINIR arasında durur: >=3:1 (WCAG 1.4.11 — çubuk metin '
+      + 'değil KONTROLDÜR) ve --i3\'ten sönük (ayırdığı içerikten '
+      + 'okunaklı olamaz). Marka kapısı iki nöbetçi taşır ve '
       + 'kiracı adı sızıntısını KABUK KROMUYLA sınırlı tarar — '
       + 'beyanlı bir sınırdır, çünkü tohum verisinde tesis adları o adı '
       + 'meşru olarak taşır (ölçüldü: 567 dosya).',

@@ -194,7 +194,63 @@ jeton bekçisi jetonun DEĞERİNİ koruyor, kodun o jetonların DIŞINA çıkıp
 ölçeği tutan bir **cırcır** olmalıdır (beyan dışı kademe sayısı tavan,
 yalnız küçülür) — yoksa yeni sistem de altı ay içinde 23 kademeye döner.
 
-## 7. Açık kalan
+## 7. Faz 2 · tipografik ölçek yeniden kuruldu — ÖLÇÜLDÜ (18 Eylül 2026)
+
+Faz 1'in bulgusu "23 kademe" idi; Faz 2'ye başlarken ölçüm **keskinleşti** ve
+hedefi değiştirdi. Jeton katmanı zaten VARDI:
+
+| | Önce | Sonra |
+| --- | --- | --- |
+| `font-size` bildirimi (gerçek evren) | 682 | 682 |
+| **jetondan geçen** | **223 (%33)** | **671 (%98)** |
+| tipografi jetonu | 15 | **8** |
+| jetonun işaret ettiği benzersiz değer | 10 (iki çakışma) | **8 (çakışma yok)** |
+
+Yani yapılacak iş yeni bir ölçek İCAT ETMEK değil, var olanı sadeleştirip
+ürünün üçte ikisini ona bağlamaktı. İki jeton grubu aynı değere çakışıyordu
+(dördü 11px, üçü 12,5px) ve `--t-code-lg` adında "büyük" diyip `--t-code` ile
+aynı değeri taşıyordu — adın vaat ettiği ayrımı değer vermiyordu.
+
+**Yeni ölçek sekiz kademe, her kademe tek rol**, oranlar üste doğru hızlanıyor:
+
+```
+10 → 11 (1,10)   11 → 13 (1,18)   13 → 16 (1,23)   16 → 21 (1,31)
+21 → 28 (1,33)   28 → 40 (1,43)   40 → 58 (1,45)
+```
+
+Küçük uç BİLEREK dokunulmadı: 11px 104 bildirimlik iş atıdır ve ürün
+1366×768'de tek ekran bütçesiyle çalışır. Karşıtlık küçük ucu şişirerek değil,
+üst ucu açarak ve ortadaki tekrarı eriterek kuruldu — referans #15'in katkısı
+tam olarak buraya düştü.
+
+### 7.1 Kapının İLK yazımı KÖR DOĞDU ve bu bir bulgudur
+
+Yazdığım bekçi önce yalnız `app/kabuk.css`e bakıyordu ve **"sapma 0"** diyordu.
+Tarayıcıda ölçünce `/uyum` ekranında 11,5px ve 12px kademeler GÖRÜNDÜ. Sebep:
+
+- **TSX satır içi `style={{ fontSize: 'var(--t-…)' }}` — 305 başvuru, 50
+  dosya.** Jeton adlarını değiştirince hepsi tanımsız değişkene düştü; tanımsız
+  `var()` özelliği geçersiz kılar ve öğe kalıtımla gelen boya döner. **Ekran
+  sessizce bozuldu, kapı yeşil kaldı.** Regresyonu ben ürettim.
+- `components/giris/giris.module.css` — 15 bildirim, kapının evreninde hiç yoktu.
+
+Gerçek payda 360 değil **682**'ydi; kapı %47'sini görmüyordu. Bu deponun dört
+kez ölçtüğü sınıftır: *payda kör olduğunda oran her zaman iyi görünür.* Bugün
+tarama üç yüzeyi birden gezer ve **tanımsız jeton başvurusu ayrı bir diştir**
+(altıncı diş) — ekranda görünmesini beklemek geç kalmaktır.
+
+### 7.2 Ölçek değişiminin gerçek tasarım sonucu
+
+Bir kırmızı test kusuru değildi: `.ab-hesap-menu [role='menuitem']` 12,5px'ten
+13px'e çıkınca "13px ve üstü büyük harf yalnız gezinme ve koddur" kuralının
+eşiğinin ÖNÜNE geldi. Karar gevşetme değil: o yüzey `role="menu"
+aria-label="Hesap"`tır, kalemleri Profil · Ayarlar · Çıkış — ad, cümle ya da
+değer değil, **gezinme**; kardeşi `.ab-bolum-menu [role='menuitem']` aynı
+gerekçeyle ve daha büyük bir kademede (16px) zaten listedeydi. Kuralın istisna
+kategorisi bu satırı hep kapsıyordu, yalnız eşiğin altında olduğu için
+görünmüyordu.
+
+## 8. Açık kalan
 
 - #13'ün hareket grameri henüz **hiçbir arketipte denenmedi**; yukarıdaki
   "girer" kararı, denenmeye değer olduğu kararıdır, çalıştığı kararı değildir.

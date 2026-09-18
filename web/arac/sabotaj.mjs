@@ -781,8 +781,14 @@ const SABOTAJLAR = [
     ad: 'Bir bildirim jeton katmanını yeniden ATLADI',
     kural: 'Her font-size ya jetondan geçer ya izin listesinde beyanlıdır',
     dosya: 'app/kabuk.css',
-    ara: '  font-size: var(--t-ekran); line-height: var(--lh-manset); letter-spacing: var(--tr-manset);',
-    yaz: '  font-size: 26px; line-height: var(--lh-manset); letter-spacing: var(--tr-manset);',
+    /* Hedef `.ab-lede h1`e daraltıldı: jeton adları sadeleşince aynı üç
+       bildirimlik dizge İKİ kuralda birden geçer oldu ve araç tekillik
+       ister. Ekran başlığı arketiptir; jeton katmanını orada atlamak,
+       kusurun en görünür hâlidir. */
+    ara: `  margin: 0; font-family: var(--gorunum); font-weight: 500;
+  font-size: var(--t-ekran); line-height: var(--lh-manset); letter-spacing: var(--tr-manset);`,
+    yaz: `  margin: 0; font-family: var(--gorunum); font-weight: 500;
+  font-size: 26px; line-height: var(--lh-manset); letter-spacing: var(--tr-manset);`,
     testler: ['tests/bekci/tipografi-olcegi.test.ts'],
   },
   {

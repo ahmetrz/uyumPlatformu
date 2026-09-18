@@ -331,7 +331,7 @@ function Ara({ deger, degistir }: { deger: string; degistir: (v: string) => void
         width: 132, background: 'none', border: 0,
         borderBottom: 'var(--bw-hair) solid var(--hr2)',
         padding: '3px 0', fontFamily: 'var(--veri)', fontSize: 'var(--t-etiket)',
-        letterSpacing: 'var(--tr-label)', textTransform: 'uppercase',
+        letterSpacing: 'var(--tr-etiket)', textTransform: 'uppercase',
       }}
     />
   );

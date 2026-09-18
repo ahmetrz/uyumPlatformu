@@ -888,7 +888,43 @@ export const PLATFORM_SENARYOLARI: Senaryo[] = [
       + 'durur (baskı puntosu · akışkan clamp · bilinçli inherit). İki '
       + 'jeton aynı değeri taşıyamaz, tanımlanan her jeton kullanılır ve '
       + 'BAŞVURULAN her jeton TANIMLIDIR — tanımsız var() özelliği '
-      + 'geçersiz kılar ve ekran sessizce kalıtıma döner.',
+      + 'geçersiz kılar ve ekran sessizce kalıtıma döner. Aynı disiplin '
+      + 'ÜÇ EKSENDE birden koşar: boy (--t-*), harf aralığı (--tr-*) ve '
+      + 'satır aralığı (--lh-*); ölçüm tabanı da eksen BAŞINADIR, çünkü '
+      + 'tek eksenli bir taban öbür ikisinin körleşmesini göremez.',
+    beklenenEkran: 'Ürün geneli — kaynak taraması',
+    beklenenIz: 'yazma yok', beklenenBildirim: 'yok',
+    katmanlar: ['UI'],
+  },
+  {
+    id: 'URN-TBL-001', alan: 'Sistem', rota: '—', eksen: 'arayuz',
+    amac: 'Kütük gramerinin tek yerden çıktığı İDDİA edilmişti; ölçüm '
+      + 'iddiayı doğruladı ama BAŞKA bir kaymayı ortaya çıkardı. '
+      + 'Ölçüldü (18 Eyl 2026): <Tablo> 46 dosyada, <VeriTablosu> 7 '
+      + 'dosyada görünüyordu ve bu "iki rakip bileşen" gibi okunup göç '
+      + 'planlanacaktı. Kaynak okunca dayanaksız çıktı — <Tablo> bir '
+      + 'SARMALAYICIDIR, eski satır biçimini kolon biçimine çevirip '
+      + 'çizimi VeriTablosu\'ya bırakır; 48 ekranı "göç ettirmek" aynı '
+      + 'yolu ikinci kez çağırmak olurdu. Gerçek kusur altı ham <table> '
+      + 'bildirimindeydi: beşi kendi gramerini taşıyor (baskı karnesi, '
+      + 'fark tablosu, yardım çizelgesi, kontrast matrisi ×2), biri '
+      + 'PAYLAŞILAN sınıfı (ab-vt) elle yazıyor — tedarikciler/loading '
+      + 'iskeleti. Paylaşılan CSS\'i miras aldığı için ekranda doğru '
+      + 'görünür, VeriTablosu\'nun kendi iskelet dalıyla hiçbir bağı '
+      + 'yoktur ve biri değişirse öbürü değişmez.',
+    rol: 'geliştirici', kapsam: 'ürün geneli',
+    onkosul: 'Kaynak ağacı okunabilir', veriHali: 'normal',
+    eylem: 'Tablo grameri bekçisi kaynağı tarar',
+    beklenenSonuc: 'Paylaşılan bileşen dışındaki her ham <table> '
+      + 'dosyasıyla, sınıfıyla ve GEREKÇESİYLE beyanlıdır; sayısı yalnız '
+      + 'küçülür ve ölü izin satırı kabul edilmez. Paylaşılan sınıfı '
+      + 'taşıyan kopya, paylaşılan grameri VAAT ETTİĞİ için yapısal '
+      + 'sözleşmesini kanıtlar (aria-busy · .kolonbas · tr.iskelet · '
+      + '.ab-vt-sar). İki giriş kapısı sözleşmesini sürdürür: Tablo '
+      + 'VeriTablosu\'yu çağırır, Matris ise <table> değil ARIA '
+      + 'rolleriyle (table · row · columnheader) tablo olan bir CSS '
+      + 'ızgarasıdır — roller düşerse ekranda hiçbir şey değişmez, '
+      + 'ekran okuyucuda her şey değişir.',
     beklenenEkran: 'Ürün geneli — kaynak taraması',
     beklenenIz: 'yazma yok', beklenenBildirim: 'yok',
     katmanlar: ['UI'],

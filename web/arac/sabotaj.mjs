@@ -819,6 +819,66 @@ const SABOTAJLAR = [
     yaz: '          <p className="etiket">Grup durumu · {bugun}</p>  {/* SABOTAJ */}',
     testler: ['tests/saha-sadelestirme.test.ts'],
   },
+
+  /* ── ÜÇ EKSENLİ TİPOGRAFİ KAPISI · iz ve satır aralığı ────────────── */
+  {
+    ad: 'İki harf aralığı jetonu aynı değeri taşısın (ad ayrım vaat eder, değer vermez)',
+    kural: 'Ad, değerin vermediği bir ayrımı vaat ettiğinde en sinsi kusuru üretir: değeri okuyan kimse yoktur, ADI okunur',
+    dosya: 'app/kabuk.css',
+    ara: '  --tr-gezinme: .06em;   /* gezinme · düğme büyük harfi — hafif */',
+    yaz: '  --tr-gezinme: .14em;   /* SABOTAJ — etiket jetonuyla çakışıyor */',
+    testler: ['tests/bekci/tipografi-olcegi.test.ts'],
+  },
+  {
+    ad: 'Satır aralığı bildirimini jeton katmanından kaçır',
+    kural: 'Üç eksenin de ekran değeri jetondan gelir; kaçan bildirim izin listesinde EKSENİYLE ve gerekçesiyle durmalı',
+    dosya: 'app/kabuk.css',
+    ara: '.ab-a-panel .kimlik .cumle { margin: 12px 0 0; font-size: var(--t-govde); line-height: var(--lh-govde); color: var(--i2); }',
+    yaz: '.ab-a-panel .kimlik .cumle { margin: 12px 0 0; font-size: var(--t-govde); line-height: 1.55; color: var(--i2); }  /* SABOTAJ */',
+    testler: ['tests/bekci/tipografi-olcegi.test.ts'],
+  },
+  {
+    ad: 'Ayırt edilemez satır aralığı kademesi ekle (1,2 ile 1,25 arası %4)',
+    kural: '%8\'in altında bir adım ekranda ayırt edilmez ve hiyerarşi değil TEKRAR üretir — 1,15 ile 1,2 bu yüzden tek role indi',
+    dosya: 'app/kabuk.css',
+    ara: '  --lh-baslik: 1.4;      /* satır ve kart başlığı */',
+    yaz: '  --lh-baslik: 1.25;     /* SABOTAJ — manşetle arası %4 */',
+    testler: ['tests/bekci/tipografi-olcegi.test.ts'],
+  },
+
+  /* ── TABLO GRAMERİ KAPISI ─────────────────────────────────────────── */
+  {
+    ad: 'Paylaşılan sınıfı taşıyan iskelet yapısal sözleşmesini kaybetsin',
+    kural: 'ab-vt sınıfı paylaşılan grameri VAAT EDER; kolon kaşı düşen kopya ekranda doğru görünür, ekran okuyucuda sütun başlığı kalmaz',
+    dosya: 'app/(kabuk)/(operasyonel)/tedarikciler/loading.tsx',
+    ara: '                  <th key={b} scope="col"><span className="kolonbas">{b}</span></th>',
+    yaz: '                  <th key={b} scope="col"><span>{b}</span></th>  {/* SABOTAJ */}',
+    testler: ['tests/bekci/tablo-grameri.test.ts'],
+  },
+  {
+    ad: 'Beyansız yedinci ham tablo ekle',
+    kural: 'Paylaşılan bileşen dışındaki her ham <table> dosyasıyla, sınıfıyla ve gerekçesiyle beyanlıdır; sayısı yalnız küçülür',
+    dosya: 'app/(kabuk)/(operasyonel)/yardim/page.tsx',
+    ara: '        <div className="ab-yardim-tablo-sar">',
+    yaz: '        <table className="ab-kacak-tablo"><tbody><tr><td>SABOTAJ</td></tr></tbody></table>\n        <div className="ab-yardim-tablo-sar">',
+    testler: ['tests/bekci/tablo-grameri.test.ts'],
+  },
+  {
+    ad: 'Matris ızgarasının tablo rolünü düşür',
+    kural: 'Matris <table> DEĞİLDİR; tabloluğu YALNIZ ARIA rollerinde durur — rol düşerse ekranda hiçbir şey değişmez, ekran okuyucuda her şey değişir',
+    dosya: 'components/kabuk/tablo.tsx',
+    ara: '        <span className="kolonbas" role="columnheader">{konuBasligi}</span>',
+    yaz: '        <span className="kolonbas">{konuBasligi}</span>  {/* SABOTAJ */}',
+    testler: ['tests/bekci/tablo-grameri.test.ts'],
+  },
+  {
+    ad: 'Tablo sarmalayıcısını kendi <table>\'ına kaçır',
+    kural: 'Tablo bir SARMALAYICIDIR; kendi çizimine geçerse 46 ekran sessizce ikinci bir gramere düşer, dosya başlığı "tek semantik çekirdek" demeye devam ederken',
+    dosya: 'components/kabuk/tablo.tsx',
+    ara: '    <VeriTablosu<Satir>\n      etiket={etiket ?? `${konuBasligi} kütüğü`}',
+    yaz: '    <VeriTabloSABOTAJ<Satir>\n      etiket={etiket ?? `${konuBasligi} kütüğü`}',
+    testler: ['tests/bekci/tablo-grameri.test.ts'],
+  },
 ];
 
 function testKos(testler) {

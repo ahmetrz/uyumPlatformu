@@ -33,7 +33,11 @@
     "kabuk.darBantBildirimi": 310,
     "kabuk.buyukHarfKurali": 62,
     "kabuk.kayanKap": 24,
-    "tipografi.bildirim": 682
+    "tipografi.bildirim": 682,
+    "tipografi.izBildirimi": 104,
+    "tipografi.satirBildirimi": 83,
+    "tablo.hamBildirim": 6,
+    "tablo.kullananDosya": 51
   },
   "dususler": {
     "bos.durum": {

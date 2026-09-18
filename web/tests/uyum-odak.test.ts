@@ -91,8 +91,14 @@ describe('uyum · başlık cevabı taşır ve cümle düzenindedir', () => {
     for (const g of govdeler) expect(g).not.toMatch(/text-transform\s*:\s*uppercase/);
     /* Kimlik korunur: aile, boy ve ağırlık aynı kalır; yalnız kayıt değişti. */
     expect(govdeler.join('\n')).toMatch(/font-size:\s*var\(--t-ekran\)/);
-    /* Karar tasarım belgesinde de yazılıdır; kod ile belge ayrışamaz. */
-    expect(DESIGN).toMatch(/\*\*Display\*\*[^\n]*cümle düzeni/);
+    /* Karar tasarım belgesinde de yazılıdır; kod ile belge ayrışamaz.
+
+       Kademenin adı Faz 2'de `Display` → `Ekran` oldu ve bu satır eski
+       ada çakılı kaldı: belgedeki ÖLÜ `**Display**` maddesini (26px ·
+       1,15 — ikisi de yanlış) iki parti boyunca canlı tuttu. Kapı
+       KADEMENİN adına değil, jetonuna bağlanır. */
+    expect(DESIGN).toMatch(/\*\*Ekran\*\*[^\n]*cümle düzeni[^\n]*--t-ekran/);
+    expect(DESIGN).not.toMatch(/\*\*Display\*\*/);
   });
 });
 

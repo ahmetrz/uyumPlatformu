@@ -1,7 +1,7 @@
 {
-  "imza": "c5cb072f80595c298dc12e94bce22283",
-  "dosya": 259,
-  "vaka": 4564,
+  "imza": "f638c5c43f2dda4c531adeb1b76411e9",
+  "dosya": 260,
+  "vaka": 4585,
   "atlanan": 1,
   "dosyalar": {
     "tests/adaptor-yetenekleri.test.ts": {
@@ -156,12 +156,16 @@
       "vaka": 6,
       "atlanan": 0
     },
+    "tests/bekci/tablo-grameri.test.ts": {
+      "vaka": 6,
+      "atlanan": 0
+    },
     "tests/bekci/terim-dogrulama.test.ts": {
       "vaka": 21,
       "atlanan": 0
     },
     "tests/bekci/tipografi-olcegi.test.ts": {
-      "vaka": 9,
+      "vaka": 24,
       "atlanan": 0
     },
     "tests/bekci/tuval-bilinmeyen.test.ts": {

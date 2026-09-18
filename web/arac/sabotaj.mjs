@@ -341,9 +341,9 @@ const SABOTAJLAR = [
     kural: '13px ve üstü büyük harf yalnız gezinme ve koddur; tesis adı veridir',
     dosya: 'app/kabuk.css',
     ara: `  /* cümle düzeni — tesis adı veridir, kaş değil (SIS-KBK-031) */
-  font-family: var(--gorunum); font-size: var(--t-bolum); line-height: 1.1;`,
+  font-family: var(--gorunum); font-size: var(--t-bolum); line-height: var(--lh-manset);`,
     yaz: `  /* cümle düzeni — tesis adı veridir, kaş değil (SIS-KBK-031) */
-  font-family: var(--gorunum); font-size: var(--t-bolum); line-height: 1.1; text-transform: uppercase;`,
+  font-family: var(--gorunum); font-size: var(--t-bolum); line-height: var(--lh-manset); text-transform: uppercase;`,
     testler: ['tests/bekci/buyuk-harf.test.ts', 'tests/odak-yayma.test.ts'],
   },
   {
@@ -351,10 +351,10 @@ const SABOTAJLAR = [
     kural: 'h2 başlığı hiçbir boyda büyük harf olmaz',
     dosya: 'app/kabuk.css',
     ara: `  margin: 12px 0 0; font-family: var(--gorunum); font-weight: 600;
-  font-size: var(--t-manset); line-height: 1.1;
+  font-size: var(--t-manset); line-height: var(--lh-manset);
 }`,
     yaz: `  margin: 12px 0 0; font-family: var(--gorunum); font-weight: 600;
-  font-size: var(--t-manset); line-height: 1.1; text-transform: uppercase;
+  font-size: var(--t-manset); line-height: var(--lh-manset); text-transform: uppercase;
 }`,
     testler: ['tests/bekci/buyuk-harf.test.ts'],
   },
@@ -362,7 +362,7 @@ const SABOTAJLAR = [
     ad: 'Bir kaş kuralı büyük harfi bıraktı — tarama daha az şey görüyor',
     kural: 'Büyük harf kuralı sayısı ölçüm tabanının altına sessizce inemez',
     dosya: 'app/kabuk.css',
-    ara: `  font-family: var(--veri); font-size: var(--t-veri); letter-spacing: .1em;
+    ara: `  font-family: var(--veri); font-size: var(--t-veri); letter-spacing: var(--tr-etiket);
   text-transform: uppercase; text-decoration: none;
 }
 .ab-atla:focus, .ab-atla:focus-visible {`,
@@ -781,8 +781,8 @@ const SABOTAJLAR = [
     ad: 'Bir bildirim jeton katmanını yeniden ATLADI',
     kural: 'Her font-size ya jetondan geçer ya izin listesinde beyanlıdır',
     dosya: 'app/kabuk.css',
-    ara: '  font-size: var(--t-ekran); line-height: 1.15; letter-spacing: -.01em;',
-    yaz: '  font-size: 26px; line-height: 1.15; letter-spacing: -.01em;',
+    ara: '  font-size: var(--t-ekran); line-height: var(--lh-manset); letter-spacing: var(--tr-manset);',
+    yaz: '  font-size: 26px; line-height: var(--lh-manset); letter-spacing: var(--tr-manset);',
     testler: ['tests/bekci/tipografi-olcegi.test.ts'],
   },
   {
@@ -797,7 +797,7 @@ const SABOTAJLAR = [
     ad: 'Durum manşeti yeniden eylemli satırı eziyor (ölçekten 68px\'e)',
     kural: 'Ekranın birincil işi müdahaledir; ölçek karar değerini izler',
     dosya: 'app/kabuk.css',
-    ara: '  font-family: var(--gorunum); font-weight: 600; font-size: var(--t-manset); line-height: .85;',
+    ara: '  font-family: var(--gorunum); font-weight: 600; font-size: var(--t-manset); line-height: var(--lh-sikisik);',
     yaz: '  font-family: var(--gorunum); font-weight: 600; font-size: 68px; line-height: .8;  /* SABOTAJ */',
     testler: ['tests/saha-sadelestirme.test.ts'],
   },

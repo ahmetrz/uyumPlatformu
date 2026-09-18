@@ -130,10 +130,71 @@ belirler. Hepsi bugün sıfırda kilitli:
 Pratik sonucu tek cümle: **ekran metni değişirse politika kütüğü ve boş durum
 kütüğü aynı PR'da güncellenir**, yoksa kapı kırmızı yanar.
 
-## 5. Açık kalan
+## 5. Kapsam kararı (18 Eylül 2026)
 
-- Yeniden tasarımın **kapsamı** karara bağlanmadı: yalnız görsel dünya mı,
-  tasarım sistemi mi, yoksa bilgi mimarisi ve gezinme de mi? Üçü materyal
-  olarak farklı işlerdir ve bu belge üçünde de geçerlidir.
+**Tasarım sistemi yeniden kurulur; bilgi mimarisi KORUNUR.**
+
+Kapsama giren: jetonlar, tipografik ölçek, yoğunluk, component grameri
+(tablo · çekmece · boş durum · durum işaretleri · form · çekirdek kabuk).
+
+Kapsam dışı ve bilinçli olarak dokunulmaz: rota kümesi, gezinme modeli ve
+ekranların birincil işleri. Bunlar kabul edilmiş kararlardır
+(`credit-efficient-enterprise-design-execution` §9: kilitli kararlar yeniden
+tartışılmaz) — Saha'nın birincil işi "müdahale" 17 Eyl 2026'da ölçümle
+karara bağlandı ve bu turda yeniden açılmaz.
+
+Sonucu şudur: **Faz 1 sıfırdan ürün audit'i DEĞİLDİR.** Ürün audit'i
+zaten koşuldu; bu turda koşulan şey, tasarım sistemi katmanının
+**delta audit'idir** — belgedeki sistem ile koda GERÇEKTEN girmiş sistem
+arasındaki sapma.
+
+## 6. Faz 1 · tasarım sistemi delta audit'i — ÖLÇÜLDÜ (18 Eylül 2026)
+
+Yöntem: `app/kabuk.css` + `app/globals.css` (4 835 satır), **yorumlar
+çıkarılarak** taranır — gerekçe metinlerindeki sayılar ölçümü kirletmesin.
+
+| Eksen | `DESIGN.md` beyanı | Kodda ölçülen | Sapma |
+| --- | --- | --- | --- |
+| font-size | **7** kademe | **23** benzersiz değer · 234 bildirim | **16 kademe beyan dışı · 82 bildirim (%35)** |
+| font-weight | 2 (400 · 500) | 5 (300 · 400 · 500 · 600 · 700) | 3 ağırlık beyan dışı · 31 bildirim |
+| letter-spacing | 4 | **12** benzersiz | 8 beyan dışı |
+| line-height | 6 | **19** benzersiz | 13 beyan dışı |
+| hex renk | jetonlar | 25 benzersiz · 35 bildirim | küçük; renk katmanı büyük ölçüde SAĞLAM |
+
+### 6.1 Asıl bulgu: ölçek KARŞITLIK taşımıyor
+
+Sapmanın sayısı değil, **dağılımı** kusurdur:
+
+```
+11px ×104   ← bütün bildirimlerin %44'ü tek kademede
+12px  ×27
+12.5px×21
+13px  ×21
+13.5px ×4
+14px   ×8
+```
+
+**Üç piksel aralığında altı kademe var.** 12 ile 13,5 arasındaki fark hiçbir
+okuyucuya hiyerarşi anlatmaz; yalnız aynı şeyi söylemenin altı yolunu üretir.
+Karşı uçta 26px'in üstü neredeyse boş (34px×3 · 42px×1). Yani ürünün
+tipografisi **ortada yığılmış, uçlarda seyrek** — Saha turunda ölçülen
+"manşet 68px, eylemli satır 13px" kusuru bu dağılımın tekil belirtisiydi,
+sebebi değil.
+
+Referans #15'in bu belgeye girme gerekçesi tam olarak budur ve ölçüyle
+eşleşiyor: onun sinematik etkisi 3B'den değil, **ölçek karşıtlığından**
+geliyor. Renk katmanı sağlam olduğu için yeniden kurulacak asıl şey
+tipografik ölçek ve yoğunluk gramerridir — palet değil.
+
+### 6.2 Bu bir kapı önerisidir, henüz kapı değildir
+
+Yukarıdaki sayılar bugün **hiçbir kapı tarafından tutulmuyor**: `DESIGN.md`
+jeton bekçisi jetonun DEĞERİNİ koruyor, kodun o jetonların DIŞINA çıkıp
+çıkmadığını ölçmüyor. Faz 2'nin çıktısı yalnız yeni bir ölçek değil, o
+ölçeği tutan bir **cırcır** olmalıdır (beyan dışı kademe sayısı tavan,
+yalnız küçülür) — yoksa yeni sistem de altı ay içinde 23 kademeye döner.
+
+## 7. Açık kalan
+
 - #13'ün hareket grameri henüz **hiçbir arketipte denenmedi**; yukarıdaki
   "girer" kararı, denenmeye değer olduğu kararıdır, çalıştığı kararı değildir.

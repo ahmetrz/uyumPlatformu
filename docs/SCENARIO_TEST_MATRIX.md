@@ -422,6 +422,8 @@
 | `URN-KBK-022` | Sistem | UI | `bekci/kabuk-kromu.test.ts` | İKİNCİ DİŞ · aktif sekme üç ipucu taşır | evet | geçti |
 | `URN-KBK-022` | Sistem | UI | `bekci/kabuk-kromu.test.ts` | ÜÇÜNCÜ DİŞ · kiracı adı kabuk bileşenine gömülmez | evet | geçti |
 | `URN-KBK-022` | Sistem | UI | `bekci/kabuk-kromu.test.ts` | DÖRDÜNCÜ DİŞ · ayakta kimlik kümesi gezinmeden önce | evet | geçti |
+| `URN-KBK-022` | Sistem | UI | `bekci/kabuk-kromu.test.ts` | ALTINCI DİŞ · başlıkta büyük harf yapı ve gezinmeyle sınırlı | evet | geçti |
+| `URN-KBK-022` | Sistem | UI | `bekci/kabuk-kromu.test.ts` | YEDİNCİ DİŞ · kaydırma çubuğu saç çizgisi ailesinde | evet | geçti |
 | `URN-KBK-022` | Sistem | UI | `bekci/kabuk-kromu.test.ts` | BEŞİNCİ DİŞ · telif kiracıdan ve takvimden gelir | evet | geçti |
 | `URN-TBL-001` | Sistem | UI | `bekci/tablo-grameri.test.ts` | BİRİNCİ DİŞ · beyansız ham tablo yok | evet | geçti |
 | `URN-TBL-001` | Sistem | UI | `bekci/tablo-grameri.test.ts` | İKİNCİ DİŞ · dosya başına tavan aşılmıyor | evet | geçti |

@@ -88,7 +88,12 @@ export default function HesapMenusu({ kullanici, patika }: {
         onKeyDown={(e) => { if (e.key === 'ArrowDown' && !acik) { e.preventDefault(); setAcik(true); } }}>
         <span className="kisi">
           <span className="ad">{kullanici.ad}</span>
-          {kullanici.unvan && <span className="etiket dar-gizle">{kullanici.unvan}</span>}
+          {/* Unvan bir DEĞERDİR ("BT Direktörü · Demo (salt okunur)"),
+              yapısal bir kaş değil. `.etiket` kaş sınıfıdır ve büyük harf
+              getirir; unvanı ona takmak, kullanıcının rolünü bir bölüm
+              başlığıyla aynı sesle konuşturuyordu. Kendi sınıfına alındı:
+              boy ve renk aynı, büyük harf yok (URN-KBK-022 · üçüncü diş). */}
+          {kullanici.unvan && <span className="rol dar-gizle">{kullanici.unvan}</span>}
         </span>
         <span className="ok" aria-hidden>{acik ? '▴' : '▾'}</span>
       </button>

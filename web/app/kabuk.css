@@ -378,6 +378,33 @@
      Ölçüldü: dört zeminde 4,18 / 4,01 / 3,81 / 3,96. Değer kontrast
      kapısında (`arac/kontrast.mjs`) durur ve sessizce koyulaşamaz;
      `globals.css` belge kökünde aynı değeri LİTERAL taşır (bekçi eşitler). */
+  /* ── ÖLÇÜLDÜ: EKRANDAKİ EN YÜKSEK SESLİ ÇİZGİ BİR KAYDIRMA ÇUBUĞUYDU
+     Sistemin bildirdiği kompozisyon "saç çizgisiyle"dir. Zemine göre
+     kontrast ölçüldü (18 Eyl 2026):
+
+       --hr    1,21:1   --hr2   1,40:1   ← içeriğin kendi ayraçları
+       --cubuk 4,18:1                    ← ÜÇ KATI
+       --i3    6,36:1                    ← üçüncül METİN
+
+     Yani çubuk, ayırdığı içeriğin ayraçlarından üç kat yüksek sesliydi
+     ve üçüncül metne üçte iki yaklaşmıştı. Saha şeridinde içerik
+     1440px'lik bantta 5 224px; başparmak bandın %28'ini kaplıyor ve
+     ekranın altında dördüncü bir yatay çizgi olarak duruyordu —
+     kullanıcı geri bildirimi: "siteden bağımsız, kötü ve çok dikkat
+     çekiyor".
+
+     İLK DÜZELTME YANLIŞTI ve geri alındı: değer 1,72:1'e indirildi, yani
+     ERİŞİLEBİLİRLİK TABANININ ALTINA. Çubuk bir METİN değil KONTROLDÜR
+     ve WCAG 1.4.11 metin dışı kontrast için 3:1 ister; bu taban
+     `DESIGN.md`de kayıtlı ve dört zeminde ölçülmüştür (4,18 / 4,01 /
+     3,81 / 3,96). Görsel bir şikâyeti erişilebilirlik tabanını düşürerek
+     çözmek, öncelik sırasını tersine çevirmek olurdu.
+
+     Kusur ÇUBUĞUN RENGİNDE değil, o şeridin çubuğa İHTİYACI OLMAMASINDA
+     idi: saha şeridi bir gezinme rayıdır (kartların her biri `<Link>`),
+     sağ kenarda gradyanla solarak "devamı var" der ve kabuğun öbür
+     gezinme rayları çubuğu zaten gizler. Düzeltme oraya taşındı
+     (`.ab-b-serit .kartlar` · `GIZLI_IZINLI`). Renk KALIR. */
   --cubuk: #6A7679;
   --ok: #6FA07E;
   --md: #D9A03C;
@@ -572,10 +599,16 @@
   font-family: var(--veri); font-size: var(--t-veri); letter-spacing: var(--tr-etiket);
   text-transform: uppercase; color: var(--i3);
 }
+/* Sektör ADLARI DEĞERDİR, kaş değil: içerik paketinin sektör
+   kataloğundan gelir ("Çekirdek" · "Elektrik Üretimi" · "Su ve Atıksu").
+   Büyük harf yapısal kaşa aittir — ada, değere, cümleye değil. Kaş
+   (`.ab-mercek .etiket`, "Sektör") büyük harf KALIR; değerler cümle
+   düzenine iner. Ölçüldü (18 Eyl 2026): 56px'lik barda 17 büyük harfli
+   dize vardı ve altısı değerdi; hepsi bağırınca hiçbiri duyulmuyordu. */
 .ab-mercek button {
   display: inline-flex; align-items: center; padding: 0 10px;
   font-family: var(--veri); font-size: var(--t-veri); letter-spacing: var(--tr-gezinme);
-  text-transform: uppercase; color: var(--i3);
+  color: var(--i3);
   background: none; border: 0; border-bottom: 2px solid transparent;
   cursor: pointer; white-space: nowrap;
 }
@@ -691,7 +724,7 @@
 
 .ab-ust .bildirim {
   display: inline-flex; align-items: center; align-self: stretch; padding: 0 14px;
-  font-family: var(--veri); font-size: var(--t-veri); letter-spacing: var(--tr-etiket); text-transform: uppercase;
+  font-family: var(--veri); font-size: var(--t-veri); letter-spacing: var(--tr-gezinme);
   color: var(--i3); border-bottom: 2px solid transparent;
 }
 .ab-ust .bildirim:hover { color: var(--murekkep); }
@@ -707,6 +740,11 @@
 .ab-hesap-dugme[aria-current='page'] { border-bottom-color: var(--aksan); }
 .ab-hesap-dugme .kisi { display: inline-flex; flex-direction: column; align-items: flex-end; gap: 2px; line-height: var(--lh-manset); }
 .ab-hesap-dugme .kisi .ad { font-size: var(--t-govde); color: var(--murekkep); white-space: nowrap; }
+/* Unvan: kaşın boyu ve rengi, kaşın SESİ değil. */
+.ab-hesap-dugme .kisi .rol {
+  font-family: var(--veri); font-size: var(--t-etiket); letter-spacing: var(--tr-gezinme);
+  color: var(--i3); white-space: nowrap;
+}
 .ab-hesap-dugme .ok { font-size: var(--t-veri); color: var(--i3); }
 .ab-hesap-menu {
   position: absolute; top: 100%; right: 0; z-index: 30; min-width: 200px;
@@ -2082,6 +2120,24 @@
 .ab-b-serit > header .etiket { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 .ab-b-serit > header .sag { margin-left: auto; }
 .ab-b-serit { position: relative; }
+/* ── ÇUBUK BURADA KALIR — DENENDİ VE GERİ ALINDI ──────────────────
+   Kullanıcı bu şeridin çubuğunu iki kez bildirdi (15 ve 18 Eyl 2026).
+   İkinci turda iki düzeltme denendi, İKİSİ DE geri alındı ve ikisi de
+   aynı sebeple: bir görsel şikâyet, kayıtlı bir koruma tabanını
+   düşürerek çözülemez.
+
+     · Rengi söndürmek (4,18:1 → 1,72:1) WCAG 1.4.11'in metin dışı
+       kontrast eşiğinin (3:1) altına iniyordu — çubuk bir metin değil
+       KONTROLDÜR.
+     · Çubuğu gizlemek, gizleme iznini kabuk gezinme raylarıyla
+       sınırlayan kuralı esnetmeyi gerektiriyordu. O kuralın gerekçesi
+       de ölçülmüştür: `.ab-ikincil` 1440px'te gizli çubukla ÜÇ EKRANI
+       bulunamaz kılmıştı (URN-CBK-001).
+
+   Şerit bir ekran bölümüdür (`<section aria-label="Saha seçici">`),
+   kabuk rayı değil; kuralın çizdiği sınırın içerik tarafında durur.
+   Şikâyetin kalan kısmı — şeridin 24 tesisi tek satırda 5 224px'e
+   yayması — bir YOĞUNLUK kararıdır ve ürün sahibinindir; kapı değil. */
 .ab-b-serit .kartlar {
   display: flex; overflow-x: auto; scroll-snap-type: x proximity;
 }
@@ -4148,6 +4204,11 @@ details:not([open]) > *:not(summary) { display: none !important; }
 /* Başlıktaki tetikleyici: kısayolu yanında taşır, telefonda kısayol düşer
    (dokunmatikte klavye yok) ama düğme kalır. */
 .ab-ara-dugme { display: inline-flex; align-items: baseline; gap: 8px; }
+/* Başlıktaki arama bir YARDIMCI EYLEMDİR ve birincil rayla ses
+   yarıştırmaz. Düğme grameri (`.ab-dugme`) ürün genelinde büyük harftir
+   ve o karar KORUNUR — burada yalnız kabuk örneği cümle düzenine iner,
+   çünkü 56px'lik barda uppercase yükü ölçüldü: 17 dize. */
+.ab-ust .ab-ara-dugme { text-transform: none; }
 .ab-ara-dugme .kisayol { color: var(--i3); letter-spacing: var(--tr-gezinme); }
 @media (max-width: 700px) {
   .ab-ara-dugme .kisayol { display: none; }

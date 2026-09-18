@@ -911,6 +911,36 @@ const SABOTAJLAR = [
     yaz: '      {/* SABOTAJ — telif bağların ardına atıldı */}\n      {/* ── GEZİNME KÜMESİ · sağda ───────────────────────────────────',
     testler: ['tests/bekci/kabuk-kromu.test.ts'],
   },
+  {
+    ad: 'Sektör ADLARINI yeniden büyük harf yap (değer kaş sesiyle konuşsun)',
+    kural: 'Büyük harf YAPISAL KAŞA aittir; sektör adı içerik paketinden gelen bir DEĞERDİR ve kaşla aynı sesle konuşunca kaşı işlevsiz kılar',
+    dosya: 'app/kabuk.css',
+    ara: `.ab-mercek button {
+  display: inline-flex; align-items: center; padding: 0 10px;
+  font-family: var(--veri); font-size: var(--t-veri); letter-spacing: var(--tr-gezinme);
+  color: var(--i3);`,
+    yaz: `.ab-mercek button {
+  display: inline-flex; align-items: center; padding: 0 10px;
+  font-family: var(--veri); font-size: var(--t-veri); letter-spacing: var(--tr-gezinme);
+  text-transform: uppercase; color: var(--i3);  /* SABOTAJ */`,
+    testler: ['tests/bekci/kabuk-kromu.test.ts'],
+  },
+  {
+    ad: 'Kaydırma çubuğunu üçüncül metinden yüksek sesli yap',
+    kural: 'Bir KONTROL, ayırdığı içerikten daha okunaklı çizilemez — üst sınır --i3',
+    dosya: 'app/kabuk.css',
+    ara: '  --cubuk: #6A7679;',
+    yaz: '  --cubuk: #A6AEB1;  /* SABOTAJ — üçüncül metnin üstüne çıktı */',
+    testler: ['tests/bekci/kabuk-kromu.test.ts'],
+  },
+  {
+    ad: 'Kaydırma çubuğunu erişilebilirlik tabanının altına indir',
+    kural: 'Çubuk metin değil KONTROLDÜR; WCAG 1.4.11 metin dışı kontrast eşiği 3:1 ve bu taban görsel bir şikâyetle düşürülemez',
+    dosya: 'app/kabuk.css',
+    ara: '  --cubuk: #6A7679;',
+    yaz: '  --cubuk: #343B3E;  /* SABOTAJ — 1,72:1, tabanın altı */',
+    testler: ['tests/bekci/kabuk-kromu.test.ts'],
+  },
 ];
 
 function testKos(testler) {

@@ -582,12 +582,21 @@
   gap: 3px; padding: 0 24px; white-space: nowrap; flex: none;
   font-family: var(--gorunum); font-size: var(--t-baslik); font-weight: 700; letter-spacing: var(--tr-gezinme);
   line-height: var(--lh-birim);
-  border-right: 1px solid var(--hr);
 }
-/* İkinci satır: ürün adının tamamlayıcısı, mono küçük harf-aralıklı aksan. */
+/* ── İKİNCİ SATIR SUSTURULDU: BAKIR DURUMUNDUR, KİMLİĞİN DEĞİL ────────
+   Ürün adı 10px mono, BÜYÜK HARF, geniş izli ve BAKIR yazılıyordu:
+   27 karakterlik bu dize marka bloğunun en geniş, en gürültülü öğesiydi
+   ve barın İKİNCİ bakır nesnesiydi — aktif sekmenin bakır alt çizgisiyle
+   aynı sesle konuşuyordu. Bir kimlik satırı, bir DURUM işaretiyle aynı
+   rengi taşıyamaz: o zaman renk artık hiçbir şey söylemez.
+
+   Bugün kural şu: **bakır YALNIZ durumu işaretler** (aktif alan, aktif
+   mercek seçeneği). Marka kimliğini tipografiyle taşır — Barlow
+   Condensed 16px 700, barın tek 16px nesnesi. İkinci satır cümle
+   düzenine, izsiz ve üçüncül mürekkebe iner. */
 .ab-ust .marka .ikinci {
   font-family: var(--veri); font-size: var(--t-etiket); font-weight: 500;
-  letter-spacing: var(--tr-etiket); text-transform: uppercase; color: var(--aksan);
+  letter-spacing: var(--tr-govde); color: var(--i3);
 }
 .ab-ust > nav { display: flex; align-items: stretch; }
 /* ── ÖLÇÜLDÜ: MARKA İLE GEZİNME AYNI KADEMEDE YARIŞIYORDU ────────────
@@ -611,21 +620,32 @@
   color: var(--i3); border-bottom: 2px solid transparent;
 }
 .ab-ust > nav a:hover { color: var(--murekkep); }
-/* Aktif sekme ÜÇ ipucu taşır: mürekkep + bakır alt çizgi + panel zemini.
-   Zemin yalnız AKTİF olana verilir, hover'a değil: beş sekme üzerinde
-   gezinen fare, beş kez yanıp sönen bir alan üretirdi. */
+/* ── AKTİF SEKME İKİ İPUCU TAŞIR, ÜÇ DEĞİL ───────────────────────────
+   Üçüncü ipucu panel zeminiydi ve bir KUTU üretiyordu: 56px'lik barda
+   dolgulu bir dikdörtgen, yanındaki dört sekmeyi "kapsız" gösteriyor ve
+   rayı bölüyordu. İki ipucu zaten renkten bağımsız (mürekkep ağırlığı +
+   alt çizgi), yani WCAG 1.4.1 karşılanıyor; üçüncüsü bilgi katmıyor,
+   yalnız yüzey katıyordu. Kabuğun yeni grameri: BAR İÇİNDE KUTU YOK —
+   ayrımı boşluk, hiza ve tek bir bakır çizgi kurar. */
 .ab-ust > nav a[aria-current='page'] {
-  color: var(--murekkep); background: var(--panel); border-bottom-color: var(--aksan);
+  color: var(--murekkep); border-bottom-color: var(--aksan);
 }
 /* Sağ küme HİÇBİR GENİŞLİKTE DÜŞMEZ: arama ve çıkış her zaman erişilir.
    Ölçüldü (eski A çubuğu): 1366px'te 181px taşıyor, Çıkış ekran dışında
    kalıyordu. Kişi bloğu ilk daralan/düşen öğedir (`dar-gizle`). */
-/* Yardımcı küme kendi bölgesidir ve mercekten AYRILIR: sol saç çizgisi
-   barı okunur kılar — `marka │ gezinme … mercek │ yardımcılar`. Üç dikey
-   çizginin üçü de FARKLI bir yazmaç ayırır; süs değil yapıdır. */
+/* ── ÜÇ DİKEY ÇİZGİ KALDIRILDI ───────────────────────────────────────
+   Gerekçesi "üçü de farklı bir yazmaç ayırır; süs değil yapıdır" idi ve
+   ÇİZGİLER TEK BAŞINA ele alındığında doğruydu. Kusur bileşimdeydi:
+   aynı 56px'te marka hücresi, mercek hücresi ve yardımcı hücresi çizgiyle
+   ayrılırken arama KUTUDA, mercek seçicisi KUTUDA ve sayaç DOLU bir
+   rozetteydi — altı ayrı kap muamelesi. Her şeyin bir kabı olduğunda
+   çizgi yapı anlatmayı bırakır, yalnız yoğunluk ekler.
+
+   Ayrım bugün BOŞLUKLA kurulur: yardımcı küme sağa dayanır ve solunda
+   nefes taşır. Bar tek bir çizgiyle biter — altındaki saç çizgisiyle. */
 .ab-ust .sag {
-  margin-left: auto; display: flex; align-items: stretch; gap: 0; flex: none;
-  border-left: 1px solid var(--hr); padding: 0 0 0 14px;
+  margin-left: auto; display: flex; align-items: stretch; gap: 2px; flex: none;
+  padding: 0 0 0 20px;
 }
 .ab-ust .sag > * { align-self: center; }
 /* Yardımcı eylemler birincil gezinmeyle ağırlık YARIŞTIRMAZ: çerçeve yok,
@@ -653,7 +673,7 @@
    başlığı süs. */
 .ab-mercek {
   display: inline-flex; align-items: stretch; align-self: stretch;
-  margin-left: auto; border-left: 1px solid var(--hr); padding-left: 12px; gap: 2px;
+  margin-left: auto; padding-left: 12px; gap: 2px;
 }
 /* `.sag` da `margin-left:auto` taşıyor; ikisi birlikte olduğunda boşluk
    ikiye bölünürdü. Mercek soldaki boşluğu alır, yardımcılar sağa yapışır. */
@@ -687,17 +707,59 @@
 @media (max-width: 1500px) {
   .ab-mercek { display: none; }
   .ab-mercek-dar {
-    display: inline-flex; align-items: center; align-self: center; gap: 6px;
-    border-left: 1px solid var(--hr); padding-left: 12px; margin-left: auto;
+    display: inline-flex; align-items: center; align-self: center; gap: 8px;
+    padding-left: 12px; margin-left: auto;
   }
   .ab-mercek-dar .etiket {
     font-family: var(--veri); font-size: var(--t-etiket); letter-spacing: var(--tr-etiket);
     text-transform: uppercase; color: var(--i3);
   }
-  .ab-mercek-dar select {
+  /* ── ÜRÜNÜN TEK NATIVE KONTROLÜ, EN ÇOK GÖRÜLEN 56px'TE ─────────────
+     Bu `<select>` kutulu, köşesi yuvarlatılmış ve TARAYICININ çizdiği
+     şevronu taşıyordu: ürünün hiçbir yerinde olmayan üç biçim, hepsi
+     bir arada, her ekranda. 1440 — kılavuzun birincil kurumsal bandı —
+     tam da bu banda düşüyor, yani kullanıcıların çoğu şeritli mercek
+     yerine bunu görüyor.
+
+     `appearance: none` ile kutu ve şevron alınır, yerine ürünün kendi
+     şevronu (`.ab-mercek-dar::after`) konur. Seçici artık bir metin
+     alanı gibi değil, hesap menüsünün kardeşi gibi görünür: çerçevesiz,
+     mürekkep, tek bir ok. Odak halkası kabuğun kuralından gelir. */
+  /* ── ÖZGÜLLÜK SIRAYA DEĞİL NİYETE DAYANIR ──────────────────────────
+     İlk yazım `.ab-mercek-dar select` idi (0,1,1) ve ÖLÜ KALDI: ekran
+     formlarının ham malzemesini veren `.ab select` (0,1,1) CSS'te daha
+     SONRA geliyor ve eşit özgüllükte sıra kazanıyor. Ölçüldü — hesaplanan
+     değerler benimkiler değil, onunkilerdi (panel zemini, `--hr2`
+     kenarlık, 13px). Bu deponun kayıtlı tuzağı (`URN-KBK-020`) ve bu
+     turda ÜÇÜNCÜ kez.
+     Kural bu yüzden sırayla değil ÖZGÜLLÜKLE kazanır: kabuk başlığı
+     içindeki seçici (0,3,1) ekran formlarının malzemesini hiçbir sırada
+     almaz. */
+  .ab-mercek-dar { position: relative; }
+  .ab-ust .ab-mercek-dar select {
+    appearance: none; -webkit-appearance: none;
     font-family: var(--veri); font-size: var(--t-veri); color: var(--murekkep);
-    background: var(--panel); border: 1px solid var(--hr);
-    border-radius: 2px; padding: 4px 6px; max-width: 150px;
+    /* `background: none` YETMEZ: `globals.css` belge kökünde
+       `color-scheme: dark` var ve Chromium `appearance: none` altında
+       bile `<select>`e UA'nın `Field` zeminini boyuyor (ölçüldü — barın
+       içinde açık bir dikdörtgen kalıyordu). `transparent` açıkça
+       yazılır. */
+    background: transparent; border: 0; border-radius: 0;
+    padding: 4px 18px 4px 0; max-width: 150px; cursor: pointer;
+    /* Kutu EN GENİŞ seçeneğe göre boyutlanır (native davranış), seçili
+       metne göre değil: "Çekirdek" seçiliyken sağda ~60px boşluk kalıyor
+       ve şevron değerden KOPUK, ayrı bir denetim gibi okunuyordu. Metin
+       sağa dayanınca değer ve şevron tek nesne olur; kaşın ("SEKTÖR")
+       solundaki hizası değişmez. */
+    text-align: right;
+  }
+  .ab-ust .ab-mercek-dar select:hover { color: var(--murekkep); }
+  /* Şevron seçicinin ÜSTÜNDE durmaz, yanında: tıklamayı yutmaması için
+     işaretçi almaz. */
+  .ab-mercek-dar::after {
+    content: '▾'; position: absolute; right: 0; top: 50%;
+    transform: translateY(-50%); pointer-events: none;
+    font-size: var(--t-veri); color: var(--i3);
   }
 }
 /* ── ÇOK DAR BANTTA ETİKET GÖRÜNMEZ, AMA OKUNUR KALIR ─────────────────
@@ -808,7 +870,7 @@
    temel kurallarının ARDINDAN gelir (aşağıda, `.ab-hesap-menu`dan
    sonra): burada yazıldığında ölü kalıyordu — ölçüm ve gerekçe orada. */
 @media (max-width: 620px) {
-  .ab-mercek-dar select { max-width: 118px; }
+  .ab-ust .ab-mercek-dar select { max-width: 118px; }
 }
 
 
@@ -820,11 +882,22 @@
 }
 .ab-ust .bildirim:hover { color: var(--murekkep); }
 .ab-ust .bildirim[aria-current='page'] { color: var(--murekkep); border-bottom-color: var(--aksan); }
-.ab-ust .bildirim .ab-sayac { margin-left: 6px; }
+/* ── SAYAÇ DOLU ROZETTEN BAKIR METNE ─────────────────────────────────
+   Dolu bakır rozet barın EN YÜKSEK KROMALI nesnesiydi: aktif alanı
+   işaretleyen 2px'lik bakır çizgiden daha yüksek sesliydi. İki bakır
+   nesne yarışınca hangisinin DURUM olduğu belirsizleşir.
+
+   Sayı kalır — dikkat sayıdadır — ama dolgusu düşer: bakır metin, kendi
+   mürekkep kademesinde. Kontrast kapısı `--aksan`ı zaten METİN eşiğinde
+   (4,5:1) ölçüyor, yani okunaklılık beyanlı. */
+.ab-ust .bildirim .ab-sayac {
+  margin-left: 6px; padding: 0; min-width: 0;
+  background: none; color: var(--aksan); font-weight: 600;
+}
 .ab-hesap { position: relative; align-self: stretch; display: flex; }
 .ab-hesap-dugme {
   display: inline-flex; align-items: center; gap: 10px; padding: 0 20px 0 14px;
-  background: none; border: 0; border-left: 1px solid var(--hr); border-bottom: 2px solid transparent;
+  background: none; border: 0; border-bottom: 2px solid transparent;
   color: var(--i2); cursor: pointer; font: inherit; text-align: right;
 }
 .ab-hesap-dugme:hover, .ab-hesap-dugme[aria-expanded='true'] { color: var(--murekkep); background: var(--panel); }
@@ -871,8 +944,23 @@
    bloğundaki her bildirimi, aynı seçiciyi aynı özellikle ezen SONRAKİ
    bir kurala karşı sınar (medyasız kural ya da daha GENİŞ bir
    `max-width` — ikisi de dar bantta her zaman uygulanır). Tavan SIFIR. */
+/* Baş harf GENİŞ bantta çizilmez: ad zaten tam yazılı, kısaltma onun
+   tekrarı olurdu. */
+.ab-hesap-dugme .bas { display: none; }
 @media (max-width: 620px) {
   .ab-hesap-dugme .kisi { display: none; }
+  /* ── AD DÜŞÜNCE GERİYE BİR OK KALMASIN ──────────────────────────────
+     Kişi bloğu düşünce düğmeden yalnız `▾` kalıyordu: gören kullanıcı
+     ne kimin hesabı olduğunu ne de okun neyi açtığını anlıyordu (ad
+     `aria-label`da tamdı, yani kusur YALNIZ görsel katmandaydı).
+
+     Baş harf bir ROZET DEĞİL: dolgu, daire ve çerçeve yok — barın yeni
+     grameri kap tanımıyor. Mono, mürekkep, hafif izli; okun kardeşi. */
+  .ab-hesap-dugme .bas {
+    display: inline-flex; align-items: center;
+    font-family: var(--veri); font-size: var(--t-veri); font-weight: 600;
+    letter-spacing: var(--tr-gezinme); color: var(--i2);
+  }
 }
 
 /* İkincil sıra — alanın kendi ekranları. Barlow 14px büyük harf, gruplar
@@ -1112,10 +1200,28 @@
 }
 
 /* Ayak — kurumsal künye. Sabit metin; sürüm package.json'dan. */
+/* ── AYAK BİR KÜNYEDİR, ARAÇ ÇUBUĞU DEĞİL ────────────────────────────
+   Eski hâl yedi öğeyi neredeyse EŞİT ağırlıkta tek satıra diziyordu:
+   üç kimlik dizesi 24px oluklarla solda, dört alt çizgili bağ sağda.
+   Ne kümeler okunuyordu ne de hiyerarşi vardı — başlıkla aynı sesle
+   konuşan ikinci bir şerit çıkıyordu.
+
+   Bugün iki küme, iki ses. Kimlik kümesi TEK CÜMLE gibi okunur: öğeleri
+   24px'lik oluk değil, ortanokta ritmi ayırır (`.ab-alt .kunye + *`
+   kuralı). Bağ kümesi de tek küme olur — aralarındaki oluk daralır ve
+   alt çizgileri DİNLENİR (aşağıda). İkisini büyük tek bir boşluk ayırır,
+   yeni bir çizgi ya da kutu değil. */
 .ab-alt {
-  display: flex; align-items: center; gap: 24px; padding: 0 20px; min-height: var(--ayak-h);
+  display: flex; align-items: center; gap: 0 10px; padding: 0 24px;
+  min-height: var(--ayak-h);
   background: var(--zemin); border-top: 1px solid var(--hr);
   font-size: var(--t-veri); color: var(--i3); white-space: nowrap; overflow: hidden;
+}
+/* Kimlik kümesinin ritmi: ortanokta. Kümeyi oluk değil işaret kurar —
+   üç dize tek künye cümlesi gibi okunur. */
+.ab-alt .kunye ~ .surum::before,
+.ab-alt .kunye ~ .telif::before {
+  content: '·'; margin-right: 10px; color: var(--hr2);
 }
 /* ── ÖLÇÜLDÜ: 375px'te DÖRT BAĞ TAMAMEN ULAŞILAMIYORDU ───────────────
    Ayak `white-space: nowrap` + `overflow: hidden` idi ve içeriği 375px'lik
@@ -1129,8 +1235,12 @@
 @media (max-width: 700px) {
   .ab-alt {
     flex-wrap: wrap; white-space: normal; overflow: visible;
-    gap: 8px 16px; padding: 8px 16px;
+    gap: 6px 10px; padding: 10px 16px;
   }
+  /* Sarma sırasında ortanokta satırın BAŞINA düşebilir; sarmalı ayakta
+     ritmi oluk kurar, işaret değil. */
+  .ab-alt .kunye ~ .surum::before,
+  .ab-alt .kunye ~ .telif::before { content: none; margin-right: 0; }
 }
 /* ── ÜÇ KİMLİK ÖĞESİ, TEK KÜME ────────────────────────────────────
    Künye · sürüm · telif aynı soruyu yanıtlar ("bu kurulum NEDİR") ve
@@ -1142,7 +1252,7 @@
    yazılır), bu yüzden künyenin kuyruğundaki soluk griden bir adım öne
    alınır — ama künyenin önüne geçmez. */
 .ab-alt .surum { font-size: var(--t-veri); color: var(--i2); }
-.ab-alt nav { display: inline-flex; gap: 16px; margin-left: auto; }
+.ab-alt nav { display: inline-flex; gap: 18px; margin-left: auto; }
 /* Ayak sarınca bağ kümesi de sarar ve sağa itilmez. Kural temel kuralın
    ARDINDA durur: bir üstteki `max-width: 700px` bloğunun içine
    yazıldığında `margin-left` ve `gap` bildirimleri ÖLÜ kalıyordu —
@@ -1162,8 +1272,24 @@
      Dört alt çizgi 11px'lik bir satırda gürültüydü; silmek ise bağ
      duyusunu düşürürdü. Odak ve hover'da bakıra çıkar — yani ipucu
      kaybolmaz, yalnız DİNLENİR. */
-  text-decoration: underline; text-decoration-color: var(--hr);
+  /* ── ALT ÇİZGİ DURUR HÂLDE ÇİZİLMEZ ────────────────────────────────
+     Bir önceki tur onu `--hr2`den `--hr`e çekmişti ("gürültüydü, ama
+     silmek bağ duyusunu düşürürdü"). Ölçüm bu turda kümeyi bütün olarak
+     gösterdi: dört alt çizgi, 11px'lik bir satırda dört ayrı yatay
+     çizgi demektir ve ayak zaten ÜSTÜNDE bir saç çizgisi taşır — beş
+     yatay çizgi, otuz iki pikselde.
+
+     Bağ duyusu kayboluyor DEĞİL: kabuğun ÖBÜR gezinme kümesi (üst
+     çubuğun alan sekmeleri) de durur hâlde alt çizgi taşımaz. İki
+     gezinme artık aynı grameri konuşuyor — çizgi HAREKETLE gelir
+     (hover/odak), duruşla değil. Bunlar gövde metni içindeki bağlar
+     değil, adlandırılmış bir `<nav>`ın üyeleridir; WCAG 1.4.1'in
+     "gövde metni içinde renk tek kanal olamaz" şartı buraya değil,
+     paragraf içi bağlara bakar. */
+  text-decoration: underline; text-decoration-color: transparent;
   text-underline-offset: 3px;
+  transition: color var(--gecis-hizli) var(--gecis-egri),
+              text-decoration-color var(--gecis-hizli) var(--gecis-egri);
 }
 .ab-alt nav a:hover, .ab-alt nav a:focus-visible {
   color: var(--murekkep); text-decoration-color: var(--aksan);
@@ -3492,6 +3618,9 @@
 }
 @media (prefers-reduced-motion: reduce) {
   .ab-yol-serit button { transition: none; }
+  /* Ayak bağının alt çizgisi de bir geçiştir; jeton kuralı "hepsi
+     `prefers-reduced-motion` altında sıfırlanır" der. */
+  .ab-alt nav a { transition: none; }
 }
 
 /* ── Tezgâh hattı: aşama şeridi + hat notu ─────────────────────────── */
@@ -4412,7 +4541,26 @@ details:not([open]) > *:not(summary) { display: none !important; }
    yarıştırmaz. Düğme grameri (`.ab-dugme`) ürün genelinde büyük harftir
    ve o karar KORUNUR — burada yalnız kabuk örneği cümle düzenine iner,
    çünkü 56px'lik barda uppercase yükü ölçüldü: 17 dize. */
-.ab-ust .ab-ara-dugme { text-transform: none; }
+/* ── ARAMA BİR KOMUTTUR, BİR ALAN DEĞİL ──────────────────────────────
+   `.ab-dugme` grameri panel dolgusu + saç çizgisi kenarlık verir; barın
+   içinde bu, bir METİN ALANI gibi okunuyordu ("Ara Ctrl K" bir arama
+   kutusu sanılıyor). Oysa tıklanınca komut paleti açılır — yani bu bir
+   eylem tetikleyicisidir. Kutu düşer; kalan şey bir sözcük ve kısayolu.
+   Hedef yine 56px'in tamamıdır (WCAG 2.2 · 2.5.8). */
+.ab-ust .ab-ara-dugme {
+  text-transform: none; background: none; border: 0;
+  /* Etiket ile kısayol AYNI kademede olmamalı: "Ara" eylemdir, "Ctrl K"
+     onun dipnotudur. Kutu kalkınca ikisi de üçüncül mürekkebe düşmüş ve
+     tek gri lekeye dönüşmüştü. */
+  /* `.ab-dugme` `inline-block`tur: `stretch` kutuyu uzatır ama METNİ
+     üste yapıştırır (ölçüldü — arama satırın 20px üstünde duruyordu).
+     Kutu 56px'i hedef alacaksa içerik de dikeyde ortalanmalıdır. */
+  display: inline-flex; align-items: center; align-self: stretch;
+  padding: 0 12px;
+  color: var(--i2);
+}
+.ab-ust .ab-ara-dugme .kisayol { color: var(--i3); }
+.ab-ust .ab-ara-dugme:hover:not(:disabled) { color: var(--murekkep); border-color: transparent; }
 .ab-ara-dugme .kisayol { color: var(--i3); letter-spacing: var(--tr-gezinme); }
 @media (max-width: 700px) {
   .ab-ara-dugme .kisayol { display: none; }
@@ -4990,7 +5138,7 @@ details:not([open]) > *:not(summary) { display: none !important; }
      ve "Çekirdek" ORTADAN KESİLMİŞTİ. Kesilmiş bir sözcük, sıkışık bir
      satırdan kötüdür: kullanıcı neyin seçili olduğunu okuyamaz. */
   .ab-ust .marka { padding: 0 10px; font-size: var(--t-govde); }
-  .ab-mercek-dar select { max-width: 104px; }
+  .ab-ust .ab-mercek-dar select { max-width: 104px; }
   .ab-mercek-dar { padding-right: 8px; }
   /* Ölçüm: yardımcı kümenin 192px'inin 53'ü boşluktu (3 çocuk × 12px
      aralık + 28px dolgu). Çocuklar 139px; aralık ve dolgu kısılınca küme

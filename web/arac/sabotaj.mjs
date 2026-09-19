@@ -1005,6 +1005,28 @@ const SABOTAJLAR = [
     testler: ['tests/bekci/saha-serit.test.ts'],
   },
   {
+    ad: 'Aktif sekmeye panel zemini geri verildi (bar içinde kutu)',
+    kural: 'Aktif sekme İKİ ipucu taşır — mürekkep + bakır alt çizgi; zemin bir KUTU üretir ve rayı böler',
+    dosya: 'app/kabuk.css',
+    ara: "  color: var(--murekkep); border-bottom-color: var(--aksan);\n}",
+    yaz: "  color: var(--murekkep); background: var(--panel); border-bottom-color: var(--aksan);\n}",
+    testler: ['tests/bekci/kabuk-kromu.test.ts'],
+  },
+  {
+    ad: 'Baş harf Türkçe yerelini bıraktı (i → I, nokta kayboluyor)',
+    kural: "Türkçede 'i' → 'İ'dir; yerelsiz büyütme İlker’e başkasının baş harfini gösterir",
+    dosya: 'components/kabuk/yonler.ts',
+    ara: `.toLocaleUpperCase('tr-TR');
+}
+
+/** Rozet metni`,
+    yaz: `.toUpperCase();
+}
+
+/** Rozet metni`,
+    testler: ['tests/kabuk-gezinme.test.ts'],
+  },
+  {
     ad: 'Bildirim sözcüğü yine KOŞULSUZ gizleniyor (sıfır sayaçta adsız kutu)',
     kural: 'Sözcük ancak YERİNİ TUTACAK bir sayaç varken düşer; sıfırda sayaç hiç çizilmez',
     dosya: 'app/kabuk.css',

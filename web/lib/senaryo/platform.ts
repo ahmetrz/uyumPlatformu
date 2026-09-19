@@ -772,6 +772,25 @@ export const PLATFORM_SENARYOLARI: Senaryo[] = [
     katmanlar: ['UI'],
   },
   {
+    id: 'SIS-KBK-032', alan: 'Sistem', rota: '—', eksen: 'arayuz',
+    amac: 'Dar bantta hesabın KİM olduğunun görünür kalması — ölçüldü '
+      + '(kabuk yeniden tasarımı, 390×844): ≤620px’te kişi bloğu (ad + '
+      + 'unvan) düşüyor ve düğmeden geriye yalnız bir “▾” kalıyordu; '
+      + 'erişilebilir ad `aria-label`da tamdı, yani kusur SALT GÖRSEL '
+      + 'katmandaydı ve hiçbir kapı göremezdi',
+    rol: 'her kullanıcı', kapsam: 'kendi hesabı',
+    onkosul: 'Oturum açık; görüntü genişliği 620px’in altında',
+    veriHali: 'normal',
+    eylem: 'Kullanıcı üst çubuktaki hesap düğmesine bakar',
+    beklenenSonuc: 'Adın baş harfleri Türkçe büyütmeyle görünür '
+      + '(i → İ, ı → I); tek adlı kullanıcıda tek harf; ad boşsa boş dize '
+      + 've düğme yine de erişilebilir adını `aria-label`dan taşır',
+    beklenenEkran: 'Baş harf METİNDİR: dolgu, daire ya da çerçeve yok — '
+      + 'barın grameri kap tanımaz',
+    beklenenIz: 'yazma yok', beklenenBildirim: 'yok',
+    katmanlar: ['UI'],
+  },
+  {
     id: 'PRT-ODK-001', alan: 'Portföy', rota: '/tesisler', eksen: 'arayuz',
     amac: 'Portföyün ilk açılışta cevap vermesi — ölçüldü: ekran kapasite '
       + 'sırasıyla açılıyor ve kendi notunda "kapasite bir zayıflık ölçüsü '

@@ -551,3 +551,41 @@ describe('erişim · axe kapısı WCAG 2.2 AA ölçer', () => {
     expect(css).toMatch(/WCAG 2\.2 (AA )?24/);
   });
 });
+
+/* ═══ HESAP BAŞ HARFLERİ · dar bantta kimlik (SIS-KBK-032) ════════════
+   ≤620px'te kişi bloğu (ad + unvan) düşüyor ve düğmeden geriye YALNIZ
+   bir `▾` kalıyordu: gören kullanıcı ne kimin hesabı olduğunu ne de okun
+   neyi açtığını anlıyordu. Erişilebilir ad `aria-label`da tamdı — yani
+   kusur SALT GÖRSEL katmandaydı ve hiçbir kapı onu göremezdi.
+
+   Fonksiyon saf, çünkü asıl risk TÜRKÇE BÜYÜTMEDİR: `'i'.toUpperCase()`
+   İngilizce kurallarla noktasız `'I'` verir; Türkçede `'i' → 'İ'`dir.
+   "İlker" adlı bir kullanıcı, kendi baş harfi yerine başkasınınkini
+   görürdü — ve bu, ekranda doğru GÖRÜNEN bir yanlıştır. */
+describe('hesap baş harfleri [SIS-KBK-032]', () => {
+  const yukle = async () => (await import('@/components/kabuk/yonler')).basHarfler;
+  it('iki adlı kullanıcı ilk ve SON adın baş harfini alır [SIS-KBK-032]', async () => {
+    const basHarfler = await yukle();
+    expect(basHarfler('Kullanıcı A')).toBe('KA');
+    expect(basHarfler('Ayşe Yılmaz Demir')).toBe('AD');
+  });
+
+  it('tek adlı kullanıcı tek harf verir [SIS-KBK-032]', async () => {
+    const basHarfler = await yukle();
+    expect(basHarfler('Ayşe')).toBe('A');
+  });
+
+  it('TÜRKÇE büyütme: i → İ, ı → I [SIS-KBK-032]', async () => {
+    const basHarfler = await yukle();
+    /* Sabotaj burayı hedefler: `toUpperCase()` (yerelsiz) yazılırsa
+       `'i'` noktasız `'I'`ye düşer ve diş kırmızı yanar. */
+    expect(basHarfler('İlker Şahin')).toBe('İŞ');
+    expect(basHarfler('irem ıspartalı')).toBe('İI');
+  });
+
+  it('boş ya da yalnız boşluk olan ad boş dize verir [SIS-KBK-032]', async () => {
+    const basHarfler = await yukle();
+    expect(basHarfler('')).toBe('');
+    expect(basHarfler('   ')).toBe('');
+  });
+});

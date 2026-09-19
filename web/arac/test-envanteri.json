@@ -1,7 +1,7 @@
 {
-  "imza": "7b6371873263ff64171ee4f1a88a8523",
+  "imza": "cf9d32a047faabd161fcd8cc9743391a",
   "dosya": 263,
-  "vaka": 4605,
+  "vaka": 4609,
   "atlanan": 1,
   "dosyalar": {
     "tests/adaptor-yetenekleri.test.ts": {
@@ -457,7 +457,7 @@
       "atlanan": 0
     },
     "tests/kabuk-gezinme.test.ts": {
-      "vaka": 30,
+      "vaka": 34,
       "atlanan": 0
     },
     "tests/kabuk-inceleme.test.ts": {

@@ -114,14 +114,34 @@ describe('bekçi · kabuk kromu', () => {
       .toBeLessThan(marka!);
   });
 
-  it('İKİNCİ DİŞ · aktif sekme üç ipucu taşır [URN-KBK-022]', () => {
+  it('İKİNCİ DİŞ · aktif sekme İKİ ipucu taşır, ÜÇÜNCÜSÜ KUTU DEĞİL [URN-KBK-022]', () => {
+    /* ── KARAR DEĞİŞTİ VE SEBEBİ YAZILI ─────────────────────────────────
+       Diş önce ÜÇ ipucu istiyordu: mürekkep + panel zemini + bakır alt
+       çizgi. Üçüncüsü bir KUTU üretiyordu ve kabuk yeniden tasarlanırken
+       (kullanıcı: "komple değişiklik, çok daha elit") asıl kusur bileşimde
+       ölçüldü: aynı 56px'te marka hücresi, mercek hücresi ve yardımcı
+       hücresi dikey çizgiyle ayrılırken arama KUTUDA, mercek seçicisi
+       KUTUDA ve sayaç DOLU bir rozetteydi. Her şeyin bir kabı olduğunda
+       kap artık yapı anlatmaz.
+
+       İPUCU SAYISI DÜŞTÜ AMA ERİŞİLEBİLİRLİK DÜŞMEDİ ve diş bunu ölçer:
+       WCAG 1.4.1'in istediği "renk TEK kanal olmasın"dır, "üç kanal
+       olsun" değil. Kalan iki kanalın biri renkten bağımsızdır (alt
+       çizgi) — yani koşul karşılanıyor. Diş bu yüzden ikisini birden
+       ZORUNLU tutar ve zemini AÇIKÇA YASAKLAR: kutu geri gelirse
+       kırmızı yanar. */
     const bas = CSS.indexOf(".ab-ust > nav a[aria-current='page'] {");
     expect(bas, 'aktif sekme kuralı bulunamadı').toBeGreaterThan(-1);
     const govde = CSS.slice(bas, CSS.indexOf('}', bas));
-    /* Durum YALNIZ renkle anlatılmaz: renk + zemin + kenar. */
-    for (const ipucu of ['color:', 'background:', 'border-bottom-color:']) {
-      expect(govde, `aktif sekme ${ipucu} taşımıyor`).toContain(ipucu);
+
+    for (const ipucu of ['color:', 'border-bottom-color:']) {
+      expect(govde, `aktif sekme ${ipucu} taşımıyor — durum iki kanaldan `
+        + 'birini kaybetti').toContain(ipucu);
     }
+    expect(govde, 'Aktif sekme yeniden ZEMİN alıyor. Barın grameri kap tanımaz: '
+      + 'dolgulu bir dikdörtgen yanındaki dört sekmeyi "kapsız" gösterir ve rayı '
+      + 'böler. Durumu mürekkep ağırlığı ve bakır alt çizgi söyler.')
+      .not.toContain('background');
   });
 
   it('ÜÇÜNCÜ DİŞ · kiracı adı kabuk bileşenine gömülmez [URN-KBK-022]', () => {

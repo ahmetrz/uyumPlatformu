@@ -31,7 +31,7 @@
     "tanik.veriYuzeyi": 17,
     "tanik.kapsam": 35,
     "kabuk.darBantBildirimi": 310,
-    "kabuk.buyukHarfKurali": 60,
+    "kabuk.buyukHarfKurali": 59,
     "kabuk.kayanKap": 24,
     "tipografi.bildirim": 682,
     "tipografi.izBildirimi": 104,
@@ -54,10 +54,10 @@
       "tarih": "2026-09-17"
     },
     "kabuk.buyukHarfKurali": {
-      "eski": 62,
-      "yeni": 60,
-      "sebep": "Kapsam BİLEREK daraldı: başlıktaki iki büyük harf kuralı kaldırıldı — .ab-mercek button (sektör ADLARI içerik paketinden gelen DEĞERDİR, kaş değil) ve .ab-ust .bildirim (yardımcı kümenin eylem etiketi). Ürünün kendi kuralı büyük harfi yapısal kaşa ayırır; kabuk onu kendi barında çiğniyordu. Ölçüldü (18 Eyl 2026): ekranda 17 büyük harfli dize vardı, 9'a indi. Kural sayısındaki 62 → 60 düşüşü bu iki kaldırmanın tamamıdır; hiçbir yüzey ölçüm dışında kalmadı.",
-      "tarih": "2026-09-18"
+      "eski": 60,
+      "yeni": 59,
+      "sebep": "Kabuk yeniden tasarımı: marka sözcük markasının İKİNCİ satırı (ürün adı) büyük harfi ve geniş izi bıraktı. 27 karakterlik bu dize marka bloğunun en geniş, en gürültülü öğesiydi ve barın İKİNCİ bakır nesnesiydi — aktif sekmenin bakır alt çizgisiyle aynı sesle konuşuyordu. Yeni kural: bakır YALNIZ durumu işaretler, kimliği değil; marka kimliğini tipografiyle taşır (Barlow Condensed 16px 700). Kural sayısı 60 → 59; kaldırılan tek kural budur ve hiçbir yüzey ölçüm dışında kalmadı.",
+      "tarih": "2026-09-19"
     }
   }
 }

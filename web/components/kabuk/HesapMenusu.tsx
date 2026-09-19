@@ -2,7 +2,7 @@
 import Link from 'next/link';
 import { useEffect, useId, useRef, useState, useTransition } from 'react';
 import { cikisYap } from '@/lib/girisEylemleri';
-import { UST_BAGLAR, aktifMi } from '@/components/kabuk/yonler';
+import { UST_BAGLAR, aktifMi, basHarfler } from '@/components/kabuk/yonler';
 import type { KabukKullanicisi } from '@/components/kabuk/Kabuk';
 
 /* ═══ Hesap menüsü — Ayarlar · Yardım · Yönetim tezgâhı · Çıkış ══════
@@ -95,6 +95,12 @@ export default function HesapMenusu({ kullanici, patika }: {
               boy ve renk aynı, büyük harf yok (URN-KBK-022 · üçüncü diş). */}
           {kullanici.unvan && <span className="rol dar-gizle">{kullanici.unvan}</span>}
         </span>
+        {/* Dar bantta kişi bloğu düşer ve geriye yalnız bir ok kalırdı;
+            baş harf o boşluğu doldurur. `aria-hidden`: düğmenin
+            erişilebilir adı `aria-label`da zaten TAM ("Hesap menüsü —
+            {ad}"), baş harf onun görsel kısaltmasıdır ve ikinci bir ad
+            kaynağı doğurmamalıdır. */}
+        <span className="bas" aria-hidden>{basHarfler(kullanici.ad)}</span>
         <span className="ok" aria-hidden>{acik ? '▴' : '▾'}</span>
       </button>
       {acik && (

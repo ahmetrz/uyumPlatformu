@@ -25,6 +25,7 @@
    4. Gücü ölçülmemiş tesis tuvalin İÇİNDE çizilmiyor (bilinmeyen ≠ sıfır).
    5. Şerit, tuvalde görünmeyen tesisleri gerçekten gösteriyor — sayı
       tutuyor, yani hiçbir tesis iki yüzeyin arasından düşmüyor.
+   6. AD YÜZEYİ BANT DEĞİŞİMİNDE KORUNUR (SAH-SER-003) — aşağıda.
 
    ── NE ÖLÇMEZ (beyanlı sınır) ─────────────────────────────────────────
    KÜNYE TAVANINI (`KUNYE_EN_COK_YOL`) bu kapı SINAMAZ. Sabotajla ölçüldü:
@@ -34,6 +35,24 @@
    kunye-yolu.test.ts` sentetik yoğunlukla ölçer ve sabiti büyüten
    sabotajda KIRMIZI yanar. İkisi birbirinin yerine geçmez: saf test
    kuralı, bu kapı kuralın EKRANDAKİ SONUCUNU ölçer.
+
+   ── AD YÜZEYİ · BANT DEĞİŞİMİ (SAH-SER-003) ───────────────────────────
+   Saha rayı (`.ab-b-serit`) 19 Eyl 2026'da kendi bandına çekildi: künye
+   çizilen bantta gizlenir, çizilmeyen bantta kalır. Karar ÖLÇÜMDENDİR ve
+   sınır iki pikselde kesindir:
+
+     1101px → künye 4 · güçsüz şerit 4 · ray 8 · RAYA ÖZGÜ AD 0
+     1100px → künye 0 · güçsüz şerit 4 · ray 8 · RAYA ÖZGÜ AD 4
+
+   Tehlike açıktır: iki eşik (künyeyi susturan `max-width: 1100px` ile
+   rayı gizleyen `min-width: 1101px`) AYRI yerlerde durur. Ayrışırlarsa
+   arada bir pencere açılır ve o pencerede dört tesisin adı EKRANDAN
+   TÜMÜYLE kaybolur — hiçbir kapı görmez, çünkü iki kural da tek başına
+   doğrudur. Bu, deponun "tek tek doğru, BİRLİKTE tutarsız" sınıfıdır.
+
+   Ölçüt bu yüzden eşiklerin sayısı değil SONUCUDUR: iki bantta da
+   okunabilen tesis adlarının KÜMESİ aynı olmalıdır. Kural gerçek
+   tarayıcıda, gerçek yolla sürülür (R-F).
 
    Kullanım: PORT=3210 node arac/tuval-kanit.mjs   (canlı sunucu ister) */
 import { chromium } from 'playwright-core';
@@ -175,6 +194,90 @@ for (const b of BANTLAR) {
    Ekranın kendi DOM'u bunu söyleyemez (tuvalde olmayan bir şeyi DOM'da
    arayamayız); şeridin dolu olması ve tuvaldeki işaret sayısının şerit
    kadar eksik olması ölçülür. */
+/* ═══ AD YÜZEYİ · BANT DEĞİŞİMİ (SAH-SER-003) ═══════════════════════
+   Eşiğin İKİ YANI. 1101 künyenin çizildiği en dar bant, 1100 çizilmediği
+   en geniş bant; kusur varsa tam orada durur. */
+const AD_BANTLARI = [
+  { ad: '1101×800 (künyeli)', width: 1101, height: 800, kunyeli: true },
+  { ad: '1100×800 (künyesiz)', width: 1100, height: 800, kunyeli: false },
+];
+const adKumeleri = [];
+
+for (const b of AD_BANTLARI) {
+  const baglam = await tarayici.newContext({ viewport: { width: b.width, height: b.height } });
+  const sayfa = await baglam.newPage();
+  await girisYap(sayfa, KOK);
+  await sayfa.goto(`${KOK}/`, { waitUntil: 'domcontentloaded', timeout: 30000 });
+  await sayfa.waitForSelector('.ab-b-takim', { timeout: 15000 });
+  await sayfa.waitForTimeout(600);
+
+  const o = await sayfa.evaluate(() => {
+    /* GÖRÜNÜRLÜK ATADAN DA GELİR: `display: none` bir bölümün üstünde
+       durur, içindeki `.ad` kendi hesabına hâlâ "görünür" sanılabilir.
+       `offsetParent` ve kutu ölçüsü birlikte bakılır. */
+    const gorunur = (e) => {
+      if (!e.offsetParent && getComputedStyle(e).position !== 'fixed') return false;
+      const r = e.getBoundingClientRect();
+      return r.width > 0 && r.height > 0;
+    };
+    const adlar = (secici) => [...document.querySelectorAll(secici)]
+      .filter(gorunur).map((e) => e.textContent.trim()).filter(Boolean);
+    const serit = document.querySelector('.ab-b-genel .ab-b-serit');
+    return {
+      kunye: adlar('.ab-b-takim .ab-tuval .kunye .ad'),
+      gucsuz: adlar('.ab-b-takim .ab-gucsuz .serit a .ad'),
+      seritAd: adlar('.ab-b-genel .ab-b-serit .kart .ad'),
+      seritGorunur: Boolean(serit) && getComputedStyle(serit).display !== 'none',
+    };
+  });
+
+  const tuvalde = new Set([...o.kunye, ...o.gucsuz]);
+  const rayaOzgu = o.seritAd.filter((a) => !tuvalde.has(a));
+  adKumeleri.push({ bant: b.ad, kume: new Set([...tuvalde, ...o.seritAd]) });
+
+  /* Künye kuralı bu bantta gerçekten iddia edildiği gibi mi işliyor?
+     Ray kararının DAYANAĞI bu; dayanak ölçülmezse karar beyandır. */
+  olc(b.ad, `künye ${b.kunyeli ? 'çiziliyor' : 'çizilmiyor'}`,
+    b.kunyeli ? o.kunye.length > 0 : o.kunye.length === 0, `${o.kunye.length} künye`);
+
+  /* Ray kendi bandında mı? */
+  olc(b.ad, `ray ${b.kunyeli ? 'gizli' : 'görünür'}`,
+    o.seritGorunur === !b.kunyeli,
+    o.seritGorunur ? `görünür · ${o.seritAd.length} ad` : 'gizli');
+
+  /* KÜNYELİ BANTTA RAY BİR ŞEY EKLEMEZ. Gizleme kararının TEK gerekçesi
+     budur; sayı sıfırdan büyükse ray gizlenerek ad kaybediliyor demektir
+     ve gizleme kuralı geri alınmalıdır (yükseklik kazancı bir adın
+     yerini tutmaz). */
+  if (b.kunyeli) {
+    olc(b.ad, 'raya özgü ad yok — gizleme ad kaybettirmiyor',
+      rayaOzgu.length === 0,
+      rayaOzgu.length ? rayaOzgu.join(' · ') : '0 özgü ad');
+  } else {
+    /* KÜNYESİZ BANTTA RAY TEK AD YÜZEYİDİR. Buradaki sayı sıfıra
+       düşerse ray gereksizleşmiş demektir DEĞİL — künye kuralının
+       değiştiği demektir; ikisi birlikte okunur. */
+    olc(b.ad, 'ray künyesiz bantta ad taşıyor', o.seritAd.length > 0,
+      `${o.seritAd.length} ad · ${rayaOzgu.length} tanesi yalnız burada`);
+  }
+
+  await baglam.close();
+}
+
+/* ── ASIL ÖLÇÜT: KÜME EŞİTLİĞİ ────────────────────────────────────────
+   Eşikler ayrışırsa arada adların kaybolduğu bir pencere açılır. Tek
+   tek doğru iki kuralın BİRLİKTE tutarlılığı ancak burada görünür. */
+{
+  const [a, c] = adKumeleri;
+  const eksik = [...a.kume].filter((x) => !c.kume.has(x));
+  const fazla = [...c.kume].filter((x) => !a.kume.has(x));
+  olc('bant değişimi', 'okunabilen tesis adları iki bantta AYNI',
+    eksik.length === 0 && fazla.length === 0,
+    eksik.length || fazla.length
+      ? `dar bantta kaybolan: ${eksik.join(' · ') || '—'} | dar bantta beliren: ${fazla.join(' · ') || '—'}`
+      : `${a.kume.size} ad, iki bantta da okunuyor`);
+}
+
 const bant = BANTLAR[0].ad;
 const ilk = iddialar.find((i) => i.bant === bant && i.ad === 'takımyıldız çizilmiş');
 olc(bant, 'gücü ölçülmemiş tesis ayrı yüzeyde', true,
@@ -190,7 +293,10 @@ await tarayici.close();
    değil — ekranın tamamı taranır — ama ölçüm ekranı ve bantları bu
    kapının zaten kurduğu ortamdır; ayrı bir kapı aynı sunucuyu ikinci
    kez ayağa kaldırırdı. */
-const ASGARI_IDDIA = 15;
+/* 15 → 22: ad yüzeyi bandı (SAH-SER-003) iki bantta üçer iddia, üstüne
+   küme eşitliği. Ayrı bir kapı aynı sunucuyu üçüncü kez ayağa
+   kaldırırdı; ölçüm ekranı ve oturumu bu kapının zaten kurduğu ortam. */
+const ASGARI_IDDIA = 22;
 if (iddialar.length < ASGARI_IDDIA) {
   console.error(`\nÖLÇÜM YETERSİZ: ${iddialar.length} iddia, taban ${ASGARI_IDDIA}.`);
   console.error('  Ölçülmemiş bir kapı "geçti" diye yazılmaz.');

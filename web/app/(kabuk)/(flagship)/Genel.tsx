@@ -260,7 +260,8 @@ export default function Genel({
         {/* ── Takımyıldız — koordinat DEĞİL, endeks × güç ───────────── */}
         <Takimyildizi tesisler={tesisler} gosterim={olculmemisGosterimi}
           serit={olculmemisSerit} panelAcik={olculmemisAcik} setPanelAcik={setOlculmemisAcik}
-          tanimlayabilir={tanimlayabilir} />
+          tanimlayabilir={tanimlayabilir}
+          portfoy={{ sayi: ozet.tesisSayisi, gucYazi: ozet.gucYazi }} />
 
         {/* ── Katman paneli · 320px — gizlenebilir (saha.yerlesim) ──────
             Panel içeriği KAP BOYUNU AŞABİLİR ve kendi içinde kayar; ne
@@ -347,7 +348,30 @@ export default function Genel({
       {/* ═══ Öncelik göstergeleri ══════════════════════════════════════ */}
       <OncelikSeridi ozet={ozet} risk={risk} sira={kpiSirasi(yerlesim)} />
 
-      {/* ═══ Saha şeridi ═══════════════════════════════════════════════ */}
+      {/* ═══ Saha şeridi — YALNIZ DAR BANT (≤1100px) ══════════════════
+          ÖLÇÜLDÜ (19 Eyl 2026), sınır iki pikselde kesin:
+
+            1101px → künye 4 · güçsüz şerit 4 · şerit 8 · ŞERİDE ÖZGÜ AD 0
+            1100px → künye 0 · güçsüz şerit 4 · şerit 8 · ŞERİDE ÖZGÜ AD 4
+
+          Yani 1101'de şerit, ekranda BAŞKA YERDE OLMAYAN tek bir ad bile
+          taşımıyor: takımyıldızın künyeleri (4) ile güçsüz şeridi (4)
+          sekizin sekizini de zaten yazıyor. 1100'de künye çizilmiyor
+          (`kabuk.css` · `max-width: 1100px` · "dar bantta serbest yüzen
+          künye YANLIŞ BİÇİMDİR") ve şerit, en kötü dört tesisin adının
+          okunduğu TEK yüzey oluyor.
+
+          Bu yüzden şerit KALDIRILMADI, BANDINA ÇEKİLDİ: 1101px ve
+          yukarısında gizlenir (tekrar), 1100px ve aşağısında kalır
+          (tek ad yüzeyi). Kullanıcı bu bölgeyi üç kez bildirdi (görsel
+          boyu · kaydırma çubuğu ×2); geniş bantta 304k px² ve 159px tek
+          ekran bütçesi, karşılığında sıfır yeni ad ve sıfır yeni hedef.
+
+          Gizleme KURALI kapıdadır ve gerçek tarayıcıda iki bantta
+          ölçülür (`arac/tuval-kanit.mjs`): şerit gizliyken şeride özgü
+          ad sayısı SIFIR olmak zorundadır — bir gün künye eşiği ya da
+          tuval kümesi değişirse kapı kırmızı yanar, ad sessizce
+          kaybolmaz. */}
       <section className="ab-b-serit" aria-label="Saha seçici">
         <header>
           {/* "Tesise geçmek için seçin · yatay kaydırın" yönlendirmesi
@@ -776,8 +800,12 @@ function Mudahale({ dikkat, toplamKayit, kapsamli }: {
 }
 
 function Takimyildizi({ tesisler, gosterim = OLCULMEMIS_VARSAYILAN, serit, panelAcik,
-  setPanelAcik, tanimlayabilir = false }: {
+  setPanelAcik, tanimlayabilir = false, portfoy }: {
   tesisler: TesisKarti[];
+  /** Portföyün TAMAMI — çizilen küme değil. Geniş bantta şerit (ve onun
+      başlığı) gizlendiği için bu iki sayının TEK yüzeyi burasıdır;
+      kullanıcı gördüğü nokta sayısını portföyün tamamı sanmasın. */
+  portfoy: { sayi: number; gucYazi: string | null };
   /** Boş durumun eylemi yetkiye bağlıdır — `Genel`den geçer. */
   tanimlayabilir?: boolean;
   /** Değerlendirilmemiş özetinin ayrıntı düzeyi — konsol `saha.olculmemis`. */
@@ -884,8 +912,17 @@ function Takimyildizi({ tesisler, gosterim = OLCULMEMIS_VARSAYILAN, serit, panel
             eksen adları ("uyum endeksi →" · "↑ kurulu güç") ve artık
             pencerenin uçlarını yazan çentikler. Üçüncü kanal, kimsenin
             klavyeyle ulaşamadığı bir kopyaydı. */}
+        {/* BAŞLIK PORTFÖYÜ SÖYLER, EŞLEMEYİ DEĞİL. Eskiden "uyum × güç"
+            yazıyordu; o eşlemeyi eksen adları ("uyum endeksi →" · "↑ kurulu
+            güç") zaten söylüyor — bu bileşenin kendi kuralı yönün ÜÇÜNCÜ
+            kanalını daha önce kaldırmıştı, başlık dördüncüsüydü. Yerine
+            şeridin geniş bantta gizlenen başlığındaki iki sayı geçti.
+            Güç YAZISI sunucudan birimiyle gelir; ölçülmemişte ya da
+            birimler karışıkken hiç yazılmaz — karışık bir toplamı tek
+            birimle etiketlemek yanlış bir sayıyı doğru gibi gösterirdi. */}
         <p className="etiket ust">
-          {tBas('tesis', 'cogul')} · uyum × güç
+          {tBas('tesis', 'cogul')} · {portfoy.sayi}
+          {portfoy.gucYazi && ` · ${portfoy.gucYazi}`}
         </p>
         {olculmemis.length > 0 && (
           /* Özet satırı: sayı ÖNCE ve tek başına okunur; oran ("11/16")

@@ -301,7 +301,10 @@ function BildirimBagi({ n, patika }: { n: number; patika: string }) {
     <Link href="/bildirimler" className="bildirim"
       aria-current={aktifMi('/bildirimler', patika) ? 'page' : undefined}
       aria-label={n > 0 ? `Bildirimler — ${sayacEtiketi(n)}` : 'Bildirimler'}>
-      Bildirim<Sayac n={n} />
+      {/* Sözcük SPAN'a alındı ki telefonda düşebilsin — sayaç kalır.
+          Erişilebilir ad yukarıdaki `aria-label`dadır, dolayısıyla
+          sözcüğün görsel olarak düşmesi okuyucudan bilgi götürmez. */}
+      <span className="ad">Bildirim</span><Sayac n={n} />
     </Link>
   );
 }

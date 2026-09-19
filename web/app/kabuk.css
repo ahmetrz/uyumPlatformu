@@ -364,15 +364,60 @@
    yalnız kenar/işaret/dolgu taşır (3:1), aksan dolgusuna zemin rengi
    yazılır. Blok `.ab {\n  --zemin:` ile başlar — kontrast kapısı ve
    /sistem sayfası paleti bu imzayla okur. */
+/* ═══ YÜZEY KADEMESİ GERÇEK OLMAK ZORUNDA (SIS-PAL-001) ════════════════
+   `DESIGN.md` iki yerde kademe BEYAN EDİYORDU — "zemin → panel → panel-2
+   ÜÇ KADEME" ve "panel zeminin BİR KADEME üstüdür". Ölçüldü (19 Eyl 2026)
+   ve beyan yanlış çıktı; kademe YOKTU:
+
+     zemin → panel   1,042:1      panel → panel2  1,053:1
+     zemin → panel2  1,097:1
+
+   Üç yüzey birbirinden %10'dan az ayrışıyordu, yani göz için TEK siyahtı.
+   Koyu arayüzde düzeni yüzey kademesi kurar; kademe çökünce ekran tek
+   parça levhaya döner. Kullanıcı bunu "çok karanlık ve hâlâ düzenli
+   değil" diye bildirdi — iki şikâyetin de kaynağı tek ölçümde buluştu.
+
+   KONTRAST KAPISI BUNU GÖREMEZ ve bu beyanlı bir körlüktü: `arac/
+   kontrast.mjs` yalnız MÜREKKEP × YÜZEY oranını ölçer (4,5:1). Yüzeyin
+   YÜZEYE oranını hiçbir kapı ölçmüyordu, dolayısıyla kademe sessizce
+   düzleşebilirdi. Bugün ölçülüyor: `tests/bekci/yuzey-kademesi.test.ts`.
+
+   ── TAVANI KİM KOYUYOR ──────────────────────────────────────────────
+   Yüzeyler serbestçe açılamaz: en parlak yüzey, paletin EN SOLUK metin
+   mürekkebinin 4,5:1'ini taşımak zorundadır. Ölçüldü — bağlayıcı jeton
+   `--bd` (kritik kırmızı). Eski değeriyle (#DB5A48) tavan L ≤ 0,0119
+   ediyordu, yani kademe 1,075:1'de kilitliydi: yüzeyle çözüm İMKÂNSIZDI.
+   Kilidi açan şey yüzey değil MÜREKKEPTİR.
+
+   Bu yüzden üç mürekkep birer kademe açıldı. Ton ve doygunluk BİREBİR
+   korundu, yalnız açıklık yükseldi — kritik kırmızı hâlâ 7° tonunda ve
+   0,67 doygunlukta, yani kırmızıdır:
+
+     --bd    #DB5A48 → #E07262      --pl  #7A8B93 → #85959C
+     --cubuk #6A777A → #6A777A
+
+   `--murekkep`, `--i2`, `--i3`, `--unk`, `--ok`, `--md` DEĞİŞMEDİ.
+
+   ── TABAN DA YÜKSELDİ ───────────────────────────────────────────────
+   `--zemin` ekranın çoğunu kaplar; "çok karanlık" şikâyetinin ağırlığı
+   oradadır. #0A0C0D (L 0,0036) yaygın koyu arayüzlerin altındaydı
+   (Material #121212 L 0,0056 · GitHub #0d1117 L 0,0053); #0F1112
+   (L 0,0055) o banda çıkar. KOYU TEMA KARARI DEĞİŞMEDİ — açık temaya
+   geçiş yok; koyu tema kendi içinde okunur hâle geldi.
+
+   Sonuç: kademe 1,042/1,053/1,097 → 1,144/1,163/1,331. */
 .ab {
-  --zemin: #0A0C0D;
-  --panel: #0F1213;
-  --panel2: #14181A;
+  --zemin: #0F1112;
+  --panel: #1D1F20;
+  --panel2: #292B2C;
   --murekkep: #EDEEEC;
   --i2: #B9BEBC;
   --i3: #8D9497;      /* prototipte #7C8486; 4.5:1 için açıldı */
-  --hr: #1C2123;
-  --hr2: #272D2F;
+  /* Saç çizgileri yüzeylerin ÜSTÜNDE durur: panel açılınca eski `--hr`
+     (#1C2123) panelden KOYU kalıyordu — panel üstündeki her kenarlık
+     görünmez olurdu. Kademe yükselince ayraç da yükselir. */
+  --hr: #333536;
+  --hr2: #3C3E3F;
   --aksan: #C2703E;   /* bakır */
   /* Kaydırma çubuğu başparmağı — METİN değil KONTROL: eşiği 3:1 (IRI).
      Ölçüldü: dört zeminde 4,18 / 4,01 / 3,81 / 3,96. Değer kontrast
@@ -405,12 +450,12 @@
      sağ kenarda gradyanla solarak "devamı var" der ve kabuğun öbür
      gezinme rayları çubuğu zaten gizler. Düzeltme oraya taşındı
      (`.ab-b-serit .kartlar` · `GIZLI_IZINLI`). Renk KALIR. */
-  --cubuk: #6A7679;
+  --cubuk: #6A777A;
   --ok: #6FA07E;
   --md: #D9A03C;
   /* Prototipte #D14A3A → 4,04:1. Ton korunarak açıldı → 4,74:1. */
-  --bd: #DB5A48;
-  --pl: #7A8B93;
+  --bd: #E07262;
+  --pl: #85959C;
   --unk: #8D9497;
   --ui: 'Inter', system-ui, sans-serif;
   --veri: 'JetBrains Mono', ui-monospace, monospace;
@@ -430,7 +475,7 @@
   /* Açık satırın zemini — aksanın çok soluk tonu. */
   --secim: #171211;
   /* Aksan dolgusunun ÜZERİNE yazılan mürekkep. */
-  --aksan-uzeri: #0A0C0D;
+  --aksan-uzeri: #0F1112;
 }
 
 /* ═══ Yoğunluk — ölçü, renk değil ════════════════════════════════════
@@ -721,6 +766,8 @@
 @media (max-width: 620px) {
   .ab-mercek-dar select { max-width: 118px; }
 }
+
+
 
 .ab-ust .bildirim {
   display: inline-flex; align-items: center; align-self: stretch; padding: 0 14px;
@@ -4775,6 +4822,53 @@ details:not([open]) > *:not(summary) { display: none !important; }
   /* Kütük hücre dolgusu telefonda daralır: 335px'lik iç alanda dört
      sütunun yatay dolgusu konu sütununu dört satıra kırıyordu. */
   .ab-vt th, .ab-vt td { padding-left: 8px; padding-right: 8px; }
+}
+
+/* ═══ TELEFON: BAŞLIK İKİ SIRA, ÜÇ DEĞİL (SIS-KBK-040)
+   YERİ ÖNEMLİ: bu blok `.ab-ust .marka`yı YAZAN `max-width: 700px` bloğunun ARDINDAN
+   gelir — dosyada BİRDEN ÇOK 700px bloğu var ve kazanan EN SONUNCUSU.
+   Önce yazıldığında dolgu ve aralık kuralları ÖLÜ kalıyordu — 700px
+   bloğu dosyada sonra gelip aynı seçiciye 14px/12px yazıyor ve eşit
+   özgüllükte sonraki kazanıyor. Bu, deponun kayıtlı tuzağıdır
+   (`URN-KBK-020`, aynı sınıf `max-width: 1100px` için yazılmıştı) ve
+   düzeltme turunda bir kez daha ölçüldü: küme 192px'te takılı kaldı. ═════════════════
+   Ölçüldü (19 Eyl 2026 · 390×844), başlık üç sıraya dağılıyordu:
+
+     marka        0,0    113×40
+     mercek-dar 258,4    132×32
+     .sag       136,40   254×40   ← solunda 136px BOŞLUK
+     nav          0,80   390×41
+
+   Sebep sarmaldı: satır 1'e üç öğe sığmıyor (113+132+254 = 499 > 390),
+   `.sag` alt satıra düşüyor ve `margin-left: auto` onu sağa itip solunda
+   136px boşluk bırakıyordu. Ekranda "havada asılı kutular" olarak
+   okunuyor — kullanıcı "mobil görünüm çok kötü" derken gördüğü budur.
+
+   Çözüm sarmalı yönetmek DEĞİL, satır 1'i SIĞDIRMAKTIR: yardımcı küme
+   daralır (bildirim sözcüğü düşer, sayaç kalır), mercek kısalır. Küme
+   113+96+~132 = 341 ≤ 390 olur ve başlık iki sıraya iner.
+
+   HİÇBİR ROTA GİZLENMEZ: gezinme kendi satırında ve kaydırılır; bu
+   bandın kayıtlı kuralıdır ("rota gizlemek, o rotaya dokunmatik erişimi
+   tamamen kapatmak olurdu"). Dokunma hedefleri de küçülmez — ürünün
+   beyan ettiği eşik WCAG 2.2 AA 24×24 ve satır 1 öğeleri 40px'te kalır. */
+@media (max-width: 430px) {
+  /* Sözcük düşer, SAYAÇ KALIR: dikkati taşıyan sayıdır, sözcük değil. */
+  .ab-ust .bildirim .ad { display: none; }
+  .ab-ust .bildirim { padding: 0 10px; }
+  .ab-ust .ab-ara-dugme { padding: 0 10px; }
+  /* Marka telefonda bir kademe iner (16px → 13px): kurulum adı kimliği
+     taşımaya devam eder, ama satırın üçte birini yemez. Kazanılan ~21px
+     doğrudan mercek seçiciye gider — ilk denemede seçici 76px'e kısılmış
+     ve "Çekirdek" ORTADAN KESİLMİŞTİ. Kesilmiş bir sözcük, sıkışık bir
+     satırdan kötüdür: kullanıcı neyin seçili olduğunu okuyamaz. */
+  .ab-ust .marka { padding: 0 10px; font-size: var(--t-govde); }
+  .ab-mercek-dar select { max-width: 104px; }
+  .ab-mercek-dar { padding-right: 8px; }
+  /* Ölçüm: yardımcı kümenin 192px'inin 53'ü boşluktu (3 çocuk × 12px
+     aralık + 28px dolgu). Çocuklar 139px; aralık ve dolgu kısılınca küme
+     163px'e iner ve satır 366px'te kapanır. */
+  .ab-ust .sag { gap: 4px; padding: 0 8px; }
 }
 
 /* ══ Yönetim konsolu (/yonetim-tezgahi · KonsolIstemci) ═══════════════════

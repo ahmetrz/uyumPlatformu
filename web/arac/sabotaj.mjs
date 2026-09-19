@@ -1029,6 +1029,14 @@ const SABOTAJLAR = [
     testler: ['tests/bekci/kabuk-kromu.test.ts'],
   },
   {
+    ad: 'Satır kırıcı tam %100 yapıldı (gezinme kırıcıyla aynı satıra sığar)',
+    kural: 'Kırıcı satırdan BİR PİKSEL geniştir; tam %100 olduğunda taban genişliği 0 olan gezinme yanına sığar, 0px’te kalır ve rozet üçüncü satıra düşer',
+    dosya: 'app/kabuk.css',
+    ara: 'flex: 0 1 calc(100% + 1px)',
+    yaz: 'flex: 0 1 100%',
+    testler: ['tests/bekci/kabuk-kromu.test.ts'],
+  },
+  {
     ad: 'Doku saydamlığı katmandan her görsele geri yazıldı',
     kural: 'Çapraz geçişte üst görsel tabanı ÖRTER; ikisi de yarı saydam olursa KARIŞIR ve yüzey ölçülenden koyu olur',
     dosya: 'app/kabuk.css',

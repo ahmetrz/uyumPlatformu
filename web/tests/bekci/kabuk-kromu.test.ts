@@ -263,18 +263,49 @@ describe('bekçi · kabuk kromu', () => {
        Diş rozetin AYNI medya bloğunda sıra almasını ister. Sayı değil
        VARLIK ölçülür: hangi sıraya gireceği bir tasarım kararıdır,
        listede olmaması ise bir unutmadır. */
+    /* ── YORUM METNİ KURAL DEĞİLDİR ──────────────────────────────────
+       İlk yazımda kural `/\.ab-ornek-veri[^{]*\{[^}]*order:/` ile
+       aranıyordu ve diş SABOTAJ TURUNDA KIRMIZI YANMADI (R-E): kuralı
+       silsem bile seçici adı BU DİŞİN KENDİ GEREKÇE YORUMUNDA geçiyor,
+       `[^{]*` oradan ileri koşup bir sonraki kuralın süslü parantezine
+       giriyor ve onun `order:`ini okuyordu. Yani diş kuralı değil kendi
+       nesrini ölçüyordu — "hiçbir şey ölçmeden yeşil yanan kapı"nın
+       tam örneği. Bugün yorumlar ÖNCE ayıklanır ve bildirimler
+       kuralın KENDİ gövdesinden okunur. */
+    const yorumsuz = (m: string) => m.replace(/\/\*[\s\S]*?\*\//g, '');
     const blok = /@media \(max-width: 1024px\) \{([\s\S]*?)\n\}/.exec(CSS);
     expect(blok, 'başlığın dar bant bloğu (max-width: 1024px) bulunamadı').not.toBeNull();
-    const g = blok![1];
+    const g = yorumsuz(blok![1]);
+
+    /** Bir seçicinin KENDİ gövdesindeki bildirimler. */
+    const govde = (sec: string): string | null => {
+      const kacis = sec.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+      const m = new RegExp(`(?:^|[,{}])\\s*${kacis}\\s*\\{([^{}]*)\\}`, 'm').exec(g);
+      return m ? m[1] : null;
+    };
+
     for (const sec of ['.ab-ust .marka', '.ab-mercek-dar', '.ab-ust .sag', '.ab-ust > nav']) {
-      expect(g, `${sec} bu blokta sıra almıyor — diş yanlış bloğu okuyor olabilir`)
-        .toMatch(new RegExp(`${sec.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}[^{]*\\{[^}]*order:`));
+      const b = govde(sec);
+      expect(b, `${sec} bu blokta kendi kuralını taşımıyor — diş yanlış bloğu okuyor olabilir`)
+        .not.toBeNull();
+      expect(b!, `${sec} bu blokta sıra almıyor`).toMatch(/order:/);
     }
-    expect(g, 'Ortam rozeti (`.ab-ornek-veri`) dar bantta SIRA ALMIYOR. Başlığın '
-      + 'doğrudan çocuğudur ve demo/geliştirme kurulumlarında çizilir; sırasız '
-      + 'kalınca `order: 0` ile en başa geçer ve yardımcı kümeyi bir satır aşağı '
-      + 'iter. Ölçüldü (390×844): başlık 82px → 121px.')
-      .toMatch(/\.ab-ornek-veri[^{]*\{[^}]*order:/);
+
+    const rozet = govde('.ab-ust .ab-ornek-veri');
+    expect(rozet, 'Ortam rozeti (`.ab-ornek-veri`) dar bantta KENDİ KURALINI taşımıyor. '
+      + 'Başlığın doğrudan çocuğudur ve demo/geliştirme kurulumlarında çizilir; sırasız '
+      + 'kalınca `order: 0` ile en başa geçer ve yardımcı kümeyi bir satır aşağı iter. '
+      + 'Ölçüldü (390×844): başlık 82px → 121px.').not.toBeNull();
+    expect(rozet!, 'Ortam rozetinin kuralı var ama SIRA vermiyor').toMatch(/order:/);
+
+    /* Kırıcı da burada: rozet sıra alsa bile satır kırılması yoksa
+       gezinme ile aynı satırı paylaşamaz (ölçüldü: 105px · 3 satır). */
+    const kirici = govde('.ab-ust::before');
+    expect(kirici, 'Dar bant satır kırıcısı (`.ab-ust::before`) yok — gezinme kendi '
+      + 'satırını `flex-basis: 100%` ile açarsa rozet o satıra sığamaz.').not.toBeNull();
+    expect(kirici!, 'Kırıcı satırdan GENİŞ değil. Tam %100 olduğunda taban genişliği 0 '
+      + 'olan gezinme aynı satıra sığıyor, 0px’te kalıyor ve rozet üçüncü satıra '
+      + 'düşüyor (ölçüldü: başlık 105px).').toMatch(/calc\(100% \+ 1px\)/);
   });
 
   it('BEŞİNCİ DİŞ · telif kiracıdan ve takvimden gelir [URN-KBK-022]', () => {

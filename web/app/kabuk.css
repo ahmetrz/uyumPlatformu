@@ -4870,20 +4870,6 @@ details:not([open]) > *:not(summary) { display: none !important; }
      163px'e iner ve satır 366px'te kapanır. */
   .ab-ust .sag { gap: 4px; padding: 0 8px; }
 
-  /* ── EN KÜÇÜK İKİ KADEME TELEFONDA YÜKSELİR ────────────────────────
-     Ölçüldü (390×844): 12px altı metin taşıyan 91 öğe — 74'ü `--t-veri`
-     (11px), 17'si `--t-etiket` (10px), 25'i büyük harf. Yani 91 ayrı
-     kusur değil, İKİ JETON kararı: ölçeğin en alt iki kademesi masaüstü
-     yoğunluğu için seçilmişti ve telefonda okunmuyordu.
-
-     Düzeltme jetonda yapılır, 91 yerde değil — ekran ekran elle büyütmek
-     aynı ölçeği ikinci kez, tutarsız biçimde tanımlamak olurdu. Kademe
-     SIRASI korunur (etiket < veri < gövde); yalnız taban yükselir.
-
-     Büyük harf + harf aralığı bu boyda en zor okunan bileşimdir; iz de
-     bir tık gevşer. Kaş etiketlerinin BÜYÜK HARF kalması ürün kararıdır
-     (yapısal kaş), sözcük boyu değişmez. */
-  .ab { --t-etiket: 11px; --t-veri: 12px; --tr-etiket: .10em; }
 
   /* ── YARDIMCI EYLEMLER BÖLMEYE KAPANMAZ ────────────────────────────
      Ölçüldü (390×844): telefonda başlığın sağında ÜÇ ayrı bölme
@@ -4903,20 +4889,6 @@ details:not([open]) > *:not(summary) { display: none !important; }
   .ab-hesap-dugme { border-left: 0; }
   .ab-ust .ab-ara-dugme { border: 0; align-items: center; }
 
-  /* ── TEK İSTİSNA: ŞERİT KARTI VERİ KADEMESİNDE KALIR ───────────────
-     Kart 216px SABİT genişliktedir ve kimlik satırı iki veriyi yan yana
-     taşır (tip · güç). Veri kademesi 12px'e çıkınca 375px'te o satır
-     taşıyor ve kutular `skor`la üst üste biniyor — taşma kapısı iki
-     örtüşme saydı (19 Eyl 2026).
-
-     Denenen ve GERİ ALINAN yol: ayırıcıya 2px pay vermek. Kusuru
-     BÜYÜTTÜ — güç sağa kayıp skorla da çakıştı, bir örtüşme ikiye çıktı.
-
-     Seçilen yol bilgi KAYBETTİRMEZ: güç de tip de yerinde kalır, yalnız
-     bu bileşende kademe 11px'te durur. Alternatif güçü telefonda
-     düşürmekti; bu turun kendi dersi onu reddediyor — dar bantta görünen
-     veriyi kısmak, ölçülmemiş bir kazanç için ölçülmüş bir kayıptır. */
-  .ab-b-serit .kart { --t-veri: 11px; }
 }
 
 /* ══ Yönetim konsolu (/yonetim-tezgahi · KonsolIstemci) ═══════════════════

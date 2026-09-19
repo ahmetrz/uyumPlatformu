@@ -10,7 +10,7 @@ colors:
   i3: "#8D9497"
   hr: "#333536"
   hr2: "#3C3E3F"
-  aksan: "#C2703E"
+  aksan: "#C98154"
   aksan-uzeri: "#0F1112"
   secim: "#171211"
   ok: "#6FA07E"
@@ -18,8 +18,8 @@ colors:
   bd: "#E07262"
   pl: "#85959C"
   unk: "#8D9497"
-  tip-a: "#B7734A"
-  tip-b: "#5A87A3"
+  tip-a: "#C08561"
+  tip-b: "#6F97AF"
   tip-c: "#93A6AD"
   tip-d: "#C9A24C"
 typography:
@@ -184,7 +184,7 @@ gösterge yok. Ekran olguyu gösterir, yargı vermez: "kritik!" değil, "12 gün
 gecikmiş". Bilinmeyen sıfır değildir ve kendi diliminde durur.
 
 **Key Characteristics:**
-- Tek koyu kabuk, tek aksan: bakır `--aksan` `#C2703E`; beş alan Saha · Portföy · Uyum · Varlık · Risk
+- Tek koyu kabuk, tek aksan: bakır `--aksan` `#C98154`; beş alan Saha · Portföy · Uyum · Varlık · Risk
 - Yarıçap yok; yalnız durum daireleri ve avatar `50%` (şekil kodlamasının parçası)
 - Durum yalnız renkle anlatılmaz: glif ailesi (10px kare) + sözcük + erişilebilir ad
 - Sayı her yerde mono/tabular; işlevsel metin (gezinme, kolon başlığı) 11px'in altına inmez
@@ -202,13 +202,13 @@ Yoğunluk (`data-yogunluk="amiral|operasyonel|tezgah"`) renk değil ölçü değ
 (`--gutter --ayak-h --durum-h --satir-h`).
 
 ### Primary
-- **Bakır** (`--aksan` `#C2703E`): seçili satırın sol kenarı, aktif alan sekmesinin alt çizgisi, birincil düğme dolgusu, odak halkası; fotoğraf üstünde işaretçi kenarı. Yazı rengi olarak yalnız `.ab-dugme.satir` bağlantısında. Düğme dolgusu üzerine zemin rengi mürekkep (`--aksan-uzeri` `#0F1112`).
+- **Bakır** (`--aksan` `#C98154`): seçili satırın sol kenarı, aktif alan sekmesinin alt çizgisi, birincil düğme dolgusu, odak halkası; fotoğraf üstünde işaretçi kenarı. Yazı rengi olarak yalnız `.ab-dugme.satir` bağlantısında. Düğme dolgusu üzerine zemin rengi mürekkep (`--aksan-uzeri` `#0F1112`).
 
 ### Secondary
 - **Durum ailesi**: `--ok` uygun (`#6FA07E`), `--md` kısmi / uyarı (`#D9A03C`), `--bd` uygunsuz / kritik (`#E07262`), `--pl` planlı (`#85959C`), `--unk` değerlendirilmedi (`#8D9497`). `--bd` prototipte 3,45:1 kalıyordu; ton korunarak 4,76:1'e açıldı — kritik durumun rengi okunamıyorsa kritikliği taşımıyor demektir.
 
 ### Tertiary
-- **Tip kimlik yuvaları** (`--tip-a` `#B7734A` · `--tip-b` `#5A87A3` · `--tip-c` `#93A6AD` · `--tip-d` `#C9A24C`): tesis tipinin kimliği. Yuvalar **sektörsüzdür** — hangi tipin hangi yuvayı aldığını CSS bilmez, eşleme `components/kabuk/tip.ts` içindedir ve P4'te sektör paketine taşınır. Renk **kimliktir, durum değil**: yalnız işaretçi ölçeğinde (portföy düzlemi, tesis seçici), asla metinde ya da durum yerine.
+- **Tip kimlik yuvaları** (`--tip-a` `#C08561` · `--tip-b` `#6F97AF` · `--tip-c` `#93A6AD` · `--tip-d` `#C9A24C`): tesis tipinin kimliği. Yuvalar **sektörsüzdür** — hangi tipin hangi yuvayı aldığını CSS bilmez, eşleme `components/kabuk/tip.ts` içindedir ve P4'te sektör paketine taşınır. Renk **kimliktir, durum değil**: yalnız işaretçi ölçeğinde (portföy düzlemi, tesis seçici), asla metinde ya da durum yerine.
 - **Kapasite dörttür ve bir sınırdır.** Yuvası olmayan tip nötr mürekkebe (`--i2`) düşer; yuva **sarılmaz** — aynı rengi iki tipe vermek "bunlar aynı" demek olurdu ve renk burada kimliktir. Renksiz kalmanın iki ayrı sebebi `/sistem` sayfasında ayrı cümlelerde yazılır (kapasite eksiği ≠ tasarım gereği).
 
 ### Neutral

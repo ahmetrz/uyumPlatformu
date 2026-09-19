@@ -351,6 +351,40 @@ export const UST_BAGLAR: Oge[] = [
    kararı verdirir — kutuya git. */
 export const SAYAC_TAVANI = 99;
 
+/** Hesap düğmesinin dar bant karşılığı: adın baş harfleri.
+
+    ── NİÇİN VAR ─────────────────────────────────────────────────────
+    ≤620px'te kişi bloğu (ad + unvan) düşüyor ve düğmeden geriye YALNIZ
+    bir `▾` kalıyordu: ne kimin hesabı olduğu, ne de tıklanınca ne
+    açılacağı görünüyordu. Erişilebilir ad `aria-label`da tamdı, yani
+    ekran okuyucu kullanan biliyordu — GÖREN kullanıcı bilmiyordu.
+
+    Baş harf bir ROZET DEĞİL METİNDİR: kabuğun yeni grameri bar içinde
+    dolgu ve çerçeve tanımıyor (bkz. sayaç kararı). Dolayısıyla daire
+    ya da kare içine alınmaz; mürekkep kademesiyle durur.
+
+    Türkçe büyütme ZORUNLU: `'ı'.toUpperCase()` İngilizce kurallarla
+    `'I'` verir ama `'i'` için `'I'` döner ve nokta kaybolur — TR'de
+    `'i' → 'İ'`dir. Ad "İlker" olan bir kullanıcı başka birinin baş
+    harfini görürdü.
+
+    NFC ZORUNLU ve büyütmeden ÖNCE gelir (bağımsız inceleme, PR #74):
+    ad ürüne bir kimlik sağlayıcıdan gelir ve aynı harfin İKİ Unicode
+    yazımı vardır — `'İ'` tek kod noktası (U+0130) ya da `'I'` + birleşen
+    nokta (U+0049 U+0307). İkincisinde İLK kod noktasını almak birleşeni
+    DÜŞÜRÜR; geriye kalan çıplak `'I'` TR kuralıyla da `'I'`dir. Yani
+    "İlker Şahin" NFD yazımıyla `İŞ` değil `IS` verirdi — kuralın
+    kapattığı kusurun ta kendisi, bu kez sessiz bir normalleştirme
+    farkından. Normalleştirme ADIN TAMAMINA uygulanır: soyadın baş harfi
+    de aynı tuzağı taşır. */
+export function basHarfler(ad: string): string {
+  const parcalar = String(ad ?? '').normalize('NFC').trim().split(/\s+/).filter(Boolean);
+  if (parcalar.length === 0) return '';
+  const ilk = parcalar[0];
+  const son = parcalar.length > 1 ? parcalar[parcalar.length - 1] : '';
+  return `${[...ilk][0] ?? ''}${[...son][0] ?? ''}`.toLocaleUpperCase('tr-TR');
+}
+
 /** Rozet metni; sıfır ya da geçersiz sayıda `null` = rozet çizilmez. */
 export function sayacMetni(n: number): string | null {
   if (!Number.isFinite(n) || n <= 0) return null;

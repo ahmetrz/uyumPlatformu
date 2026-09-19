@@ -4,8 +4,8 @@
 
 | Ölçü | Değer |
 | --- | --- |
-| Senaryo | 427 |
-| Testi olan senaryo | 427 |
+| Senaryo | 428 |
+| Testi olan senaryo | 428 |
 | **GAP** | **0** |
 | Hayalet işaret (kütükte olmayan kimlik) | 0 |
 | Kütüksüz test dosyası | 0 |
@@ -26,7 +26,7 @@
 | RESPONSIVE | 9 | 9 | 0 |
 | SCOPE | 34 | 34 | 0 |
 | SERVER | 159 | 159 | 0 |
-| UI | 158 | 158 | 0 |
+| UI | 159 | 159 | 0 |
 | VISUAL | 4 | 4 | 0 |
 | WORKFLOW | 39 | 39 | 0 |
 
@@ -396,6 +396,11 @@
 | `SIS-KBK-031` | Sistem | UI | `bekci/buyuk-harf.test.ts` | 13px ve üstü büyük harf YALNIZ gezinme ve koddur | evet | geçti |
 | `SIS-KBK-031` | Sistem | UI | `bekci/buyuk-harf.test.ts` | izin listesi ölü satır taşımaz — listedeki her satır hâlâ büyük boy büyük harf | evet | geçti |
 | `SIS-KBK-031` | Sistem | UI | `bekci/buyuk-harf.test.ts` | ad · başlık · cümle · boş durum · değer hiçbir boyda büyük harf olmaz | evet | geçti |
+| `SIS-KBK-032` | Sistem | UI | `kabuk-gezinme.test.ts` | iki adlı kullanıcı ilk ve SON adın baş harfini alır | evet | geçti |
+| `SIS-KBK-032` | Sistem | UI | `kabuk-gezinme.test.ts` | tek adlı kullanıcı tek harf verir | evet | geçti |
+| `SIS-KBK-032` | Sistem | UI | `kabuk-gezinme.test.ts` | TÜRKÇE büyütme: i → İ, ı → I | evet | geçti |
+| `SIS-KBK-032` | Sistem | UI | `kabuk-gezinme.test.ts` | NFD yazımlı ad NFC ile aynı harfi verir | evet | geçti |
+| `SIS-KBK-032` | Sistem | UI | `kabuk-gezinme.test.ts` | boş ya da yalnız boşluk olan ad boş dize verir | evet | geçti |
 | `PRT-ODK-001` | Portföy | UI · DOMAIN | `odak-yayma.test.ts` | varsayılan sıralama anahtarı UYUM endeksidir, kapasite değil | evet | geçti |
 | `PRT-ODK-001` | Portföy | UI · DOMAIN | `odak-yayma.test.ts` | uyum sırası en düşük endeksi ÖNE, ölçülmemişi SONA koyar — bilinmeyen ≠ sıfır | evet | geçti |
 | `TES-ODK-001` | Tesis | UI | `odak-yayma.test.ts` | h1 adı JS ile de büyük harfe çevirmez — CSS kuralı tek başına yetmezdi | evet | geçti |
@@ -422,13 +427,17 @@
 | `SAH-SER-002` | Saha | UI | `bekci/saha-serit.test.ts` | İKİNCİ DİŞ · süzülen küme başka bir yüzeyde ADIYLA durur | evet | geçti |
 | `SAH-SER-002` | Saha | UI | `bekci/saha-serit.test.ts` | DÖRDÜNCÜ DİŞ · şeridin sonunda tümüne giden bağ var | evet | geçti |
 | `SAH-SER-003` | Saha | UI | `bekci/saha-serit.test.ts` | BEŞİNCİ DİŞ · şeridi gizleyen eşik künyeyi susturan eşiğin BİTİŞİĞİ | evet | geçti |
+| `SAH-SER-003` | Saha | UI | `bekci/saha-serit.test.ts` | ALTINCI DİŞ · tuval ve devralan özet künyeyle AYNI eşikte susar | evet | geçti |
 | `URN-KBK-022` | Sistem | UI | `bekci/kabuk-kromu.test.ts` | BİRİNCİ DİŞ · marka kademesi gezinmeden büyük | evet | geçti |
-| `URN-KBK-022` | Sistem | UI | `bekci/kabuk-kromu.test.ts` | İKİNCİ DİŞ · aktif sekme üç ipucu taşır | evet | geçti |
+| `URN-KBK-022` | Sistem | UI | `bekci/kabuk-kromu.test.ts` | İKİNCİ DİŞ · aktif sekme İKİ ipucu taşır, ÜÇÜNCÜSÜ KUTU DEĞİL | evet | geçti |
 | `URN-KBK-022` | Sistem | UI | `bekci/kabuk-kromu.test.ts` | ÜÇÜNCÜ DİŞ · kiracı adı kabuk bileşenine gömülmez | evet | geçti |
 | `URN-KBK-022` | Sistem | UI | `bekci/kabuk-kromu.test.ts` | DÖRDÜNCÜ DİŞ · ayakta kimlik kümesi gezinmeden önce | evet | geçti |
 | `URN-KBK-022` | Sistem | UI | `bekci/kabuk-kromu.test.ts` | ALTINCI DİŞ · başlıkta büyük harf yapı ve gezinmeyle sınırlı | evet | geçti |
 | `URN-KBK-022` | Sistem | UI | `bekci/kabuk-kromu.test.ts` | YEDİNCİ DİŞ · kaydırma çubuğu saç çizgisi ailesinde | evet | geçti |
+| `URN-KBK-022` | Sistem | UI | `bekci/kabuk-kromu.test.ts` | ALTINCI DİŞ · bildirim sözcüğü ancak SAYAÇ VARKEN düşer | evet | geçti |
+| `URN-KBK-022` | Sistem | UI | `bekci/kabuk-kromu.test.ts` | YEDİNCİ DİŞ · ortam rozeti dar bant satır bütçesine GİRER | evet | geçti |
 | `URN-KBK-022` | Sistem | UI | `bekci/kabuk-kromu.test.ts` | BEŞİNCİ DİŞ · telif kiracıdan ve takvimden gelir | evet | geçti |
+| `URN-KBK-022` | Sistem | UI | `bekci/kabuk-kromu.test.ts` | SEKİZİNCİ DİŞ · kenara çakılı süs, kontrolün vuruş alanının İÇİNDE | evet | geçti |
 | `URN-TBL-001` | Sistem | UI | `bekci/tablo-grameri.test.ts` | BİRİNCİ DİŞ · beyansız ham tablo yok | evet | geçti |
 | `URN-TBL-001` | Sistem | UI | `bekci/tablo-grameri.test.ts` | İKİNCİ DİŞ · dosya başına tavan aşılmıyor | evet | geçti |
 | `URN-TBL-001` | Sistem | UI | `bekci/tablo-grameri.test.ts` | ÜÇÜNCÜ DİŞ · ölü izin satırı yok | evet | geçti |
@@ -460,6 +469,7 @@
 | `SIS-PAL-001` | Sistem | UI | `bekci/yuzey-kademesi.test.ts` | BİRİNCİ DİŞ · kademe SIRALI: zemin < panel < panel-2 | evet | geçti |
 | `SIS-PAL-001` | Sistem | UI | `bekci/yuzey-kademesi.test.ts` | İKİNCİ DİŞ · her komşu adım ALGILANABİLİR | evet | geçti |
 | `SIS-PAL-001` | Sistem | UI | `bekci/yuzey-kademesi.test.ts` | ÜÇÜNCÜ DİŞ · saç çizgileri EN PARLAK yüzeyin de üstünde | evet | geçti |
+| `SIS-PAL-001` | Sistem | UI | `bekci/yuzey-kademesi.test.ts` | BEŞİNCİ DİŞ · doku saydamlığı KATMANDA durur, her görselde değil | evet | geçti |
 | `SIS-PAL-001` | Sistem | UI | `bekci/yuzey-kademesi.test.ts` | DÖRDÜNCÜ DİŞ · DESIGN.md yazdığı kademe ÖLÇÜLENLE aynı | evet | geçti |
 | `SIS-CBK-001` | Sistem | UI · ACCESSIBILITY | `bekci/kaydirma-cubugu.test.ts` | ÖLÇÜM TABANI — tarama gerçekten kayan kap görüyor | evet | geçti |
 | `SIS-CBK-001` | Sistem | UI · ACCESSIBILITY | `bekci/kaydirma-cubugu.test.ts` | renk kararı kabuğun KÖKÜNDE bir kez verilir ve jetondan gelir | evet | geçti |

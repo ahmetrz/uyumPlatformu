@@ -21,7 +21,7 @@
 
 import { createHash } from 'node:crypto';
 import { execFileSync } from 'node:child_process';
-import { readFileSync, writeFileSync } from 'node:fs';
+import { existsSync, readFileSync, rmSync, writeFileSync } from 'node:fs';
 import path from 'node:path';
 
 const KOK = process.cwd();
@@ -443,10 +443,10 @@ const SABOTAJLAR = [
     kural: 'Dar bant için yazılan bir kural gerçekten uygulanır',
     dosya: 'app/kabuk.css',
     ara: `@media (max-width: 620px) {
-  .ab-mercek-dar select { max-width: 118px; }
+  .ab-ust .ab-mercek-dar select { max-width: 118px; }
 }`,
     yaz: `@media (max-width: 620px) {
-  .ab-mercek-dar select { max-width: 118px; }
+  .ab-ust .ab-mercek-dar select { max-width: 118px; }
   .ab-hesap-dugme .kisi { display: none; }
 }`,
     testler: ['tests/bekci/olu-bant-kurali.test.ts'],
@@ -1005,6 +1005,32 @@ const SABOTAJLAR = [
     testler: ['tests/bekci/saha-serit.test.ts'],
   },
   {
+    ad: 'Aktif sekmeye panel zemini geri verildi (bar içinde kutu)',
+    kural: 'Aktif sekme İKİ ipucu taşır — mürekkep + bakır alt çizgi; zemin bir KUTU üretir ve rayı böler',
+    dosya: 'app/kabuk.css',
+    ara: `.ab-ust > nav a[aria-current='page'] {
+  color: var(--murekkep); border-bottom-color: var(--aksan);
+}`,
+    yaz: `.ab-ust > nav a[aria-current='page'] {
+  color: var(--murekkep); background: var(--panel); border-bottom-color: var(--aksan);
+}`,
+    testler: ['tests/bekci/kabuk-kromu.test.ts'],
+  },
+  {
+    ad: 'Baş harf Türkçe yerelini bıraktı (i → I, nokta kayboluyor)',
+    kural: "Türkçede 'i' → 'İ'dir; yerelsiz büyütme İlker’e başkasının baş harfini gösterir",
+    dosya: 'components/kabuk/yonler.ts',
+    ara: `.toLocaleUpperCase('tr-TR');
+}
+
+/** Rozet metni`,
+    yaz: `.toUpperCase();
+}
+
+/** Rozet metni`,
+    testler: ['tests/kabuk-gezinme.test.ts'],
+  },
+  {
     ad: 'Bildirim sözcüğü yine KOŞULSUZ gizleniyor (sıfır sayaçta adsız kutu)',
     kural: 'Sözcük ancak YERİNİ TUTACAK bir sayaç varken düşer; sıfırda sayaç hiç çizilmez',
     dosya: 'app/kabuk.css',
@@ -1076,6 +1102,24 @@ const SABOTAJLAR = [
     yaz: 'zemin → panel `1,400:1`',
     testler: ['tests/bekci/yuzey-kademesi.test.ts'],
   },
+  {
+    ad: 'Şevronu seçicinin vuruş alanının dışına çıkar',
+    kural: 'İşaretçi almayan, kenara çakılı süs, kapsayıcının DOLGUSUNA değil kontrolün üstüne düşer',
+    dosya: 'app/kabuk.css',
+    /* Sabotaj kusurun ESKİ hâlini geri getirir: dış pay tekrar iç dolgu
+       olur ve `right: 0` seçicinin sağ kenarından 14px öteye kayar. */
+    ara: '  .ab-mercek-dar { margin-right: 14px; }',
+    yaz: '  .ab-mercek-dar { padding-right: 14px; }  /* SABOTAJ */',
+    testler: ['tests/bekci/kabuk-kromu.test.ts'],
+  },
+  {
+    ad: 'Baş harf normalleştirmesini kaldır',
+    kural: 'Kimlik sağlayıcıdan NFD gelen ad da doğru Türkçe baş harfi verir',
+    dosya: 'components/kabuk/yonler.ts',
+    ara: ".normalize('NFC').trim()",
+    yaz: '.trim()',
+    testler: ['tests/kabuk-gezinme.test.ts'],
+  },
 ];
 
 function testKos(testler) {
@@ -1091,6 +1135,53 @@ function testKos(testler) {
 }
 
 const sonuclar = [];
+
+/* ── YARIDA KESİLEN TUR DEPOYU SABOTAJLI BIRAKMAZ ──────────────────────
+   ÖLÇÜLEN KUSUR (19 Eyl 2026): tur yanlışlıkla başlatıldı ve öldürüldü;
+   `app/kabuk.css` sabotajlı kaldı. Bir sonraki tam küme, benim
+   yazmadığım bir kusuru KOD KUSURU gibi kırmızı yaktı (`SAH-SER-003` ·
+   şerit eşiği 1101 → 1200) ve harcanan zaman, olmayan bir kusurun
+   kaynağını aramaktı. `finally` yalnız İSTİSNAYI karşılar.
+
+   İLK DÜZELTME İŞE YARAMADI VE BU DA ÖLÇÜLDÜ: `process.on('SIGTERM')`
+   yazıldı, canlı bir tur SIGTERM ile öldürüldü ve dosya YİNE sabotajlı
+   kaldı. Sebep: tur zamanının neredeyse tamamını `execFileSync` içinde
+   geçirir (eşzamanlı vitest koşumu); olay döngüsü hiç dönmediği için
+   JS sinyal dinleyicisi ÇAĞRILMAZ. Sinyale dayanan bir temizlik, bu
+   süreçte çalışmayan bir temizliktir — "başarısız olamayan adım adım
+   değildir"in kardeşi: KOŞAMAYAN adım da adım değildir.
+
+   Bugün temizlik olay döngüsüne değil DİSKE dayanır: sabotaj
+   uygulanmadan ÖNCE dosyanın aslı bir jurnale yazılır, geri yükleme
+   başarıldıktan SONRA jurnal silinir. Süreç nasıl ölürse ölsün
+   (SIGKILL, OOM, konteyner kaybı) jurnal diskte kalır ve bir sonraki
+   tur açılışta onu bulup dosyayı geri yükler — sonra da geri
+   yüklediğini ÖLÇER. Ölçemezse tur başlamaz. */
+const JURNAL = path.join(KOK, 'arac', '.sabotaj-jurnali.json');
+
+function jurnaliIsle() {
+  if (!existsSync(JURNAL)) return;
+  let kayit;
+  try {
+    kayit = JSON.parse(readFileSync(JURNAL, 'utf8'));
+  } catch (e) {
+    process.stderr.write(`✗ Sabotaj jurnali OKUNAMADI (${e.message}). Dosya elle `
+      + `incelenmeli: ${JURNAL}\n`);
+    process.exit(1);
+  }
+  const yol = path.join(KOK, kayit.dosya);
+  writeFileSync(yol, kayit.asil);
+  if (ozet(readFileSync(yol, 'utf8')) !== ozet(kayit.asil)) {
+    process.stderr.write(`✗ Önceki tur "${kayit.ad}" sabotajında kesilmiş ve `
+      + `${kayit.dosya} GERİ YÜKLENEMEDİ. Tur başlatılmıyor.\n`);
+    process.exit(1);
+  }
+  rmSync(JURNAL, { force: true });
+  process.stderr.write(`↩ Önceki tur "${kayit.ad}" sabotajında kesilmişti; `
+    + `${kayit.dosya} geri yüklendi.\n`);
+}
+
+jurnaliIsle();
 
 for (const s of SABOTAJLAR) {
   if (s.atla) {
@@ -1110,6 +1201,8 @@ for (const s of SABOTAJLAR) {
     continue;
   }
 
+  /* Jurnal sabotajdan ÖNCE yazılır: arada ölürsek bile aslı diskte. */
+  writeFileSync(JURNAL, JSON.stringify({ dosya: s.dosya, ad: s.ad, asil }));
   writeFileSync(yol, asil.replace(s.ara, s.yaz));
   let sonuc;
   try {
@@ -1119,6 +1212,9 @@ for (const s of SABOTAJLAR) {
   }
 
   const geriOzet = ozet(readFileSync(yol, 'utf8'));
+  /* Jurnal ancak geri yükleme DOĞRULANDIKTAN sonra silinir; bozuk geri
+     yükleme jurnali bırakır ve bir sonraki tur onu bulur. */
+  if (geriOzet === asilOzet) rmSync(JURNAL, { force: true });
   sonuclar.push({
     ad: s.ad, kural: s.kural,
     durum: sonuc.kirildi ? 'yakalandi' : 'KACIRILDI',

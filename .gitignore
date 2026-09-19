@@ -48,3 +48,8 @@ deploy/compose/.env
 # ve koşum sonunda silinir. Depoya girmemesi bir yedek dişidir — silinmesi
 # unutulursa sır depoya sızmasın.
 deploy/compose/.kapi.env
+
+# Sabotaj turunun çökme jurnali: sabotajlanan dosyanın ASLINI taşır ve
+# tur bittiğinde silinir. Depoda durmasının anlamı yoktur — yarıda kesilen
+# bir turun kalıntısıdır ve bir sonraki tur onu bulup geri yükler.
+web/arac/.sabotaj-jurnali.json

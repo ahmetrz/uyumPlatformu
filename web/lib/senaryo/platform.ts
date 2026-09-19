@@ -772,6 +772,25 @@ export const PLATFORM_SENARYOLARI: Senaryo[] = [
     katmanlar: ['UI'],
   },
   {
+    id: 'SIS-KBK-032', alan: 'Sistem', rota: '—', eksen: 'arayuz',
+    amac: 'Dar bantta hesabın KİM olduğunun görünür kalması — ölçüldü '
+      + '(kabuk yeniden tasarımı, 390×844): ≤620px’te kişi bloğu (ad + '
+      + 'unvan) düşüyor ve düğmeden geriye yalnız bir “▾” kalıyordu; '
+      + 'erişilebilir ad `aria-label`da tamdı, yani kusur SALT GÖRSEL '
+      + 'katmandaydı ve hiçbir kapı göremezdi',
+    rol: 'her kullanıcı', kapsam: 'kendi hesabı',
+    onkosul: 'Oturum açık; görüntü genişliği 620px’in altında',
+    veriHali: 'normal',
+    eylem: 'Kullanıcı üst çubuktaki hesap düğmesine bakar',
+    beklenenSonuc: 'Adın baş harfleri Türkçe büyütmeyle görünür '
+      + '(i → İ, ı → I); tek adlı kullanıcıda tek harf; ad boşsa boş dize '
+      + 've düğme yine de erişilebilir adını `aria-label`dan taşır',
+    beklenenEkran: 'Baş harf METİNDİR: dolgu, daire ya da çerçeve yok — '
+      + 'barın grameri kap tanımaz',
+    beklenenIz: 'yazma yok', beklenenBildirim: 'yok',
+    katmanlar: ['UI'],
+  },
+  {
     id: 'PRT-ODK-001', alan: 'Portföy', rota: '/tesisler', eksen: 'arayuz',
     amac: 'Portföyün ilk açılışta cevap vermesi — ölçüldü: ekran kapasite '
       + 'sırasıyla açılıyor ve kendi notunda "kapasite bir zayıflık ölçüsü '
@@ -983,14 +1002,21 @@ export const PLATFORM_SENARYOLARI: Senaryo[] = [
     eylem: 'Kabuk kromu bekçisi kaynağı tarar; marka kapısı nöbetçi '
       + 'ADLARLA derleyip çıktıyı okur',
     beklenenSonuc: 'Marka kademesi gezinmeden KESİNLİKLE büyüktür '
-      + '(16px / 13px). Aktif sekme ÜÇ ipucu taşır — mürekkep, panel '
-      + 'zemini ve bakır alt çizgi; durum yalnız renkle anlatılmaz. '
+      + '(16px / 13px). Aktif sekme İKİ ipucu taşır — mürekkep ve bakır '
+      + 'alt çizgi — ve ÜÇÜNCÜSÜ KUTU DEĞİLDİR: panel zemini AÇIKÇA '
+      + 'yasaktır. Durum yine yalnız renkle anlatılmaz, çünkü kalan iki '
+      + 'kanalın biri (alt çizgi) renkten bağımsızdır; WCAG 1.4.1 "renk '
+      + 'TEK kanal olmasın" der, "üç kanal olsun" demez. Zemin, kabuk '
+      + 'yeniden tasarımında (19 Eyl 2026) düştü: 56px\'lik barda her '
+      + 'şeyin bir kabı olduğunda kap artık yapı anlatmıyordu. '
       + 'Kiracı adı kabuk bileşenine düz dizge olarak GİRMEZ; telif '
       + 'satırı adı `veri.kiraciAd`den, yılı takvimden hesaplar. '
       + 'Ayakta kimlik kümesi (künye · sürüm · telif) gezinme '
       + 'kümesinden ÖNCE gelir. Başlıkta büyük harf YALNIZ yapı ve '
       + 'birincil gezinmededir ve kural sayısı TAVANLIDIR (ölçüldü: '
-      + 'ekrandaki 17 büyük harfli dizeden 9\'a, kaynaktaki 5 kurala '
+      + 'ekrandaki 17 büyük harfli dizeden 9\'a, kaynaktaki kural '
+      + 'sayısı 5\'ten 4\'e indi — ürün adının ikinci satırı yeniden '
+      + 'tasarımda cümle düzenine geçti ve tavan ONUNLA BİRLİKTE '
       + 'indi; sektör adı, unvan ve eylem etiketi DEĞERDİR, kaş değil). '
       + 'Büyük harf bekçisi yalnız >=13px\'e baktığı için barın 10-11px '
       + 'yükünü göremiyordu; o körlük buradan kapanır. Kaydırma çubuğu '

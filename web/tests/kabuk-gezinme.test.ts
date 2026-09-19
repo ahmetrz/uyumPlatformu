@@ -551,3 +551,62 @@ describe('erişim · axe kapısı WCAG 2.2 AA ölçer', () => {
     expect(css).toMatch(/WCAG 2\.2 (AA )?24/);
   });
 });
+
+/* ═══ HESAP BAŞ HARFLERİ · dar bantta kimlik (SIS-KBK-032) ════════════
+   ≤620px'te kişi bloğu (ad + unvan) düşüyor ve düğmeden geriye YALNIZ
+   bir `▾` kalıyordu: gören kullanıcı ne kimin hesabı olduğunu ne de okun
+   neyi açtığını anlıyordu. Erişilebilir ad `aria-label`da tamdı — yani
+   kusur SALT GÖRSEL katmandaydı ve hiçbir kapı onu göremezdi.
+
+   Fonksiyon saf, çünkü asıl risk TÜRKÇE BÜYÜTMEDİR: `'i'.toUpperCase()`
+   İngilizce kurallarla noktasız `'I'` verir; Türkçede `'i' → 'İ'`dir.
+   "İlker" adlı bir kullanıcı, kendi baş harfi yerine başkasınınkini
+   görürdü — ve bu, ekranda doğru GÖRÜNEN bir yanlıştır. */
+describe('hesap baş harfleri [SIS-KBK-032]', () => {
+  const yukle = async () => (await import('@/components/kabuk/yonler')).basHarfler;
+  it('iki adlı kullanıcı ilk ve SON adın baş harfini alır [SIS-KBK-032]', async () => {
+    const basHarfler = await yukle();
+    expect(basHarfler('Kullanıcı A')).toBe('KA');
+    expect(basHarfler('Ayşe Yılmaz Demir')).toBe('AD');
+  });
+
+  it('tek adlı kullanıcı tek harf verir [SIS-KBK-032]', async () => {
+    const basHarfler = await yukle();
+    expect(basHarfler('Ayşe')).toBe('A');
+  });
+
+  it('TÜRKÇE büyütme: i → İ, ı → I [SIS-KBK-032]', async () => {
+    const basHarfler = await yukle();
+    /* Sabotaj burayı hedefler: `toUpperCase()` (yerelsiz) yazılırsa
+       `'i'` noktasız `'I'`ye düşer ve diş kırmızı yanar. */
+    expect(basHarfler('İlker Şahin')).toBe('İŞ');
+    expect(basHarfler('irem ıspartalı')).toBe('İI');
+  });
+
+  it('NFD yazımlı ad NFC ile aynı harfi verir [SIS-KBK-032]', async () => {
+    const basHarfler = await yukle();
+    /* ── ÖLÇÜLEN · bağımsız inceleme, PR #74 ───────────────────────────
+       Ad ürüne bir kimlik sağlayıcıdan gelir ve aynı harfin İKİ Unicode
+       yazımı vardır: `'İ'` tek kod noktası (U+0130) ya da `'I'` +
+       birleşen nokta (U+0049 U+0307). Üstteki diş yalnız BİRİNCİSİNİ
+       sınıyordu; ikincisinde ilk kod noktasını almak birleşeni düşürür
+       ve çıplak `'I'` TR kuralıyla da `'I'` kalır — yani ölçüldü: NFD
+       yazımı `İŞ` değil `IS` veriyordu. Türkçe büyütme dişi doğruydu
+       ve yine de yanlış harf ekrana geliyordu; kusur ikisinin BAĞINDA,
+       sessiz bir normalleştirme farkındaydı.
+
+       Sabotaj burayı hedefler: `normalize('NFC')` silinirse `IS` döner
+       ve diş kırmızı yanar. */
+    const nfd = 'I\u0307lker S\u0327ahin';
+    expect(nfd, 'vaka NFD olmalı; NFC yazılırsa diş hiçbir şey ölçmez')
+      .not.toBe(nfd.normalize('NFC'));
+    expect(basHarfler(nfd)).toBe('İŞ');
+    expect(basHarfler(nfd)).toBe(basHarfler(nfd.normalize('NFC')));
+  });
+
+  it('boş ya da yalnız boşluk olan ad boş dize verir [SIS-KBK-032]', async () => {
+    const basHarfler = await yukle();
+    expect(basHarfler('')).toBe('');
+    expect(basHarfler('   ')).toBe('');
+  });
+});

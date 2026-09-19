@@ -583,6 +583,27 @@ describe('hesap baş harfleri [SIS-KBK-032]', () => {
     expect(basHarfler('irem ıspartalı')).toBe('İI');
   });
 
+  it('NFD yazımlı ad NFC ile aynı harfi verir [SIS-KBK-032]', async () => {
+    const basHarfler = await yukle();
+    /* ── ÖLÇÜLEN · bağımsız inceleme, PR #74 ───────────────────────────
+       Ad ürüne bir kimlik sağlayıcıdan gelir ve aynı harfin İKİ Unicode
+       yazımı vardır: `'İ'` tek kod noktası (U+0130) ya da `'I'` +
+       birleşen nokta (U+0049 U+0307). Üstteki diş yalnız BİRİNCİSİNİ
+       sınıyordu; ikincisinde ilk kod noktasını almak birleşeni düşürür
+       ve çıplak `'I'` TR kuralıyla da `'I'` kalır — yani ölçüldü: NFD
+       yazımı `İŞ` değil `IS` veriyordu. Türkçe büyütme dişi doğruydu
+       ve yine de yanlış harf ekrana geliyordu; kusur ikisinin BAĞINDA,
+       sessiz bir normalleştirme farkındaydı.
+
+       Sabotaj burayı hedefler: `normalize('NFC')` silinirse `IS` döner
+       ve diş kırmızı yanar. */
+    const nfd = 'I\u0307lker S\u0327ahin';
+    expect(nfd, 'vaka NFD olmalı; NFC yazılırsa diş hiçbir şey ölçmez')
+      .not.toBe(nfd.normalize('NFC'));
+    expect(basHarfler(nfd)).toBe('İŞ');
+    expect(basHarfler(nfd)).toBe(basHarfler(nfd.normalize('NFC')));
+  });
+
   it('boş ya da yalnız boşluk olan ad boş dize verir [SIS-KBK-032]', async () => {
     const basHarfler = await yukle();
     expect(basHarfler('')).toBe('');

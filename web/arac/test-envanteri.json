@@ -1,7 +1,7 @@
 {
-  "imza": "447c295f31474471bbe1cb7d0344ca06",
+  "imza": "09efc29b5b947b0030483c183e0a1f67",
   "dosya": 263,
-  "vaka": 4609,
+  "vaka": 4611,
   "atlanan": 1,
   "dosyalar": {
     "tests/adaptor-yetenekleri.test.ts": {
@@ -81,7 +81,7 @@
       "atlanan": 0
     },
     "tests/bekci/kabuk-kromu.test.ts": {
-      "vaka": 9,
+      "vaka": 10,
       "atlanan": 0
     },
     "tests/bekci/kapsam-omurga.test.ts": {
@@ -457,7 +457,7 @@
       "atlanan": 0
     },
     "tests/kabuk-gezinme.test.ts": {
-      "vaka": 34,
+      "vaka": 35,
       "atlanan": 0
     },
     "tests/kabuk-inceleme.test.ts": {

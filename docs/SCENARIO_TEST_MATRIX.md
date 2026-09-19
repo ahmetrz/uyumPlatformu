@@ -399,6 +399,7 @@
 | `SIS-KBK-032` | Sistem | UI | `kabuk-gezinme.test.ts` | iki adlı kullanıcı ilk ve SON adın baş harfini alır | evet | geçti |
 | `SIS-KBK-032` | Sistem | UI | `kabuk-gezinme.test.ts` | tek adlı kullanıcı tek harf verir | evet | geçti |
 | `SIS-KBK-032` | Sistem | UI | `kabuk-gezinme.test.ts` | TÜRKÇE büyütme: i → İ, ı → I | evet | geçti |
+| `SIS-KBK-032` | Sistem | UI | `kabuk-gezinme.test.ts` | NFD yazımlı ad NFC ile aynı harfi verir | evet | geçti |
 | `SIS-KBK-032` | Sistem | UI | `kabuk-gezinme.test.ts` | boş ya da yalnız boşluk olan ad boş dize verir | evet | geçti |
 | `PRT-ODK-001` | Portföy | UI · DOMAIN | `odak-yayma.test.ts` | varsayılan sıralama anahtarı UYUM endeksidir, kapasite değil | evet | geçti |
 | `PRT-ODK-001` | Portföy | UI · DOMAIN | `odak-yayma.test.ts` | uyum sırası en düşük endeksi ÖNE, ölçülmemişi SONA koyar — bilinmeyen ≠ sıfır | evet | geçti |
@@ -436,6 +437,7 @@
 | `URN-KBK-022` | Sistem | UI | `bekci/kabuk-kromu.test.ts` | ALTINCI DİŞ · bildirim sözcüğü ancak SAYAÇ VARKEN düşer | evet | geçti |
 | `URN-KBK-022` | Sistem | UI | `bekci/kabuk-kromu.test.ts` | YEDİNCİ DİŞ · ortam rozeti dar bant satır bütçesine GİRER | evet | geçti |
 | `URN-KBK-022` | Sistem | UI | `bekci/kabuk-kromu.test.ts` | BEŞİNCİ DİŞ · telif kiracıdan ve takvimden gelir | evet | geçti |
+| `URN-KBK-022` | Sistem | UI | `bekci/kabuk-kromu.test.ts` | SEKİZİNCİ DİŞ · kenara çakılı süs, kontrolün vuruş alanının İÇİNDE | evet | geçti |
 | `URN-TBL-001` | Sistem | UI | `bekci/tablo-grameri.test.ts` | BİRİNCİ DİŞ · beyansız ham tablo yok | evet | geçti |
 | `URN-TBL-001` | Sistem | UI | `bekci/tablo-grameri.test.ts` | İKİNCİ DİŞ · dosya başına tavan aşılmıyor | evet | geçti |
 | `URN-TBL-001` | Sistem | UI | `bekci/tablo-grameri.test.ts` | ÜÇÜNCÜ DİŞ · ölü izin satırı yok | evet | geçti |

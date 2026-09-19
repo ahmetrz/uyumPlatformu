@@ -756,6 +756,18 @@
   .ab-ust .ab-mercek-dar select:hover { color: var(--murekkep); }
   /* Şevron seçicinin ÜSTÜNDE durmaz, yanında: tıklamayı yutmaması için
      işaretçi almaz. */
+  /* ── ŞEVRON SEÇİCİNİN VURUŞ ALANININ İÇİNDE DURUR ───────────────────
+     Bağımsız inceleme bulgusu (PR #74): şevron kapsayıcının SAĞ
+     KENARINA (`right: 0`) çakılıydı, ama kapsayıcı dar bantta sağ DOLGU
+     taşıyor (≤700px'te 14px, ≤430px'te 8px). Dolgu `<select>` kutusunun
+     DIŞINDADIR — yani görünen ok, seçicinin üstünde değil yanındaki ölü
+     boşlukta duruyordu. `pointer-events: none` olduğu için dokunuş
+     kapsayıcıya düşüyor ve mercek AÇILMIYORDU.
+
+     Düzeltme dolguyu değil, dolgunun CİNSİNİ değiştirir: komşudan ayıran
+     boşluk bir DIŞ paydır (`margin-right`), iç pay değil. Kapsayıcının
+     içi artık yalnız seçicidir ve `right: 0` tam seçicinin sağ kenarına
+     oturur; ok, kendi 18px'lik sağ dolgusunun üstünde durur. */
   .ab-mercek-dar::after {
     content: '▾'; position: absolute; right: 0; top: 50%;
     transform: translateY(-50%); pointer-events: none;
@@ -4983,7 +4995,7 @@ details:not([open]) > *:not(summary) { display: none !important; }
   /* Mercek satırın SON öğesidir ve çubuğun kendi payı yok: ölçüldü,
      375px'te kutusu 257..375 — açılır oku ekranın kenarına yapışık.
      Yardımcı küme (`.sag`) 14px pay alıyor; aynı pay mercekte de. */
-  .ab-mercek-dar { padding-right: 14px; }
+  .ab-mercek-dar { margin-right: 14px; }
   .ab-b-portfoy-ust { padding-left: 16px; padding-right: 16px; }
   .ab-b-portfoy-govde .kimlik { padding: 22px 16px; }
   .ab-b-portfoy-govde .plaka { padding: 16px; gap: 14px; min-height: 120px; }
@@ -5139,7 +5151,7 @@ details:not([open]) > *:not(summary) { display: none !important; }
      satırdan kötüdür: kullanıcı neyin seçili olduğunu okuyamaz. */
   .ab-ust .marka { padding: 0 10px; font-size: var(--t-govde); }
   .ab-ust .ab-mercek-dar select { max-width: 104px; }
-  .ab-mercek-dar { padding-right: 8px; }
+  .ab-mercek-dar { margin-right: 8px; }
   /* Ölçüm: yardımcı kümenin 192px'inin 53'ü boşluktu (3 çocuk × 12px
      aralık + 28px dolgu). Çocuklar 139px; aralık ve dolgu kısılınca küme
      163px'e iner ve satır 366px'te kapanır. */

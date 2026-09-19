@@ -366,9 +366,19 @@ export const SAYAC_TAVANI = 99;
     Türkçe büyütme ZORUNLU: `'ı'.toUpperCase()` İngilizce kurallarla
     `'I'` verir ama `'i'` için `'I'` döner ve nokta kaybolur — TR'de
     `'i' → 'İ'`dir. Ad "İlker" olan bir kullanıcı başka birinin baş
-    harfini görürdü. */
+    harfini görürdü.
+
+    NFC ZORUNLU ve büyütmeden ÖNCE gelir (bağımsız inceleme, PR #74):
+    ad ürüne bir kimlik sağlayıcıdan gelir ve aynı harfin İKİ Unicode
+    yazımı vardır — `'İ'` tek kod noktası (U+0130) ya da `'I'` + birleşen
+    nokta (U+0049 U+0307). İkincisinde İLK kod noktasını almak birleşeni
+    DÜŞÜRÜR; geriye kalan çıplak `'I'` TR kuralıyla da `'I'`dir. Yani
+    "İlker Şahin" NFD yazımıyla `İŞ` değil `IS` verirdi — kuralın
+    kapattığı kusurun ta kendisi, bu kez sessiz bir normalleştirme
+    farkından. Normalleştirme ADIN TAMAMINA uygulanır: soyadın baş harfi
+    de aynı tuzağı taşır. */
 export function basHarfler(ad: string): string {
-  const parcalar = String(ad ?? '').trim().split(/\s+/).filter(Boolean);
+  const parcalar = String(ad ?? '').normalize('NFC').trim().split(/\s+/).filter(Boolean);
   if (parcalar.length === 0) return '';
   const ilk = parcalar[0];
   const son = parcalar.length > 1 ? parcalar[parcalar.length - 1] : '';

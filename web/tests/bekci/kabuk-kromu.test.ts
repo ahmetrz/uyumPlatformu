@@ -347,4 +347,83 @@ describe('bekçi · kabuk kromu', () => {
     expect(satir, 'Telif yılı SABİT yazılmış; bir sonraki yıl ürün bayat tarih gösterir')
       .toMatch(/getFullYear\(\)/);
   });
+
+  it('SEKİZİNCİ DİŞ · kenara çakılı süs, kontrolün vuruş alanının İÇİNDE [URN-KBK-022]', () => {
+    /* ── ÖLÇÜLEN · bağımsız inceleme, PR #74 ───────────────────────────
+       Dar bant merceğinin şevronu (`.ab-mercek-dar::after`) kapsayıcının
+       sağ kenarına çakılıydı (`right: 0`) ve `pointer-events: none`
+       taşıyordu — ikisi de doğru. Kusur ÜÇÜNCÜ bir kuraldaydı: kapsayıcı
+       telefon bandında sağ DOLGU alıyordu (≤700px 14px · ≤430px 8px) ve
+       dolgu `<select>` kutusunun DIŞINDADIR. Yani görünen ok, seçicinin
+       üstünde değil yanındaki ölü boşlukta duruyordu; dokunuş işaretçi
+       almayan süsün altındaki kapsayıcıya düşüyor ve mercek AÇILMIYORDU.
+
+       Üç kural tek tek doğruydu ve hiçbir kapı göremedi — bu deponun R-F
+       sınıfının geometrik karşılığı. Diş üçünü BİRLİKTE okur.
+
+       POPÜLASYON TÜRETİLİR, sayılmaz: gelecekte eklenen her "işaretçi
+       almayan, kenara çakılı süs" bu dişin önüne kendiliğinden gelir.
+       Boş popülasyon KIRMIZIDIR — hiçbir şeye bakmadan temiz raporlamak,
+       bu deponun kayıtlı kusuru. */
+    const sus: { sec: string; kenar: string }[] = [];
+    let suslu = 0;
+    for (const m of CSS.matchAll(/([^{}]+)\{([^{}]*)\}/g)) {
+      const sec = m[1].split('\n').pop()!.trim(); const g = m[2];
+      if (!/::(after|before)/.test(sec)) continue;
+      if (!/position:\s*absolute/.test(g) || !/pointer-events:\s*none/.test(g)) continue;
+      suslu += 1;
+      for (const kenar of ['right', 'left', 'top', 'bottom']) {
+        if (new RegExp(`(?:^|;)\\s*${kenar}:\\s*0(?:px)?\\s*(?:;|$)`).test(g.trim())) {
+          sus.push({ sec, kenar });
+        }
+      }
+    }
+    expect(suslu, 'Türetici HİÇBİR süs bulamadı — kabuk kromu böyle bir '
+      + 'nesne taşımıyorsa diş silinir, boş küme "kusur yok" demek değildir')
+      .toBeGreaterThan(0);
+    expect(sus.length, 'Kenara ÇAKILI süs kalmadı; diş artık hiçbir şey '
+      + 'ölçmüyor (R-E: ölçmeyen diş bir bulgudur)').toBeGreaterThan(0);
+
+    for (const { sec, kenar } of sus) {
+      const taban = sec.replace(/::(after|before)\s*$/, '').trim();
+      /* ── KURALLAR TEK GEÇİŞTE BÖLÜNÜR, TEK TEK ARANMAZ ───────────────
+         İlk yazım kapsayıcıyı kendi düzenli ifadesiyle arıyordu ve
+         ÖNÜNDEKİ `}`yi TÜKETİYORDU: ardışık iki kural arasında delimiter
+         paylaşıldığı için ikincisi hiç eşleşmiyordu. Ölçüldü — sabotaj
+         turunda `.ab-mercek-dar { padding-right: 14px; }` yazıldı ve diş
+         YEŞİL kaldı: dört kuralın üçünü görüyor, sabotajın düştüğü
+         dördüncüsünü göremiyordu (R-E · yakmayan sabotaj bir bulgudur).
+         Bugün dosya bir kez kurallara bölünür ve özne ADI karşılaştırılır;
+         atlanacak bir delimiter yoktur.
+
+         BEYANLI SINIR: diş medya bağlamını ÇÖZMEZ — kapsayıcıya dolgu
+         veren kural, süsün çizildiği banttan başka bir bantta olsa da
+         kırmızı yakar. Bilinçli ihtiyattır: yanlış yönü, olmayan bir
+         kusuru bildirmektir; tersi, olanı kaçırmak olurdu. */
+      for (const m of CSS.matchAll(/([^{}]+)\{([^{}]*)\}/g)) {
+        const ozne = m[1].split('\n').pop()!.trim();
+        const hedefliyor = ozne.split(',')
+          .some((p) => p.trim().endsWith(taban));
+        if (!hedefliyor) continue;
+        const g = m[2];
+        const dolgu = new RegExp(`(?:^|;)\\s*padding-${kenar}:\\s*([^;]+)`).exec(g)?.[1]?.trim();
+        expect(dolgu === undefined || /^0(?:px)?$/.test(dolgu),
+          `${sec} kapsayıcının ${kenar} DOLGUSUNUN içine düşüyor `
+          + `(\`${ozne}\` → padding-${kenar}: ${dolgu}). Dolgu, kapsayıcının `
+          + 'içindeki kontrolün DIŞINDA kalan bir şerittir: süs orada durunca '
+          + 'görünen işaret ile dokunulabilir alan AYRIŞIR ve '
+          + '`pointer-events: none` yüzünden dokunuş hiçbir şey açmaz. '
+          + `Komşudan ayıran boşluk bir DIŞ paydır — \`margin-${kenar}\` yazılır.`)
+          .toBe(true);
+        /* Kısa yazım aynı şeridi açar ve gözden kaçar. */
+        const kisa = /(?:^|;)\s*padding:\s*([^;]+)/.exec(g)?.[1]?.trim();
+        if (kisa) {
+          expect(/^(?:0(?:px)?)(?:\s+0(?:px)?)*$/.test(kisa),
+            `\`${ozne}\` kısa yazımla dolgu alıyor (padding: ${kisa}); `
+            + `${sec} bu dolgunun içine düşebilir. Dolgu dış paya çevrilir.`)
+            .toBe(true);
+        }
+      }
+    }
+  });
 });

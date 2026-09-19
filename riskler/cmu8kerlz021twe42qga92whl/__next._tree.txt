@@ -1,0 +1,3 @@
+:HL["/uyumPlatformu/_next/static/chunks/3hhys0nvsz7po.css","style"]
+:HL["/uyumPlatformu/_next/static/chunks/1yuvwyy6xx0x3.css","style"]
+0:{"tree":{"name":"","param":null,"prefetchHints":4176,"slots":{"children":{"name":"(kabuk)","param":null,"prefetchHints":4192,"slots":{"children":{"name":"(operasyonel)","param":null,"prefetchHints":4192,"slots":{"children":{"name":"riskler","param":null,"prefetchHints":4192,"slots":{"children":{"name":"id","param":{"type":"d","key":"cmu8kerlz021twe42qga92whl","siblings":[]},"prefetchHints":4192,"slots":{"children":{"name":"__PAGE__","param":null,"prefetchHints":4256,"slots":null}}}}}}}}}}},"staleTime":300,"buildId":"17J973P8RCzyJiXgNNcWo"}

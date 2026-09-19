@@ -1,7 +1,7 @@
 {
-  "imza": "b09aa9f65bd6205f71c981f811cc8e19",
+  "imza": "a9a3c11029e07ff2d25e4e3a268a1669",
   "dosya": 263,
-  "vaka": 4602,
+  "vaka": 4605,
   "atlanan": 1,
   "dosyalar": {
     "tests/adaptor-yetenekleri.test.ts": {
@@ -81,7 +81,7 @@
       "atlanan": 0
     },
     "tests/bekci/kabuk-kromu.test.ts": {
-      "vaka": 7,
+      "vaka": 9,
       "atlanan": 0
     },
     "tests/bekci/kapsam-omurga.test.ts": {
@@ -185,7 +185,7 @@
       "atlanan": 0
     },
     "tests/bekci/yuzey-kademesi.test.ts": {
-      "vaka": 4,
+      "vaka": 5,
       "atlanan": 0
     },
     "tests/belge-sayimlari.test.ts": {

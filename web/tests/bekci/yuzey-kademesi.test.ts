@@ -121,6 +121,43 @@ describe('bekçi · yüzey kademesi [SIS-PAL-001]', () => {
       + 'güçlü ayraç zayıf ayraçtan silik olamaz').toBeGreaterThan(parlaklik(J.hr));
   });
 
+  it('BEŞİNCİ DİŞ · doku saydamlığı KATMANDA durur, her görselde değil [SIS-PAL-001]', () => {
+    /* ── ÖLÇÜLEN · bağımsız inceleme, PR #73 (P2) ────────────────────────
+       Saha fotoğrafı bu turda dokuya indirildi (`--fon-doku`) ve
+       saydamlık iki `img`in HER BİRİNE yazıldı. Çapraz geçişte üstteki
+       görsel tabanı ÖRTMEK zorundadır; %14'te durunca örtmüyor,
+       KARIŞIYORDU — iki AYRI fotoğraf üst üste, 1 − (1 − 0,14)² ≈ %26.
+
+       Bu bir KADEME kusurudur ve bu kapıya aittir: yüzey kademesi
+       `--panel`in parlaklığını ölçer, ama o yüzeyin üstüne binen doku
+       ölçülenden koyu bir yüzey üretirse kademe kâğıt üstünde kalır.
+       Kullanıcının "fazla karanlık" şikâyetini düzeltirken aynı
+       şikâyetin yeni bir kaynağını üretmiştim.
+
+       Diş yapıyı ölçer: saydamlık KATMANDA (`.ab-b-fon`), geçiş
+       `img`de ve üst görsel hazır olduğunda TAM OPAK. */
+    const kat = /\.ab-b-fon \{[^}]*\}/.exec(CSS)?.[0] ?? '';
+    expect(kat, '`.ab-b-fon` bloğu bulunamadı').not.toBe('');
+    expect(kat, 'Doku saydamlığı katmanda değil. `--fon-doku` `.ab-b-fon`da durmazsa '
+      + 'her görsele ayrı ayrı yazılır ve üst üste binen iki görsel BİRLEŞİR — '
+      + 'yüzey ölçülenden koyu olur.').toMatch(/opacity:\s*var\(--fon-doku\)/);
+
+    const tekil = /\.ab-b-fon > img \{[^}]*\}/.exec(CSS)?.[0] ?? '';
+    expect(tekil, '`.ab-b-fon > img` bloğu bulunamadı').not.toBe('');
+    expect(tekil, 'Doku saydamlığı HEM katmana HEM her görsele yazılmış; ikisi '
+      + 'çarpılır ve çapraz geçiş yine karışır.').not.toMatch(/opacity:/);
+
+    expect(CSS, 'Üst görsel geçiş sonunda TAM OPAK değil — tabanı örtmez, onunla '
+      + 'karışır (ölçüldü: birleşik %26, hedeflenen %14).')
+      .toMatch(/\.ab-b-fon > img\.ust\.hazir \{ opacity: 1; \}/);
+
+    /* Katman saydamsa kendi zeminini taşıyamaz: panel yüzeyi bir ÜST
+       kapta durmalı, yoksa doku kendi zeminini de soldurur. */
+    const alan = /\.ab-b-alan \{[^}]*\}/.exec(CSS)?.[0] ?? '';
+    expect(alan, 'Panel yüzeyi `.ab-b-alan`da değil — saydam fon katmanının arkasında '
+      + 'yüzey kalmaz ve kademe sayfa zeminine düşer.').toMatch(/background:\s*var\(--panel\)/);
+  });
+
   it('DÖRDÜNCÜ DİŞ · DESIGN.md yazdığı kademe ÖLÇÜLENLE aynı [SIS-PAL-001]', () => {
     /* Bu kapının doğum sebebi belgenin koddan ayrışmasıydı: belge "üç
        kademe" diyordu, kod kademe taşımıyordu. Beyanı ölçüme bağlamazsak

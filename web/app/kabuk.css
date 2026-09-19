@@ -753,12 +753,37 @@
   .ab-ust .marka .ikinci { display: none; }
   .ab-mercek-dar { order: 2; border-left: 0; padding-left: 0; }
   .ab-ust .sag { order: 3; margin-left: auto; padding-left: 0; }
-  /* Gezinme kendi satırına iner ve KAYDIRILIR: rota gizlemek, o rotaya
-     dokunmatik erişimi tamamen kapatmak olurdu. */
-  .ab-ust > nav {
-    order: 4; flex-basis: 100%; overflow-x: auto; scrollbar-width: none;
+  /* ── SATIR KIRILMASI AÇIK BİR ÖĞEDİR, NAV'IN YAN ETKİSİ DEĞİL ────────
+     Bağımsız inceleme bulgusu (PR #73): başlığın DOĞRUDAN çocuğu olan
+     ortam rozeti (`.ab-ornek-veri`, demo ve geliştirme ortamlarında
+     çizilir) bu bantta ne sıra ne boy alıyordu. Varsayılan `order: 0`
+     ile SIRANIN BAŞINA geçiyor ve ~80px'iyle yardımcı kümeyi üçüncü
+     satıra itiyordu — yani "iki satır" ölçümü YALNIZ üretim
+     derlemesinde doğruydu. Kamuya açık demo (`NEXT_PUBLIC_DEMO=1`) ve
+     her geliştirme kurulumu üç satır görüyordu.
+
+     Rozet KALDIRILAMAZ: "bu kurulumdaki bütün kayıtlar kurgusaldır"
+     bir ürün beyanıdır ve işaretin kapalı unutulması tam olarak böyle
+     başlar (bkz. `Kabuk.tsx` gerekçesi). O yüzden satır bütçesine
+     alındı: kırılma artık sıfır yükseklikli bir öğeyle AÇIKÇA yapılır,
+     gezinme ile rozet ikinci satırı PAYLAŞIR. Gezinme kaydırılabilir
+     kalır — rota gizlemek, o rotaya dokunmatik erişimi tamamen
+     kapatmak olurdu. */
+  /* Kırıcı satırdan BİR PİKSEL GENİŞTİR ve bu keyfî değil: tam %100
+     olduğunda, taban genişliği 0 olan gezinme (`flex: 1 1 0`) kırıcıyla
+     AYNI satıra sığıyor, boş alan kalmadığı için 0px'te kalıyor ve rozet
+     üçüncü satıra düşüyordu (ölçüldü, 390×844: başlık 105px · 3 satır).
+     Bir piksel fazlası hiçbir şeyin yanına sığmamasını garanti eder;
+     `flex-shrink: 1` o pikseli geri alır, yani yatay taşma doğmaz
+     (ölçüldü: taşma yok, başlık 82px · 2 satır). */
+  .ab-ust::before {
+    content: ''; order: 4; flex: 0 1 calc(100% + 1px); height: 0;
     border-top: 1px solid var(--hr);
   }
+  .ab-ust > nav {
+    order: 5; flex: 1 1 0; min-width: 0; overflow-x: auto; scrollbar-width: none;
+  }
+  .ab-ust .ab-ornek-veri { order: 6; flex: none; align-self: center; margin: 0 10px 0 6px; }
   .ab-ust > nav::-webkit-scrollbar { display: none; }
   /* Dolgu BURADA VERİLMEZ: `max-width: 1100px` bloğu CSS'te daha sonra
      gelip 12px yazıyor ve 1024 ≤ 1100 olduğu için bu bantta O kazanır —
@@ -1207,6 +1232,9 @@
 
 .ab-b-alan {
   position: relative; overflow: hidden; min-height: 0;
+  /* Panel yüzeyi BURADA: fon katmanı artık saydam, kendi zeminini
+     taşıyamaz (bkz. `.ab-b-fon` gerekçesi). */
+  background: var(--panel);
   border-bottom: 1px solid var(--hr);
   display: grid; grid-template-columns: 400px minmax(0, 1fr) 300px;
 }
@@ -1235,19 +1263,32 @@
 
    Opaklık jetondan gelir (`--fon-doku`): ürün sahibi kimliği tek sayıyla
    ayarlayabilsin, her kural ayrı ayrı düzenlenmesin. */
+/* ── SAYDAMLIK KATMANDA DURUR, HER GÖRSELDE DEĞİL ──────────────────────
+   Bağımsız inceleme bulgusu (PR #73): doku saydamlığı iki `img`in
+   HER BİRİNE yazılmıştı. Taban görsel her zaman %14'te duruyor, üst
+   görsel de geçiş sonunda %14'te duruyordu — yani üstteki tabanı
+   ÖRTMÜYOR, onunla KARIŞIYORDU. İki AYRI fotoğraf üst üste:
+   1 − (1 − 0,14)² ≈ %26 birleşik opaklık. Geçişten SONRA zemin hem
+   daha koyu hem daha gürültülü oluyordu — kullanıcının "fazla karanlık"
+   şikâyetinin tam olarak düzeltmeye çalıştığım hâli.
+
+   Sebep yapısaldı: çapraz geçişte üst katman tabanı ÖRTMEK zorundadır
+   (opaklık 1), doku kararı ise KATMANIN tamamına aittir. İkisi tek
+   özelliğe bindirilince biri öbürünü yiyor. Bugün ayrı: geçiş `img`de,
+   doku `.ab-b-fon`da, panel yüzeyi de bir üst kapta (`.ab-b-alan`) —
+   yoksa katmanın saydamlığı kendi zeminini de soldururdu. */
 .ab-b-fon {
   position: absolute; inset: 0; pointer-events: none; overflow: hidden;
-  background: var(--panel);
+  opacity: var(--fon-doku);
 }
 .ab-b-fon > img {
   position: absolute; inset: 0; width: 100%; height: 100%; display: block;
   object-fit: cover; object-position: center;
   /* Doku: doygunluk daha da kısılır, veri önde kalır. */
   filter: saturate(.55) contrast(1.02);
-  opacity: var(--fon-doku);
 }
 .ab-b-fon > img.ust { opacity: 0; transition: opacity 400ms ease; }
-.ab-b-fon > img.ust.hazir { opacity: var(--fon-doku); }
+.ab-b-fon > img.ust.hazir { opacity: 1; }
 @media (prefers-reduced-motion: reduce) { .ab-b-fon > img.ust { transition: none; } }
 /* Karanlık/kontrast katmanı — görselden AYRI, veriden ÖNCE. Üç parça:
    1) yatay: sol panel zemine oturur, merkez açılır, sağ panel yarı örtülür;
@@ -4935,8 +4976,12 @@ details:not([open]) > *:not(summary) { display: none !important; }
    tamamen kapatmak olurdu"). Dokunma hedefleri de küçülmez — ürünün
    beyan ettiği eşik WCAG 2.2 AA 24×24 ve satır 1 öğeleri 40px'te kalır. */
 @media (max-width: 430px) {
-  /* Sözcük düşer, SAYAÇ KALIR: dikkati taşıyan sayıdır, sözcük değil. */
-  .ab-ust .bildirim .ad { display: none; }
+  /* Sözcük düşer, SAYAÇ KALIR: dikkati taşıyan sayıdır, sözcük değil.
+     AMA yalnız sayaç ÇİZİLİYORSA — sıfırda `Sayac` hiç çizilmez ve
+     koşulsuz gizleme bağı adsız bir kutuya çeviriyordu (inceleme
+     bulgusu P1). Sınıfı bileşen verir, çünkü kararı veren `sayacMetni`
+     ve o karar TEK yerde durmalıdır. */
+  .ab-ust .bildirim .ad.dar-dusebilir { display: none; }
   .ab-ust .bildirim { padding: 0 10px; }
   .ab-ust .ab-ara-dugme { padding: 0 10px; }
   /* Marka telefonda bir kademe iner (16px → 13px): kurulum adı kimliği

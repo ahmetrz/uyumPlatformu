@@ -304,7 +304,20 @@ function BildirimBagi({ n, patika }: { n: number; patika: string }) {
       {/* Sözcük SPAN'a alındı ki telefonda düşebilsin — sayaç kalır.
           Erişilebilir ad yukarıdaki `aria-label`dadır, dolayısıyla
           sözcüğün görsel olarak düşmesi okuyucudan bilgi götürmez. */}
-      <span className="ad">Bildirim</span><Sayac n={n} />
+      {/* ── SÖZCÜK ANCAK SAYAÇ VARSA DÜŞEBİLİR ─────────────────────────
+          Bağımsız inceleme bulgusu (PR #73, P1): telefon kuralı
+          (`≤430px`) sözcüğü koşulsuz gizliyordu, `Sayac` ise sıfırda
+          HİÇ çizilmiyor (`sayacMetni` null döner). Okunmamış bildirimi
+          olmayan bir kullanıcı — yani çoğu gün, çoğu kullanıcı —
+          telefonda ADSIZ VE İŞARETSİZ bir kutu görüyordu: bağın
+          varlığını keşfetmenin görsel yolu kalmıyordu.
+
+          Kural düzeltildi, kaldırılmadı: sözcük yalnız YERİNİ TUTACAK
+          bir sayaç varken düşer. Koşul `sayacMetni` ile kurulur —
+          `n > 0` yazmak aynı kararı İKİNCİ KEZ tanımlamak olurdu ve
+          ikisi bir gün ayrışırdı. */}
+      <span className={`ad${sayacMetni(n) === null ? '' : ' dar-dusebilir'}`}>Bildirim</span>
+      <Sayac n={n} />
     </Link>
   );
 }

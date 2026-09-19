@@ -213,6 +213,70 @@ describe('bekçi · kabuk kromu', () => {
       .toBeLessThan(kI);
   });
 
+  it('ALTINCI DİŞ · bildirim sözcüğü ancak SAYAÇ VARKEN düşer [URN-KBK-022]', () => {
+    /* ── ÖLÇÜLEN · bağımsız inceleme, PR #73 (P1) ────────────────────────
+       Telefon kuralı (`≤430px`) "sözcük düşer, sayaç kalır" diyordu ve
+       sözcüğü KOŞULSUZ gizliyordu. `Sayac` ise sıfırda HİÇ çizilmez
+       (`sayacMetni` null döner). Okunmamış bildirimi olmayan bir
+       kullanıcı — yani çoğu gün, çoğu kullanıcı — telefonda ADSIZ VE
+       İŞARETSİZ bir kutu görüyordu: bağın ne olduğunu anlamanın ya da
+       varlığını keşfetmenin görsel yolu kalmıyordu.
+
+       İki taraf da tek tek DOĞRUYDU: gizleme kuralı da, sıfırda
+       çizmeyen sayaç da. Kusur ikisinin BAĞINDAYDI — bu deponun R-F
+       sınıfı. Bu yüzden diş ikisini BİRLİKTE okur: CSS yalnız
+       koşullu sınıfı hedefleyebilir, sınıfı veren koşul da sayacın
+       kendi kararı (`sayacMetni`) olmak zorundadır. `n > 0` yazmak
+       aynı kararı ikinci kez tanımlamak olurdu ve iki tanım bir gün
+       ayrışırdı — ayrıldığı gün de kimse görmezdi. */
+    const satir = /<span className=\{`ad\$\{([^}]*?)\}`\}>Bildirim<\/span>/.exec(KABUK);
+    expect(satir, 'Bildirim sözcüğü KOŞULSUZ bir `className="ad"` taşıyor. Telefonda '
+      + 'onu gizleyen kural var; sayaç sıfırda çizilmiyor — bağ adsız bir kutuya '
+      + 'döner.').not.toBeNull();
+    expect(satir![1], 'Sözcüğün düşebilirlik koşulu `sayacMetni` ile kurulmuyor. Koşul '
+      + 'sayacın KENDİ kararından gelmeli; ikinci bir tanım (`n > 0`) bir gün ayrışır.')
+      .toContain('sayacMetni(n)');
+
+    /* CSS tarafı: gizleme yalnız o sınıfı hedefler, `.ad`in tamamını değil. */
+    const kural = /\.ab-ust \.bildirim \.ad(\.[a-z-]+)? \{ display: none; \}/.exec(CSS);
+    expect(kural, 'Telefonda bildirim sözcüğünü gizleyen kural bulunamadı').not.toBeNull();
+    expect(kural![1], 'Gizleme kuralı `.ad`in TAMAMINI hedefliyor — sayaç olsun olmasın '
+      + 'sözcüğü düşürür. Koşullu sınıfı hedeflemeli.').toBeDefined();
+    expect(kural![1], 'Gizleme kuralının hedeflediği sınıf bileşenin verdiği sınıf değil')
+      .toBe('.dar-dusebilir');
+  });
+
+  it('YEDİNCİ DİŞ · ortam rozeti dar bant satır bütçesine GİRER [URN-KBK-022]', () => {
+    /* ── ÖLÇÜLEN · bağımsız inceleme, PR #73 (P2) ────────────────────────
+       Dar bantta başlığın doğrudan çocukları `order` ile diziliyordu —
+       marka, mercek, yardımcı küme, gezinme. Ortam rozeti
+       (`.ab-ornek-veri`; demo ve geliştirme kurulumlarında çizilir) o
+       listede YOKTU: varsayılan `order: 0` ile sıranın BAŞINA geçiyor ve
+       ~87px'iyle yardımcı kümeyi üçüncü satıra itiyordu.
+
+       Yani "başlık iki satır" ölçümü YALNIZ üretim derlemesinde
+       doğruydu. Kamuya açık demo (`NEXT_PUBLIC_DEMO=1`) ve her
+       geliştirme kurulumu üç satır görüyordu — ölçüldü, 390×844:
+       82px → 121px. Bu deponun "sağlayıcı/ortam farkı" sınıfı: ölçtüğün
+       ortam, kullanıcının gördüğü ortam olmayabilir.
+
+       Diş rozetin AYNI medya bloğunda sıra almasını ister. Sayı değil
+       VARLIK ölçülür: hangi sıraya gireceği bir tasarım kararıdır,
+       listede olmaması ise bir unutmadır. */
+    const blok = /@media \(max-width: 1024px\) \{([\s\S]*?)\n\}/.exec(CSS);
+    expect(blok, 'başlığın dar bant bloğu (max-width: 1024px) bulunamadı').not.toBeNull();
+    const g = blok![1];
+    for (const sec of ['.ab-ust .marka', '.ab-mercek-dar', '.ab-ust .sag', '.ab-ust > nav']) {
+      expect(g, `${sec} bu blokta sıra almıyor — diş yanlış bloğu okuyor olabilir`)
+        .toMatch(new RegExp(`${sec.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}[^{]*\\{[^}]*order:`));
+    }
+    expect(g, 'Ortam rozeti (`.ab-ornek-veri`) dar bantta SIRA ALMIYOR. Başlığın '
+      + 'doğrudan çocuğudur ve demo/geliştirme kurulumlarında çizilir; sırasız '
+      + 'kalınca `order: 0` ile en başa geçer ve yardımcı kümeyi bir satır aşağı '
+      + 'iter. Ölçüldü (390×844): başlık 82px → 121px.')
+      .toMatch(/\.ab-ornek-veri[^{]*\{[^}]*order:/);
+  });
+
   it('BEŞİNCİ DİŞ · telif kiracıdan ve takvimden gelir [URN-KBK-022]', () => {
     const g = ayakGovdesi();
     const satir = /<span className="telif">([\s\S]*?)<\/span>/.exec(g)?.[1] ?? '';

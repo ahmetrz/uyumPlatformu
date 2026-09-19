@@ -2,25 +2,25 @@
 name: Uyum ve Yönetişim Platformu
 description: Tek koyu kabuk, Saha dili (Barlow Condensed · Inter · JetBrains Mono, bakır aksan), üç yoğunluk (amiral · operasyonel · tezgâh), sekiz kademeli tipografik ölçek, radius 0, saç çizgisiyle kompozisyon, mono/tabular sayı.
 colors:
-  zemin: "#0A0C0D"
-  panel: "#0F1213"
-  panel2: "#14181A"
+  zemin: "#171A1B"
+  panel: "#292C2D"
+  panel2: "#373A3B"
   murekkep: "#EDEEEC"
   i2: "#B9BEBC"
-  i3: "#8D9497"
-  hr: "#1C2123"
-  hr2: "#272D2F"
-  aksan: "#C2703E"
-  aksan-uzeri: "#0A0C0D"
-  secim: "#171211"
-  ok: "#6FA07E"
+  i3: "#9FA5A7"
+  hr: "#484A4C"
+  hr2: "#585B5D"
+  aksan: "#D29771"
+  aksan-uzeri: "#171A1B"
+  secim: "#443633"
+  ok: "#83AE90"
   md: "#D9A03C"
-  bd: "#DB5A48"
-  pl: "#7A8B93"
-  unk: "#8D9497"
-  tip-a: "#B7734A"
-  tip-b: "#5A87A3"
-  tip-c: "#93A6AD"
+  bd: "#E68B7E"
+  pl: "#98A6AB"
+  unk: "#9FA5A7"
+  tip-a: "#CA997A"
+  tip-b: "#87A8BC"
+  tip-c: "#94A7AD"
   tip-d: "#C9A24C"
 typography:
   display:
@@ -184,7 +184,7 @@ gösterge yok. Ekran olguyu gösterir, yargı vermez: "kritik!" değil, "12 gün
 gecikmiş". Bilinmeyen sıfır değildir ve kendi diliminde durur.
 
 **Key Characteristics:**
-- Tek koyu kabuk, tek aksan: bakır `--aksan` `#C2703E`; beş alan Saha · Portföy · Uyum · Varlık · Risk
+- Tek koyu kabuk, tek aksan: bakır `--aksan` `#D29771`; beş alan Saha · Portföy · Uyum · Varlık · Risk
 - Yarıçap yok; yalnız durum daireleri ve avatar `50%` (şekil kodlamasının parçası)
 - Durum yalnız renkle anlatılmaz: glif ailesi (10px kare) + sözcük + erişilebilir ad
 - Sayı her yerde mono/tabular; işlevsel metin (gezinme, kolon başlığı) 11px'in altına inmez
@@ -202,22 +202,22 @@ Yoğunluk (`data-yogunluk="amiral|operasyonel|tezgah"`) renk değil ölçü değ
 (`--gutter --ayak-h --durum-h --satir-h`).
 
 ### Primary
-- **Bakır** (`--aksan` `#C2703E`): seçili satırın sol kenarı, aktif alan sekmesinin alt çizgisi, birincil düğme dolgusu, odak halkası; fotoğraf üstünde işaretçi kenarı. Yazı rengi olarak yalnız `.ab-dugme.satir` bağlantısında. Düğme dolgusu üzerine zemin rengi mürekkep (`--aksan-uzeri` `#0A0C0D`).
+- **Bakır** (`--aksan` `#D29771`): seçili satırın sol kenarı, aktif alan sekmesinin alt çizgisi, birincil düğme dolgusu, odak halkası; fotoğraf üstünde işaretçi kenarı. Yazı rengi olarak yalnız `.ab-dugme.satir` bağlantısında. Düğme dolgusu üzerine zemin rengi mürekkep (`--aksan-uzeri` `#171A1B`).
 
 ### Secondary
-- **Durum ailesi**: `--ok` uygun (`#6FA07E`), `--md` kısmi / uyarı (`#D9A03C`), `--bd` uygunsuz / kritik (`#DB5A48`), `--pl` planlı (`#7A8B93`), `--unk` değerlendirilmedi (`#8D9497`). `--bd` prototipte 3,45:1 kalıyordu; ton korunarak 4,76:1'e açıldı — kritik durumun rengi okunamıyorsa kritikliği taşımıyor demektir.
+- **Durum ailesi**: `--ok` uygun (`#83AE90`), `--md` kısmi / uyarı (`#D9A03C`), `--bd` uygunsuz / kritik (`#E68B7E`), `--pl` planlı (`#98A6AB`), `--unk` değerlendirilmedi (`#9FA5A7`). `--bd` prototipte 3,45:1 kalıyordu; ton korunarak 4,76:1'e açıldı — kritik durumun rengi okunamıyorsa kritikliği taşımıyor demektir.
 
 ### Tertiary
-- **Tip kimlik yuvaları** (`--tip-a` `#B7734A` · `--tip-b` `#5A87A3` · `--tip-c` `#93A6AD` · `--tip-d` `#C9A24C`): tesis tipinin kimliği. Yuvalar **sektörsüzdür** — hangi tipin hangi yuvayı aldığını CSS bilmez, eşleme `components/kabuk/tip.ts` içindedir ve P4'te sektör paketine taşınır. Renk **kimliktir, durum değil**: yalnız işaretçi ölçeğinde (portföy düzlemi, tesis seçici), asla metinde ya da durum yerine.
+- **Tip kimlik yuvaları** (`--tip-a` `#CA997A` · `--tip-b` `#87A8BC` · `--tip-c` `#94A7AD` · `--tip-d` `#C9A24C`): tesis tipinin kimliği. Yuvalar **sektörsüzdür** — hangi tipin hangi yuvayı aldığını CSS bilmez, eşleme `components/kabuk/tip.ts` içindedir ve P4'te sektör paketine taşınır. Renk **kimliktir, durum değil**: yalnız işaretçi ölçeğinde (portföy düzlemi, tesis seçici), asla metinde ya da durum yerine.
 - **Kapasite dörttür ve bir sınırdır.** Yuvası olmayan tip nötr mürekkebe (`--i2`) düşer; yuva **sarılmaz** — aynı rengi iki tipe vermek "bunlar aynı" demek olurdu ve renk burada kimliktir. Renksiz kalmanın iki ayrı sebebi `/sistem` sayfasında ayrı cümlelerde yazılır (kapasite eksiği ≠ tasarım gereği).
 
 ### Neutral
-- **Zemin** (`--zemin` `#0A0C0D`): sayfanın kendisi; soğuk çelik.
-- **Panel / panel-2** (`--panel` `#0F1213` / `--panel2` `#14181A`): çekmece, ikincil sıra, satır hover ve seçili satır zemini. Panel zeminin bir kademe üstüdür; kart değildir, kenarlığı saç çizgisidir.
-- **Mürekkep** (`--murekkep` `#EDEEEC`), **mürekkep-2** (`--i2` `#B9BEBC`, ikincil metin), **mürekkep-3** (`--i3` `#8D9497`, etiket ve kolon başlığı).
-- **Saç çizgisi / saç çizgisi-2** (`--hr` `#1C2123` / `--hr2` `#272D2F`): satır ayracı, bölüm kuralı, düğme ve girdi kenarlığı. Kompozisyonun tek çizgi aracıdır.
-- **Seçim** (`--secim` `#171211`): açık satırın zemini — aksanın çok soluk tonu.
-- **Kaydırma çubuğu** (`--cubuk` `#6A7679`): başparmak rengi. Karar kabuğun kökünde bir kez verilir ve iki kuraldır, çünkü `scrollbar-color` kalıtımlı, `scrollbar-width` değildir: renk `.ab`ten iner, incelik `.ab, .ab *` ile her kaba yazılır (ölçüldü: yalnız `.ab`e yazıldığında şeridin hesaplanan değeri `auto` kalıyordu). Belge kökü (`globals.css`) aynı değeri literal taşır ve bekçi ikisini eşitler. Çubuk bir METİN değil KONTROLDÜR: eşiği 3:1 (ölçüldü: dört zeminde 4,18 / 4,01 / 3,81 / 3,96). `::-webkit-scrollbar` ile renk/boy verilmez — Chromium'da çubuğu örtüşen kipten klasik kipe düşürür ve her platformda kalıcı yer kaplar. Çubuk gizlenmez; tek istisna yatay kayan gezinme sıralarıdır ve listesi bekçide adıyla durur (`tests/bekci/kaydirma-cubugu.test.ts`, URN-CBK-001).
+- **Zemin** (`--zemin` `#171A1B`): sayfanın kendisi; soğuk çelik.
+- **Panel / panel-2** (`--panel` `#292C2D` / `--panel2` `#373A3B`): çekmece, ikincil sıra, satır hover ve seçili satır zemini. Panel zeminin bir kademe üstüdür; kart değildir, kenarlığı saç çizgisidir.
+- **Mürekkep** (`--murekkep` `#EDEEEC`), **mürekkep-2** (`--i2` `#B9BEBC`, ikincil metin), **mürekkep-3** (`--i3` `#9FA5A7`, etiket ve kolon başlığı).
+- **Saç çizgisi / saç çizgisi-2** (`--hr` `#484A4C` / `--hr2` `#585B5D`): satır ayracı, bölüm kuralı, düğme ve girdi kenarlığı. Kompozisyonun tek çizgi aracıdır.
+- **Seçim** (`--secim` `#443633`): açık satırın zemini — aksanın çok soluk tonu.
+- **Kaydırma çubuğu** (`--cubuk` `#78878A`): başparmak rengi. Karar kabuğun kökünde bir kez verilir ve iki kuraldır, çünkü `scrollbar-color` kalıtımlı, `scrollbar-width` değildir: renk `.ab`ten iner, incelik `.ab, .ab *` ile her kaba yazılır (ölçüldü: yalnız `.ab`e yazıldığında şeridin hesaplanan değeri `auto` kalıyordu). Belge kökü (`globals.css`) aynı değeri literal taşır ve bekçi ikisini eşitler. Çubuk bir METİN değil KONTROLDÜR: eşiği 3:1 (ölçüldü: dört zeminde 4,18 / 4,01 / 3,81 / 3,96). `::-webkit-scrollbar` ile renk/boy verilmez — Chromium'da çubuğu örtüşen kipten klasik kipe düşürür ve her platformda kalıcı yer kaplar. Çubuk gizlenmez; tek istisna yatay kayan gezinme sıralarıdır ve listesi bekçide adıyla durur (`tests/bekci/kaydirma-cubugu.test.ts`, URN-CBK-001).
 
 ### Named Rules
 **The Tek Tema Rule.** Ürün koyudur ve TEK kabuktur. Alanlar arası geçiş "başka bir platform" hissi vermez — ayrışma yoğunlukla (oluk, satır yüksekliği, ayak/durum şeridi) kurulur, palet ya da yazı ailesiyle değil.
@@ -328,7 +328,7 @@ kapının kendi çıktısındadır, buraya elle yazılmaz (eski "38 rota" ölç�
 ## Elevation & Depth
 
 Gölge yoktur. Derinlik **tonal katmanlama** ve **saç çizgisiyle** kurulur:
-zemin → panel → panel-2 üç kademe; her katman 1px `--hr` / `--hr2` kenarlıkla
+zemin → panel `1,244:1` · panel → panel-2 `1,227:1` · zemin → panel-2 `1,526:1` (ölçüldü 19 Eyl 2026; kapı `tests/bekci/yuzey-kademesi.test.ts`, SIS-PAL-001 — sayılar buradan okunur ve koddan ayrışırsa kırmızı yanar). zemin → panel → panel-2 üç kademe; her katman 1px `--hr` / `--hr2` kenarlıkla
 ayrılır. Çekmece `position: fixed`, `border-left: 1px var(--hr2)`, gölgesiz.
 Fotoğraf üstünde okunabilirlik `.veil` yatay gradyanıyla sağlanır (fotoğrafa
 dokunmadan). Hover, panel-2 zeminiyle ifade edilir; kaldırma/yükseltme yoktur.

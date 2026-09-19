@@ -894,7 +894,15 @@ function Takimyildizi({ tesisler, gosterim = OLCULMEMIS_VARSAYILAN, serit, panel
        ama adsız bir sekme durağı klavye kullanıcısına "burası neresi"yi
        söylemez — `div`in adı okuyucuya hiç ulaşmıyordu (rolü yok).
        Kardeş `.ab-b-katman` ile aynı kalıp: adlı bölge + `tabIndex`. */
-    <section className="ab-b-takim" aria-label={`${tBas('tesis')} takımyıldızı`} tabIndex={0}>
+    /* ── BÖLÜMÜN ADI İKİ BANTTA DA DOĞRU ─────────────────────────────
+       Ad "takımyıldızı" idi ve telefonda tuval çizilmiyor (kabuk.css,
+       ≤700px): ekran okuyucu kullanan bir telefon kullanıcısı olmayan bir
+       tuvalin adını duyuyordu. Bölüm HER BANTTA portföyü taşır (sayı, güç
+       toplamı, değerlendirilmemiş bandı, gücü ölçülmemiş şeridi); tuval
+       o portföyün bir GÖRÜNÜMÜDÜR ve kendi adını kendi taşır. `display:
+       none` olduğunda o ad erişilebilirlik ağacından da düşer — yani ad,
+       yüzeyle birlikte gider. */
+    <section className="ab-b-takim" aria-label={`${tBas('tesis')} portföyü`} tabIndex={0}>
       {/* Yön bilgisi ÜÇ kanaldan söyleniyordu (başlık kuyruğu, eksen
           adları, hedef köşesi); ikisi kaldı: eksen okları ("uyum endeksi →",
           "↑ kurulu güç") ve "↗ güçlü ve uyumlu" köşesi. Başlık kuyruğu
@@ -970,7 +978,8 @@ function Takimyildizi({ tesisler, gosterim = OLCULMEMIS_VARSAYILAN, serit, panel
         </p>
       ) : (
         <div className="ab-tuval-sar">
-          <div className="ab-tuval">
+          <div className="ab-tuval" role="group"
+            aria-label={`${tBas('tesis', 'cogul')} · uyum endeksi × kurulu güç tuvali`}>
             {tuvalde.map((s, i) => {
               /* `x` TUVAL YÜZDESİDİR — hem yerleşim hem künye yönü
                  eşikleri aynı ölçekten okunur (bkz. `SOLA_ESIGI`). */

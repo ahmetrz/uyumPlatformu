@@ -213,6 +213,101 @@ describe('bekçi · kabuk kromu', () => {
       .toBeLessThan(kI);
   });
 
+  it('ALTINCI DİŞ · bildirim sözcüğü ancak SAYAÇ VARKEN düşer [URN-KBK-022]', () => {
+    /* ── ÖLÇÜLEN · bağımsız inceleme, PR #73 (P1) ────────────────────────
+       Telefon kuralı (`≤430px`) "sözcük düşer, sayaç kalır" diyordu ve
+       sözcüğü KOŞULSUZ gizliyordu. `Sayac` ise sıfırda HİÇ çizilmez
+       (`sayacMetni` null döner). Okunmamış bildirimi olmayan bir
+       kullanıcı — yani çoğu gün, çoğu kullanıcı — telefonda ADSIZ VE
+       İŞARETSİZ bir kutu görüyordu: bağın ne olduğunu anlamanın ya da
+       varlığını keşfetmenin görsel yolu kalmıyordu.
+
+       İki taraf da tek tek DOĞRUYDU: gizleme kuralı da, sıfırda
+       çizmeyen sayaç da. Kusur ikisinin BAĞINDAYDI — bu deponun R-F
+       sınıfı. Bu yüzden diş ikisini BİRLİKTE okur: CSS yalnız
+       koşullu sınıfı hedefleyebilir, sınıfı veren koşul da sayacın
+       kendi kararı (`sayacMetni`) olmak zorundadır. `n > 0` yazmak
+       aynı kararı ikinci kez tanımlamak olurdu ve iki tanım bir gün
+       ayrışırdı — ayrıldığı gün de kimse görmezdi. */
+    const satir = /<span className=\{`ad\$\{([^}]*?)\}`\}>Bildirim<\/span>/.exec(KABUK);
+    expect(satir, 'Bildirim sözcüğü KOŞULSUZ bir `className="ad"` taşıyor. Telefonda '
+      + 'onu gizleyen kural var; sayaç sıfırda çizilmiyor — bağ adsız bir kutuya '
+      + 'döner.').not.toBeNull();
+    expect(satir![1], 'Sözcüğün düşebilirlik koşulu `sayacMetni` ile kurulmuyor. Koşul '
+      + 'sayacın KENDİ kararından gelmeli; ikinci bir tanım (`n > 0`) bir gün ayrışır.')
+      .toContain('sayacMetni(n)');
+
+    /* CSS tarafı: gizleme yalnız o sınıfı hedefler, `.ad`in tamamını değil. */
+    const kural = /\.ab-ust \.bildirim \.ad(\.[a-z-]+)? \{ display: none; \}/.exec(CSS);
+    expect(kural, 'Telefonda bildirim sözcüğünü gizleyen kural bulunamadı').not.toBeNull();
+    expect(kural![1], 'Gizleme kuralı `.ad`in TAMAMINI hedefliyor — sayaç olsun olmasın '
+      + 'sözcüğü düşürür. Koşullu sınıfı hedeflemeli.').toBeDefined();
+    expect(kural![1], 'Gizleme kuralının hedeflediği sınıf bileşenin verdiği sınıf değil')
+      .toBe('.dar-dusebilir');
+  });
+
+  it('YEDİNCİ DİŞ · ortam rozeti dar bant satır bütçesine GİRER [URN-KBK-022]', () => {
+    /* ── ÖLÇÜLEN · bağımsız inceleme, PR #73 (P2) ────────────────────────
+       Dar bantta başlığın doğrudan çocukları `order` ile diziliyordu —
+       marka, mercek, yardımcı küme, gezinme. Ortam rozeti
+       (`.ab-ornek-veri`; demo ve geliştirme kurulumlarında çizilir) o
+       listede YOKTU: varsayılan `order: 0` ile sıranın BAŞINA geçiyor ve
+       ~87px'iyle yardımcı kümeyi üçüncü satıra itiyordu.
+
+       Yani "başlık iki satır" ölçümü YALNIZ üretim derlemesinde
+       doğruydu. Kamuya açık demo (`NEXT_PUBLIC_DEMO=1`) ve her
+       geliştirme kurulumu üç satır görüyordu — ölçüldü, 390×844:
+       82px → 121px. Bu deponun "sağlayıcı/ortam farkı" sınıfı: ölçtüğün
+       ortam, kullanıcının gördüğü ortam olmayabilir.
+
+       Diş rozetin AYNI medya bloğunda sıra almasını ister. Sayı değil
+       VARLIK ölçülür: hangi sıraya gireceği bir tasarım kararıdır,
+       listede olmaması ise bir unutmadır. */
+    /* ── YORUM METNİ KURAL DEĞİLDİR ──────────────────────────────────
+       İlk yazımda kural `/\.ab-ornek-veri[^{]*\{[^}]*order:/` ile
+       aranıyordu ve diş SABOTAJ TURUNDA KIRMIZI YANMADI (R-E): kuralı
+       silsem bile seçici adı BU DİŞİN KENDİ GEREKÇE YORUMUNDA geçiyor,
+       `[^{]*` oradan ileri koşup bir sonraki kuralın süslü parantezine
+       giriyor ve onun `order:`ini okuyordu. Yani diş kuralı değil kendi
+       nesrini ölçüyordu — "hiçbir şey ölçmeden yeşil yanan kapı"nın
+       tam örneği. Bugün yorumlar ÖNCE ayıklanır ve bildirimler
+       kuralın KENDİ gövdesinden okunur. */
+    const yorumsuz = (m: string) => m.replace(/\/\*[\s\S]*?\*\//g, '');
+    const blok = /@media \(max-width: 1024px\) \{([\s\S]*?)\n\}/.exec(CSS);
+    expect(blok, 'başlığın dar bant bloğu (max-width: 1024px) bulunamadı').not.toBeNull();
+    const g = yorumsuz(blok![1]);
+
+    /** Bir seçicinin KENDİ gövdesindeki bildirimler. */
+    const govde = (sec: string): string | null => {
+      const kacis = sec.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+      const m = new RegExp(`(?:^|[,{}])\\s*${kacis}\\s*\\{([^{}]*)\\}`, 'm').exec(g);
+      return m ? m[1] : null;
+    };
+
+    for (const sec of ['.ab-ust .marka', '.ab-mercek-dar', '.ab-ust .sag', '.ab-ust > nav']) {
+      const b = govde(sec);
+      expect(b, `${sec} bu blokta kendi kuralını taşımıyor — diş yanlış bloğu okuyor olabilir`)
+        .not.toBeNull();
+      expect(b!, `${sec} bu blokta sıra almıyor`).toMatch(/order:/);
+    }
+
+    const rozet = govde('.ab-ust .ab-ornek-veri');
+    expect(rozet, 'Ortam rozeti (`.ab-ornek-veri`) dar bantta KENDİ KURALINI taşımıyor. '
+      + 'Başlığın doğrudan çocuğudur ve demo/geliştirme kurulumlarında çizilir; sırasız '
+      + 'kalınca `order: 0` ile en başa geçer ve yardımcı kümeyi bir satır aşağı iter. '
+      + 'Ölçüldü (390×844): başlık 82px → 121px.').not.toBeNull();
+    expect(rozet!, 'Ortam rozetinin kuralı var ama SIRA vermiyor').toMatch(/order:/);
+
+    /* Kırıcı da burada: rozet sıra alsa bile satır kırılması yoksa
+       gezinme ile aynı satırı paylaşamaz (ölçüldü: 105px · 3 satır). */
+    const kirici = govde('.ab-ust::before');
+    expect(kirici, 'Dar bant satır kırıcısı (`.ab-ust::before`) yok — gezinme kendi '
+      + 'satırını `flex-basis: 100%` ile açarsa rozet o satıra sığamaz.').not.toBeNull();
+    expect(kirici!, 'Kırıcı satırdan GENİŞ değil. Tam %100 olduğunda taban genişliği 0 '
+      + 'olan gezinme aynı satıra sığıyor, 0px’te kalıyor ve rozet üçüncü satıra '
+      + 'düşüyor (ölçüldü: başlık 105px).').toMatch(/calc\(100% \+ 1px\)/);
+  });
+
   it('BEŞİNCİ DİŞ · telif kiracıdan ve takvimden gelir [URN-KBK-022]', () => {
     const g = ayakGovdesi();
     const satir = /<span className="telif">([\s\S]*?)<\/span>/.exec(g)?.[1] ?? '';

@@ -1,7 +1,7 @@
 {
-  "imza": "2f15bb2af5b2dcd823ddb51e9e35d0ba",
-  "dosya": 262,
-  "vaka": 4597,
+  "imza": "7b6371873263ff64171ee4f1a88a8523",
+  "dosya": 263,
+  "vaka": 4605,
   "atlanan": 1,
   "dosyalar": {
     "tests/adaptor-yetenekleri.test.ts": {
@@ -81,7 +81,7 @@
       "atlanan": 0
     },
     "tests/bekci/kabuk-kromu.test.ts": {
-      "vaka": 7,
+      "vaka": 9,
       "atlanan": 0
     },
     "tests/bekci/kapsam-omurga.test.ts": {
@@ -149,7 +149,7 @@
       "atlanan": 0
     },
     "tests/bekci/saha-serit.test.ts": {
-      "vaka": 5,
+      "vaka": 6,
       "atlanan": 0
     },
     "tests/bekci/sektor-terimi.test.ts": {
@@ -182,6 +182,10 @@
     },
     "tests/bekci/yumusak-silme-sayimi.test.ts": {
       "vaka": 4,
+      "atlanan": 0
+    },
+    "tests/bekci/yuzey-kademesi.test.ts": {
+      "vaka": 5,
       "atlanan": 0
     },
     "tests/belge-sayimlari.test.ts": {

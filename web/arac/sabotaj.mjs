@@ -564,8 +564,8 @@ const SABOTAJLAR = [
     ad: 'Tasarım belgesindeki jeton değeri koddan sapıyor',
     kural: 'DESIGN.md jeton değerleri kabuk.css\'ten SAPAMAZ',
     dosya: 'DESIGN.md',
-    ara: '- **Bakır** (`--aksan` `#C2703E`)',
-    yaz: '- **Bakır** (`--aksan` `#C2703F`)',
+    ara: '- **Bakır** (`--aksan` `#D29771`)',
+    yaz: '- **Bakır** (`--aksan` `#D29772`)',
     testler: ['tests/tasarim-belgesi.test.ts'],
   },
   /* ── Saha sadeleştirme turu (15 Eyl 2026) ─────────────────────────── */
@@ -637,8 +637,10 @@ const SABOTAJLAR = [
     ad: 'Risk yoğunluğu "ölçülemedi"yi yeniden her durumda yazıyor',
     kural: 'Aynı sayı iki KPI\'da tekrar etmez; bilinmeyen sözcüğü yalnız kritik=yüksek=0 iken',
     dosya: 'app/(kabuk)/(flagship)/Genel.tsx',
-    ara: '        {risk.kritik === 0 && risk.yuksek === 0 && olculemeyenRisk > 0 && (',
-    yaz: '        {olculemeyenRisk > 0 && (',
+    ara: `          {risk.kritik === 0 && risk.yuksek === 0 && olculemeyenRisk > 0
+            && <> · <span className="unk">{olculemeyenRisk} ölçülemedi</span></>}`,
+    yaz: `          {olculemeyenRisk > 0
+            && <> · <span className="unk">{olculemeyenRisk} ölçülemedi</span></>}`,
     testler: ['tests/saha-sadelestirme.test.ts'],
   },
   {
@@ -673,7 +675,7 @@ const SABOTAJLAR = [
     ad: 'Belge kökünün çubuk rengi jetondan saptı',
     kural: 'Belge kökündeki literal `--cubuk` jetonuyla AYNIDIR',
     dosya: 'app/globals.css',
-    ara: '  scrollbar-color: #6A7679 transparent;',
+    ara: '  scrollbar-color: #78878A transparent;',
     yaz: '  scrollbar-color: #8D9497 transparent;',
     testler: ['tests/bekci/kaydirma-cubugu.test.ts'],
   },
@@ -692,7 +694,7 @@ const SABOTAJLAR = [
     /* 3:1 eşiğini `arac/kontrast.mjs` (CLI, `tasarim:kapi`) ölçer; sabotaj
        koşucusu vitest koştuğu için burada belge sapması ve jeton eşitliği
        dişleri yakalar — ikisi de aynı değişikliği kırmızı yakar. */
-    ara: '  --cubuk: #6A7679;',
+    ara: '  --cubuk: #78878A;',
     yaz: '  --cubuk: #3A4245;',
     testler: ['tests/tasarim-belgesi.test.ts', 'tests/bekci/kaydirma-cubugu.test.ts'],
   },
@@ -812,6 +814,7 @@ const SABOTAJLAR = [
     kural: 'Ray karar sırasına dizilir: açık uygunsuzluğu olan tesis ilk ekranda',
     dosya: 'app/(kabuk)/(flagship)/Genel.tsx',
     ara: `          {[...tesisler]
+            .filter((s) => s.endeks !== null)
             .sort((a, b) => ((b.sayim.uyumsuz ?? 0) > 0 ? 1 : 0) - ((a.sayim.uyumsuz ?? 0) > 0 ? 1 : 0))
             .map((s) => <SahaKarti key={s.id} s={s} />)}`,
     yaz: '          {tesisler.map((s) => <SahaKarti key={s.id} s={s} />)}',
@@ -832,7 +835,7 @@ const SABOTAJLAR = [
     kural: 'Ad, değerin vermediği bir ayrımı vaat ettiğinde en sinsi kusuru üretir: değeri okuyan kimse yoktur, ADI okunur',
     dosya: 'app/kabuk.css',
     ara: '  --tr-gezinme: .06em;   /* gezinme · düğme büyük harfi — hafif */',
-    yaz: '  --tr-gezinme: .14em;   /* SABOTAJ — etiket jetonuyla çakışıyor */',
+    yaz: '  --tr-gezinme: .09em;   /* SABOTAJ — etiket jetonuyla çakışıyor */',
     testler: ['tests/bekci/tipografi-olcegi.test.ts'],
   },
   {
@@ -929,7 +932,7 @@ const SABOTAJLAR = [
     ad: 'Kaydırma çubuğunu üçüncül metinden yüksek sesli yap',
     kural: 'Bir KONTROL, ayırdığı içerikten daha okunaklı çizilemez — üst sınır --i3',
     dosya: 'app/kabuk.css',
-    ara: '  --cubuk: #6A7679;',
+    ara: '  --cubuk: #78878A;',
     yaz: '  --cubuk: #A6AEB1;  /* SABOTAJ — üçüncül metnin üstüne çıktı */',
     testler: ['tests/bekci/kabuk-kromu.test.ts'],
   },
@@ -937,7 +940,7 @@ const SABOTAJLAR = [
     ad: 'Kaydırma çubuğunu erişilebilirlik tabanının altına indir',
     kural: 'Çubuk metin değil KONTROLDÜR; WCAG 1.4.11 metin dışı kontrast eşiği 3:1 ve bu taban görsel bir şikâyetle düşürülemez',
     dosya: 'app/kabuk.css',
-    ara: '  --cubuk: #6A7679;',
+    ara: '  --cubuk: #78878A;',
     yaz: '  --cubuk: #343B3E;  /* SABOTAJ — 1,72:1, tabanın altı */',
     testler: ['tests/bekci/kabuk-kromu.test.ts'],
   },
@@ -959,21 +962,7 @@ const SABOTAJLAR = [
     yaz: '          serit={[]} panelAcik={olculmemisAcik} setPanelAcik={setOlculmemisAcik}  /* SABOTAJ */',
     testler: ['tests/bekci/saha-serit.test.ts'],
   },
-];
-
-function testKos(testler) {
-  try {
-    execFileSync('npx', ['vitest', 'run', ...testler, '--reporter=dot'], {
-      cwd: KOK, stdio: 'pipe', timeout: 600_000,
-    });
-    return { kirildi: false };
-  } catch (e) {
-    const cikti = `${e.stdout ?? ''}${e.stderr ?? ''}`;
-    return { kirildi: true, cikti: cikti.slice(-400) };
-  }
-}
-
-const sonuclar = [  {
+  {
     ad: 'Şeridi gizleyen bant kuralı kaldırıldı',
     kural: 'Ray künye çizilen bantta gizlenir; 1101px’te ekrana sıfır yeni ad katıyordu',
     dosya: 'app/kabuk.css',
@@ -999,7 +988,110 @@ const sonuclar = [  {
     yaz: '          portfoy={{ sayi: 0, gucYazi: null }} />',
     testler: ['tests/bekci/saha-serit.test.ts'],
   },
+  {
+    ad: 'Tuval adsız hâline döndürüldü (künye susuyor, nokta çiziliyor)',
+    kural: 'Tuval künyesiyle AYNI eşikte susar; adı okunmayan bir nokta "hangi tesis güçlü ve uyumlu" sorusunu yanıtlayamaz',
+    dosya: 'app/kabuk.css',
+    ara: '  .ab-b-takim .ab-tuval { display: none; }',
+    yaz: '  /* SABOTAJ: tuval dar bantta da çiziliyor — adsız nokta */',
+    testler: ['tests/bekci/saha-serit.test.ts'],
+  },
+  {
+    ad: 'Devralan portföy özeti ray görünen bantta da çiziliyor',
+    kural: 'Ray gizlenince özeti takımyıldız devralır; ray geri gelince devralan ÇEKİLİR — yoksa aynı iki sayı ekranda iki kez durur',
+    dosya: 'app/kabuk.css',
+    ara: '  .ab-b-genel .ab-b-takim .ab-takim-bas > .etiket.ust { display: none; }',
+    yaz: '  /* SABOTAJ: devralan özet çekilmiyor — portföy künyesi iki kez */',
+    testler: ['tests/bekci/saha-serit.test.ts'],
+  },
+  {
+    ad: 'Bildirim sözcüğü yine KOŞULSUZ gizleniyor (sıfır sayaçta adsız kutu)',
+    kural: 'Sözcük ancak YERİNİ TUTACAK bir sayaç varken düşer; sıfırda sayaç hiç çizilmez',
+    dosya: 'app/kabuk.css',
+    ara: '  .ab-ust .bildirim .ad.dar-dusebilir { display: none; }',
+    yaz: '  .ab-ust .bildirim .ad { display: none; }',
+    testler: ['tests/bekci/kabuk-kromu.test.ts'],
+  },
+  {
+    ad: 'Sözcüğün düşebilirlik koşulu sayacın kararından koparıldı',
+    kural: 'Koşul `sayacMetni` ile kurulur; ikinci bir tanım (`n > 0`) bir gün ayrışır ve ayrıldığı gün kimse görmez',
+    dosya: 'components/kabuk/Kabuk.tsx',
+    ara: "sayacMetni(n) === null ? '' : ' dar-dusebilir'",
+    yaz: "n > 0 ? ' dar-dusebilir' : ''",
+    testler: ['tests/bekci/kabuk-kromu.test.ts'],
+  },
+  {
+    ad: 'Ortam rozeti dar bant satır bütçesinden çıkarıldı',
+    kural: 'Başlığın doğrudan çocuğu sırasız kalırsa `order: 0` ile başa geçer; demo ve geliştirme üç satır görür',
+    dosya: 'app/kabuk.css',
+    ara: '  .ab-ust .ab-ornek-veri { order: 6; flex: none; align-self: center; margin: 0 10px 0 6px; }',
+    yaz: '  /* SABOTAJ: rozet sırasız — order: 0 ile başa geçer */',
+    testler: ['tests/bekci/kabuk-kromu.test.ts'],
+  },
+  {
+    ad: 'Satır kırıcı tam %100 yapıldı (gezinme kırıcıyla aynı satıra sığar)',
+    kural: 'Kırıcı satırdan BİR PİKSEL geniştir; tam %100 olduğunda taban genişliği 0 olan gezinme yanına sığar, 0px’te kalır ve rozet üçüncü satıra düşer',
+    dosya: 'app/kabuk.css',
+    ara: 'flex: 0 1 calc(100% + 1px)',
+    yaz: 'flex: 0 1 100%',
+    testler: ['tests/bekci/kabuk-kromu.test.ts'],
+  },
+  {
+    ad: 'Doku saydamlığı katmandan her görsele geri yazıldı',
+    kural: 'Çapraz geçişte üst görsel tabanı ÖRTER; ikisi de yarı saydam olursa KARIŞIR ve yüzey ölçülenden koyu olur',
+    dosya: 'app/kabuk.css',
+    ara: '.ab-b-fon > img.ust.hazir { opacity: 1; }',
+    yaz: '.ab-b-fon > img.ust.hazir { opacity: var(--fon-doku); }',
+    testler: ['tests/bekci/yuzey-kademesi.test.ts'],
+  },
+  {
+    ad: 'Yüzey kademesi düzleştirildi',
+    kural: 'Koyu temada zemin → panel adımı algılanabilir olmalı; 1,10:1 altı ayrışma sayılmaz',
+    dosya: 'app/kabuk.css',
+    ara: '  --panel: #292C2D;',
+    yaz: '  --panel: #191C1D;',
+    testler: ['tests/bekci/yuzey-kademesi.test.ts'],
+  },
+  {
+    ad: 'Yüzey kademesi tersine çevrildi',
+    kural: 'Panel zeminin ÜSTÜNDEDİR; sıra tersine dönerse "bir kademe üstü" beyanı yalan olur',
+    dosya: 'app/kabuk.css',
+    ara: '  --panel2: #373A3B;',
+    yaz: '  --panel2: #141617;',
+    testler: ['tests/bekci/yuzey-kademesi.test.ts'],
+  },
+  {
+    ad: 'Saç çizgisi en parlak yüzeyin altına indirildi',
+    kural: 'Ayraç, üstüne çizildiği en parlak yüzeyden parlaktır; yoksa panel üstündeki kenarlıklar görünmez olur',
+    dosya: 'app/kabuk.css',
+    ara: '  --hr: #484A4C;',
+    yaz: '  --hr: #1C2123;',
+    testler: ['tests/bekci/yuzey-kademesi.test.ts'],
+  },
+  {
+    ad: 'DESIGN.md kademe sayısı koddan ayrıştırıldı',
+    kural: 'Belgenin yazdığı kademe ÖLÇÜLENLE aynıdır — bu kapının doğum sebebi o ayrışmaydı',
+    dosya: 'DESIGN.md',
+    ara: 'zemin → panel `1,244:1`',
+    yaz: 'zemin → panel `1,400:1`',
+    testler: ['tests/bekci/yuzey-kademesi.test.ts'],
+  },
 ];
+
+function testKos(testler) {
+  try {
+    execFileSync('npx', ['vitest', 'run', ...testler, '--reporter=dot'], {
+      cwd: KOK, stdio: 'pipe', timeout: 600_000,
+    });
+    return { kirildi: false };
+  } catch (e) {
+    const cikti = `${e.stdout ?? ''}${e.stderr ?? ''}`;
+    return { kirildi: true, cikti: cikti.slice(-400) };
+  }
+}
+
+const sonuclar = [];
+
 for (const s of SABOTAJLAR) {
   if (s.atla) {
     sonuclar.push({ ad: s.ad, kural: s.kural, durum: 'atlandi', not: s.atla });
@@ -1035,6 +1127,32 @@ for (const s of SABOTAJLAR) {
   });
   process.stderr.write(
     `${sonuc.kirildi ? '✓' : '✗'} ${s.ad}${geriOzet === asilOzet ? '' : ' · GERİ YÜKLEME BOZUK'}\n`);
+}
+
+/* ── HER TANIM BİR SONUÇ ÜRETİR ─────────────────────────────────────────
+   Ölçüldü (19 Eyl 2026): yedi sabotaj tanımı, `SABOTAJLAR` yerine
+   `sonuclar` dizisinin İÇİNE yazılmıştı — dizi `const sonuclar = [ {…} ]`
+   diye açılıyordu. Tanımlar hiç koşmadı; `durum` alanları boştu, iki
+   süzgeç de (`atlandi` · `hedef_yok`) onları ELEMEDİ, yani ÖLÇÜLEN
+   sayısına girip YAKALANAN sayısına girmediler. Araç "kaçırılan: 8"
+   diyordu ve sekizin yedisi hiç koşmamış bir tanımdı; yüzey kademesinin
+   dört sabotajı da o yedinin içindeydi.
+
+   Sabotaj aracının kendisi de bir kapıdır ve bu, kapının kendi
+   "hiçbir şey ölçmeden yeşil yanma" hâliydi. Bugün iki kimlik tutulur:
+   her tanım bir sonuç üretir ve her sonuç BİLİNEN bir durum taşır. */
+const DURUMLAR = new Set(['yakalandi', 'KACIRILDI', 'hedef_yok', 'atlandi']);
+if (sonuclar.length !== SABOTAJLAR.length) {
+  throw new Error(`SABOTAJ ARACI KUSURLU: ${SABOTAJLAR.length} tanım var, `
+    + `${sonuclar.length} sonuç üretildi. Koşmayan bir sabotaj, kaçırılan `
+    + 'bir sabotajdan daha sessizdir.');
+}
+for (const s of sonuclar) {
+  if (!DURUMLAR.has(s.durum)) {
+    throw new Error(`SABOTAJ ARACI KUSURLU: "${s.ad}" sonucu durumsuz `
+      + `(${s.durum}). Durumsuz bir satır ölçülen sayısına girer, yakalanan `
+      + 'sayısına girmez — araç kendi kusurunu "test yetersiz" diye raporlar.');
+  }
 }
 
 const olculen = sonuclar.filter((s) => s.durum !== 'atlandi' && s.durum !== 'hedef_yok');

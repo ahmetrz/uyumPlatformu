@@ -1120,6 +1120,39 @@ export const PLATFORM_SENARYOLARI: Senaryo[] = [
     katmanlar: ['UI'],
   },
   {
+    id: 'SIS-PAL-001', alan: 'Sistem', rota: '—', eksen: 'arayuz',
+    amac: 'Kullanıcı "site genel olarak çok karanlık ve hâlâ düzenli değil" '
+      + 'dedi. Ölçüldü (19 Eyl 2026) ve iki şikâyet TEK kusurda buluştu: '
+      + 'metin kontrastı zaten kusursuzdu (16,84 / 10,41 / 6,36), kusur '
+      + 'YÜZEY KADEMESİNDEYDİ — zemin → panel 1,042:1, panel → panel-2 '
+      + '1,053:1. Üç yüzey birbirinden %10\'dan az ayrışıyordu, yani göz '
+      + 'için tek siyahtı; koyu arayüzde düzeni yüzey kademesi kurar ve '
+      + 'kademe çökünce ekran tek parça levhaya döner. `DESIGN.md` bu '
+      + 'kademeyi ZATEN BEYAN EDİYORDU ("üç kademe", "panel zeminin bir '
+      + 'kademe üstüdür") — beyan koddan ayrışmıştı. Kontrast kapısı bunu '
+      + 'göremez ve bu beyanlı bir körlüktür: o kapı yalnız MÜREKKEP × '
+      + 'YÜZEY oranını ölçer, yüzeyin YÜZEYE oranını hiçbir kapı '
+      + 'ölçmüyordu. Kademeyi açmanın tavanını paletin EN SOLUK metin '
+      + 'mürekkebi koyar: ölçüldü, bağlayıcı jeton `--bd` (kritik kırmızı) '
+      + 've eski değeriyle kademe 1,075:1\'de kilitliydi — kilidi açan şey '
+      + 'yüzey değil mürekkepti.',
+    rol: 'BT direktörü', kapsam: 'kurum geneli',
+    onkosul: 'Koyu kabuk paleti kurulu', veriHali: 'normal',
+    eylem: 'Palet jetonları kaynaktan okunur; komşu yüzeylerin kontrast '
+      + 'oranı ve saç çizgilerinin yüzeylere göre sırası hesaplanır',
+    beklenenSonuc: 'Kademe SIRALIDIR (zemin < panel < panel-2) ve her komşu '
+      + 'adım algılanabilir: 1,10:1 altı bir adım koyu yüzeyde ayrışma '
+      + 'sayılmaz. Saç çizgileri EN PARLAK yüzeyin de üstündedir — yoksa '
+      + 'panel üstündeki kenarlıklar görünmez olur (bu kusur gerçekten '
+      + 'oldu: panel açılınca eski `--hr` panelden koyu kaldı). '
+      + '`DESIGN.md`in yazdığı kademe sayıları ölçülenle AYNIDIR; belge '
+      + 'koddan ayrışırsa kapı kırmızı yanar. Taban `olcum-tabani.json` '
+      + 'içinde binde cinsinden durur ve yalnız yükselir.',
+    beklenenEkran: 'Kabuk geneli — koyu tema yüzeyleri',
+    beklenenIz: 'yazma yok', beklenenBildirim: 'yok',
+    katmanlar: ['UI'],
+  },
+  {
     id: 'SIS-CBK-001', alan: 'Sistem', rota: '/', eksen: 'arayuz',
     amac: 'Kaydırma çubuğu ürünün dışında kalmıştı: ana sayfada kayan tek kap '
       + '(tesis şeridi, 3 624px taşma) çubuk için hiçbir karar taşımıyordu, '

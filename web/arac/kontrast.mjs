@@ -103,15 +103,30 @@ const CIFTLER = [
   { ink: '--bd', esik: METIN, not: 'uygunsuz/kritik' },
   { ink: '--pl', esik: METIN, not: 'taslak/süreli' },
   { ink: '--unk', esik: METIN, not: 'değerlendirilmedi' },
-  { ink: '--aksan', esik: IRI, not: 'aktif kenar, işaret, odak halkası' },
-  /* Üretim tipi kimlik renkleri GRAFİKTİR (dolgu, işaretçi): 3:1 yeter.
-     Ama görünmez olamazlar — zeminden ayrılmaları gerekir. */
-  /* Tip kimlik YUVALARI — hangi tesis tipinin hangi yuvayı aldığını bu
-     araç bilmez ve bilmemeli; ölçtüğü şey yuvanın okunabilirliğidir. */
-  { ink: '--tip-a', esik: IRI, not: 'tip kimlik yuvası A' },
-  { ink: '--tip-b', esik: IRI, not: 'tip kimlik yuvası B' },
-  { ink: '--tip-c', esik: IRI, not: 'tip kimlik yuvası C' },
-  { ink: '--tip-d', esik: IRI, not: 'tip kimlik yuvası D' },
+  /* ── AKSAN VE TİP YUVALARI: IRI DEĞİL, METİN (19 Eyl 2026) ─────────
+     Bu beş jeton burada IRI (3:1) diye, yani "grafik" diye beyanlıydı —
+     "aktif kenar, işaret, odak halkası" ve "tip kimlik yuvası". Beyan
+     KODDAN AYRIŞMIŞTI: ürün ikisini de METİN olarak yazıyor ve bunu
+     `DESIGN.md` kendi cümlesinde söylüyor — "Yazı rengi olarak yalnız
+     `.ab-dugme.satir` bağlantısında". Tip yuvaları da şerit kartının
+     `span.mono.tip` etiketinde metindir.
+
+     Ayrışma ÖLÇÜLDÜ: yüzey kademesi açılınca axe 61 yeni `color-contrast`
+     bulgusu saydı (`.ab-dugme.satir` ×30, `.etiket.vurgu` ×15,
+     `span.mono.tip`, `span.kod.mono`) — hepsi bu kapının 3:1 diyerek
+     GEÇİRDİĞİ çiftlerdi. Bir kapı yanlış eşiği uygularsa ölçüyor değil,
+     ölçtüğünü sanıyordur.
+
+     Bugün eşik METİN: beş jeton da dört yüzeyin dördünde 4,5:1 taşır.
+     Üçünün açıklığı bu yüzden yükseldi (ton ve doygunluk BİREBİR korundu):
+       --aksan #C2703E → #C98154 · --tip-a #B7734A → #C08561
+       --tip-b #5A87A3 → #6F97AF
+     `--tip-c` ve `--tip-d` zaten taşıyordu, dokunulmadı. */
+  { ink: '--aksan', esik: METIN, not: 'aktif kenar, işaret, odak halkası — VE `.ab-dugme.satir` yazısı' },
+  { ink: '--tip-a', esik: METIN, not: 'tip kimlik yuvası A — şerit kartında metin' },
+  { ink: '--tip-b', esik: METIN, not: 'tip kimlik yuvası B — şerit kartında metin' },
+  { ink: '--tip-c', esik: METIN, not: 'tip kimlik yuvası C — şerit kartında metin' },
+  { ink: '--tip-d', esik: METIN, not: 'tip kimlik yuvası D — şerit kartında metin' },
   { ink: '--hr2', esik: 1.25, not: 'kart kenarı — görünür olmalı' },
   /* Kaydırma çubuğu başparmağı bir KONTROLDÜR (WCAG 1.4.11): görünmezse
      fare kullanan kişi kayan içeriğin varlığını hiç öğrenemez. */

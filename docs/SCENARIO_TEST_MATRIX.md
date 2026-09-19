@@ -4,12 +4,12 @@
 
 | Ölçü | Değer |
 | --- | --- |
-| Senaryo | 426 |
-| Testi olan senaryo | 426 |
+| Senaryo | 427 |
+| Testi olan senaryo | 427 |
 | **GAP** | **0** |
 | Hayalet işaret (kütükte olmayan kimlik) | 0 |
 | Kütüksüz test dosyası | 0 |
-| Taranan test dosyası | 262 |
+| Taranan test dosyası | 263 |
 
 ## Katman başına kapsam
 
@@ -26,7 +26,7 @@
 | RESPONSIVE | 9 | 9 | 0 |
 | SCOPE | 34 | 34 | 0 |
 | SERVER | 159 | 159 | 0 |
-| UI | 157 | 157 | 0 |
+| UI | 158 | 158 | 0 |
 | VISUAL | 4 | 4 | 0 |
 | WORKFLOW | 39 | 39 | 0 |
 
@@ -457,6 +457,10 @@
 | `SAH-TUV-002` | Saha | UI | `kunye-yolu.test.ts` | yüzde EN KÖTÜ durumdan türer — az ayırmaz | evet | geçti |
 | `SAH-TUV-002` | Saha | UI | `kunye-yolu.test.ts` | CSS şerit adımı yüzdesi `KUNYE_BOY` ile aynıdır | evet | geçti |
 | `SAH-TUV-002` | Saha | UI | `kunye-yolu.test.ts` | piksel taban, CSS künye kutusuyla tutarlıdır | evet | geçti |
+| `SIS-PAL-001` | Sistem | UI | `bekci/yuzey-kademesi.test.ts` | BİRİNCİ DİŞ · kademe SIRALI: zemin < panel < panel-2 | evet | geçti |
+| `SIS-PAL-001` | Sistem | UI | `bekci/yuzey-kademesi.test.ts` | İKİNCİ DİŞ · her komşu adım ALGILANABİLİR | evet | geçti |
+| `SIS-PAL-001` | Sistem | UI | `bekci/yuzey-kademesi.test.ts` | ÜÇÜNCÜ DİŞ · saç çizgileri EN PARLAK yüzeyin de üstünde | evet | geçti |
+| `SIS-PAL-001` | Sistem | UI | `bekci/yuzey-kademesi.test.ts` | DÖRDÜNCÜ DİŞ · DESIGN.md yazdığı kademe ÖLÇÜLENLE aynı | evet | geçti |
 | `SIS-CBK-001` | Sistem | UI · ACCESSIBILITY | `bekci/kaydirma-cubugu.test.ts` | ÖLÇÜM TABANI — tarama gerçekten kayan kap görüyor | evet | geçti |
 | `SIS-CBK-001` | Sistem | UI · ACCESSIBILITY | `bekci/kaydirma-cubugu.test.ts` | renk kararı kabuğun KÖKÜNDE bir kez verilir ve jetondan gelir | evet | geçti |
 | `SIS-CBK-001` | Sistem | UI · ACCESSIBILITY | `bekci/kaydirma-cubugu.test.ts` | incelik KALITIMSIZDIR: kabuğun altındaki her öğeye yazılır | evet | geçti |

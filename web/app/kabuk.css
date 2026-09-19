@@ -203,7 +203,16 @@
      bir sebep yok — sağlam olan yeniden kurulmaz. */
   --tr-govde: 0;         /* normal metin — izsiz */
   --tr-gezinme: .06em;   /* gezinme · düğme büyük harfi — hafif */
-  --tr-etiket: .14em;    /* kaş etiketi — geniş */
+  /* Kaş izi .14em'den .09em'e indi (19 Eyl 2026). BÜYÜK HARF kararı
+     DEĞİŞMEDİ — o yapısal kaşın kimliğidir ve cırcırı vardır
+     (`kabuk.buyukHarfKurali`). Değişen, onu "terminal" hissine çeviren
+     İZ. Kullanıcı ekranı üç kez "çok karmaşık" diye bildirdi; ekranda
+     büyük harf kaş sayısı azalmadan da yük düşer, çünkü geniş iz her
+     kaşı olduğundan uzun ve daha gürültülü gösterir. Etkileşim
+     sadeleştirme skill'inin "tiny uppercase labels / letter spacing"
+     ekseni tam olarak budur: "'Industrial' must not become
+     'terminal-like'". */
+  --tr-etiket: .09em;    /* kaş etiketi — geniş */
   --tr-kolonbas: .18em;  /* kolon kaşı — en geniş, yapısal */
   --tr-manset: -.01em;   /* manşet · başlık — sıkıştırma */
 
@@ -242,6 +251,8 @@
 
   --ez: cubic-bezier(.2, 0, 0, 1);
   --mo-reveal: 320ms;
+  /* Saha fonundaki fotoğrafın DOKU opaklığı — kimlik burada ayarlanır. */
+  --fon-doku: .14;
 }
 
 /* ═══ Ortak taban ═════════════════════════════════════════════════════ */
@@ -364,16 +375,69 @@
    yalnız kenar/işaret/dolgu taşır (3:1), aksan dolgusuna zemin rengi
    yazılır. Blok `.ab {\n  --zemin:` ile başlar — kontrast kapısı ve
    /sistem sayfası paleti bu imzayla okur. */
+/* ═══ YÜZEY KADEMESİ GERÇEK OLMAK ZORUNDA (SIS-PAL-001) ════════════════
+   `DESIGN.md` iki yerde kademe BEYAN EDİYORDU — "zemin → panel → panel-2
+   ÜÇ KADEME" ve "panel zeminin BİR KADEME üstüdür". Ölçüldü (19 Eyl 2026)
+   ve beyan yanlış çıktı; kademe YOKTU:
+
+     zemin → panel   1,042:1      panel → panel2  1,053:1
+     zemin → panel2  1,097:1
+
+   Üç yüzey birbirinden %10'dan az ayrışıyordu, yani göz için TEK siyahtı.
+   Koyu arayüzde düzeni yüzey kademesi kurar; kademe çökünce ekran tek
+   parça levhaya döner. Kullanıcı bunu "çok karanlık ve hâlâ düzenli
+   değil" diye bildirdi — iki şikâyetin de kaynağı tek ölçümde buluştu.
+
+   KONTRAST KAPISI BUNU GÖREMEZ ve bu beyanlı bir körlüktü: `arac/
+   kontrast.mjs` yalnız MÜREKKEP × YÜZEY oranını ölçer (4,5:1). Yüzeyin
+   YÜZEYE oranını hiçbir kapı ölçmüyordu, dolayısıyla kademe sessizce
+   düzleşebilirdi. Bugün ölçülüyor: `tests/bekci/yuzey-kademesi.test.ts`.
+
+   ── TAVANI KİM KOYUYOR ──────────────────────────────────────────────
+   Yüzeyler serbestçe açılamaz: en parlak yüzey, paletin EN SOLUK metin
+   mürekkebinin 4,5:1'ini taşımak zorundadır. Ölçüldü — bağlayıcı jeton
+   `--bd` (kritik kırmızı). Eski değeriyle (#DB5A48) tavan L ≤ 0,0119
+   ediyordu, yani kademe 1,075:1'de kilitliydi: yüzeyle çözüm İMKÂNSIZDI.
+   Kilidi açan şey yüzey değil MÜREKKEPTİR.
+
+   Bu yüzden üç mürekkep birer kademe açıldı. Ton ve doygunluk BİREBİR
+   korundu, yalnız açıklık yükseldi — kritik kırmızı hâlâ 7° tonunda ve
+   0,67 doygunlukta, yani kırmızıdır:
+
+     --bd    #DB5A48 → #E07262      --pl  #7A8B93 → #85959C
+     --cubuk #78878A → #78878A
+
+   `--murekkep`, `--i2`, `--i3`, `--unk`, `--ok`, `--md` DEĞİŞMEDİ.
+
+   ── TABAN DA YÜKSELDİ ───────────────────────────────────────────────
+   `--zemin` ekranın çoğunu kaplar; "çok karanlık" şikâyetinin ağırlığı
+   oradadır. #0A0C0D (L 0,0036) yaygın koyu arayüzlerin altındaydı
+   (Material #121212 L 0,0056 · GitHub #0d1117 L 0,0053); #0F1112
+   (L 0,0055) o banda çıkar. KOYU TEMA KARARI DEĞİŞMEDİ — açık temaya
+   geçiş yok; koyu tema kendi içinde okunur hâle geldi.
+
+   ── KADEME EŞİT ARALIKLI ────────────────────────────────────────────
+   İlk yazımda basamaklar ÇARPIKTI: 1,350 sonra 1,130. Çarpık bir kademe
+   iki kusur taşır — geniş basamak ikinci yüzeyi gereksiz uzağa atar,
+   dar basamak üçüncüsünü ikincinin içine gömer; göz üç yüzey değil
+   "bir zemin + bir levha" görür. `--panel2` yukarı açılamıyordu (paletin
+   en soluk metin mürekkebi ona karşı 4,56:1'de duruyor, tavan orası),
+   o yüzden ORTA yüzey aşağı alındı: #2E3233 → #292C2D.
+
+   Sonuç: kademe 1,042/1,053/1,097 → 1,244/1,227/1,526. */
 .ab {
-  --zemin: #0A0C0D;
-  --panel: #0F1213;
-  --panel2: #14181A;
+  --zemin: #171A1B;
+  --panel: #292C2D;
+  --panel2: #373A3B;
   --murekkep: #EDEEEC;
   --i2: #B9BEBC;
-  --i3: #8D9497;      /* prototipte #7C8486; 4.5:1 için açıldı */
-  --hr: #1C2123;
-  --hr2: #272D2F;
-  --aksan: #C2703E;   /* bakır */
+  --i3: #9FA5A7;      /* prototipte #7C8486; 4.5:1 için açıldı */
+  /* Saç çizgileri yüzeylerin ÜSTÜNDE durur: panel açılınca eski `--hr`
+     (#1C2123) panelden KOYU kalıyordu — panel üstündeki her kenarlık
+     görünmez olurdu. Kademe yükselince ayraç da yükselir. */
+  --hr: #484A4C;
+  --hr2: #585B5D;
+  --aksan: #D29771;   /* bakır */
   /* Kaydırma çubuğu başparmağı — METİN değil KONTROL: eşiği 3:1 (IRI).
      Ölçüldü: dört zeminde 4,18 / 4,01 / 3,81 / 3,96. Değer kontrast
      kapısında (`arac/kontrast.mjs`) durur ve sessizce koyulaşamaz;
@@ -405,13 +469,13 @@
      sağ kenarda gradyanla solarak "devamı var" der ve kabuğun öbür
      gezinme rayları çubuğu zaten gizler. Düzeltme oraya taşındı
      (`.ab-b-serit .kartlar` · `GIZLI_IZINLI`). Renk KALIR. */
-  --cubuk: #6A7679;
-  --ok: #6FA07E;
+  --cubuk: #78878A;
+  --ok: #83AE90;
   --md: #D9A03C;
   /* Prototipte #D14A3A → 4,04:1. Ton korunarak açıldı → 4,74:1. */
-  --bd: #DB5A48;
-  --pl: #7A8B93;
-  --unk: #8D9497;
+  --bd: #E68B7E;
+  --pl: #98A6AB;
+  --unk: #9FA5A7;
   --ui: 'Inter', system-ui, sans-serif;
   --veri: 'JetBrains Mono', ui-monospace, monospace;
   --gorunum: 'Barlow Condensed', 'Inter', sans-serif;
@@ -426,11 +490,11 @@
      yuva SARILMAZ — aynı rengi iki tipe vermek "bunlar aynı" demektir
      ve renk burada KİMLİKTİR. Yuvası olmayan tip nötr mürekkebe düşer;
      kural `tip.ts` içinde yazılı, sonuç `/sistem` sayfasında görünür. */
-  --tip-a: #B7734A; --tip-b: #5A87A3; --tip-c: #93A6AD; --tip-d: #C9A24C;
+  --tip-a: #CA997A; --tip-b: #87A8BC; --tip-c: #94A7AD; --tip-d: #C9A24C;
   /* Açık satırın zemini — aksanın çok soluk tonu. */
-  --secim: #171211;
+  --secim: #443633;
   /* Aksan dolgusunun ÜZERİNE yazılan mürekkep. */
-  --aksan-uzeri: #0A0C0D;
+  --aksan-uzeri: #171A1B;
 }
 
 /* ═══ Yoğunluk — ölçü, renk değil ════════════════════════════════════
@@ -689,12 +753,37 @@
   .ab-ust .marka .ikinci { display: none; }
   .ab-mercek-dar { order: 2; border-left: 0; padding-left: 0; }
   .ab-ust .sag { order: 3; margin-left: auto; padding-left: 0; }
-  /* Gezinme kendi satırına iner ve KAYDIRILIR: rota gizlemek, o rotaya
-     dokunmatik erişimi tamamen kapatmak olurdu. */
-  .ab-ust > nav {
-    order: 4; flex-basis: 100%; overflow-x: auto; scrollbar-width: none;
+  /* ── SATIR KIRILMASI AÇIK BİR ÖĞEDİR, NAV'IN YAN ETKİSİ DEĞİL ────────
+     Bağımsız inceleme bulgusu (PR #73): başlığın DOĞRUDAN çocuğu olan
+     ortam rozeti (`.ab-ornek-veri`, demo ve geliştirme ortamlarında
+     çizilir) bu bantta ne sıra ne boy alıyordu. Varsayılan `order: 0`
+     ile SIRANIN BAŞINA geçiyor ve ~80px'iyle yardımcı kümeyi üçüncü
+     satıra itiyordu — yani "iki satır" ölçümü YALNIZ üretim
+     derlemesinde doğruydu. Kamuya açık demo (`NEXT_PUBLIC_DEMO=1`) ve
+     her geliştirme kurulumu üç satır görüyordu.
+
+     Rozet KALDIRILAMAZ: "bu kurulumdaki bütün kayıtlar kurgusaldır"
+     bir ürün beyanıdır ve işaretin kapalı unutulması tam olarak böyle
+     başlar (bkz. `Kabuk.tsx` gerekçesi). O yüzden satır bütçesine
+     alındı: kırılma artık sıfır yükseklikli bir öğeyle AÇIKÇA yapılır,
+     gezinme ile rozet ikinci satırı PAYLAŞIR. Gezinme kaydırılabilir
+     kalır — rota gizlemek, o rotaya dokunmatik erişimi tamamen
+     kapatmak olurdu. */
+  /* Kırıcı satırdan BİR PİKSEL GENİŞTİR ve bu keyfî değil: tam %100
+     olduğunda, taban genişliği 0 olan gezinme (`flex: 1 1 0`) kırıcıyla
+     AYNI satıra sığıyor, boş alan kalmadığı için 0px'te kalıyor ve rozet
+     üçüncü satıra düşüyordu (ölçüldü, 390×844: başlık 105px · 3 satır).
+     Bir piksel fazlası hiçbir şeyin yanına sığmamasını garanti eder;
+     `flex-shrink: 1` o pikseli geri alır, yani yatay taşma doğmaz
+     (ölçüldü: taşma yok, başlık 82px · 2 satır). */
+  .ab-ust::before {
+    content: ''; order: 4; flex: 0 1 calc(100% + 1px); height: 0;
     border-top: 1px solid var(--hr);
   }
+  .ab-ust > nav {
+    order: 5; flex: 1 1 0; min-width: 0; overflow-x: auto; scrollbar-width: none;
+  }
+  .ab-ust .ab-ornek-veri { order: 6; flex: none; align-self: center; margin: 0 10px 0 6px; }
   .ab-ust > nav::-webkit-scrollbar { display: none; }
   /* Dolgu BURADA VERİLMEZ: `max-width: 1100px` bloğu CSS'te daha sonra
      gelip 12px yazıyor ve 1024 ≤ 1100 olduğu için bu bantta O kazanır —
@@ -721,6 +810,8 @@
 @media (max-width: 620px) {
   .ab-mercek-dar select { max-width: 118px; }
 }
+
+
 
 .ab-ust .bildirim {
   display: inline-flex; align-items: center; align-self: stretch; padding: 0 14px;
@@ -1141,6 +1232,9 @@
 
 .ab-b-alan {
   position: relative; overflow: hidden; min-height: 0;
+  /* Panel yüzeyi BURADA: fon katmanı artık saydam, kendi zeminini
+     taşıyamaz (bkz. `.ab-b-fon` gerekçesi). */
+  background: var(--panel);
   border-bottom: 1px solid var(--hr);
   display: grid; grid-template-columns: 400px minmax(0, 1fr) 300px;
 }
@@ -1152,12 +1246,46 @@
    değişmez (`object-fit: cover`, odak `object-position` ile görsel
    başına). Dekoratif: işaretçi almaz, okuyucuya sunulmaz. Üst görsel
    yalnız opaklıkla gelir — konum/boyut değişmez, yerleşim kaymaz. */
-.ab-b-fon { position: absolute; inset: 0; pointer-events: none; overflow: hidden; background: var(--zemin); }
+/* ── FOTOĞRAF KİMLİKTİR, ZEMİN DEĞİL (19 Eyl 2026) ────────────────────
+   `DESIGN.md` §174 ürünün dilini "saha odaklı: FOTOĞRAF, coğrafya" diye
+   beyan eder — görsel bir kaza değil, kayıtlı kimliktir ve SİLİNMEZ.
+
+   Zarar görselin VARLIĞINDA değil, ANALİTİK VERİNİN ARKASINDA boydan boya
+   durmasındaydı. Kullanıcı ekranı üç kez "çok karanlık / karmaşık /
+   kullanışsız" diye bildirdi; palet açıldıktan sonra ekrandaki en koyu ve
+   en gürültülü yüzey açıkça bu fotoğraftı — takımyıldızın künyeleri
+   (ad · uyum yüzdesi · uygunsuz sayısı) bir manzaranın üstünde okunuyordu.
+
+   Bugün alan bir PANEL YÜZEYİDİR ve fotoğraf onun üstünde DOKUDUR:
+   kimlik durur, veri kendi zeminini bulur. Tam opaklıkta bir manzara ile
+   %14'lük bir doku arasındaki fark, "fotoğraflı ürün" kimliğini
+   bozmadan okunabilirliği geri verir.
+
+   Opaklık jetondan gelir (`--fon-doku`): ürün sahibi kimliği tek sayıyla
+   ayarlayabilsin, her kural ayrı ayrı düzenlenmesin. */
+/* ── SAYDAMLIK KATMANDA DURUR, HER GÖRSELDE DEĞİL ──────────────────────
+   Bağımsız inceleme bulgusu (PR #73): doku saydamlığı iki `img`in
+   HER BİRİNE yazılmıştı. Taban görsel her zaman %14'te duruyor, üst
+   görsel de geçiş sonunda %14'te duruyordu — yani üstteki tabanı
+   ÖRTMÜYOR, onunla KARIŞIYORDU. İki AYRI fotoğraf üst üste:
+   1 − (1 − 0,14)² ≈ %26 birleşik opaklık. Geçişten SONRA zemin hem
+   daha koyu hem daha gürültülü oluyordu — kullanıcının "fazla karanlık"
+   şikâyetinin tam olarak düzeltmeye çalıştığım hâli.
+
+   Sebep yapısaldı: çapraz geçişte üst katman tabanı ÖRTMEK zorundadır
+   (opaklık 1), doku kararı ise KATMANIN tamamına aittir. İkisi tek
+   özelliğe bindirilince biri öbürünü yiyor. Bugün ayrı: geçiş `img`de,
+   doku `.ab-b-fon`da, panel yüzeyi de bir üst kapta (`.ab-b-alan`) —
+   yoksa katmanın saydamlığı kendi zeminini de soldururdu. */
+.ab-b-fon {
+  position: absolute; inset: 0; pointer-events: none; overflow: hidden;
+  opacity: var(--fon-doku);
+}
 .ab-b-fon > img {
   position: absolute; inset: 0; width: 100%; height: 100%; display: block;
   object-fit: cover; object-position: center;
-  /* Sinematik ama veri önde: doygunluk kısılır, gri değil; kontrast hafif. */
-  filter: saturate(.72) contrast(1.08) brightness(.92);
+  /* Doku: doygunluk daha da kısılır, veri önde kalır. */
+  filter: saturate(.55) contrast(1.02);
 }
 .ab-b-fon > img.ust { opacity: 0; transition: opacity 400ms ease; }
 .ab-b-fon > img.ust.hazir { opacity: 1; }
@@ -2234,7 +2362,12 @@
    kesme değil — inceleme bulgusu, PR #64); tam etiket bağ başlığında. */
 .ab-b-serit .kart .kimlik { display: block; flex: 1 1 auto; min-width: 0; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 .ab-b-serit .kart .kimlik .guc::before { content: ' · '; color: var(--i3); }
-.ab-b-serit .kart .tip { font-size: var(--t-veri); letter-spacing: var(--tr-gezinme); }
+/* Harf aralığı KALDIRILDI. Üretim tipi içerik paketinden gelen bir
+   DEĞERDİR; aynı gerekçeyle büyük harfi 18 Eyl'de kaldırılmıştı (kabuk
+   barındaki sektör adı, cırcır 62 → 60). İz de kaş tipografisidir: bir
+   değer kaşın sesiyle konuşunca kaşı işlevsiz kılar. Ölçüldü (390×844):
+   ekrandaki 22 harf aralıklı öğenin 8'i bu yuvaydı. */
+.ab-b-serit .kart .tip { font-size: var(--t-veri); }
 .ab-b-serit .kart .ad {
   /* cümle düzeni — tesis adı veridir, kaş değil (SIS-KBK-031) */
   font-family: var(--gorunum); font-size: var(--t-bolum); line-height: var(--lh-manset);
@@ -2256,6 +2389,22 @@
    bantta durur. */
 @media (min-width: 1101px) {
   .ab-b-genel .ab-b-serit { display: none; }
+}
+
+/* ── EŞİĞİN ÖBÜR YANI · PORTFÖY ÖZETİ İKİ KEZ YAZILIYORDU ──────────────
+   Ray gizlenince portföyün sayısı ve güç toplamı takımyıldızın başlığına
+   TAŞINDI — doğru karardı, ama yalnız YARISI yapıldı: ray GÖRÜNEN bantta
+   iki başlık da çiziliyor ve ikisi de aynı dizeyi yazıyor. Ölçüldü
+   (390×844): portföy künyesi (ad · sayı · güç toplamı)
+   ekranda İKİ KEZ, 208px arayla.
+
+   Tekrar eden bir değer farklı bir karar amacı taşımıyorsa bilişsel yük
+   kusurudur — kuralın kendisi bu depoda yazılı ve bu satır onu kendi
+   düzeltmesiyle çiğniyordu. Eşik bitişiktir ve BİRLİKTE tutulur
+   (`tests/bekci/saha-serit.test.ts` BEŞİNCİ DİŞ): 1101 rayı gizler,
+   1100 devralan başlığı gizler; arada ne boşluk ne örtüşme vardır. */
+@media (max-width: 1100px) {
+  .ab-b-genel .ab-b-takim .ab-takim-bas > .etiket.ust { display: none; }
 }
 
 
@@ -4557,13 +4706,34 @@ details:not([open]) > *:not(summary) { display: none !important; }
   .ab-b-alan > aside, .ab-b-alan > .ab-b-takim { border-right: 0; }
   .ab-b-dikkat, .ab-b-katman { border-bottom: 1px solid var(--hr); }
   .ab-b-katman { border-left: 0; overflow-y: visible; }
-  /* Takımyıldızı tuvali orantısını yükseklikten alır; akışta 0'a çöker. */
-  .ab-b-takim { padding: 24px 32px; min-height: 380px; }
-  /* Şerit kalktı (yukarı bakın); dar bantta tuval yalnız asgari yükseklik
-     ister. Özet başlık satırındadır ve dar bantta ALT SATIRA sarar:
-     `justify-content: space-between` iki öğeyi yan yana zorlar, sığmadığı
-     yerde ad üç noktaya iner ve sayı okunamaz hâle gelirdi. */
-  .ab-b-takim .ab-tuval-sar > .ab-tuval { min-height: 300px; }
+  /* ── TUVAL KÜNYESİYLE BİRLİKTE YAŞAR — ADSIZ NOKTA TUVAL DEĞİLDİR ──
+     Bu blok `max-width: 1100px` bandıdır ve künyeleri zaten burada
+     kaldırmıştık (17 Eyl: "dar bantta serbest yüzen künye YANLIŞ
+     BİÇİMDİR"). Yani 1100px'in altında tuval, ADSIZ noktalar ve iki
+     eksen yazısından ibaretti. Tuvalin sorduğu soru "hangi tesis güçlü
+     ve uyumlu"dur; adı okunmayan bir nokta o soruyu yanıtlayamaz —
+     konumu okumak için çentikle nokta arasında göz gidip gelmelidir ve
+     390px'te ikisi de 10px'tir. Üstelik nokta bir BAĞDIR: telefonda
+     24×24'lük bir hedefe isabet ettirmek, hemen altındaki raydan kart
+     seçmekten zordur.
+
+     İki kural artık TEK eşikte buluşuyor: 1101 künyeyi de tuvali de
+     çizer ve rayı gizler; 1100 üçünü birden tersine çevirir. Ayrı iki
+     eşik, arada "adsız tuval" diye bir üçüncü hâl üretiyordu.
+
+     ÖLÇÜLDÜ (19 Eyl 2026, 390×844): sayfa 2 166px = 2,57× ekran;
+     tuval tek başına 433px. Kaldırıldıktan sonra 1 866px = 2,21×.
+
+     AD KAYBI YOK ve bu ölçülür: tuvale çizilen küme
+     (`endeks !== null && guc !== null`) rayın kümesinin (`endeks !== null`)
+     ALT KÜMESİDİR ve ray tam bu bantta görünür. Ölçüldü 1100px'te:
+     rayda 8 ad, tuvalde okunan ad 0. Gücü ölçülmemişlerin şeridi
+     (`.ab-gucsuz`) KALIR — onların adı başka hiçbir yüzeyde yok.
+     Kapı: `tests/bekci/saha-serit.test.ts` · `arac/tuval-kanit.mjs`. */
+  .ab-b-takim .ab-tuval { display: none; }
+  /* Asgari boy (380px kap · 245px tuval) çizilen tuval içindi; çizilmeyen
+     bir yüzey yer tutamaz. */
+  .ab-b-takim { padding: 24px 32px; }
   /* Özet zaten kendi satırında ve sarıyor; dar bantta ek kural gerekmez. */
   /* Dar bantta künye TARAFINI ERKEN DEĞİŞTİRİR. Sarmak denendi ve
      ölçüldü: üç satıra çıkan künyeler birbirine giriyordu. Bunun yerine
@@ -4775,6 +4945,77 @@ details:not([open]) > *:not(summary) { display: none !important; }
   /* Kütük hücre dolgusu telefonda daralır: 335px'lik iç alanda dört
      sütunun yatay dolgusu konu sütununu dört satıra kırıyordu. */
   .ab-vt th, .ab-vt td { padding-left: 8px; padding-right: 8px; }
+}
+
+/* ═══ TELEFON: BAŞLIK İKİ SIRA, ÜÇ DEĞİL (SIS-KBK-040)
+   YERİ ÖNEMLİ: bu blok `.ab-ust .marka`yı YAZAN `max-width: 700px` bloğunun ARDINDAN
+   gelir — dosyada BİRDEN ÇOK 700px bloğu var ve kazanan EN SONUNCUSU.
+   Önce yazıldığında dolgu ve aralık kuralları ÖLÜ kalıyordu — 700px
+   bloğu dosyada sonra gelip aynı seçiciye 14px/12px yazıyor ve eşit
+   özgüllükte sonraki kazanıyor. Bu, deponun kayıtlı tuzağıdır
+   (`URN-KBK-020`, aynı sınıf `max-width: 1100px` için yazılmıştı) ve
+   düzeltme turunda bir kez daha ölçüldü: küme 192px'te takılı kaldı. ═════════════════
+   Ölçüldü (19 Eyl 2026 · 390×844), başlık üç sıraya dağılıyordu:
+
+     marka        0,0    113×40
+     mercek-dar 258,4    132×32
+     .sag       136,40   254×40   ← solunda 136px BOŞLUK
+     nav          0,80   390×41
+
+   Sebep sarmaldı: satır 1'e üç öğe sığmıyor (113+132+254 = 499 > 390),
+   `.sag` alt satıra düşüyor ve `margin-left: auto` onu sağa itip solunda
+   136px boşluk bırakıyordu. Ekranda "havada asılı kutular" olarak
+   okunuyor — kullanıcı "mobil görünüm çok kötü" derken gördüğü budur.
+
+   Çözüm sarmalı yönetmek DEĞİL, satır 1'i SIĞDIRMAKTIR: yardımcı küme
+   daralır (bildirim sözcüğü düşer, sayaç kalır), mercek kısalır. Küme
+   113+96+~132 = 341 ≤ 390 olur ve başlık iki sıraya iner.
+
+   HİÇBİR ROTA GİZLENMEZ: gezinme kendi satırında ve kaydırılır; bu
+   bandın kayıtlı kuralıdır ("rota gizlemek, o rotaya dokunmatik erişimi
+   tamamen kapatmak olurdu"). Dokunma hedefleri de küçülmez — ürünün
+   beyan ettiği eşik WCAG 2.2 AA 24×24 ve satır 1 öğeleri 40px'te kalır. */
+@media (max-width: 430px) {
+  /* Sözcük düşer, SAYAÇ KALIR: dikkati taşıyan sayıdır, sözcük değil.
+     AMA yalnız sayaç ÇİZİLİYORSA — sıfırda `Sayac` hiç çizilmez ve
+     koşulsuz gizleme bağı adsız bir kutuya çeviriyordu (inceleme
+     bulgusu P1). Sınıfı bileşen verir, çünkü kararı veren `sayacMetni`
+     ve o karar TEK yerde durmalıdır. */
+  .ab-ust .bildirim .ad.dar-dusebilir { display: none; }
+  .ab-ust .bildirim { padding: 0 10px; }
+  .ab-ust .ab-ara-dugme { padding: 0 10px; }
+  /* Marka telefonda bir kademe iner (16px → 13px): kurulum adı kimliği
+     taşımaya devam eder, ama satırın üçte birini yemez. Kazanılan ~21px
+     doğrudan mercek seçiciye gider — ilk denemede seçici 76px'e kısılmış
+     ve "Çekirdek" ORTADAN KESİLMİŞTİ. Kesilmiş bir sözcük, sıkışık bir
+     satırdan kötüdür: kullanıcı neyin seçili olduğunu okuyamaz. */
+  .ab-ust .marka { padding: 0 10px; font-size: var(--t-govde); }
+  .ab-mercek-dar select { max-width: 104px; }
+  .ab-mercek-dar { padding-right: 8px; }
+  /* Ölçüm: yardımcı kümenin 192px'inin 53'ü boşluktu (3 çocuk × 12px
+     aralık + 28px dolgu). Çocuklar 139px; aralık ve dolgu kısılınca küme
+     163px'e iner ve satır 366px'te kapanır. */
+  .ab-ust .sag { gap: 4px; padding: 0 8px; }
+
+
+  /* ── YARDIMCI EYLEMLER BÖLMEYE KAPANMAZ ────────────────────────────
+     Ölçüldü (390×844): telefonda başlığın sağında ÜÇ ayrı bölme
+     okunuyordu — `.sag`ın sol ayracı, hesap düğmesinin sol ayracı ve
+     arama düğmesinin TAM ÇERÇEVESİ. Üç eylem yan yana üç kutuya
+     kapanınca satır "havada duran kutular" gibi görünüyor.
+
+     Geniş bantta ayraçlar İŞE YARAR: 56px'lik barda yardımcı kümeyi
+     birincil gezinmeden ayırırlar. Telefonda ayıracak bir şey yok —
+     gezinme zaten KENDİ SATIRINDA. Ayraç, anlamlı bir bilgi grubunu
+     ayırdığı yerde durur; ayırdığı şey yoksa gürültüdür.
+
+     `align-items: baseline` ayrıca bir KUSURDU: tek metinli bir düğmede
+     sözcüğü 40px'lik kutunun TEPESİNE yapıştırıyordu (ölçüldü, ekranda
+     görüldü). Telefonda ortalanır. */
+  .ab-ust .sag { border-left: 0; }
+  .ab-hesap-dugme { border-left: 0; }
+  .ab-ust .ab-ara-dugme { border: 0; align-items: center; }
+
 }
 
 /* ══ Yönetim konsolu (/yonetim-tezgahi · KonsolIstemci) ═══════════════════

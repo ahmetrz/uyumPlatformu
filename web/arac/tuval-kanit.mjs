@@ -235,6 +235,17 @@ for (const b of AD_BANTLARI) {
       seritTumAd: [...document.querySelectorAll('.ab-b-genel .ab-b-serit .kart .ad')]
         .map((e) => e.textContent.trim()).filter(Boolean),
       seritGorunur: Boolean(serit) && getComputedStyle(serit).display !== 'none',
+      /* TUVALİN KENDİSİ ÇİZİLİYOR MU — künyeyle aynı eşikte susar. */
+      tuvalCizili: (() => {
+        const t = document.querySelector('.ab-b-takim .ab-tuval');
+        return Boolean(t) && gorunur(t);
+      })(),
+      /* Portföy özetini yazan İKİ yüzey: ray başlığı ve onu geniş bantta
+         devralan takımyıldız başlığı. İkisi birden yazarsa tekrar var. */
+      ozetYuzeyi: [
+        ...[document.querySelector('.ab-b-takim .ab-takim-bas > .etiket.ust')],
+        ...[document.querySelector('.ab-b-genel .ab-b-serit header .etiket')],
+      ].filter((e) => e && gorunur(e)).map((e) => e.textContent.trim()),
     };
   });
 
@@ -248,6 +259,21 @@ for (const b of AD_BANTLARI) {
      Ray kararının DAYANAĞI bu; dayanak ölçülmezse karar beyandır. */
   olc(b.ad, `künye ${b.kunyeli ? 'çiziliyor' : 'çizilmiyor'}`,
     b.kunyeli ? o.kunye.length > 0 : o.kunye.length === 0, `${o.kunye.length} künye`);
+
+  /* ── TUVAL KÜNYESİYLE BİRLİKTE YAŞAR ────────────────────────────────
+     Künye ≤1100'de susuyordu ama tuval çiziliyordu; geriye ADSIZ nokta
+     kalıyordu. İki eşik tek karar oldu, kural burada GERÇEK TARAYICIDA
+     ölçülür — saf test CSS metnini okur, bu tarafta piksel konuşur. */
+  olc(b.ad, `tuval ${b.kunyeli ? 'çizili' : 'çizilmiyor'}`,
+    o.tuvalCizili === b.kunyeli, o.tuvalCizili ? 'çizili' : 'çizilmiyor');
+
+  /* ── PORTFÖY ÖZETİ TEK YÜZEYDE ──────────────────────────────────────
+     Ray gizlenince özet takımyıldız başlığına devredilir; ray geri
+     gelince devralan çekilmek zorundadır. İki yüzey birden yazarsa aynı
+     dize ekranda İKİ KEZ durur (ölçüldü 390×844: 208px arayla). Sıfır
+     yüzey de kusurdur: portföyün sayısı hiçbir yerde yazmaz. */
+  olc(b.ad, 'portföy özetini TEK yüzey yazıyor', o.ozetYuzeyi.length === 1,
+    o.ozetYuzeyi.length ? o.ozetYuzeyi.map((x) => `«${x}»`).join(' + ') : 'hiçbir yüzey yazmıyor');
 
   /* Ray kendi bandında mı? */
   olc(b.ad, `ray ${b.kunyeli ? 'gizli' : 'görünür'}`,
@@ -314,7 +340,12 @@ await tarayici.close();
    var") ilk yazımda YOKTU ve olmayınca üstündeki iddia BOŞ KÜMEYLE
    kendiliğinden geçiyordu. Ayrı bir kapı aynı sunucuyu üçüncü kez ayağa
    kaldırırdı; ölçüm ekranı ve oturumu bu kapının zaten kurduğu ortam. */
-const ASGARI_IDDIA = 23;
+/* 23 → 27: her ad bandında İKİ iddia daha — "tuval çizili/çizilmiyor" ve
+   "portföy özetini TEK yüzey yazıyor". İkisi de gerçek tarayıcı ister:
+   biri `display: none`un atadan mı geldiğini, öbürü iki AYRI yüzeyin
+   aynı anda çizilip çizilmediğini ölçer; ikisini de CSS metnini okuyan
+   saf test göremez. */
+const ASGARI_IDDIA = 27;
 if (iddialar.length < ASGARI_IDDIA) {
   console.error(`\nÖLÇÜM YETERSİZ: ${iddialar.length} iddia, taban ${ASGARI_IDDIA}.`);
   console.error('  Ölçülmemiş bir kapı "geçti" diye yazılmaz.');

@@ -152,6 +152,49 @@ describe('bekçi · saha şeridi', () => {
       .toBe(kunye + 1);
   });
 
+  it('ALTINCI DİŞ · tuval ve devralan özet künyeyle AYNI eşikte susar [SAH-SER-003]', () => {
+    /* ── NİÇİN TEK EŞİK ─────────────────────────────────────────────────
+       Künye ≤1100'de susuyordu ama TUVAL çiziliyordu: o bantta ekranda
+       ADSIZ noktalar ve iki eksen yazısı kalıyordu. "Hangi tesis güçlü ve
+       uyumlu" sorusunu adsız bir nokta yanıtlayamaz; üstelik nokta bir
+       BAĞDIR ve telefonda 24×24'lük hedefe isabet, hemen altındaki raydan
+       kart seçmekten zordur. Ölçüldü (390×844): tuval 433px, sayfanın
+       2,57× ekran olmasının tek kalemdeki en büyük payı.
+
+       ── VE NİÇİN DEVRALAN ÖZET DE ────────────────────────────────────
+       Ray gizlenince portföyün sayısı ve güç toplamı takımyıldızın
+       başlığına TAŞINDI (üçüncü diş). Taşımanın yalnız yarısı yapılmıştı:
+       ray GÖRÜNEN bantta iki başlık da çiziliyor ve ikisi de aynı dizeyi
+       yazıyordu — ölçüldü (390×844): portföy künyesi (ad · sayı · güç
+       toplamı) ekranda İKİ KEZ, 208px arayla. Devralan bir yüzey, devrettiği yüzey geri
+       geldiğinde çekilmek zorundadır; yoksa devir tekrara dönüşür.
+
+       Üç kural TEK karardır ve eşikleri BİRLİKTE okunur: künye · tuval ·
+       devralan özet aynı `max-width` bandında susar, ray onun bir üstünde
+       (beşinci diş) gizlenir. Sabit sayı yazmıyoruz — eşik kuralın kendi
+       bağlamından okunur, taşınırsa diş taşımayı görür. */
+    const bandinEsigi = (kural: string, ad: string) => {
+      const yer = CSS.indexOf(kural);
+      expect(yer, `${ad} kuralı bulunamadı: \`${kural}\``).toBeGreaterThan(-1);
+      const m = [...CSS.slice(0, yer).matchAll(/@media \(max-width: (\d+)px\)/g)].at(-1);
+      expect(m, `${ad} kuralı bir max-width bandının içinde değil`).not.toBeUndefined();
+      return Number(m![1]);
+    };
+
+    const kunye = bandinEsigi('.ab-b-takim .isaret .kunye { display: none; }', 'künye');
+    const tuval = bandinEsigi('.ab-b-takim .ab-tuval { display: none; }', 'tuval');
+    const ozet = bandinEsigi(
+      '.ab-b-genel .ab-b-takim .ab-takim-bas > .etiket.ust { display: none; }',
+      'devralan portföy özeti');
+
+    expect(tuval, `Tuval ≤${tuval}px'te susuyor, künye ≤${kunye}px'te. Ayrışan iki `
+      + 'eşik arada ÜÇÜNCÜ bir hâl üretir: adsız nokta tuvali — konum gösteren ama '
+      + 'hangi tesis olduğunu söylemeyen bir yüzey.').toBe(kunye);
+    expect(ozet, `Devralan özet ≤${ozet}px'te susuyor, ray ≥${kunye + 1}px'te gizleniyor. `
+      + `≤${kunye}px'te ray GÖRÜNÜR ve kendi başlığında aynı iki sayıyı yazar; özet de `
+      + 'çizilirse portföyün sayısı ve güç toplamı ekranda İKİ KEZ durur.').toBe(kunye);
+  });
+
   it('DÖRDÜNCÜ DİŞ · şeridin sonunda tümüne giden bağ var [SAH-SER-002]', () => {
     const g = seritGovdesi();
     expect(g, 'şeritte portföye giden bağ yok').toMatch(/href="\/tesisler"/);

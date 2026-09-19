@@ -203,7 +203,16 @@
      bir sebep yok — sağlam olan yeniden kurulmaz. */
   --tr-govde: 0;         /* normal metin — izsiz */
   --tr-gezinme: .06em;   /* gezinme · düğme büyük harfi — hafif */
-  --tr-etiket: .14em;    /* kaş etiketi — geniş */
+  /* Kaş izi .14em'den .09em'e indi (19 Eyl 2026). BÜYÜK HARF kararı
+     DEĞİŞMEDİ — o yapısal kaşın kimliğidir ve cırcırı vardır
+     (`kabuk.buyukHarfKurali`). Değişen, onu "terminal" hissine çeviren
+     İZ. Kullanıcı ekranı üç kez "çok karmaşık" diye bildirdi; ekranda
+     büyük harf kaş sayısı azalmadan da yük düşer, çünkü geniş iz her
+     kaşı olduğundan uzun ve daha gürültülü gösterir. Etkileşim
+     sadeleştirme skill'inin "tiny uppercase labels / letter spacing"
+     ekseni tam olarak budur: "'Industrial' must not become
+     'terminal-like'". */
+  --tr-etiket: .09em;    /* kaş etiketi — geniş */
   --tr-kolonbas: .18em;  /* kolon kaşı — en geniş, yapısal */
   --tr-manset: -.01em;   /* manşet · başlık — sıkıştırma */
 
@@ -242,6 +251,8 @@
 
   --ez: cubic-bezier(.2, 0, 0, 1);
   --mo-reveal: 320ms;
+  /* Saha fonundaki fotoğrafın DOKU opaklığı — kimlik burada ayarlanır. */
+  --fon-doku: .14;
 }
 
 /* ═══ Ortak taban ═════════════════════════════════════════════════════ */
@@ -394,7 +405,7 @@
    0,67 doygunlukta, yani kırmızıdır:
 
      --bd    #DB5A48 → #E07262      --pl  #7A8B93 → #85959C
-     --cubuk #6A777A → #6A777A
+     --cubuk #78878A → #78878A
 
    `--murekkep`, `--i2`, `--i3`, `--unk`, `--ok`, `--md` DEĞİŞMEDİ.
 
@@ -405,20 +416,28 @@
    (L 0,0055) o banda çıkar. KOYU TEMA KARARI DEĞİŞMEDİ — açık temaya
    geçiş yok; koyu tema kendi içinde okunur hâle geldi.
 
-   Sonuç: kademe 1,042/1,053/1,097 → 1,144/1,163/1,331. */
+   ── KADEME EŞİT ARALIKLI ────────────────────────────────────────────
+   İlk yazımda basamaklar ÇARPIKTI: 1,350 sonra 1,130. Çarpık bir kademe
+   iki kusur taşır — geniş basamak ikinci yüzeyi gereksiz uzağa atar,
+   dar basamak üçüncüsünü ikincinin içine gömer; göz üç yüzey değil
+   "bir zemin + bir levha" görür. `--panel2` yukarı açılamıyordu (paletin
+   en soluk metin mürekkebi ona karşı 4,56:1'de duruyor, tavan orası),
+   o yüzden ORTA yüzey aşağı alındı: #2E3233 → #292C2D.
+
+   Sonuç: kademe 1,042/1,053/1,097 → 1,244/1,227/1,526. */
 .ab {
-  --zemin: #0F1112;
-  --panel: #1D1F20;
-  --panel2: #292B2C;
+  --zemin: #171A1B;
+  --panel: #292C2D;
+  --panel2: #373A3B;
   --murekkep: #EDEEEC;
   --i2: #B9BEBC;
-  --i3: #8D9497;      /* prototipte #7C8486; 4.5:1 için açıldı */
+  --i3: #9FA5A7;      /* prototipte #7C8486; 4.5:1 için açıldı */
   /* Saç çizgileri yüzeylerin ÜSTÜNDE durur: panel açılınca eski `--hr`
      (#1C2123) panelden KOYU kalıyordu — panel üstündeki her kenarlık
      görünmez olurdu. Kademe yükselince ayraç da yükselir. */
-  --hr: #333536;
-  --hr2: #3C3E3F;
-  --aksan: #C98154;   /* bakır */
+  --hr: #484A4C;
+  --hr2: #585B5D;
+  --aksan: #D29771;   /* bakır */
   /* Kaydırma çubuğu başparmağı — METİN değil KONTROL: eşiği 3:1 (IRI).
      Ölçüldü: dört zeminde 4,18 / 4,01 / 3,81 / 3,96. Değer kontrast
      kapısında (`arac/kontrast.mjs`) durur ve sessizce koyulaşamaz;
@@ -450,13 +469,13 @@
      sağ kenarda gradyanla solarak "devamı var" der ve kabuğun öbür
      gezinme rayları çubuğu zaten gizler. Düzeltme oraya taşındı
      (`.ab-b-serit .kartlar` · `GIZLI_IZINLI`). Renk KALIR. */
-  --cubuk: #6A777A;
-  --ok: #6FA07E;
+  --cubuk: #78878A;
+  --ok: #83AE90;
   --md: #D9A03C;
   /* Prototipte #D14A3A → 4,04:1. Ton korunarak açıldı → 4,74:1. */
-  --bd: #E07262;
-  --pl: #85959C;
-  --unk: #8D9497;
+  --bd: #E68B7E;
+  --pl: #98A6AB;
+  --unk: #9FA5A7;
   --ui: 'Inter', system-ui, sans-serif;
   --veri: 'JetBrains Mono', ui-monospace, monospace;
   --gorunum: 'Barlow Condensed', 'Inter', sans-serif;
@@ -471,11 +490,11 @@
      yuva SARILMAZ — aynı rengi iki tipe vermek "bunlar aynı" demektir
      ve renk burada KİMLİKTİR. Yuvası olmayan tip nötr mürekkebe düşer;
      kural `tip.ts` içinde yazılı, sonuç `/sistem` sayfasında görünür. */
-  --tip-a: #C08561; --tip-b: #6F97AF; --tip-c: #93A6AD; --tip-d: #C9A24C;
+  --tip-a: #CA997A; --tip-b: #87A8BC; --tip-c: #94A7AD; --tip-d: #C9A24C;
   /* Açık satırın zemini — aksanın çok soluk tonu. */
-  --secim: #171211;
+  --secim: #443633;
   /* Aksan dolgusunun ÜZERİNE yazılan mürekkep. */
-  --aksan-uzeri: #0F1112;
+  --aksan-uzeri: #171A1B;
 }
 
 /* ═══ Yoğunluk — ölçü, renk değil ════════════════════════════════════
@@ -1199,15 +1218,36 @@
    değişmez (`object-fit: cover`, odak `object-position` ile görsel
    başına). Dekoratif: işaretçi almaz, okuyucuya sunulmaz. Üst görsel
    yalnız opaklıkla gelir — konum/boyut değişmez, yerleşim kaymaz. */
-.ab-b-fon { position: absolute; inset: 0; pointer-events: none; overflow: hidden; background: var(--zemin); }
+/* ── FOTOĞRAF KİMLİKTİR, ZEMİN DEĞİL (19 Eyl 2026) ────────────────────
+   `DESIGN.md` §174 ürünün dilini "saha odaklı: FOTOĞRAF, coğrafya" diye
+   beyan eder — görsel bir kaza değil, kayıtlı kimliktir ve SİLİNMEZ.
+
+   Zarar görselin VARLIĞINDA değil, ANALİTİK VERİNİN ARKASINDA boydan boya
+   durmasındaydı. Kullanıcı ekranı üç kez "çok karanlık / karmaşık /
+   kullanışsız" diye bildirdi; palet açıldıktan sonra ekrandaki en koyu ve
+   en gürültülü yüzey açıkça bu fotoğraftı — takımyıldızın künyeleri
+   (ad · uyum yüzdesi · uygunsuz sayısı) bir manzaranın üstünde okunuyordu.
+
+   Bugün alan bir PANEL YÜZEYİDİR ve fotoğraf onun üstünde DOKUDUR:
+   kimlik durur, veri kendi zeminini bulur. Tam opaklıkta bir manzara ile
+   %14'lük bir doku arasındaki fark, "fotoğraflı ürün" kimliğini
+   bozmadan okunabilirliği geri verir.
+
+   Opaklık jetondan gelir (`--fon-doku`): ürün sahibi kimliği tek sayıyla
+   ayarlayabilsin, her kural ayrı ayrı düzenlenmesin. */
+.ab-b-fon {
+  position: absolute; inset: 0; pointer-events: none; overflow: hidden;
+  background: var(--panel);
+}
 .ab-b-fon > img {
   position: absolute; inset: 0; width: 100%; height: 100%; display: block;
   object-fit: cover; object-position: center;
-  /* Sinematik ama veri önde: doygunluk kısılır, gri değil; kontrast hafif. */
-  filter: saturate(.72) contrast(1.08) brightness(.92);
+  /* Doku: doygunluk daha da kısılır, veri önde kalır. */
+  filter: saturate(.55) contrast(1.02);
+  opacity: var(--fon-doku);
 }
 .ab-b-fon > img.ust { opacity: 0; transition: opacity 400ms ease; }
-.ab-b-fon > img.ust.hazir { opacity: 1; }
+.ab-b-fon > img.ust.hazir { opacity: var(--fon-doku); }
 @media (prefers-reduced-motion: reduce) { .ab-b-fon > img.ust { transition: none; } }
 /* Karanlık/kontrast katmanı — görselden AYRI, veriden ÖNCE. Üç parça:
    1) yatay: sol panel zemine oturur, merkez açılır, sağ panel yarı örtülür;

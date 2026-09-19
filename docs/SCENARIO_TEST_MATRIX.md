@@ -4,8 +4,8 @@
 
 | Ölçü | Değer |
 | --- | --- |
-| Senaryo | 425 |
-| Testi olan senaryo | 425 |
+| Senaryo | 426 |
+| Testi olan senaryo | 426 |
 | **GAP** | **0** |
 | Hayalet işaret (kütükte olmayan kimlik) | 0 |
 | Kütüksüz test dosyası | 0 |
@@ -26,7 +26,7 @@
 | RESPONSIVE | 9 | 9 | 0 |
 | SCOPE | 34 | 34 | 0 |
 | SERVER | 159 | 159 | 0 |
-| UI | 156 | 156 | 0 |
+| UI | 157 | 157 | 0 |
 | VISUAL | 4 | 4 | 0 |
 | WORKFLOW | 39 | 39 | 0 |
 
@@ -420,8 +420,8 @@
 | `URN-TIP-001` | Sistem | UI | `bekci/tipografi-olcegi.test.ts` | SEKİZİNCİ DİŞ · ${e.ad}: komşu kademeler ayırt edilebilir | evet | geçti |
 | `SAH-SER-002` | Saha | UI | `bekci/saha-serit.test.ts` | BİRİNCİ DİŞ · süzgeç ÖLÇÜLMÜŞLÜĞE bakar, uygunsuzluğa değil | evet | geçti |
 | `SAH-SER-002` | Saha | UI | `bekci/saha-serit.test.ts` | İKİNCİ DİŞ · süzülen küme başka bir yüzeyde ADIYLA durur | evet | geçti |
-| `SAH-SER-002` | Saha | UI | `bekci/saha-serit.test.ts` | ÜÇÜNCÜ DİŞ · başlık portföyün TAMAMINI söyler | evet | geçti |
 | `SAH-SER-002` | Saha | UI | `bekci/saha-serit.test.ts` | DÖRDÜNCÜ DİŞ · şeridin sonunda tümüne giden bağ var | evet | geçti |
+| `SAH-SER-003` | Saha | UI | `bekci/saha-serit.test.ts` | BEŞİNCİ DİŞ · şeridi gizleyen eşik künyeyi susturan eşiğin BİTİŞİĞİ | evet | geçti |
 | `URN-KBK-022` | Sistem | UI | `bekci/kabuk-kromu.test.ts` | BİRİNCİ DİŞ · marka kademesi gezinmeden büyük | evet | geçti |
 | `URN-KBK-022` | Sistem | UI | `bekci/kabuk-kromu.test.ts` | İKİNCİ DİŞ · aktif sekme üç ipucu taşır | evet | geçti |
 | `URN-KBK-022` | Sistem | UI | `bekci/kabuk-kromu.test.ts` | ÜÇÜNCÜ DİŞ · kiracı adı kabuk bileşenine gömülmez | evet | geçti |

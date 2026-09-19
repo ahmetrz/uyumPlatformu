@@ -2184,11 +2184,34 @@
    değerlendirilmemiş özeti, katman panelinin tip kırılımı); ray beşinci
    kez aynı kümeyi, üstelik ekranın beşte birini alarak çiziyordu.
 
-   KALDIRILMADI ve sebebi ölçüldü: `adapt` turundan sonra 1024 ve 375'te
-   tuval künyeleri çizilmiyor — tesis ADLARININ okunduğu tek yüzey bu
-   ray. Tekrar, bilgi kaybına tercih edilir; çözüm AĞIRLIĞI düşürmektir.
-   Yükseklik 132–168'den 104–124'e iner: fotoğraf bandı kimlik şeridine
-   döner, metin bloğu aynı kalır. */
+   O turda KALDIRILMADI ve sebebi ölçüldü: `adapt` turundan sonra 1024 ve
+   375'te tuval künyeleri çizilmiyor — tesis ADLARININ okunduğu tek yüzey
+   bu ray. Tekrar, bilgi kaybına tercih edilir; çözüm AĞIRLIĞI
+   düşürmektir. Yükseklik 132–168'den 104–124'e indi: fotoğraf bandı
+   kimlik şeridine döndü, metin bloğu aynı kaldı.
+
+   ── 19 EYL 2026 · O GEREKÇE BİR BANDA BAĞLIYMIŞ ────────────────────
+   Yukarıdaki cümle ("adların okunduğu tek yüzey") DOĞRUDUR, ama yalnız
+   künyenin çizilmediği bantta. Ölçüldü, sınır iki pikselde kesin:
+
+     1101px → künye 4 · güçsüz şerit 4 · ray 8 · RAYA ÖZGÜ AD 0
+     1100px → künye 0 · güçsüz şerit 4 · ray 8 · RAYA ÖZGÜ AD 4
+                                                 (Saha A-3 · C · A-2 · D)
+
+   1101'de ray, ekranda başka yerde olmayan TEK bir ad bile taşımıyor:
+   künyeler (4) ile güçsüz şerit (4) sekizin sekizini de yazıyor. Yani
+   "tekrar, bilgi kaybına tercih edilir" dengesi geniş bantta hiç
+   kurulmuyordu — orada kayıp yok, yalnız tekrar vardı: 304k px² ve tek
+   ekran bütçesinden 159px.
+
+   Bugün ray BANDINA ÇEKİLDİ (aşağıdaki `min-width: 1101px` kuralı):
+   künye çizilen yerde gizlenir, çizilmeyen yerde kalır. Ray KALDIRILMIŞ
+   DEĞİLDİR — dar bantta hâlâ dört adın tek yüzeyi.
+
+   Kuralın kendisi gerçek tarayıcıda, iki bantta ölçülür
+   (`arac/tuval-kanit.mjs`): ray gizliyken raya özgü ad sayısı SIFIR
+   olmak zorundadır. Künye eşiği ya da tuval kümesi bir gün değişirse
+   kapı kırmızı yanar; ad sessizce kaybolmaz. */
 .ab-b-serit .kart {
   position: relative; flex: 1 0 216px; height: clamp(104px, 14dvh, 124px); overflow: hidden;
   scroll-snap-align: start; border-right: 1px solid var(--hr);
@@ -2221,6 +2244,19 @@
 .ab-b-serit .kart .guc { font-size: var(--t-veri); color: var(--i2); }
 .ab-b-serit .kart .skor { font-size: var(--t-baslik); flex: none; }
 .ab-b-serit .kart .ab-b-yigin { height: 3px; margin-top: 6px; }
+
+/* ── RAY YALNIZ KÜNYESİZ BANTTA ÇİZİLİR (SAH-SER-003) ────────────────
+   Eşik künye kuralıyla AYNI sayıdır (`max-width: 1100px` · bu dosyada
+   "KÜNYE YÜZEYİ DAR BANTTA ÇİZİLMEZ"): ikisi tek kararın iki yarısıdır
+   — künye nerede susarsa ray orada konuşur. İki sayı ayrışırsa ya ad
+   iki kez yazılır ya hiç yazılmaz; ayrışma kapıda kırmızıdır.
+
+   Yalnız SAHA ekranının rayı: Tesis 360'ın kapsam şeridi (`.ab-b-saha`,
+   `ab-b-genel` SINIFI YOK) bir seçici değil kapsam kanıtıdır ve her
+   bantta durur. */
+@media (min-width: 1101px) {
+  .ab-b-genel .ab-b-serit { display: none; }
+}
 
 
 /* ═══ Ekranın kendi dizini (uyum matrisi) — 212px sol sütun ═════════

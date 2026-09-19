@@ -328,7 +328,86 @@ yazılıdır" iddiasını **eski kademe adına** çakılı sınıyordu, yani öl
 canlı tutan şey kapının kendisiydi. Kapı bugün jetona (`--t-ekran`) bağlanır ve
 `**Display**` ibaresinin YOKLUĞUNU ayrıca ölçer.
 
-## 9. Açık kalan
+## 9. Saha rayı kendi bandına çekildi — ÖLÇÜLDÜ (19 Eylül 2026)
+
+Kullanıcı Saha şeridini **üç kez** bildirdi: görsel boyları (15 Eyl),
+kaydırma çubuğu (15 ve 18 Eyl). İlk iki tur çubuğu ve şeridin uzunluğunu
+düzeltti; üçüncüde soru değişti — "hangisi fazla, sen karar ver".
+
+### Bölge denetimi (1914×900, gerçek tarayıcı)
+
+| Bölge | Alan | Metin parçası | Etkileşimli |
+| --- | --- | --- | --- |
+| takımyıldız | 691k px² | 54 | 9 |
+| tesis şeridi | **304k px²** | 38 | 9 |
+| dikkat paneli | 228k px² | 32 | 5 |
+| ├ müdahale listesi | 137k px² | 25 | 5 |
+| ├ öncelik şeridi | 122k px² | 21 | 4 |
+| └ eğilim | 6k px² | 1 | 0 |
+| tip paneli | 171k px² | 21 | 1 |
+| durum şeridi | 50k px² | 10 | **0** |
+
+İlk koşumda `dikkat paneli` ve `öncelik şeridi` "YOK" döndü — **seçicilerim
+yanlıştı, bölgeler değil**. Bir denetimde okunamayan bölge sıfır sayılamaz
+("bilinmeyen ≠ sıfır"); seçiciler düzeltilip tablo yeniden ölçüldü. Payda
+kör olduğunda oran her zaman iyi görünür.
+
+### Bulgu: şeridin sekiz bağı takımyıldızın sekiz bağıydı
+
+Şeridin `/tesisler/<id>` hedeflerinin **kimlik kümesi**, takımyıldızın
+hedefleriyle birebir aynıydı — altı bantta da (1914 · 1366 · 1280 · 1024 ·
+768 · 390). Yani şerit hiçbir bantta tek seçici değildi.
+
+### Kaldırıldı — sonra GERİ ALINDI: kod kendi karşı ölçümünü taşıyordu
+
+Şerit tümüyle kaldırıldı (bölüm + `SahaKarti` + kütük modülü). Sonra
+`kabuk.css`te 17 Eylül'de yazılmış bir not okundu:
+
+> KALDIRILMADI ve sebebi ölçüldü: 1024 ve 375'te tuval künyeleri
+> çizilmiyor — tesis **adlarının** okunduğu tek yüzey bu ray.
+
+Not haklıydı ve benim ölçümüm o eksende **kördü**: hedef saydım, görünür
+**ad** saymadım. Yeniden ölçüldü ve sınır iki pikselde kesin çıktı:
+
+| Bant | Künye | Güçsüz şerit | Ray | **Raya özgü ad** |
+| --- | --- | --- | --- | --- |
+| 1101px | 4 | 4 | 8 | **0** |
+| 1100px | 0 | 4 | 8 | **4** |
+
+1101'de ray ekrana tek bir yeni ad katmıyor; 1100'de en kötü dört tesisin
+(Saha A-3 · C · A-2 · D) adının okunduğu **tek** yüzey. "Tekrar, bilgi
+kaybına tercih edilir" dengesi geniş bantta hiç kurulmuyormuş: orada kayıp
+yoktu, yalnız tekrar vardı.
+
+Ray bu yüzden **kaldırılmadı, bandına çekildi**: `≥1101px` gizli, `≤1100px`
+görünür. Eşik künyeyi susturan kuralın (`max-width: 1100px`) bitişiğidir.
+Geniş bantta ray başlığı da gizlendiği için portföyün sayısı ve güç toplamı
+takımyıldızın başlığına taşındı (orada "uyum × güç" duruyordu — eksen
+adlarının dördüncü kanalıydı).
+
+### İki eşik, iki kapı
+
+Eşikler ayrı dosyalarda durur; ayrışırlarsa arada **dört adın ekrandan
+tümüyle kaybolduğu** bir pencere açılır ve iki kural da tek başına doğru
+olduğu için hiçbir kapı görmez ("tek tek doğru, BİRLİKTE tutarsız").
+
+- `tests/bekci/saha-serit.test.ts` beşinci diş — eşiklerin **bitişikliği**
+- `arac/tuval-kanit.mjs` — iki bantta **okunan ad kümesinin eşitliği**,
+  gerçek tarayıcıda (15 → 22 iddia)
+
+Sabotaj: eşik 1101 → 1000 çekilip **yeniden derlendi**; kapı kırmızı yandı ve
+kaybolan dördü **adıyla** yazdı. Üç kaynak sabotajının üçü de yaktı
+(yakmayan sabotaj: **0/4**).
+
+### Kaldırılmayanlar ve sebepleri
+
+- **durum şeridi** (50k px², 0 etkileşimli): eyleme dönmüyor ama ekrandaki
+  bütün sayıların köken uyarısıdır ("bağlayıcı 7 · kimlik bekliyor 6 · son
+  başarılı koşu —"). Doğru semantik, kullanılabilirliğin üstündedir.
+- **tip paneli** (171k px², 1 etkileşimli): takımyıldızın cevaplamadığı ayrı
+  bir soruyu cevaplıyor — hangi üretim tipi zayıf.
+
+## 10. Açık kalan
 
 - #13'ün hareket grameri henüz **hiçbir arketipte denenmedi**; yukarıdaki
   "girer" kararı, denenmeye değer olduğu kararıdır, çalıştığı kararı değildir.

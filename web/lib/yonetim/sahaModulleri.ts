@@ -13,7 +13,12 @@ import { CEKIRDEK_TERIM_SETI, type Metin, type TerimSeti } from '../dil/terimSet
 
    `required` modül gizlenemez — Saha'nın kritik karar yüzeyleri (uyum
    endeksi, müdahale gerektirenler, takımyıldız, kritik risk, gecikmiş
-   aksiyon, yaklaşan denetim, tesis şeridi) her yerleşimde vardır.
+   aksiyon, yaklaşan denetim, tesis şeridi) her yerleşimde vardır. Tesis
+   şeridi `required` KALIR ama yalnız kendi bandında (≤1100px) çizilir:
+   orada dört tesisin adını taşıyan tek yüzeydir, dolayısıyla konsoldan
+   gizlenmesi o bantta gerçek bir bilgi kaybı olurdu. Geniş bantta zaten
+   CSS gizliyor ve orada gizlemek bilgi kaybı DEĞİL, tekrarın kalkmasıdır
+   — ikisi ayrı eksendir ve `required` yalnız KONSOL eksenini bağlar.
    `allowedPositions` KPI kalemine izinli konum kümesidir: kritik risk
    ilk iki konumdan çıkamaz (uyarı görünürlüğü).
 
@@ -79,7 +84,13 @@ const SAHA_MODUL_TANIMLARI: readonly SahaModuluTanimi[] = [
      kayıtlı yerleşimleri sessizce geçersiz kılardı. */
   { id: 'tesisSeridi', ad: (x) => `${basHarf(x.tesis.tekil)} şeridi`, alan: 'serit', defaultVisible: true, allowedPositions: null,
     required: true, hideable: false, orderable: false, etkilenenEkran: 'Saha',
-    aciklama: 'Saha seçici; tek ekran sözleşmesinin ikinci yarısı.' },
+    /* AÇIKLAMA TERİM TAŞIMAZ. Konsolda GÖRÜNEN bir metindir ve çekirdekte
+       durur; sektör sözcüğü buraya çakılamaz (URN-ALN-003 — ilk yazımında
+       çakılmıştı ve cırcır 0→1 yakaladı). Terimi bu satırın `ad` alanı
+       sözlükten çözer; açıklama yalnız kararı anlatır. */
+    aciklama: 'Saha seçici; YALNIZ ≤1100px bandında çizilir — künye çizilmeyen '
+      + 'bantta adların okunduğu tek yüzeydir. Geniş bantta gizlidir '
+      + '(ölçüldü: 1101px’te şeride özgü ad sayısı 0).' },
 ];
 
 /** Kütüğü verilen terim setiyle çözer. */
@@ -112,18 +123,40 @@ export const SAHA_YERLESIM_VARSAYILAN: SahaYerlesimi = {
 
 /* ── Tek ekran sözleşmesi bütçesi ──────────────────────────────────────
    `.ab-b-saha.ab-b-genel` ızgarası `minmax(0,1fr) auto auto`: fotoğrafik
-   alan esner, KPI şeridi ve tesis şeridi sabit yüksekliktedir. Sözleşme
-   (scrollHeight === innerHeight) en küçük sözleşme ekranında (1280×800)
-   sabit satırlar + alanın asgari kullanılabilir yüksekliği bütçeyi aşmazsa
-   korunur. Sayılar 2026-09 kapanış ölçümünden (kabuk.css yorumları):
-   üst bar 56 · KPI kalemi 62/satır · şerit 168 · durum/ayak bantları 40.
-   Alan için 360px altı "kritik içerik görünür" sözünü tutmaz. */
+   alan esner, KPI şeridi sabit yüksekliktedir. Sözleşme (scrollHeight ===
+   innerHeight) en küçük sözleşme ekranında (1280×800) sabit satırlar +
+   alanın asgari kullanılabilir yüksekliği bütçeyi aşmazsa korunur.
+   Sayılar 2026-09 kapanış ölçümünden (kabuk.css yorumları): üst bar 56 ·
+   KPI kalemi 62/satır · durum/ayak bantları 40. Alan için 360px altı
+   "kritik içerik görünür" sözünü tutmaz.
+
+   TESİS ŞERİDİ BÜTÇEDEN DÜŞTÜ (19 Eyl 2026) ve bu bir kısaltma değil,
+   ölçümün sonucudur: şerit artık yalnız ≤1100px'te çiziliyor
+   (`kabuk.css` · `min-width: 1101px` → `display: none`), sözleşme
+   ekranı ise 1280×800 — orada şerit YOK. 168px'i bütçede tutmak,
+   fotoğrafik alandan var olmayan bir satır için yer ayırmak olurdu;
+   ölçüldü, o satır en sıkışık bantta (1366×768) takımyıldızı 454px'e
+   indiriyordu ve bir dağılım grafiği için orası dardı.
+
+   BÜTÇE 1280×800'ÜN BÜTÇESİDİR, "her bandın" değil — adı da bunu söyler
+   (`SOZLESME_BUTCESI_1280x800`). Bu ayrım burada önemlidir, çünkü tek
+   ekran ızgarası ile şeridin bandı ÇAKIŞIR:
+
+     · tek ekran ızgarası : `min-width: 1025px` ve `min-height: 680px`
+     · şerit görünür      : `max-width: 1100px`
+
+   Yani 1025–1100px penceresinde sözleşme İŞLER ve şerit ÇİZİLİR. O
+   pencere bu bütçeyle ölçülmez ve ölçülmediği BEYANLIDIR: `sozlesmeKontrol`
+   kayıt reddetmek için 1280×800'e bakar, ekranın her genişliğine değil
+   ("koşulmayan kapı 'geçti' yazılmaz"). Gerçek yükseklik ölçümü
+   tarayıcılı taşma kapısının işidir; burası kaydı ölçümden ÖNCE
+   reddetmek için duran saf bir hesaptır. */
 export type SozlesmeButcesi = {
   viewportYukseklik: number; ustBar: number; bantlar: number; kpiSatirYukseklik: number;
-  seritYukseklik: number; alanAsgari: number; kpiSutun: number;
+  alanAsgari: number; kpiSutun: number;
 };
 export const SOZLESME_BUTCESI_1280x800: SozlesmeButcesi = {
-  viewportYukseklik: 800, ustBar: 56, bantlar: 40, kpiSatirYukseklik: 62, seritYukseklik: 168, alanAsgari: 360, kpiSutun: 4,
+  viewportYukseklik: 800, ustBar: 56, bantlar: 40, kpiSatirYukseklik: 62, alanAsgari: 360, kpiSutun: 4,
 };
 
 export type SozlesmeSonucu = { ihlal: boolean; nedenler: string[]; alanYukseklik: number | null };
@@ -139,8 +172,7 @@ export function sozlesmeKontrol(y: SahaYerlesimi, butce: SozlesmeButcesi = SOZLE
   const kpiSayisi = KPI_MODULLERI.filter((m) => !gizli.has(m.id)).length;
   const kpiSatir = Math.ceil(kpiSayisi / butce.kpiSutun);
   if (kpiSatir > 1) nedenler.push(`KPI şeridi ${kpiSatir} satıra taşar; tek satır sözleşmesi bozulur.`);
-  const serit = gizli.has('tesisSeridi') ? 0 : butce.seritYukseklik;
-  const alanYukseklik = butce.viewportYukseklik - butce.ustBar - butce.bantlar - kpiSatir * butce.kpiSatirYukseklik - serit;
+  const alanYukseklik = butce.viewportYukseklik - butce.ustBar - butce.bantlar - kpiSatir * butce.kpiSatirYukseklik;
   if (alanYukseklik < butce.alanAsgari) {
     nedenler.push(`Fotoğrafik alana ${alanYukseklik}px kalır; asgari ${butce.alanAsgari}px (1280×800).`);
   }

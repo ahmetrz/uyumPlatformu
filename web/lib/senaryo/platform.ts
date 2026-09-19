@@ -929,6 +929,42 @@ export const PLATFORM_SENARYOLARI: Senaryo[] = [
     katmanlar: ['UI'],
   },
   {
+    id: 'SAH-SER-003', alan: 'Saha', rota: '/', eksen: 'arayuz',
+    amac: 'Kullanıcı Saha şeridini ÜÇÜNCÜ kez bildirdi (19 Eyl 2026) ve '
+      + 'bu kez soru değişti: "hangisinin fazla olduğuna sen karar ver". '
+      + 'Bölge denetimi şeridi ekranın ikinci en büyük bölgesi ölçtü '
+      + '(304k px² · 38 metin parçası) ve şeridin sekiz tesis bağının '
+      + 'KİMLİK KÜMESİ takımyıldızınkiyle birebir aynı çıktı. Şerit '
+      + 'kaldırıldı — sonra `kabuk.css`te 17 Eyl 2026 tarihli bir karşı '
+      + 'ölçüm okundu: dar bantta tuval künyeleri çizilmiyor ve şerit '
+      + 'tesis ADLARININ okunduğu tek yüzey. Ölçüm HEDEF saymıştı, '
+      + 'görünür AD saymamıştı — payda o eksende kördü. Yeniden '
+      + 'ölçüldü ve sınır iki pikselde kesin çıktı: 1101px’te künye 4 · '
+      + 'güçsüz şerit 4 · şeride özgü ad 0; 1100px’te künye 0 · şeride '
+      + 'özgü ad 4 (en kötü dört tesis). Şerit bu yüzden KALDIRILMADI, '
+      + 'BANDINA ÇEKİLDİ. Kusur sınıfı iki eşiğin ayrışmasıdır: künyeyi '
+      + 'susturan kural ile şeridi gizleyen kural ayrı yerlerde durur ve '
+      + 'ayrışırlarsa arada DÖRT ADIN ekrandan tümüyle kaybolduğu bir '
+      + 'pencere açılır — iki kural da tek başına doğru olduğu için '
+      + 'hiçbir kapı görmez ("tek tek doğru, BİRLİKTE tutarsız").',
+    rol: 'BT direktörü', kapsam: 'kurum geneli',
+    onkosul: 'Portföyde uyumu ölçülmüş en az dört tesis var',
+    veriHali: 'kısmi',
+    eylem: 'Saha ekranı 1101px ve 1100px bantlarında açılır; okunabilen '
+      + 'tesis adları iki bantta karşılaştırılır',
+    beklenenSonuc: 'Şerit yalnız ≤1100px’te çizilir; ≥1101px’te gizlidir '
+      + 've orada ekrana tek bir yeni ad katmaz (şeride özgü ad 0). '
+      + '≤1100px’te künye çizilmediği için şerit dört adın tek yüzeyidir. '
+      + 'Şeridi gizleyen eşik, künyeyi susturan eşiğin BİTİŞİĞİDİR — '
+      + 'aralarında ad kaybettiren bir pencere kalamaz. OKUNABİLEN TESİS '
+      + 'ADLARININ KÜMESİ İKİ BANTTA DA AYNIDIR ve bu gerçek tarayıcıda '
+      + 'ölçülür. Geniş bantta şeridin başlığı da gizlendiği için '
+      + 'portföyün sayısı ve güç toplamı takımyıldızın başlığında durur.',
+    beklenenEkran: 'Saha · tesis şeridi ve takımyıldız',
+    beklenenIz: 'yazma yok', beklenenBildirim: 'yok',
+    katmanlar: ['UI'],
+  },
+  {
     id: 'URN-KBK-022', alan: 'Sistem', rota: '—', eksen: 'arayuz',
     amac: 'Kabuk kromu (56px başlık · 32px ayak) her ekranda durur; '
       + 'oradaki bir kusur 49 rotanın hepsine dağılır. Ölçüldü '

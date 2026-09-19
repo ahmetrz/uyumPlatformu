@@ -973,7 +973,33 @@ function testKos(testler) {
   }
 }
 
-const sonuclar = [];
+const sonuclar = [  {
+    ad: 'Şeridi gizleyen bant kuralı kaldırıldı',
+    kural: 'Ray künye çizilen bantta gizlenir; 1101px’te ekrana sıfır yeni ad katıyordu',
+    dosya: 'app/kabuk.css',
+    ara: `@media (min-width: 1101px) {
+  .ab-b-genel .ab-b-serit { display: none; }
+}`,
+    yaz: '/* SABOTAJ: bant kuralı kaldırıldı — ray her bantta çizilir */',
+    testler: ['tests/bekci/saha-serit.test.ts'],
+  },
+  {
+    ad: 'İki eşik ayrıştırıldı (ad kaybı penceresi açılır)',
+    kural: 'Künyeyi susturan eşik ile rayı gizleyen eşik BİTİŞİKTİR; ayrışırsa arada dört tesisin adı ekrandan tümüyle kaybolur',
+    dosya: 'app/kabuk.css',
+    ara: '@media (min-width: 1101px) {',
+    yaz: '@media (min-width: 1200px) {',
+    testler: ['tests/bekci/saha-serit.test.ts'],
+  },
+  {
+    ad: 'Portföy özeti takımyıldızdan alındı',
+    kural: 'Şerit geniş bantta gizli olduğu için portföyün sayısı ve güç toplamı takımyıldızın başlığında durur',
+    dosya: 'app/(kabuk)/(flagship)/Genel.tsx',
+    ara: `          portfoy={{ sayi: ozet.tesisSayisi, gucYazi: ozet.gucYazi }} />`,
+    yaz: '          portfoy={{ sayi: 0, gucYazi: null }} />',
+    testler: ['tests/bekci/saha-serit.test.ts'],
+  },
+];
 for (const s of SABOTAJLAR) {
   if (s.atla) {
     sonuclar.push({ ad: s.ad, kural: s.kural, durum: 'atlandi', not: s.atla });

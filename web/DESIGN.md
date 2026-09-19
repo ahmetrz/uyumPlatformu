@@ -328,7 +328,7 @@ kapının kendi çıktısındadır, buraya elle yazılmaz (eski "38 rota" ölç�
 ## Elevation & Depth
 
 Gölge yoktur. Derinlik **tonal katmanlama** ve **saç çizgisiyle** kurulur:
-zemin → panel → panel-2 üç kademe; her katman 1px `--hr` / `--hr2` kenarlıkla
+zemin → panel `1,144:1` · panel → panel-2 `1,163:1` · zemin → panel-2 `1,331:1` (ölçüldü 19 Eyl 2026; kapı `tests/bekci/yuzey-kademesi.test.ts`, SIS-PAL-001 — sayılar buradan okunur ve koddan ayrışırsa kırmızı yanar). zemin → panel → panel-2 üç kademe; her katman 1px `--hr` / `--hr2` kenarlıkla
 ayrılır. Çekmece `position: fixed`, `border-left: 1px var(--hr2)`, gölgesiz.
 Fotoğraf üstünde okunabilirlik `.veil` yatay gradyanıyla sağlanır (fotoğrafa
 dokunmadan). Hover, panel-2 zeminiyle ifade edilir; kaldırma/yükseltme yoktur.

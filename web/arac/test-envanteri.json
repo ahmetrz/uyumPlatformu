@@ -1,7 +1,7 @@
 {
-  "imza": "2f15bb2af5b2dcd823ddb51e9e35d0ba",
-  "dosya": 262,
-  "vaka": 4597,
+  "imza": "55765612493bfd4f6f8743e8adb40590",
+  "dosya": 263,
+  "vaka": 4601,
   "atlanan": 1,
   "dosyalar": {
     "tests/adaptor-yetenekleri.test.ts": {
@@ -181,6 +181,10 @@
       "atlanan": 0
     },
     "tests/bekci/yumusak-silme-sayimi.test.ts": {
+      "vaka": 4,
+      "atlanan": 0
+    },
+    "tests/bekci/yuzey-kademesi.test.ts": {
       "vaka": 4,
       "atlanan": 0
     },

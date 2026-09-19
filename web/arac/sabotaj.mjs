@@ -999,6 +999,38 @@ const sonuclar = [  {
     yaz: '          portfoy={{ sayi: 0, gucYazi: null }} />',
     testler: ['tests/bekci/saha-serit.test.ts'],
   },
+  {
+    ad: 'Yüzey kademesi düzleştirildi',
+    kural: 'Koyu temada zemin → panel adımı algılanabilir olmalı; 1,10:1 altı ayrışma sayılmaz',
+    dosya: 'app/kabuk.css',
+    ara: '  --panel: #1D1F20;',
+    yaz: '  --panel: #111314;',
+    testler: ['tests/bekci/yuzey-kademesi.test.ts'],
+  },
+  {
+    ad: 'Yüzey kademesi tersine çevrildi',
+    kural: 'Panel zeminin ÜSTÜNDEDİR; sıra tersine dönerse "bir kademe üstü" beyanı yalan olur',
+    dosya: 'app/kabuk.css',
+    ara: '  --panel2: #292B2C;',
+    yaz: '  --panel2: #141617;',
+    testler: ['tests/bekci/yuzey-kademesi.test.ts'],
+  },
+  {
+    ad: 'Saç çizgisi en parlak yüzeyin altına indirildi',
+    kural: 'Ayraç, üstüne çizildiği en parlak yüzeyden parlaktır; yoksa panel üstündeki kenarlıklar görünmez olur',
+    dosya: 'app/kabuk.css',
+    ara: '  --hr: #333536;',
+    yaz: '  --hr: #1C2123;',
+    testler: ['tests/bekci/yuzey-kademesi.test.ts'],
+  },
+  {
+    ad: 'DESIGN.md kademe sayısı koddan ayrıştırıldı',
+    kural: 'Belgenin yazdığı kademe ÖLÇÜLENLE aynıdır — bu kapının doğum sebebi o ayrışmaydı',
+    dosya: 'DESIGN.md',
+    ara: 'zemin → panel `1,144:1`',
+    yaz: 'zemin → panel `1,400:1`',
+    testler: ['tests/bekci/yuzey-kademesi.test.ts'],
+  },
 ];
 for (const s of SABOTAJLAR) {
   if (s.atla) {

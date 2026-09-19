@@ -2321,7 +2321,12 @@
    kesme değil — inceleme bulgusu, PR #64); tam etiket bağ başlığında. */
 .ab-b-serit .kart .kimlik { display: block; flex: 1 1 auto; min-width: 0; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 .ab-b-serit .kart .kimlik .guc::before { content: ' · '; color: var(--i3); }
-.ab-b-serit .kart .tip { font-size: var(--t-veri); letter-spacing: var(--tr-gezinme); }
+/* Harf aralığı KALDIRILDI. Üretim tipi içerik paketinden gelen bir
+   DEĞERDİR; aynı gerekçeyle büyük harfi 18 Eyl'de kaldırılmıştı (kabuk
+   barındaki sektör adı, cırcır 62 → 60). İz de kaş tipografisidir: bir
+   değer kaşın sesiyle konuşunca kaşı işlevsiz kılar. Ölçüldü (390×844):
+   ekrandaki 22 harf aralıklı öğenin 8'i bu yuvaydı. */
+.ab-b-serit .kart .tip { font-size: var(--t-veri); }
 .ab-b-serit .kart .ad {
   /* cümle düzeni — tesis adı veridir, kaş değil (SIS-KBK-031) */
   font-family: var(--gorunum); font-size: var(--t-bolum); line-height: var(--lh-manset);
@@ -2343,6 +2348,22 @@
    bantta durur. */
 @media (min-width: 1101px) {
   .ab-b-genel .ab-b-serit { display: none; }
+}
+
+/* ── EŞİĞİN ÖBÜR YANI · PORTFÖY ÖZETİ İKİ KEZ YAZILIYORDU ──────────────
+   Ray gizlenince portföyün sayısı ve güç toplamı takımyıldızın başlığına
+   TAŞINDI — doğru karardı, ama yalnız YARISI yapıldı: ray GÖRÜNEN bantta
+   iki başlık da çiziliyor ve ikisi de aynı dizeyi yazıyor. Ölçüldü
+   (390×844): portföy künyesi (ad · sayı · güç toplamı)
+   ekranda İKİ KEZ, 208px arayla.
+
+   Tekrar eden bir değer farklı bir karar amacı taşımıyorsa bilişsel yük
+   kusurudur — kuralın kendisi bu depoda yazılı ve bu satır onu kendi
+   düzeltmesiyle çiğniyordu. Eşik bitişiktir ve BİRLİKTE tutulur
+   (`tests/bekci/saha-serit.test.ts` BEŞİNCİ DİŞ): 1101 rayı gizler,
+   1100 devralan başlığı gizler; arada ne boşluk ne örtüşme vardır. */
+@media (max-width: 1100px) {
+  .ab-b-genel .ab-b-takim .ab-takim-bas > .etiket.ust { display: none; }
 }
 
 
@@ -4644,13 +4665,34 @@ details:not([open]) > *:not(summary) { display: none !important; }
   .ab-b-alan > aside, .ab-b-alan > .ab-b-takim { border-right: 0; }
   .ab-b-dikkat, .ab-b-katman { border-bottom: 1px solid var(--hr); }
   .ab-b-katman { border-left: 0; overflow-y: visible; }
-  /* Takımyıldızı tuvali orantısını yükseklikten alır; akışta 0'a çöker. */
-  .ab-b-takim { padding: 24px 32px; min-height: 380px; }
-  /* Şerit kalktı (yukarı bakın); dar bantta tuval yalnız asgari yükseklik
-     ister. Özet başlık satırındadır ve dar bantta ALT SATIRA sarar:
-     `justify-content: space-between` iki öğeyi yan yana zorlar, sığmadığı
-     yerde ad üç noktaya iner ve sayı okunamaz hâle gelirdi. */
-  .ab-b-takim .ab-tuval-sar > .ab-tuval { min-height: 300px; }
+  /* ── TUVAL KÜNYESİYLE BİRLİKTE YAŞAR — ADSIZ NOKTA TUVAL DEĞİLDİR ──
+     Bu blok `max-width: 1100px` bandıdır ve künyeleri zaten burada
+     kaldırmıştık (17 Eyl: "dar bantta serbest yüzen künye YANLIŞ
+     BİÇİMDİR"). Yani 1100px'in altında tuval, ADSIZ noktalar ve iki
+     eksen yazısından ibaretti. Tuvalin sorduğu soru "hangi tesis güçlü
+     ve uyumlu"dur; adı okunmayan bir nokta o soruyu yanıtlayamaz —
+     konumu okumak için çentikle nokta arasında göz gidip gelmelidir ve
+     390px'te ikisi de 10px'tir. Üstelik nokta bir BAĞDIR: telefonda
+     24×24'lük bir hedefe isabet ettirmek, hemen altındaki raydan kart
+     seçmekten zordur.
+
+     İki kural artık TEK eşikte buluşuyor: 1101 künyeyi de tuvali de
+     çizer ve rayı gizler; 1100 üçünü birden tersine çevirir. Ayrı iki
+     eşik, arada "adsız tuval" diye bir üçüncü hâl üretiyordu.
+
+     ÖLÇÜLDÜ (19 Eyl 2026, 390×844): sayfa 2 166px = 2,57× ekran;
+     tuval tek başına 433px. Kaldırıldıktan sonra 1 866px = 2,21×.
+
+     AD KAYBI YOK ve bu ölçülür: tuvale çizilen küme
+     (`endeks !== null && guc !== null`) rayın kümesinin (`endeks !== null`)
+     ALT KÜMESİDİR ve ray tam bu bantta görünür. Ölçüldü 1100px'te:
+     rayda 8 ad, tuvalde okunan ad 0. Gücü ölçülmemişlerin şeridi
+     (`.ab-gucsuz`) KALIR — onların adı başka hiçbir yüzeyde yok.
+     Kapı: `tests/bekci/saha-serit.test.ts` · `arac/tuval-kanit.mjs`. */
+  .ab-b-takim .ab-tuval { display: none; }
+  /* Asgari boy (380px kap · 245px tuval) çizilen tuval içindi; çizilmeyen
+     bir yüzey yer tutamaz. */
+  .ab-b-takim { padding: 24px 32px; }
   /* Özet zaten kendi satırında ve sarıyor; dar bantta ek kural gerekmez. */
   /* Dar bantta künye TARAFINI ERKEN DEĞİŞTİRİR. Sarmak denendi ve
      ölçüldü: üç satıra çıkan künyeler birbirine giriyordu. Bunun yerine

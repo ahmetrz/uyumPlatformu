@@ -989,6 +989,22 @@ const SABOTAJLAR = [
     testler: ['tests/bekci/saha-serit.test.ts'],
   },
   {
+    ad: 'Tuval adsız hâline döndürüldü (künye susuyor, nokta çiziliyor)',
+    kural: 'Tuval künyesiyle AYNI eşikte susar; adı okunmayan bir nokta "hangi tesis güçlü ve uyumlu" sorusunu yanıtlayamaz',
+    dosya: 'app/kabuk.css',
+    ara: '  .ab-b-takim .ab-tuval { display: none; }',
+    yaz: '  /* SABOTAJ: tuval dar bantta da çiziliyor — adsız nokta */',
+    testler: ['tests/bekci/saha-serit.test.ts'],
+  },
+  {
+    ad: 'Devralan portföy özeti ray görünen bantta da çiziliyor',
+    kural: 'Ray gizlenince özeti takımyıldız devralır; ray geri gelince devralan ÇEKİLİR — yoksa aynı iki sayı ekranda iki kez durur',
+    dosya: 'app/kabuk.css',
+    ara: '  .ab-b-genel .ab-b-takim .ab-takim-bas > .etiket.ust { display: none; }',
+    yaz: '  /* SABOTAJ: devralan özet çekilmiyor — portföy künyesi iki kez */',
+    testler: ['tests/bekci/saha-serit.test.ts'],
+  },
+  {
     ad: 'Yüzey kademesi düzleştirildi',
     kural: 'Koyu temada zemin → panel adımı algılanabilir olmalı; 1,10:1 altı ayrışma sayılmaz',
     dosya: 'app/kabuk.css',

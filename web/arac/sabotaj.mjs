@@ -443,10 +443,10 @@ const SABOTAJLAR = [
     kural: 'Dar bant için yazılan bir kural gerçekten uygulanır',
     dosya: 'app/kabuk.css',
     ara: `@media (max-width: 620px) {
-  .ab-mercek-dar select { max-width: 118px; }
+  .ab-ust .ab-mercek-dar select { max-width: 118px; }
 }`,
     yaz: `@media (max-width: 620px) {
-  .ab-mercek-dar select { max-width: 118px; }
+  .ab-ust .ab-mercek-dar select { max-width: 118px; }
   .ab-hesap-dugme .kisi { display: none; }
 }`,
     testler: ['tests/bekci/olu-bant-kurali.test.ts'],
@@ -1008,8 +1008,12 @@ const SABOTAJLAR = [
     ad: 'Aktif sekmeye panel zemini geri verildi (bar içinde kutu)',
     kural: 'Aktif sekme İKİ ipucu taşır — mürekkep + bakır alt çizgi; zemin bir KUTU üretir ve rayı böler',
     dosya: 'app/kabuk.css',
-    ara: "  color: var(--murekkep); border-bottom-color: var(--aksan);\n}",
-    yaz: "  color: var(--murekkep); background: var(--panel); border-bottom-color: var(--aksan);\n}",
+    ara: `.ab-ust > nav a[aria-current='page'] {
+  color: var(--murekkep); border-bottom-color: var(--aksan);
+}`,
+    yaz: `.ab-ust > nav a[aria-current='page'] {
+  color: var(--murekkep); background: var(--panel); border-bottom-color: var(--aksan);
+}`,
     testler: ['tests/bekci/kabuk-kromu.test.ts'],
   },
   {

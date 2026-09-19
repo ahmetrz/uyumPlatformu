@@ -179,19 +179,30 @@ describe('bekçi · kabuk kromu', () => {
     }
     /* TAVAN — yalnız küçülür. Ölçüldü (18 Eyl 2026): ekrandaki büyük
        harfli dize 17'den 9'a indi; kaynaktaki KURAL sayısı ise 5'tir ve
-       beşi de meşrudur:
+       beşi de meşrumuş. Kabuk yeniden tasarımında (19 Eyl 2026) BİRİ
+       düştü ve tavan ONUNLA BİRLİKTE indi:
 
-         1 · `.ab-ust .marka .ikinci`  ürün adı — sözcük markasının kaşı
-         2 · `.ab-ust > nav a`         birincil gezinme (kuralın kendi istisnası)
-         3 · `.ab-ornek-veri`          uyarı işareti — ekran görüntüsünde
+         ~~`.ab-ust .marka .ikinci`~~  ürün adı — KALDIRILDI: bakır artık
+                                       yalnız durumu işaretler, kimliği
+                                       değil; ikinci satır cümle düzenine
+                                       ve üçüncül mürekkebe indi
+         1 · `.ab-ust > nav a`         birincil gezinme (kuralın kendi istisnası)
+         2 · `.ab-ornek-veri`          uyarı işareti — ekran görüntüsünde
                                        görünmesi ürün şartıdır
-         4 · `.ab-mercek .etiket`      "Sektör" kaşı
-         5 · `.ab-mercek-dar .etiket`  aynı kaşın dar bant nüshası
+         3 · `.ab-mercek .etiket`      "Sektör" kaşı
+         4 · `.ab-mercek-dar .etiket`  aynı kaşın dar bant nüshası
+
+       ── TAVAN NİÇİN İNDİ ──────────────────────────────────────────────
+       Popülasyon 5'ten 4'e indiğinde tavan 5'te bırakılırsa, cırcır BİR
+       İHLALLİK BOŞLUK açar: yeni bir büyük harf kuralı eklemek tavanı
+       aşmaz ve kapı susar. SABOTAJ TURU TAM BUNU YAKALADI — "sektör
+       ADLARINI yeniden büyük harf yap" sabotajı, tavan 5'te kaldığı için
+       kırmızı yakmadı (R-E bulgusu). Bir tavan, ölçülen sayı düştüğünde
+       onunla birlikte inmiyorsa artık tavan değildir.
 
        Tavan KURAL sayısındadır, öğe sayısında değil: bir kural beş
-       sekmeyi birden büyütür ve asıl karar kuraldadır. Yeni bir büyük
-       harf kuralı eklemek barın sesini geri yükseltmektir ve beyan ister. */
-    const TAVAN = 5;
+       sekmeyi birden büyütür ve asıl karar kuraldadır. */
+    const TAVAN = 4;
     expect(buyukHarfli.length, `Başlıkta büyük harf kuralı: ${buyukHarfli.length} > ${TAVAN}\n  `
       + `${buyukHarfli.join('\n  ')}\n`
       + 'Büyük harf YAPISAL KAŞA aittir — ada, cümleye, DEĞERE değil. '

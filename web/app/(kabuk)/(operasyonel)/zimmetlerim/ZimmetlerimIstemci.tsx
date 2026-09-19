@@ -128,7 +128,11 @@ export default function ZimmetlerimIstemci({
           her yerindeki mercek şeridiyle aynı şey. O yüzden aynı
           gramere alındı: `role="group"` + `aria-pressed`. */}
       <div role="group" aria-label="Zimmet durumu"
-        style={{ display: 'flex', gap: 'var(--s8)', marginBottom: 'var(--s16)' }}>
+        /* `flexWrap` DAR BANT İÇİN: 375px'te dört yonga tek satıra
+           sığmıyor ve satır 7px taşıyordu (taşma kapısı, 19 Eyl 2026).
+           Yonga şeridi sarmalır — kaydırmaz: kaydırılan bir süzgeç
+           şeridinde son yonga görünmez olur ve kullanıcı onu aramaz. */
+        style={{ display: 'flex', flexWrap: 'wrap', gap: 'var(--s8)', marginBottom: 'var(--s16)' }}>
         {SEKMELER.map((sk) => (
           <button key={sk.id} type="button" className="ab-filtre"
             aria-pressed={sekme === sk.id}

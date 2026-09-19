@@ -226,14 +226,23 @@ for (const b of AD_BANTLARI) {
     return {
       kunye: adlar('.ab-b-takim .ab-tuval .kunye .ad'),
       gucsuz: adlar('.ab-b-takim .ab-gucsuz .serit a .ad'),
-      seritAd: adlar('.ab-b-genel .ab-b-serit .kart .ad'),
+      /* GÖRÜNÜR ad — kullanıcının okuduğu. */
+      seritGorunurAd: adlar('.ab-b-genel .ab-b-serit .kart .ad'),
+      /* DOM'DAKİ ad — GİZLİ olsa da. Geniş banttaki iddia ("gizleme ad
+         kaybettirmiyor") tam da GİZLENEN adlar üzerinedir; görünürlük
+         süzgecinden geçirilirse liste boşalır ve iddia kendi kendini
+         doğrular. */
+      seritTumAd: [...document.querySelectorAll('.ab-b-genel .ab-b-serit .kart .ad')]
+        .map((e) => e.textContent.trim()).filter(Boolean),
       seritGorunur: Boolean(serit) && getComputedStyle(serit).display !== 'none',
     };
   });
 
   const tuvalde = new Set([...o.kunye, ...o.gucsuz]);
-  const rayaOzgu = o.seritAd.filter((a) => !tuvalde.has(a));
-  adKumeleri.push({ bant: b.ad, kume: new Set([...tuvalde, ...o.seritAd]) });
+  /* Karşılaştırma DOM'daki TÜM ray adları üzerinden yapılır — gizli
+     olanlar dâhil. Kullanıcının OKUDUĞU küme ise ayrı tutulur. */
+  const rayaOzgu = o.seritTumAd.filter((a) => !tuvalde.has(a));
+  adKumeleri.push({ bant: b.ad, kume: new Set([...tuvalde, ...o.seritGorunurAd]) });
 
   /* Künye kuralı bu bantta gerçekten iddia edildiği gibi mi işliyor?
      Ray kararının DAYANAĞI bu; dayanak ölçülmezse karar beyandır. */
@@ -243,22 +252,29 @@ for (const b of AD_BANTLARI) {
   /* Ray kendi bandında mı? */
   olc(b.ad, `ray ${b.kunyeli ? 'gizli' : 'görünür'}`,
     o.seritGorunur === !b.kunyeli,
-    o.seritGorunur ? `görünür · ${o.seritAd.length} ad` : 'gizli');
+    o.seritGorunur ? `görünür · ${o.seritGorunurAd.length} ad` : 'gizli');
 
   /* KÜNYELİ BANTTA RAY BİR ŞEY EKLEMEZ. Gizleme kararının TEK gerekçesi
      budur; sayı sıfırdan büyükse ray gizlenerek ad kaybediliyor demektir
      ve gizleme kuralı geri alınmalıdır (yükseklik kazancı bir adın
      yerini tutmaz). */
   if (b.kunyeli) {
+    /* BOŞ KÜME İDDİAYI DOĞRULAMAZ. Ray hiç ad taşımıyorsa "özgü ad yok"
+       kendiliğinden doğru olur ve kapı hiçbir şey ölçmeden yeşil yanar —
+       bu deponun "hiçbir şey ölçmeden yeşil yanan kapı" sınıfı. Önce
+       ölçülecek bir şey OLDUĞU ölçülür. */
+    olc(b.ad, 'rayda ölçülecek ad var (gizli de olsa)', o.seritTumAd.length > 0,
+      `${o.seritTumAd.length} ad DOM'da`);
     olc(b.ad, 'raya özgü ad yok — gizleme ad kaybettirmiyor',
-      rayaOzgu.length === 0,
-      rayaOzgu.length ? rayaOzgu.join(' · ') : '0 özgü ad');
+      o.seritTumAd.length > 0 && rayaOzgu.length === 0,
+      rayaOzgu.length ? rayaOzgu.join(' · ')
+        : `${o.seritTumAd.length} adın ${o.seritTumAd.length}'i başka yüzeyde okunuyor`);
   } else {
     /* KÜNYESİZ BANTTA RAY TEK AD YÜZEYİDİR. Buradaki sayı sıfıra
        düşerse ray gereksizleşmiş demektir DEĞİL — künye kuralının
        değiştiği demektir; ikisi birlikte okunur. */
-    olc(b.ad, 'ray künyesiz bantta ad taşıyor', o.seritAd.length > 0,
-      `${o.seritAd.length} ad · ${rayaOzgu.length} tanesi yalnız burada`);
+    olc(b.ad, 'ray künyesiz bantta ad taşıyor', o.seritGorunurAd.length > 0,
+      `${o.seritGorunurAd.length} ad · ${rayaOzgu.length} tanesi yalnız burada`);
   }
 
   await baglam.close();
@@ -293,10 +309,12 @@ await tarayici.close();
    değil — ekranın tamamı taranır — ama ölçüm ekranı ve bantları bu
    kapının zaten kurduğu ortamdır; ayrı bir kapı aynı sunucuyu ikinci
    kez ayağa kaldırırdı. */
-/* 15 → 22: ad yüzeyi bandı (SAH-SER-003) iki bantta üçer iddia, üstüne
-   küme eşitliği. Ayrı bir kapı aynı sunucuyu üçüncü kez ayağa
+/* 15 → 23: ad yüzeyi bandı (SAH-SER-003). Geniş bantta dört, dar bantta
+   üç iddia, üstüne küme eşitliği. Dördüncü iddia ("rayda ölçülecek ad
+   var") ilk yazımda YOKTU ve olmayınca üstündeki iddia BOŞ KÜMEYLE
+   kendiliğinden geçiyordu. Ayrı bir kapı aynı sunucuyu üçüncü kez ayağa
    kaldırırdı; ölçüm ekranı ve oturumu bu kapının zaten kurduğu ortam. */
-const ASGARI_IDDIA = 22;
+const ASGARI_IDDIA = 23;
 if (iddialar.length < ASGARI_IDDIA) {
   console.error(`\nÖLÇÜM YETERSİZ: ${iddialar.length} iddia, taban ${ASGARI_IDDIA}.`);
   console.error('  Ölçülmemiş bir kapı "geçti" diye yazılmaz.');
